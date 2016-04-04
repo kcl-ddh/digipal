@@ -585,7 +585,7 @@ span[data-dpt] > span[data-dpt] {
     display: table-column;
 }
 .preview.line-breaks-as-pipes.mce-content-body span[data-dpt=lb] {
-    /* MS LB displayed as line breaks */
+    /* MS LB displayed as | */
     display: inline;
 }
 
@@ -638,8 +638,10 @@ span[data-dpt] > span[data-dpt] {
     /* make sure there is a space */
     content: " ";
 }
+/* not a block anymore because we want line breaks created only by 
+LB spans or by unit markers */
 .ct-transcription-sample.preview.ms-lb-lb.mce-content-body p {
-    display: inline;
+    display: inline-block;
 }
 
 /* Highlight */

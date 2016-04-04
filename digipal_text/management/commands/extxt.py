@@ -1222,6 +1222,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             exp = regex.sub(ur'\u0111', ur'd', exp)
             # h
             exp = regex.sub(ur'\u0127', ur'h', exp)
+            exp = regex.sub(ur'Ħ', ur'H', exp)
             # e.g. hid4as
             exp = regex.sub(ur'\d', ur'', exp)
             # ƥ -> p (e.g. 1v super illos)
@@ -1230,7 +1231,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             ##exp = regex.sub(ur'ṕ', ur'p', exp)
             exp = regex.sub(ur'ƣ', ur'q', exp)
             exp = regex.sub(ur'Ł', ur'L', exp)
-
 
             # Remove abbreviation signs
             # ! we must make sure that the content no longer contains entities!

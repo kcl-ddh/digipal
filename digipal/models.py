@@ -2458,6 +2458,15 @@ class Graph(models.Model):
             for f in c.features.all():
                 ret.append(u'%s_%s' % (c.component.id, f.id))
         return u' '.join(ret)
+    
+    def get_component_feature_labels(self):
+        ret = []
+        
+        for c in self.graph_components.all():
+            for f in c.features.all():
+                ret.append(u'%s: %s' % (c.component.name, f.name))
+        
+        return ret
 
 class GraphComponent(models.Model):
     graph = models.ForeignKey(Graph, related_name='graph_components')

@@ -232,19 +232,13 @@ FACETED_SEARCH = {
                     'django_filter': {'annotation__isnull': False},
                     'fields': [
                                 {'key': 'url', 'label': 'Address', 'label_col': ' ', 'path': 'get_absolute_url', 'type': 'url', 'viewable': True},
-    #                            {'key': 'hi_date', 'label': 'MS Date', 'path': 'item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
-    #                            {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
                                 {'key': 'hi_type', 'label': 'Document Type', 'path': 'annotation.image.item_part.historical_item.historical_item_type.name', 'type': 'id', 'viewable': True, 'count': True},
-    #                            {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
                                 {'key': 'repo_city', 'label': 'Repository City', 'path': 'annotation.image.item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                 {'key': 'repo_place', 'label': 'Repository', 'path': 'annotation.image.item_part.current_item.repository.human_readable', 'path_result': 'annotation.image.item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                 {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'annotation.image.item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
                                 {'key': 'hand_place', 'label': 'Medieval Place', 'path': 'hand.assigned_place.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'hand_label', 'label': 'Hand', 'path': 'hand.label', 'search': True, 'viewable': True, 'type': 'title', 'count': True},
                                 {'key': 'locus', 'label': 'Locus', 'path': 'annotation.image.locus', 'search': True, 'viewable': True, 'type': 'code'},
-    #                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
-    #                            {'key': 'script', 'label': 'Script', 'path': 'idiograph.allograh.script.name', 'viewable': True, 'type': 'code'},
-                                #{'key': 'hand_script', 'label': 'Script of the Hand', 'label_col': 'Script', 'path': 'hand.script.name', 'viewable': True, 'search': True, 'type': 'code', 'count': True},
                                 {'key': 'chartype', 'label': 'Character Type', 'path': 'idiograph.allograph.character.ontograph.ontograph_type.name', 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'character_form', 'label': 'Character Form', 'path': 'idiograph.allograph.character.form.name', 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'character', 'label': 'Character', 'path': 'idiograph.allograph.character.name', 'viewable': True, 'type': 'id', 'count': True},
@@ -253,7 +247,6 @@ FACETED_SEARCH = {
                                 {'key': 'is_described', 'label': 'Described?', 'path': 'graph_components.all.count', 'viewable': True, 'type': 'boolean', 'count': True, 'labels': {0: 'not described', 1: 'described'}},
                                 {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation', 'viewable': True, 'type': 'image'},
 
-                                #{'key': 'hi_date', 'label': 'Date', 'path': 'hand.item_part.historical_item.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                 {'key': 'hi_date', 'label': 'MS Date', 'path': 'annotation.image.item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
 
                                 {'key': 'mp_permission', 'label': 'Availability', 'path': 'annotation.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
@@ -261,6 +254,12 @@ FACETED_SEARCH = {
                                 {'key': 'PRIVATE', 'label': 'Private', 'path': 'annotation.image.is_media_private', 'type': 'boolean', 'search': True},
 
                                 {'key': 'CONFLATEID', 'label': 'Conflate ID', 'path': 'annotation.image.item_part.id', 'type': 'int'},
+                                
+    #                            {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
+    #                            {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
+    #                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
+    #                            {'key': 'script', 'label': 'Script', 'path': 'idiograph.allograh.script.name', 'viewable': True, 'type': 'code'},
+                                #{'key': 'hand_script', 'label': 'Script of the Hand', 'label_col': 'Script', 'path': 'hand.script.name', 'viewable': True, 'search': True, 'type': 'code', 'count': True},
                                ],
                     'select_related': ['annotation__image__item_part__current_item__repository__place',
                                        'idiograph__allograph__character__ontograph__ontograph_type',
@@ -271,7 +270,15 @@ FACETED_SEARCH = {
                                          'annotation__image__item_part__historical_items__historical_item_format',
                                          'annotation__image__item_part__historical_items__historical_item_type'
                                          ],
-                    'filter_order': ['hand_date', 'mp_permission', 'is_described', 'repo_city', 'repo_place', 'shelfmark', 'hand_place', 'hand_label', 'chartype', 'character_form', 'character', 'allograph'],
+                    'filter_order': [
+                                     'hand_date', 'chartype', 'character_form', 'character', 'allograph', 'is_described', 
+                                     'hand_label', 'hand_place', 'repo_place', 'repo_city' 
+                                     ],
+#                     'filter_order': [
+#                                      'hand_date', 'mp_permission', 'is_described', 'repo_city', 'repo_place', 
+#                                      'shelfmark', 'hand_place', 'hand_label', 'chartype', 'character_form', 
+#                                      'character', 'allograph'
+#                                      ],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'hand_label', 'hand_date', 'allograph', 'thumbnail'],
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
@@ -350,6 +357,16 @@ class FacettedType(object):
         if not ret:
             ret = [field['key'] for field in self.fields if field.get('count', False) or field.get('filter', False)]
         return ret
+
+    def addFieldsToOption(self, option='filter_order', keys=None, after_key=None):
+        for key in keys:
+            self.addFieldToOption(option=option, key=key, after_key=after_key)
+            after_key = key
+    
+    def addFieldToOption(self, option='filter_order', key=None, after_key=None):
+        l = self.options[option]
+        index = l.index(after_key) + 1 if after_key else len(l)
+        l.insert(index, key)
 
     def setDateRange(self, rng):
         for f in self.fields:

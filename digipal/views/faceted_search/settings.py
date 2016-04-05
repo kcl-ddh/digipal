@@ -248,7 +248,7 @@ FACETED_SEARCH = {
                                 {'key': 'chartype', 'label': 'Character Type', 'path': 'idiograph.allograph.character.ontograph.ontograph_type.name', 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'character_form', 'label': 'Character Form', 'path': 'idiograph.allograph.character.form.name', 'viewable': True, 'type': 'code', 'count': True},
                                 {'key': 'character', 'label': 'Character', 'path': 'idiograph.allograph.character.name', 'viewable': True, 'type': 'id', 'count': True},
-                                {'key': 'allograph', 'label': 'Allograph', 'path': 'idiograph.allograph.human_readable', 'viewable': True, 'type': 'id', 'count': True},
+                                {'key': 'allograph', 'label': 'Allograph', 'path': 'idiograph.allograph.human_readable', 'viewable': True, 'type': 'id', 'count': True, 'sort_fct': lambda r: str(r.character.ontograph.sort_order)},
                                 {'key': 'hand_date', 'label': 'Hand Date', 'path': 'hand.assigned_date.date', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 680, 'max': 1200},
                                 {'key': 'is_described', 'label': 'Described?', 'path': 'graph_components.all.count', 'viewable': True, 'type': 'boolean', 'count': True, 'labels': {0: 'not described', 1: 'described'}},
                                 {'key': 'thumbnail', 'label': 'Thumbnail', 'path': 'annotation', 'viewable': True, 'type': 'image'},

@@ -2429,6 +2429,7 @@ class Graph(models.Model):
                 if key == 'locus': r = self.annotation.image.locus
                 if key == 'ip': r = self.annotation.image.item_part
                 if key == 'hi_date': r = self.annotation.image.item_part.historical_item.date
+                if key == 'desc': r = (self.get_description_as_str() or 'undescribed')
             except Exception, e:
                 print 'EXCEPTION: graph.get_label() => "%s"' % e
                 r = r.upper()

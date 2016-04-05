@@ -254,7 +254,7 @@ FACETED_SEARCH = {
                                 {'key': 'PRIVATE', 'label': 'Private', 'path': 'annotation.image.is_media_private', 'type': 'boolean', 'search': True},
 
                                 {'key': 'CONFLATEID', 'label': 'Conflate ID', 'path': 'annotation.image.item_part.id', 'type': 'int'},
-                                
+
     #                            {'key': 'full_size', 'label': 'Image', 'path': 'get_media_right_label', 'type': 'boolean', 'count': True, 'search': True},
     #                            {'key': 'hi_format', 'label': 'Format', 'path': 'item_part.historical_item.historical_item_format.name', 'type': 'code', 'viewable': True, 'count': True},
     #                            {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
@@ -271,12 +271,12 @@ FACETED_SEARCH = {
                                          'annotation__image__item_part__historical_items__historical_item_type'
                                          ],
                     'filter_order': [
-                                     'hand_date', 'chartype', 'character_form', 'character', 'allograph', 'is_described', 
-                                     'hand_label', 'hand_place', 'repo_place', 'repo_city' 
+                                     'hand_date', 'chartype', 'character_form', 'character', 'allograph', 'is_described',
+                                     'hand_label', 'hand_place', 'repo_place', 'repo_city'
                                      ],
 #                     'filter_order': [
-#                                      'hand_date', 'mp_permission', 'is_described', 'repo_city', 'repo_place', 
-#                                      'shelfmark', 'hand_place', 'hand_label', 'chartype', 'character_form', 
+#                                      'hand_date', 'mp_permission', 'is_described', 'repo_city', 'repo_place',
+#                                      'shelfmark', 'hand_place', 'hand_label', 'chartype', 'character_form',
 #                                      'character', 'allograph'
 #                                      ],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date', 'hand_label', 'hand_date', 'allograph', 'thumbnail'],
@@ -332,6 +332,9 @@ class FacettedType(object):
     def __init__(self, options):
         self.options = options
 
+    def getKey(self):
+        return self.options['key']
+
     @staticmethod
     def fromKey(akey):
         ret = None
@@ -343,6 +346,18 @@ class FacettedType(object):
     @staticmethod
     def getAll():
         return [FacettedType(options) for options in FACETED_SEARCH['types']]
+
+    def addField(self, field_definition=None):
+        if field_definition:
+            self.options['fields'].append(field_definition)
+
+    def getField(self, key):
+        ret = None
+        for field in self.getFields():
+            if field['key'] == key:
+                ret = field
+                break
+        return ret
 
     def getFields(self):
         return self.options['fields']
@@ -362,7 +377,7 @@ class FacettedType(object):
         for key in keys:
             self.addFieldToOption(option=option, key=key, after_key=after_key)
             after_key = key
-    
+
     def addFieldToOption(self, option='filter_order', key=None, after_key=None):
         l = self.options[option]
         index = l.index(after_key) + 1 if after_key else len(l)

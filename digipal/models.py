@@ -639,6 +639,13 @@ class HistoricalItem(models.Model):
                 cn = u''.join([u'%s %s ' % (cn.source, cn.number) for cn in cns]).strip()
         self.catalogue_number = cn
 
+    def is_date_precise(self):
+        ret = False
+        date = self.get_date_sort()
+        if re.search(ur'\d{3,4}$', date) and not re.search(ur'(?i)circa', date) and not re.search(ur'(?i)\bx\b', date) and not re.search(ur'(?i)\bc\b', date):
+            ret = True
+        return ret
+
     def get_date_sort(self):
         return self.date_sort or self.date
 
@@ -2458,14 +2465,14 @@ class Graph(models.Model):
             for f in c.features.all():
                 ret.append(u'%s_%s' % (c.component.id, f.id))
         return u' '.join(ret)
-    
+
     def get_component_feature_labels(self):
         ret = []
-        
+
         for c in self.graph_components.all():
             for f in c.features.all():
                 ret.append(u'%s: %s' % (c.component.name, f.name))
-        
+
         return ret
 
 class GraphComponent(models.Model):

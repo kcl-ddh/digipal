@@ -301,20 +301,24 @@ function init_search_page(options) {
                     var $data = $(data);
                     var $fragment = $('#search-ajax-fragment');
                     $fragment.html($data.html());
+
                     dputils.update_address_bar(url, false, true);
-                    // TODO: find a way to pass this via the pushState/update_address_bar?
-                    document.title = $('#search_page_title').val();
 
                     $fragment.stop().animate({
                         'background-color': 'white',
                         opacity: 1,
                         'border': 'none'
                     }, 50);
-
-                    // scroll to top of the search div
-                    $('html, body').animate({
-                        scrollTop: $('#search-top').offset().top
-                    }, 500);
+                    
+                    // TODO: find a way to pass title via the pushState/update_address_bar?
+                    var new_title = $('#search_page_title').val();
+                    if (document.title != new_title) {
+                        document.title = $('#search_page_title').val();
+                        // scroll to top of the search div
+                        $('html, body').animate({
+                            scrollTop: $('#search-top').offset().top
+                        }, 500);
+                    }
 
                     // make sure visible thumbnails are loaded
                     document.load_lazy_images();

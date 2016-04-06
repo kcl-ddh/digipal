@@ -642,7 +642,8 @@ class HistoricalItem(models.Model):
     def is_date_precise(self):
         ret = False
         date = self.get_date_sort()
-        if re.search(ur'\d{3,4}$', date) and not re.search(ur'(?i)circa', date) and not re.search(ur'(?i)\bx\b', date) and not re.search(ur'(?i)\bc\b', date):
+        #if re.search(ur'\d{3,4}$', date) and not re.search(ur'(?i)circa', date) and not re.search(ur'(?i)\bx\b', date) and not re.search(ur'(?i)\bc\b', date):
+        if re.match(ur'\d{1,2}\s+\w+\s+\d{4}$', date) and not re.search(ur'(?i)circa', date) and not re.search(ur'(?i)\bx\b', date) and not re.search(ur'(?i)\bc\b', date):
             ret = True
         return ret
 

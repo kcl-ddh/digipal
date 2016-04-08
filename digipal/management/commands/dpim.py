@@ -1,4 +1,5 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
+from dpbase import DPBaseCommand as BaseCommand
 from django.conf import settings
 from os.path import isdir
 import os
@@ -20,21 +21,6 @@ def get_image_path():
     return ret
 
 class Command(BaseCommand):
-    """
-    Digipal image management tools.
-    
-    Commands:
-    
-        list
-    
-        upload
-        
-        update
-        
-        fetch URL [LINK_NAMES]
-    
-    """
-    
     args = 'list|upload'
     help = ''' Manage the Digipal images
 
@@ -86,7 +72,7 @@ class Command(BaseCommand):
         unstage
             Removes the images from the database (but leave them on disk)
     
-    Dealing with orignal images:
+    Dealing with original images:
     
         copy
             Copies the all the original images to the image store.
@@ -98,6 +84,14 @@ class Command(BaseCommand):
         originals
             list all the original images,
             Selection is made with the --filter option.
+            
+        pocket PATH [QUALITY] [PAUSE] [--FILTER=X]
+            Convert original images to a smaller, portable, size 
+            PATH: output filesystem path 
+            PAUSE: number of seconds to wait between each conversion (default is 0)
+            QUALITY: percentage of image compression (default is 50)
+            
+        convert 
     
     Database Image records:
         
@@ -143,16 +137,6 @@ class Command(BaseCommand):
             dest='db',
             default='default',
             help='Name of the database configuration'),
-#        make_option('--verbose',
-#            action='store_true',
-#            dest='verbose',
-#            default=False,
-#            help='Verbose mode'),
-        make_option('--filter',
-            action='store',
-            dest='filter',
-            default='',
-            help='Only treat image names that contain the given string'),
         make_option('--offline',
             action='store_true',
             dest='offline',
@@ -252,6 +236,8 @@ class Command(BaseCommand):
             raise CommandError('Database settings not found ("%s"). Check DATABASE array in your settings.py.' % options['db'])
 
         db_settings = settings.DATABASES[options['db']]
+        
+        self.args = args
         
         self.options = options
         
@@ -362,7 +348,7 @@ class Command(BaseCommand):
                 
             print '%s images in DB. %s image on disk. %s on disk only. %s missing from DB.' % (counts['online'], counts['disk'], counts['disk_only'], counts['missing'])
             
-        if command in ['copy', 'originals', 'copy_convert']:
+        if command in ['copy', 'originals', 'copy_convert', 'pocket']:
             known_command = True
             self.processOriginals(args, options)
 
@@ -521,8 +507,42 @@ class Command(BaseCommand):
                 copied = True
 
             status = ''
-            if copied: status = 'COPIED'                
+            if copied: status = 'COPIED'
             print '[%6s] %s' % (status, file_relative)
+            
+            if command == 'pocket':
+                import time
+                from digipal.models import Image
+                
+                outpath = self.get_arg(1, '', 'You must specify an output path')
+                quality = self.get_arg(2, 50)
+                pause = self.get_arg(3, 0)
+                
+                iipimage = self.getNormalisedPath(re.sub(ur'[^.]+$', '', file_relative)).replace('\\', '/')
+                recs = Image.objects.filter(iipimage__icontains=iipimage, item_part__isnull=False)
+                rec = None
+                
+                fileout = file_relative
+
+                if len(recs) > 1:
+                    print 'WARNING: more than one image records for this file (%s)' % iipimage
+                if len(recs) < 1:
+                    print 'WARNING: image record not found (%s)' % iipimage
+                else:
+                    rec = recs[0]
+                
+                if rec:
+                    fileout = self.getNormalisedPath('%s' % rec.display_label).lower() + '.jpg'
+                
+                filein = join(get_originals_path().replace('/', os.sep), file_relative)
+                fileout = join(outpath, re.sub(ur'[^.]*$', 'jpg', os.path.basename(fileout)))
+                cmd = 'convert -quiet -quality %s %s[0] %s' % (quality, filein, fileout)
+                if not self.is_dry_run():
+                    ret_shell = self.run_shell_command(cmd)
+                else:
+                    print cmd
+                
+                    time.sleep(float(pause))
 
             if command in ['copy', 'copy_convert']:
                 # create the folders
@@ -548,13 +568,6 @@ class Command(BaseCommand):
     def getNormalisedPath(self, path):
         from digipal.utils import get_normalised_path
         return get_normalised_path(path)
-
-    def is_verbose(self):
-        return self.options['verbosity'] >= 2
-    
-    def get_verbosity(self):
-        # 0: minimal output, 1: normal output, 2: verbose, 3: very verbose
-        return self.options['verbosity']
 
     def convert_image_deprecated(self, image):
         ret = None

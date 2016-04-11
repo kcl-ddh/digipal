@@ -39,21 +39,21 @@ class Command(BaseCommand):
  To upload your document images in the database:
 
  1. manually copy your original images somewhere under the ORIGINAL folder:
-    
- 2. copy the original images to the IMAGE STORE (image files managed by the 
+
+ 2. copy the original images to the IMAGE STORE (image files managed by the
     image server) with this command:
-    
+
     python manage.py dpim copy
-    
+
  3. convert your images in the image store to the JPEG 2000 and upload them
     into the database:
-    
+
     python manage.py dpim upload
-    
- Image files can be processed selectively. Read the documentation below for 
+
+ Image files can be processed selectively. Read the documentation below for
  more details.
 
- WARNING: please do not leave your original images in the IMAGE STORE, they 
+ WARNING: please do not leave your original images in the IMAGE STORE, they
     might be deleted. Use the ORIGINAL folder instead (see above).
 
 ----------------------------------------------------------------------
@@ -66,43 +66,43 @@ class Command(BaseCommand):
             Lists the images on disk and if they are already uploaded
 
         upload
-            Converts new images to JPEG 2000 and create the corresponding 
+            Converts new images to JPEG 2000 and create the corresponding
             Image records
-        
+
         unstage
             Removes the images from the database (but leave them on disk)
-    
+
     Dealing with original images:
-    
+
         copy
             Copies the all the original images to the image store.
-            Also converts the names so they are compatible with the image 
+            Also converts the names so they are compatible with the image
             server.
             Selection is made with the --filter option.
             Recommended to use 'originals' comamnd to test the selection.
-            
+
         originals
             list all the original images,
             Selection is made with the --filter option.
-            
+
         pocket PATH [QUALITY] [PAUSE] [--FILTER=X]
-            Convert original images to a smaller, portable, size 
-            PATH: output filesystem path 
+            Convert original images to a smaller, portable, size
+            PATH: output filesystem path
             PAUSE: number of seconds to wait between each conversion (default is 0)
             QUALITY: percentage of image compression (default is 50)
-            
-        convert 
-    
+
+        convert
+
     Database Image records:
-        
+
         update_dimensions
-            Read the width and height and size of the images and save them in the database 
+            Read the width and height and size of the images and save them in the database
 
  Options:
 
     --filter X
         Select the images to be uploaded/listed/deleted by applying
-        a filter on their name. Only files with X in their path or 
+        a filter on their name. Only files with X in their path or
         filename will be selected.
 
     --offline
@@ -110,27 +110,27 @@ class Command(BaseCommand):
 
     --missing
         Select only the images which are on the DB and not on disk
-        
+
  Examples:
 
     python manage.py dpim --filter canterbury upload
         upload all the images which contain 'canterbury' in their name
-        
+
     python manage.py dpim --filter canterbury unstage
         remove from the database the Image records which point to
         an image with 'canterbury' in its name.
-        
+
     python manage.py dpim --offline list
         list all the image which are only on disk and not in the DB
-        
+
     python manage.py dpim --missing --filter canterbury list
-        list all the image which are only in the database and not 
+        list all the image which are only in the database and not
         on disk and which name contains 'canterbury'
 
 ----------------------------------------------------------------------
 
     ''' % (get_originals_path(), get_image_path())
-    
+
     option_list = BaseCommand.option_list + (
         make_option('--db',
             action='store',
@@ -162,30 +162,30 @@ class Command(BaseCommand):
             dest='missing',
             default='',
             help='Only list images which are missing from disk'),
-        ) 
-    
+        )
+
     def get_all_files(self, root):
         # Scan all the image files on disk (under root) and in the database.
-        # Returns an array of file informations. For each file we have: 
+        # Returns an array of file informations. For each file we have:
         #     {'path': path relative to settings.IMAGE_SERVER_ROOT, 'disk': True|False, 'image': Image object|None}
         ret = []
 
         all_images = Image.objects.all()
         image_paths = {}
         images = {}
-        for image in all_images: 
+        for image in all_images:
             image_paths[os.path.normcase(image.iipimage.name)] = image.id
             images[image.id] = image
-        
+
         # find all the images on disk
         current_path = root
-        
+
         files = [join(current_path, f) for f in listdir(current_path)]
         while files:
             file = files.pop(0)
-            
+
             file = join(current_path, file)
-            
+
             if isfile(file):
                 (file_base_name, extension) = os.path.splitext(file)
                 if extension.lower() in settings.IMAGE_SERVER_UPLOAD_EXTENSIONS and not ('.tmp' in file and '.bmp' in file):
@@ -198,32 +198,32 @@ class Command(BaseCommand):
                             'disk': 1,
                             'path': file_relative
                             }
-                    
+
                     if id:
                         del images[id]
-                    
+
                     ret.append(info)
             elif isdir(file):
                 files.extend([join(file, f) for f in listdir(file)])
-        
+
         # find the images in DB but not on disk
         for image in images.values():
             file_name = ''
             if image.iipimage:
                 file_name = image.iipimage.name
             info = {
-                    'disk': os.path.exists(join(getattr(settings, 'IMAGE_SERVER_ROOT', ''), file_name)), 
-                    'path': file_name, 
+                    'disk': os.path.exists(join(getattr(settings, 'IMAGE_SERVER_ROOT', ''), file_name)),
+                    'path': file_name,
                     'image': image
                     }
             if file_name == '':
                 info['disk'] = False
             ret.append(info)
-        
+
         return ret
-    
+
     def handle(self, *args, **options):
-        
+
         root = get_image_path()
         if not root:
             raise CommandError('Path variable IMAGE_SERVER_ROOT not set in your settings file.')
@@ -236,21 +236,21 @@ class Command(BaseCommand):
             raise CommandError('Database settings not found ("%s"). Check DATABASE array in your settings.py.' % options['db'])
 
         db_settings = settings.DATABASES[options['db']]
-        
+
         self.args = args
-        
+
         self.options = options
-        
+
         known_command = False
         counts = {'online': 0, 'disk': 0, 'disk_only': 0, 'missing': 0}
         if command == 'fetch':
             known_command = True
             self.fetch(*args, **options)
-            
+
         if command == 'update_dimensions':
             known_command = True
             self.update_dimensions(*args)
-        
+
         if command in ('list', 'upload', 'unstage', 'update', 'remove'):
             known_command = True
 
@@ -262,23 +262,23 @@ class Command(BaseCommand):
                 imageid = 0
                 if online:
                     imageid = file_info['image'].id
-                    
+
                 if options['filter'].lower() not in file_relative.lower():
                     continue
-                
+
                 if options['offline'] and online:
                     continue
 
                 if options['missing'] and file_info['disk']:
                     continue
-                
+
                 if not online:
                     found_message = '[OFFLINE]'
                 elif not file_info['disk']:
                     found_message = '[MISSING FROM DISK]'
                 else:
                     found_message = '[ONLINE]'
-                    
+
                 if online:
                     counts['online'] += 1
                 if file_info['disk']:
@@ -287,13 +287,13 @@ class Command(BaseCommand):
                     counts['disk_only'] += 1
                 if not file_info['disk'] and online:
                     counts['missing'] += 1
-                    
+
                 processed = False
-                
+
                 if (command == 'upload' and not online) or (command == 'update' and online):
                     processed = True
-                    
-                    file_path, basename = os.path.split(file_relative)        
+
+                    file_path, basename = os.path.split(file_relative)
                     new_file_name = os.path.join(file_path, re.sub(r'(\s|,)+', '_' , basename.lower()))
                     if re.search(r'\s|,', new_file_name):
                         found_message = '[FAILED: please remove spaces and commas from the directory names]'
@@ -319,11 +319,11 @@ class Command(BaseCommand):
                                 image = None
                             else:
                                 found_message += ' [JUST CONVERTED]'
-                        
-                        if image: 
+
+                        if image:
                             image.save()
                             imageid = image.id
-                        
+
                 if command == 'remove' and file_info['disk']:
                     file_abs_path = join(settings.IMAGE_SERVER_ROOT, file_relative)
                     print file_abs_path
@@ -333,28 +333,28 @@ class Command(BaseCommand):
                     else:
                         found_message = '[NOT FOUND]'
                     processed = True
-                    
+
                 if command == 'unstage' and online:
                     processed = True
-                    
+
                     found_message = '[JUST REMOVED FROM DB]'
                     file_info['image'].delete()
-                        
+
                 if self.is_verbose() or command == 'list' or processed:
                     extra = ''
-                    if not file_info['disk'] and online and file_info['image'].image is not None and len(file_info['image'].image.name) > 2: 
+                    if not file_info['disk'] and online and file_info['image'].image is not None and len(file_info['image'].image.name) > 2:
                         extra = file_info['image'].image.name
                     print '#%s\t%-20s\t%s\t%s' % (imageid, found_message, file_relative, extra)
-                
+
             print '%s images in DB. %s image on disk. %s on disk only. %s missing from DB.' % (counts['online'], counts['disk'], counts['disk_only'], counts['missing'])
-            
+
         if command in ['copy', 'originals', 'copy_convert', 'pocket']:
             known_command = True
             self.processOriginals(args, options)
 
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
-    
+
     def update_dimensions(self, *args):
         options = self.options
         root = get_image_path()
@@ -368,7 +368,7 @@ class Command(BaseCommand):
                     file_info['image'].size = os.path.getsize(file_path)
             file_info['image'].dimensions()
             file_info['image'].save()
-    
+
     def fetch(self, *args, **options):
         out_path = options['out_path']
 
@@ -378,16 +378,16 @@ class Command(BaseCommand):
             # 5177311
             for i in range(5177218, 5177311 + 1):
                 href = 'http://zzz/j2k/jpegNavMain.jsp?filename=Page%203&pid=' + str(i) + '&VIEWER_URL=/j2k/jpegNav.jsp?&img_size=best_fit&frameId=1&identifier=770&metsId=5176802&application=DIGITOOL-3&locale=en_US&mimetype=image/jpeg&DELIVERY_RULE_ID=770&hideLogo=true&compression=90'
-                i += 1  
+                i += 1
                 print i
                 found = self.download_images_from_webpage(href, out_path, str(i) + '.jpg')
                 if not found: break
-                
+
 
     def fetch_old(self, *args, **options):
         '''
             fetch http://zzz//P3.html --links-file "bible1" --op=img1
-            
+
             Will save all the jpg images found at that address into a directory called img1.
             We first download the index from that address then follow each link with a name listed in bible1 file.
             Download all all the jpg images found in those sub-pages.
@@ -406,27 +406,27 @@ class Command(BaseCommand):
                 links = f.readlines()
                 f.close()
                 links = [link.strip() for link in links]
-                
+
             if links:
                 html = utils.wget(url)
                 if not html:
                     print 'ERROR: request to %s failed.' % url
                 else:
                     for link in links:
-                        print link 
+                        print link
                         href = re.findall(ur'<a [^>]*href="([^"]*?)"[^>]*>\s*' + re.escape(link) + '\s*<', html)
                         if href:
                             href = href[0]
                             href = re.sub(ur'/[^/]*$', '/' + href, url)
                             print href
-                            
+
                             self.download_images_from_webpage(href, out_path)
-    
+
     def download_images_from_webpage(self, href, out_path=None, img_name=None):
         ret = False
         print href
         sub_html = utils.wget(href)
-        
+
         if not sub_html:
             print 'WARNING: request to %s failed.' % sub_html
         else:
@@ -442,10 +442,10 @@ class Command(BaseCommand):
                 else:
                     image_url = re.sub(ur'^(.*?//.*?/).*$', r'\1' + image_url, href)
                 print image_url
-                
+
                 # get the image
                 image = utils.wget(image_url)
-                
+
                 if not image:
                     print 'WARNING: request to %s failed.' % image_url
                 else:
@@ -453,26 +453,26 @@ class Command(BaseCommand):
                     image_path = os.path.join(out_path, img_name or re.sub(ur'^.*/', '', image_url)) + ''
                     print image_path
                     utils.write_file(image_path, image)
-        
+
         return ret
-    
+
     def processOriginals(self, args, options):
         ''' List or copy the original images. '''
         import shutil
         command = args[0]
-        
+
         original_path = get_originals_path()
         jp2_path = get_image_path()
-        
+
         all_files = []
-        
+
         # scan the originals folder to find all the image files there
         files = [join(original_path, f) for f in listdir(original_path)]
         while files:
             file = files.pop(0)
-            
+
             file = join(original_path, file)
-            
+
             if isfile(file):
                 (file_base_name, extension) = os.path.splitext(file)
                 if extension.lower() in settings.IMAGE_SERVER_UPLOAD_EXTENSIONS:
@@ -482,7 +482,7 @@ class Command(BaseCommand):
                             'disk': 1,
                             'path': file_relative
                             }
-                    
+
                     all_files.append(info)
             elif isdir(file):
                 files.extend([join(file, f) for f in listdir(file)])
@@ -496,11 +496,11 @@ class Command(BaseCommand):
             file_relative_normalised = self.getNormalisedPath(file_relative)
             (file_relative_base, extension) = os.path.splitext(file_relative)
             (file_relative_normalised_base, extension) = os.path.splitext(file_relative_normalised)
-            
+
             copied = False
-            
+
             target = join(jp2_path, file_relative_normalised_base + extension)
-            
+
             if isfile(target) or \
                 isfile(join(jp2_path, file_relative_normalised_base + settings.IMAGE_SERVER_EXT)) \
                 :
@@ -509,19 +509,19 @@ class Command(BaseCommand):
             status = ''
             if copied: status = 'COPIED'
             print '[%6s] %s' % (status, file_relative)
-            
+
             if command == 'pocket':
                 import time
                 from digipal.models import Image
-                
+
                 outpath = self.get_arg(1, '', 'You must specify an output path')
                 quality = self.get_arg(2, 50)
                 pause = self.get_arg(3, 0)
-                
+
                 iipimage = self.getNormalisedPath(re.sub(ur'[^.]+$', '', file_relative)).replace('\\', '/')
                 recs = Image.objects.filter(iipimage__icontains=iipimage, item_part__isnull=False)
                 rec = None
-                
+
                 fileout = file_relative
 
                 if len(recs) > 1:
@@ -530,18 +530,19 @@ class Command(BaseCommand):
                     print 'WARNING: image record not found (%s)' % iipimage
                 else:
                     rec = recs[0]
-                
+
                 if rec:
                     fileout = self.getNormalisedPath('%s' % rec.display_label).lower() + '.jpg'
-                
+
                 filein = join(get_originals_path().replace('/', os.sep), file_relative)
-                fileout = join(outpath, re.sub(ur'[^.]*$', 'jpg', os.path.basename(fileout)))
-                cmd = 'convert -quiet -quality %s %s[0] %s' % (quality, filein, fileout)
-                if not self.is_dry_run():
-                    ret_shell = self.run_shell_command(cmd)
-                else:
-                    print cmd
-                
+                if not os.path.exists(fileout):
+                    fileout = join(outpath, re.sub(ur'[^.]*$', 'jpg', os.path.basename(fileout)))
+                    cmd = 'convert -quiet -quality %s %s[0] %s' % (quality, filein, fileout)
+                    if not self.is_dry_run():
+                        ret_shell = self.run_shell_command(cmd)
+                    else:
+                        print cmd
+
                     time.sleep(float(pause))
 
             if command in ['copy', 'copy_convert']:
@@ -549,38 +550,38 @@ class Command(BaseCommand):
                 path = os.path.dirname(target)
                 if not os.path.exists(path):
                     os.makedirs(path)
-                    
+
                 # copy the file
                 if command == 'copy':
                     print '\tCopy to %s' % target
                     shutil.copyfile(join(original_path, file_relative), target)
-                    
+
                 if command == 'copy_convert':
                     # convert the file jp2
                     status = 'COPIED+CONVERTED'
-                    
+
                     from iipimage.storage import CONVERT_TO_TIFF, CONVERT_TO_JP2
                     shell_command = CONVERT_TO_JP2 % (join(original_path, file_relative), re.sub(ur'\.[^.]+$', ur'.'+settings.IMAGE_SERVER_EXT, target))
                     ret_shell = self.run_shell_command(shell_command)
                     if ret_shell:
                         status = 'CONVERSION ERROR: %s (command: %s)' % (ret_shell[0], ret_shell[1])
-    
+
     def getNormalisedPath(self, path):
         from digipal.utils import get_normalised_path
         return get_normalised_path(path)
 
     def convert_image_deprecated(self, image):
         ret = None
-        
+
         # normalise the image path and rename so iipimage server doesn't complain
         name = os.path.normpath(image.iipimage.name)
-        path, basename = os.path.split(name)        
+        path, basename = os.path.split(name)
         name = os.path.join(path, re.sub(r'(\s|,)+', '_' , basename.lower()))
         path, ext = os.path.splitext(name)
         name = path + ur'.' + settings.IMAGE_SERVER_EXT
-        
+
         ret_shell = []
-        
+
         # rename the file to .jp2
         if image.iipimage.name != name:
             try:
@@ -593,60 +594,60 @@ class Command(BaseCommand):
             # assume the file is already a jpeg 2k, return
             #return ret
             pass
-                
+
         # convert the image to tiff
         if not ret_shell:
             from iipimage.storage import CONVERT_TO_TIFF, CONVERT_TO_JP2
-            
+
             full_path = os.path.join(settings.IMAGE_SERVER_ROOT, image.iipimage.name)
             temp_file = full_path + '.tmp.tiff'
-            
+
             command = CONVERT_TO_TIFF % (full_path, temp_file)
             ret_shell = self.run_shell_command(command)
-            
+
         # convert the image to jp2
         if not ret_shell:
             command = CONVERT_TO_JP2 % (temp_file, full_path)
             ret_shell = self.run_shell_command(command)
-        
+
         if ret_shell:
             ret = '[CONVERSION ERROR: %s (command: %s)]' % (ret_shell[0], ret_shell[1])
-            
+
         # remove the tiff file
         try:
             os.remove(temp_file)
         except:
             pass
-        
+
         return ret
-        
+
     def convert_image(self, image):
         ret = None
-        
+
         # normalise the image path so iipimage server doesn't complain
         name_src = name = os.path.normpath(image.iipimage.name)
-        
+
         path, basename = os.path.split(name)
         name = os.path.join(path, re.sub(r'(\s|,)+', '_' , basename.lower()))
         path_name, ext = os.path.splitext(name)
-        
+
         name_tmp = path_name + ur'.tmp.bmp'
 
         name_dst = path_name + ur'.' + settings.IMAGE_SERVER_EXT
-        
+
         def absp(rel_path):
             return os.path.join(settings.IMAGE_SERVER_ROOT, rel_path)
-        
+
         dir_path = absp(path)
 
         ret_shell = []
-    
+
         if name_src != name_dst:
-        
+
             # 1. convert the image to temporary format
-            # kdu_compress is sensitive to some TIFF but never complained about BMP 
+            # kdu_compress is sensitive to some TIFF but never complained about BMP
             ret_shell = self.run_shell_command('convert -quiet %s -compress None %s' % (absp(name_src), absp(name_tmp)))
-            
+
             if not ret_shell:
                 # we take the largest output from that conversion
                 # in case the source had multiple images (each comverted into separate bmps)
@@ -658,14 +659,14 @@ class Command(BaseCommand):
                         if size > max_size:
                             max_size = size
                             name_tmp = os.path.join(path, f)
-                
+
                 # 2. convert the tmp image to target format (pyramidal and 256-tiled)
                 if max_size:
                     from iipimage.storage import CONVERT_TO_JP2
                     CONVERT_TO_JP2 = CONVERT_TO_JP2.replace('kdu_compress', 'kdu_compress -quiet')
                     command = CONVERT_TO_JP2 % (absp(name_tmp), absp(name_dst))
                     ret_shell = self.run_shell_command(command)
-            
+
         # convert error message from command line error (if any)
         if ret_shell:
             ret = '[CONVERSION ERROR: %s (command: %s)]' % (ret_shell[0], ret_shell[1])

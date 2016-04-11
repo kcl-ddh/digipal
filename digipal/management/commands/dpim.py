@@ -535,8 +535,8 @@ class Command(BaseCommand):
                     fileout = self.getNormalisedPath('%s' % rec.display_label).lower() + '.jpg'
 
                 filein = join(get_originals_path().replace('/', os.sep), file_relative)
+                fileout = join(outpath, re.sub(ur'[^.]*$', 'jpg', os.path.basename(fileout)))
                 if not os.path.exists(fileout):
-                    fileout = join(outpath, re.sub(ur'[^.]*$', 'jpg', os.path.basename(fileout)))
                     cmd = 'convert -quiet -quality %s %s[0] %s' % (quality, filein, fileout)
                     if not self.is_dry_run():
                         ret_shell = self.run_shell_command(cmd)

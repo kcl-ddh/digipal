@@ -427,7 +427,7 @@
             address = address || this.getContentAddress();
 
             if (this.loadedAddress != address || !this.moveToSubLocation(subLocation)) {
-                console.log('loadContent '+ this.loadedAddress  + ' <> ' +  address);
+                //console.log('loadContent '+ this.loadedAddress  + ' <> ' +  address);
                 this.setValid(false);
                 // make sure no saving happens from now on
                 // until the content is loaded
@@ -750,7 +750,7 @@
 
     Panel.createFromState = function(panelState, key, options) {
         // panelState =
-        // transcription/locus/1r/
+        // transcription/locus/1r/;ds=abbrv
         // transcription/default/
         var metaparts = panelState.split(';');
         var parts = metaparts[0].split('/');
@@ -771,7 +771,7 @@
         // lookup in the dropdown of the panel template
         // E.g. Translation => text
         var contentTypeKey = contentType.toLowerCase();
-        if (contentTypeKey.match(/[^-0-9a-z_]/gi)) return null
+        if (contentTypeKey.match(/[^-0-9a-z_]/gi)) return null;
         var panelType = $('#text-viewer-panel .dropdown-content-type a[href=#'+contentTypeKey+']:first').data('class') || contentType;
 
         // Force first letter to uppercase. e.g Text
@@ -872,13 +872,13 @@
 
     Panel.prototype.resetSubLocation = function(subLocation) {
         this.subLocation = JSON.parse(JSON.stringify(subLocation || []));
-    }
-    
+    };
+
     Panel.prototype.setSubLocation = function(subLocation) {
         // clone and set the location
         var subLocationOld = JSON.stringify(this.subLocation || []);
         var subLocationNew = JSON.stringify(subLocation || []);
-        
+
         if (subLocationOld != subLocationNew) {
             this.resetSubLocation(subLocation);
             // state has changed
@@ -898,8 +898,8 @@
         this.setSubLocation(subLocation);
         return true;
     };
-    
-    
+
+
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -1623,8 +1623,8 @@
 
         return ret;
     }
-    
-    
+
+
     function urldecode(str) {
         return decodeURIComponent((str+'').replace(/\+/g, '%20'));
     }

@@ -128,11 +128,22 @@ class TextContent(models.Model):
         ret = u'%s (%s)' % (self.item_part, info)
         return ret
 
-    def get_absolute_url(self, unset=False, qs='', metas=None):
+    def get_absolute_url(self, unset=False, qs='', metas=None, location_type=None, location=None):
+        '''
+            Returns the url to view this text content.
+            unset: if True the panels types and content are unspecified
+            qs: a partial query string to be added to the url
+            metas: additional settings for the main panel (e.g. 'k1=v1;k2=v2')
+        '''
         types = ['transcription', 'translation']
         ret = u'%stexts/view/' % self.item_part.get_absolute_url()
         if not unset:
             ret += '?center=%s' % self.type.slug
+            if location_type:
+                ret += '/%s' % location_type
+                if location:
+                    ret += '/%s' % location
+            ret += '/'
             if metas:
                 from digipal.utils import urlencode
                 ret += (';' + urlencode(metas, True)).replace('=', ':')
@@ -242,8 +253,8 @@ class TextContentXML(models.Model):
             self.status = TextContentXMLStatus.objects.order_by('sort_order').first()
         super(TextContentXML, self).save(*args, **kwargs)
 
-    def get_absolute_url(self, unset=False, qs=None, metas=None):
-        return self.text_content.get_absolute_url(unset=unset, qs=qs, metas=metas)
+    def get_absolute_url(self, unset=False, qs=None, metas=None, location_type=None, location=None):
+        return self.text_content.get_absolute_url(unset=unset, qs=qs, metas=metas, location_type=location_type, location=location)
 
     def save_copy(self):
         '''Save a compressed copy of this content into the Copy table'''
@@ -282,7 +293,7 @@ class TextAnnotation(models.Model):
 
     def __unicode__(self):
         return 'Annotation of "%s" in image "%s"' % (self.get_friendly_name(), self.annotation.image)
-    
+
     def get_friendly_name(self):
         ''' return a friendly name for the element this annotation refers to'''
         import json

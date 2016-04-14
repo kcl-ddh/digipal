@@ -274,7 +274,7 @@ function init_search_page(options) {
         // Any click on a link is intercepted and sent as an ajax request
         // the html fragment returned is re-injected into the page.
         // TODO: error management
-        $('body').on('click', '#search-ajax-fragment a:not([data-target]), #search-ajax-fragment form button:not([data-target]):not([data-toggle])', function() {
+        $('body').on('click', '#search-ajax-fragment a:not([data-target]), #search-ajax-fragment form button:not([data-target]):not([data-toggle])', function(ev) {
             var $element = $(this);
 
             var page_url = dputils.get_page_url($(location).attr('href'));
@@ -284,6 +284,8 @@ function init_search_page(options) {
 
             // check if the href is for this page
             if (page_url !== dputils.get_page_url(url)) return true;
+            // check if control-click
+            if (ev.ctrlKey) return true;
 
             $("#search-ajax-fragment").stop().animate({
                 'background-color': 'white',
@@ -309,7 +311,7 @@ function init_search_page(options) {
                         opacity: 1,
                         'border': 'none'
                     }, 50);
-                    
+
                     // TODO: find a way to pass title via the pushState/update_address_bar?
                     var new_title = $('#search_page_title').val();
                     if (document.title != new_title) {

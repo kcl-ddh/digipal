@@ -128,14 +128,15 @@ class TextContent(models.Model):
         ret = u'%s (%s)' % (self.item_part, info)
         return ret
 
-    def get_absolute_url(self, unset=False, qs='', metas=None, location_type=None, location=None):
+    def get_absolute_url(self, unset=False, qs='', metas=None, location_type=None, location=None, content_types=None):
         '''
             Returns the url to view this text content.
             unset: if True the panels types and content are unspecified
             qs: a partial query string to be added to the url
             metas: additional settings for the main panel (e.g. 'k1=v1;k2=v2')
+            content_types: list of content_types (e.g. transcription) to display in the panels
         '''
-        types = ['transcription', 'translation']
+        types = (content_types or ['transcription', 'translation'])
         ret = u'%stexts/view/' % self.item_part.get_absolute_url()
         if not unset:
             ret += '?center=%s' % self.type.slug
@@ -253,8 +254,8 @@ class TextContentXML(models.Model):
             self.status = TextContentXMLStatus.objects.order_by('sort_order').first()
         super(TextContentXML, self).save(*args, **kwargs)
 
-    def get_absolute_url(self, unset=False, qs=None, metas=None, location_type=None, location=None):
-        return self.text_content.get_absolute_url(unset=unset, qs=qs, metas=metas, location_type=location_type, location=location)
+    def get_absolute_url(self, unset=False, qs=None, metas=None, location_type=None, location=None, content_types=None):
+        return self.text_content.get_absolute_url(unset=unset, qs=qs, metas=metas, location_type=location_type, location=location, content_types=content_types)
 
     def save_copy(self):
         '''Save a compressed copy of this content into the Copy table'''

@@ -286,6 +286,15 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             # update the extent
             # note that extent can fail now if the user has remove the marker for the current location
             extent = get_fragment_extent(record_content, location_type, location)
+        else:
+            # auto-markup (without saving, used for testing on the full text view page)
+            if convert:
+                text_content_xml.convert()
+                record_content = text_content_xml.content
+                ret['message'] = 'Content converted and saved'
+
+                # update the extent
+                extent = get_fragment_extent(record_content, location_type, location)
 
     # 4. now the loading part (we do it in any case, even if saved first)
     if not extent:
@@ -311,6 +320,8 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     # e.g. if the requested location is 'default' we resolve it
     ret['location_type'] = location_type
     ret['location'] = location
+
+    print ret['message']
 
     return ret
 
@@ -592,7 +603,7 @@ def get_text_elements_from_content(content):
         xml = utils.get_xml_from_unicode(content, ishtml=True, add_root=True)
 
         for element in xml.findall("//*[@data-dpt]"):
-            
+
             elementid = get_elementid_from_xml_element(element)
             if elementid:
                 ret.append(elementid)
@@ -617,10 +628,10 @@ def get_elementid_from_xml_element(element, as_string=False):
             parts.append(['@text', element_text])
     else:
         parts = None
-        
+
     if as_string:
         parts = json.dumps(parts)
-    
+
     return parts
 
 

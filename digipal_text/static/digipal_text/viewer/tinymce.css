@@ -1,3 +1,13 @@
+/*
+    GENERAL and PROJECT-INDEPENDENT CSS for the texts displayed in the 
+    Text Viewer and on the Search Page
+    
+    For project-specific CSS, please see tinymce_custom.css
+    
+    PLEASE BE CAREFUL about side effects when editing this file,
+    other projects are basing their custom styles on the classes
+    defined below. 
+*/
 
 @font-face {
     font-family: 'junicode';
@@ -23,7 +33,7 @@ Generate a hash key from it and use it in the query string to force reload when 
 */
 
 /* -------------------------------------------------------------------------*/
-/* General */
+/* General Appearance for EDITING MODE (i.e. NOT preview)                   */
 /* -------------------------------------------------------------------------*/
 
 div.mce-content-body.preview {
@@ -105,6 +115,15 @@ span[data-dpt] > span[data-dpt] {
 }
 
 /* Transcription & Translation */
+
+.mce-content-body span[data-dpt=abbr]:before {
+    content: "Ab";
+    background: none;
+}
+.mce-content-body span[data-dpt=exp]:before {
+    content: "Ex";
+    background: none;
+}
 
 .mce-content-body span[data-dpt=location] {
     background-color: rgba(255,100,0,0.35);
@@ -230,7 +249,9 @@ span[data-dpt] > span[data-dpt] {
     content: "Warrandice";
 }
 
+/* -------------------------------------------------------------------------*/
 /* Hand Descriptions */
+/* -------------------------------------------------------------------------*/
 
 .mce-content-body span[data-dpt=heading] {
     text-decoration: underline;
@@ -290,12 +311,9 @@ span[data-dpt] > span[data-dpt] {
 }
 
 /* -------------------------------------------------------------------------*/
-/* EXON */
+/* PREVIEW                                                                  */
 /* -------------------------------------------------------------------------*/
 
-.ct-transcription-sample.preview.mce-content-body span[data-dpt=location] {
-    background: none;
-}
 .preview.mce-content-body span[data-dpt=location]:before {
     font-family: 'junicode';
     font-size: 100%;
@@ -307,100 +325,6 @@ span[data-dpt] > span[data-dpt] {
 .preview.mce-content-body span[data-dpt=location]:after {
     content: "]";
 }
-
-.mce-content-body span[data-dpt=abbr]:before {
-    content: "Ab";
-    background: none;
-}
-.mce-content-body span[data-dpt=exp]:before {
-    content: "Ex";
-    background: none;
-}
-
-
-/* -------------------------------------------------------------------------*/
-/* Codicology */
-/* -------------------------------------------------------------------------*/
-
-.mce-content-body span[data-dpt=codesc]:before {
-    font-size: 70%;
-    color: green;
-    font-weight: bold;
-}
-
-.mce-content-body span[data-dpt=codesc] {
-    background-color: rgba(0,255,0,0.25);
-}
-
-.mce-content-body span[data-dpt-object=perforation][data-dpt-property=count]:before {
-    content: "Perf. count";
-}
-.mce-content-body span[data-dpt-object=perforation][data-dpt-property=shape]:before {
-    content: "Perf. shape";
-}
-.mce-content-body span[data-dpt-object=perforation][data-dpt-property=location]:before {
-    content: "Perf. location";
-}
-
-.mce-content-body span[data-dpt-object=ruling][data-dpt-property=size]:before {
-    content: "Rul. size";
-}
-.mce-content-body span[data-dpt-object=ruling][data-dpt-property=count]:before {
-    content: "Rul. count";
-}
-.mce-content-body span[data-dpt-object=ruling][data-dpt-property=distance]:before {
-    content: "Rul. distance";
-}
-.mce-content-body span[data-dpt-object=ruling][data-dpt-property=method]:before {
-    content: "Rul. method";
-}
-
-.mce-content-body span[data-dpt-object=parchment][data-dpt-property=color]:before {
-    content: "Parch. color";
-}
-.mce-content-body span[data-dpt-object=parchment][data-dpt-property=side]:before {
-    content: "Parch. side";
-}
-.mce-content-body span[data-dpt-object=parchment][data-dpt-property=size]:before {
-    content: "Parch. size";
-}
-
-.mce-content-body span[data-dpt-object=signature][data-dpt-property=location]:before {
-    content: "Sig. location";
-}
-.mce-content-body span[data-dpt-object=signature][data-dpt-property=label]:before {
-    content: "Sig. label";
-}
-.mce-content-body span[data-dpt-object=signature][data-dpt-property=appearance]:before {
-    content: "Sig. appearance";
-}
-
-.mce-content-body span[data-dpt-object=foliation][data-dpt-property=location]:before {
-    content: "Fol. location";
-}
-.mce-content-body span[data-dpt-object=foliation][data-dpt-property=label]:before {
-    content: "Fol. label";
-}
-.mce-content-body span[data-dpt-object=foliation][data-dpt-property=appearance]:before {
-    content: "Fol. appearance";
-}
-
-.mce-content-body span[data-dpt-object=bifolium][data-dpt-property=conjoint]:before {
-    content: "Bifol. conjoint";
-}
-.mce-content-body span[data-dpt-object=quire][data-dpt-property=number]:before {
-    content: "Quire number";
-}
-.mce-content-body span[data-dpt-object=column][data-dpt-property=count]:before {
-    content: "Col. count";
-}
-.mce-content-body span[data-dpt-object=column][data-dpt-property=size]:before {
-    content: "Col. size";
-}
-
-/* -------------------------------------------------------------------------*/
-/* PREVIEW */
-/* -------------------------------------------------------------------------*/
 
 .preview.mce-content-body span[data-dpt] {
     padding: 0px;
@@ -502,83 +426,6 @@ span[data-dpt] > span[data-dpt] {
     text-decoration: underline;
 }
 
-/* -------------------------------------------------------------------------*/
-/* PREVIEW - MOFA */
-/* -------------------------------------------------------------------------*/
-
-.preview.mce-content-body span[data-dpt]:before,
-.preview.mce-content-body span[data-dpt]:after {
-    display:none;
-}
-
-.preview.mce-content-body span[data-dpt=location]:before,
-.preview.mce-content-body span[data-dpt=location]:after {
-    display: inline;
-}
-
-.highlights.preview.mce-content-body span:before,
-.highlights.preview.mce-content-body span:after {
-    display: inline;
-}
-
-.highlights.preview.mce-content-body span[data-dpt] {
-    background-color: rgba(0,255,0, 0.15);
-}
-
-.highlights.preview.mce-content-body span[data-dpt=clause] {
-    border: 1px solid rgba(0,0,255,0.2);
-    border-left: 1px solid rgba(0,0,255,0.2);
-    border-right: 1px solid rgba(0,0,255,0.2);
-    border-top: none;
-    background: rgba(0,0,255,0.1);
-    padding: 0px;
-    margin-right: 0.5em;
-    margin-bottom: 1px;
-    display: inline;
-}
-
-.highlights.multicolor.preview.mce-content-body span[data-dpt=clause][data-dpt-type=disposition] {
-    background-color: rgba(255,0,255, 0.2);
-}
-.highlights.multicolor.preview.mce-content-body span[data-dpt=clause][data-dpt-type=witnesses] {
-    background-color: rgba(255,80,0, 0.2);
-}
-.highlights.multicolor.preview.mce-content-body span[data-dpt=clause][data-dpt-type=salutation] {
-    background-color: rgba(0,255,255, 0.2);
-}
-
-.highlights.multicolor.preview.mce-content-body span[data-dpt]:hover,
-.highlights.preview.mce-content-body span[data-dpt]:hover {
-    background-color: rgba(255,255,0,0.2);
-}
-.highlights.preview.mce-content-body span[data-dpt]:hover:before {
-    background-color: rgba(255,255,0, 1);
-}
-
-.highlights.preview.mce-content-body span[data-dpt=supplied],
-.highlights.preview.mce-content-body span[data-dpt=ex],
-.preview.line-breaks-as-pipes.mce-content-body span[data-dpt=lb] {
-    background: transparent;
-}
-.highlights.supplied-highlight.preview.mce-content-body span[data-dpt=supplied],
-.highlights.expansion-highlight.preview.mce-content-body span[data-dpt=ex] {
-    font-weight: bold;
-}
-.preview.mce-content-body span[data-dpt=ex]:before {
-    display: none;
-}
-.preview.supplied-hide.mce-content-body span[data-dpt=supplied] {
-    display: none;
-}
-.preview.expansion-hide.mce-content-body span[data-dpt=ex] {
-    font-size: 1px;
-}
-.preview.expansion-hide.mce-content-body span[data-dpt=ex]:after {
-    content: "'";
-    display: inline;
-    font-size: 16px;
-}
-
 .preview.line-breaks.mce-content-body span[data-dpt=lb],
 .preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
     /* MS LB displayed as line breaks */
@@ -589,145 +436,12 @@ span[data-dpt] > span[data-dpt] {
     display: inline;
 }
 
-
-/* -------------------------------------------------------------------------*/
-/* PREVIEW - EXON */
-/* -------------------------------------------------------------------------*/
-
-.preview.mce-content-body span[data-dpt=abbr], .preview.mce-content-body span[data-dpt=exp] {
-    background: none;
+.preview.mce-content-body span[data-dpt]:before,
+.preview.mce-content-body span[data-dpt]:after {
+    display:none;
 }
 
-.preview.mce-content-body span[data-dpt=abbr] {
-    display: none;
-}
-.preview.abbreviated.mce-content-body span[data-dpt=exp] {
-    display: none;
-}
-.preview.abbreviated.mce-content-body span[data-dpt=abbr] {
+.preview.mce-content-body span[data-dpt=location]:before,
+.preview.mce-content-body span[data-dpt=location]:after {
     display: inline;
 }
-
-/* MS LB displayed as line breaks */
-.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
-    /* MS LB displayed as line breaks */
-    display: table-column;
-}
-.preview.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
-    /* show instead | if disabled */
-    display: inline;
-    background: none;
-}
-.ct-transcription-sample.preview.mce-content-body span[data-dpt=lb][data-dpt-src=ms]:before {
-    /* show instead | if disabled */
-    font-family: 'junicode';
-    font-size: 100%;
-    color: rgb(5,5,5);
-    font-weight: normal;
-    position: relative;
-    content: "|";
-    background: none;
-}
-.ct-transcription-sample.preview.ms-lb-lb.mce-content-body,
-.preview.line-breaks.mce-content-body {
-    /* no word-wrap */
-    overflow-x: scroll;
-    white-space: nowrap;
-}
-.ct-transcription-sample.preview.ms-lb-lb.mce-content-body p:before {
-    /* make sure there is a space */
-    content: " ";
-}
-/* not a block anymore because we want line breaks created only by 
-LB spans or by unit markers */
-.ct-transcription-sample.preview.ms-lb-lb.mce-content-body p {
-    display: inline-block;
-}
-
-/* Highlight */
-.ct-transcription-sample.preview.highlight-locations.mce-content-body span[data-dpt=location] {
-    color: blue;
-    font-weight: bold;
-}
-.ct-transcription-sample.preview.highlight-locations.mce-content-body span[data-dpt=location]:before {
-    color: inherit;
-    font-weight: inherit;
-}
-/* Marginalia */
-.ct-transcription-sample.preview.marginalia.mce-content-body span[data-dpt=note] {
-    display: inline;
-    background-color: rgba(0,0,255,0.2);
-}
-.ct-transcription-sample.preview.marginalia.mce-content-body span[data-dpt=note]:before,
-.ct-transcription-sample.preview.marginalia.mce-content-body span[data-dpt=note]:after {
-    display: inline;
-}
-.ct-transcription-sample.preview.mce-content-body span[data-dpt=note]:before {
-    font-family: "Arial Black",Gadget,sans-serif;
-    font-size: 60%;
-    font-weight: bold;
-    margin-top: -0.7em;
-    position: absolute;
-    background-color1: white;
-    border-left1: 1px solid blue;
-    border-right1: 1px solid blue;
-    padding: 0 2px;
-    content: 'margin';
-}
-
-.ct-transcription-sample.preview.mce-content-body span[data-dpt=note] {
-    display: none;
-}
-
-
-.ct-transcription-sample.preview.mce-content-body span[data-dpt=location] {
-    display: none;
-}
-.ct-transcription-sample.preview.foliation.mce-content-body span[data-dpt-loctype=locus] {
-    display: inline;
-}
-.ct-transcription-sample.preview.foliation.ms-lb-lb.mce-content-body span[data-dpt-loctype=locus] {
-    display: block;
-}
-.ct-transcription-sample.preview.entry.mce-content-body span[data-dpt-loctype=entry] {
-    display: inline;
-}
-
-.preview.mce-content-body span[data-dpt=hi]:after {
-    content: "";
-}
-
-.preview.mce-content-body span[data-dpt=hi]:before {
-    content: "";
-}
-.preview.mce-content-body span[data-dpt=hi] {
-    background: none;
-}
-
-.preview.mce-content-body span[data-dpt=pb]:before {
-    content: '';
-    width: 100%;
-    border-bottom: 1px dashed grey;
-}
-
-.preview.mce-content-body span[data-dpt=nsc]:before {
-    margin-top: 0px;
-    position: relative;
-    background: none;
-    font-weight: normal;
-    color: black;
-    content: '<NSC>';
-}
-
-.preview.mce-content-body span[data-dpt=margin]:before {
-    content: 'Margin';
-}
-
-.preview.mce-content-body span[data-dpt=add]:before {
-    content: 'Added';
-}
-
-.preview.mce-content-body span[data-dpt=add] {
-    background: paleyellow;
-}
-

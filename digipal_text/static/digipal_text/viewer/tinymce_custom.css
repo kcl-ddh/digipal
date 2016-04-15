@@ -1,0 +1,18 @@
+/*
+    Project-specific CSS for displaying the texts
+    Within the Text Editor panels
+    Or in the search results
+    
+    LEAVE THIS FILE EMPTY.
+    COPY IT IN YOUR PROJECT'S STATIC FOLDER TO PROVIDE YOUR PROJECT
+    SPECIFIC STYLES.
+    
+    See tinymce.css for more general classes you can inherit from.
+    
+    Classes:
+        .mce-content-body: surround any text
+        .preview: for read only mode
+        .DISPLAYSETTING: content types have their own display settings classes
+            which can be combined (e.g. .highlight.multicolor )
+*/
+

@@ -293,6 +293,9 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
                 record_content = text_content_xml.content
                 ret['message'] = 'Content converted and saved'
 
+                if utils.get_int_from_request_var(request, '_save'):
+                    text_content_xml.save()
+
                 # update the extent
                 extent = get_fragment_extent(record_content, location_type, location)
 

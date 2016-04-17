@@ -1213,7 +1213,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             abbr = regex.sub(ur'(\w)(<sup>\1</sup>|<sub>\1</sub>)', ur'\2', abbr)
 
             # EXP
-            exp = regex.sub(ur'\[(.*?)\]', ur'<i>\1</i>', m)
+            #exp = m.replace(ur';[', ur'[')
+            exp = m
+            exp = regex.sub(ur'\[(.*?)\]', ur'<i>\1</i>', exp)
             # b
             exp = regex.sub(ur'\u1d6c', ur'b', exp)
             # l/ -> l
@@ -1236,7 +1238,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             # ! we must make sure that the content no longer contains entities!
             # E.g. &amp; => &
             # ;
-            exp = regex.sub(ur';', ur'', exp)
+            # ((see first rule for EXP))
+            exp = regex.sub(ur';([^\s|])', ur'\1', exp)
             # :
             exp = regex.sub(ur':', ur'', exp)
             # ÷

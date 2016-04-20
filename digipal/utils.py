@@ -1260,3 +1260,15 @@ def get_cache_key_from_string(s):
     hasher = hashlib.sha1()
     hasher.update(s)
     return base64.b64encode(hasher.digest())
+
+def get_mem():
+    # return the memory used by this process in MB
+    import os
+    import psutil
+    process = psutil.Process(os.getpid())
+    return (process.memory_info().rss / 1024 / 1024)
+
+def gc_collect():
+    # full garbage collection
+    import gc
+    gc.collect()

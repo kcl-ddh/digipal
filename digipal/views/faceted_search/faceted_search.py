@@ -145,15 +145,22 @@ class FacetedModel(object):
 
         return ret, path
 
+    def clear_value_rankings(self):
+        '''Clear the value rankings cache to liberate memory
+            Can save up to 100MB
+        '''
+        self.value_rankings = {}
+        utils.gc_collect()
+        
     def prepare_value_rankings(self):
         ''' populate self.value_rankings dict
             It generates a ranking number for each value in each sortable field
             This will be stored in the index as a separate field to allow sorting by any column
         '''
-        self.value_rankings = {}
+        self.clear_value_rankings()
 
         #records = self.get_all_records(False)
-        records = self.get_all_records(True).order_by('id')
+        #records = self.get_all_records(True).order_by('id')
         #print '\t\t%d records' % records.count()
 
         for field in self.fields:
@@ -165,6 +172,7 @@ class FacetedModel(object):
 
                     # get all the values for that field in the table
                     self.value_rankings[whoosh_sortable_field], sorted_values = self.get_field_value_ranking(field)
+                    ##self.get_field_value_ranking(field)
 
     def get_field_value_ranking(self, field):
         # get all the values for that field in the table
@@ -188,10 +196,13 @@ class FacetedModel(object):
         ##print 'h2'
         ##print model, path
         i = 0
+        print repr(model), utils.get_mem()
         for record in model.objects.all().order_by('id'):
+            if i == 0:
+                print utils.get_mem()
             i += 1
+            value = ''
             value = self.get_record_path(record, path)
-            #value = self.get_record_field_whoosh(record, field)
             value = self.get_sortable_hash_value(value, field)
 
             v = value
@@ -222,7 +233,9 @@ class FacetedModel(object):
 
         hand_filters.chrono(':%s' % field['key'])
 
+        print '', utils.get_mem()
         return value_rankings, sorted_values
+        #return 0
 
     def get_sortable_hash_value(self, value, field):
         if field.get('multivalued', False) and hasattr(value, 'split'):
@@ -577,6 +590,12 @@ class FacetedModel(object):
         import re
         m = re.search(ur'(?i)baiduspider|AhrefsBot', user_agent)
         return m
+    
+    def get_whoosh_index(self):
+        from whoosh.index import open_dir
+        import os
+        index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', self.key))
+        return index
 
     def get_requested_records(self, request):
         if self.is_user_agent_banned(request):
@@ -585,9 +604,7 @@ class FacetedModel(object):
         self.request = request
 
         # run the query with Whoosh
-        from whoosh.index import open_dir
-        import os
-        index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', self.key))
+        index = self.get_whoosh_index()
 
         # from whoosh.qparser import QueryParser
 
@@ -1039,9 +1056,25 @@ def rebuild_index(index_filter=[]):
     ''' Rebuild the indexes which key is in index_filter. All if index_filter is empty'''
     for ct in get_types(True):
         if not index_filter or ct.key in index_filter:
-            index = create_index_schema(ct)
-            if index:
-                populate_index(ct, index)
+            #index = create_index_schema(ct)
+            create_index_schema(ct)
+#             if index:
+            if 1:
+                #populate_index(ct, index)
+                populate_index(ct)
+                #index = None
+                optimize_index(ct)
+                
+def optimize_index(ct):
+    utils.gc_collect()
+    print 'get index'
+    print utils.get_mem()
+    index = ct.get_whoosh_index()
+    print 'optimize index'
+    print utils.get_mem()
+    writer = index.writer()
+    writer.commit(optimize=True)
+    print utils.get_mem()
 
 def create_index_schema(ct):
     print '%s' % ct.key
@@ -1135,25 +1168,34 @@ def get_whoosh_field_type(field, sortable=False):
 
     return ret
 
-def populate_index(ct, index):
+def populate_index(ct, index=None):
+    from guppy import hpy
+    h = hpy()
+    h.setref()
+    
     # Add documents to the index
     print '\tgenerate sort rankings'
-    ct.prepare_value_rankings()
+    print utils.get_mem()
 
+    ct.prepare_value_rankings()
+    
     print '\tretrieve all records'
+    utils.gc_collect()
+    print utils.get_mem()
+    
     from whoosh.writing import BufferedWriter
     # writer = BufferedWriter(index, period=None, limit=20)
     rcs = ct.get_all_records(True)
-    writer = index.writer()
+    record_count = rcs.count()
+    #writer = index.writer()
+    writer = None
 
     print '\tadd records to index'
-    c = rcs.count()
+    print utils.get_mem()
+
     i = 0
-    max = 40
-    commit_size = 1000000
-    print '\t[' + (max * ' ') + ']'
-    import sys
-    sys.stdout.write('\t ')
+    #commit_size = 1000000
+    commit_size = 500
 
     from digipal.templatetags.hand_filters import chrono
 
@@ -1162,41 +1204,57 @@ def populate_index(ct, index):
     chrono('iterator:')
 
     record_condition = ct.get_option('condition', None)
+    
+    pbar = utils.ProgressBar(record_count)
 
+    # Indexing can use n x 100 MB
+    # Which can be excessive for small VMs
+    # One technique is to create small, independent index segments
+    # Then optimise them outside this fct on a separate index
     for record in rcs.iterator():
-        if record_condition and not record_condition(record):
-            continue
-    # for record in rcs:
-        if (i % commit_size) == 0:
-            # we have to commit every x document otherwise the memory saturates on the VM
-            # BufferedWriter is buggy and will crash after a few 100x docs
-            if writer:
-                writer.commit(optimize=True)
-            # we have to recreate after commit because commit unlock index
-            writer = index.writer()
-
-#             for field in writer.schema:
-#                 print field
-#                 ana = getattr(field.format, 'analyzer', None)
-#                 print ana
-#             exit()
         if i == 0:
             chrono(':iterator')
             chrono('index:')
+            print utils.get_mem()
+        pbar.update(i+1)
+        
+        if (i % commit_size) == 0:
+            # we have to commit every x document otherwise the memory saturates on the VM
+            # BufferedWriter is buggy and will crash after a few 100x docs
+            print utils.get_mem()
+            if writer:
+                writer.commit(merge=False)
+            
+            # we have to recreate after commit because commit unlock index
+            writer = None
+            index = None
+            utils.gc_collect()
+            print utils.get_mem()
+            
+            index = ct.get_whoosh_index()
+            writer = index.writer()
+        
         i += 1
+        
+        if record_condition and not record_condition(record):
+            continue
+
         writer.add_document(**ct.get_document_from_record(record))
-        di = (c / max)
-        if di and (i / di) > ((i - 1) / di):
-            sys.stdout.write('.')
+
+    #rcs = None
+    #ct.clear_value_rankings()
+
+    pbar.complete()
     chrono(':index')
 
     print '\n'
 
     chrono('commit:')
-    writer.commit(optimize=True)
     chrono(':commit')
 
     chrono(':scan+index')
+    
+    print h.heap()
 
-    print '\tdone (%s records)' % rcs.count()
+    print '\tdone (%s records)' % record_count
 

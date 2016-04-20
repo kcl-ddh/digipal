@@ -445,3 +445,7 @@ span[data-dpt] > span[data-dpt] {
 .preview.mce-content-body span[data-dpt=location]:after {
     display: inline;
 }
+/* Used by proof-reader to identify more easily the expansions */
+.preview.highlight-expansions.mce-content-body i {
+    border-bottom: 1px dashed grey;
+}

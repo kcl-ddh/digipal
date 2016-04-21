@@ -41,18 +41,22 @@ class TextUnits(object):
         self.load_records()
         return self
 
-    def load_records(self):
-        # actually find and load the requested records
-        self.recs = list()
+    def load_records(self, aids=None):
+        self.recs = self.load_records_iter(aids=aids)
+
+    def load_records_iter(self, aids=None):
+        # to be overridden
+        return list()
 
     def __iter__(self):
         return self.recs.__iter__()
 
     def in_bulk(self, *args, **kwargs):
         # TODO: not necessarily reliable to access with args[0]
+        # TODO: only get the requested units! Don't load everything.
         ids = args[0]
         ret = {}
-        for rec in self.recs:
+        for rec in self.load_records_iter(aids=ids):
             if rec.id in ids:
                 ret[rec.id] = rec
         return ret
@@ -61,6 +65,7 @@ class TextUnits(object):
         return self.recs
 
     def count(self, *args, **kwargs):
+        print 'COUNT!'
         return len(self.recs)
 
     def all(self, *args, **kwargs):

@@ -151,7 +151,7 @@ class FacetedModel(object):
         '''
         self.value_rankings = {}
         utils.gc_collect()
-        
+
     def prepare_value_rankings(self):
         ''' populate self.value_rankings dict
             It generates a ranking number for each value in each sortable field
@@ -590,7 +590,7 @@ class FacetedModel(object):
         import re
         m = re.search(ur'(?i)baiduspider|AhrefsBot', user_agent)
         return m
-    
+
     def get_whoosh_index(self):
         from whoosh.index import open_dir
         import os
@@ -755,20 +755,22 @@ class FacetedModel(object):
                     # raise Exception("DB query didn't retrieve all Whoosh results.")
                     pass
 
-                # 'item_part__historical_items'
-                #ret = [records[int(id)] for id in ids if int(id) in records]
-                if len(ids):
-                    id_type = type(records.keys()[0])
+                ret = []
+                if records:
+                    # 'item_part__historical_items'
+                    #ret = [records[int(id)] for id in ids if int(id) in records]
+                    if len(ids):
+                        id_type = type(records.keys()[0])
 
-                # {1: <rec #1>, 3: <rec #3>} => [<rec #1>, <rec #3>]
-                ret = [records[id_type(id)] for id in ids if id_type(id) in records]
+                    # {1: <rec #1>, 3: <rec #3>} => [<rec #1>, <rec #3>]
+                    ret = [records[id_type(id)] for id in ids if id_type(id) in records]
 
-                # highlight
-                if 0 and ret and hasattr(ret[0], 'content') and search_phrase:
-                    from whoosh.highlight.Highlighter import highlight_hit
-                    from whoosh.highlight import highlight
-                    for r in ret:
-                        r.snippet = highlight(r.content, terms=search_phrase.split(' '), top=3)
+                    # highlight
+                    if 0 and ret and hasattr(ret[0], 'content') and search_phrase:
+                        from whoosh.highlight.Highlighter import highlight_hit
+                        from whoosh.highlight import highlight
+                        for r in ret:
+                            r.snippet = highlight(r.content, terms=search_phrase.split(' '), top=3)
 
                 self.overview_records = ret
 
@@ -1064,7 +1066,7 @@ def rebuild_index(index_filter=[]):
                 populate_index(ct)
                 #index = None
                 optimize_index(ct)
-                
+
 def optimize_index(ct):
     utils.gc_collect()
     print 'get index'
@@ -1172,17 +1174,17 @@ def populate_index(ct, index=None):
     from guppy import hpy
     h = hpy()
     h.setref()
-    
+
     # Add documents to the index
     print '\tgenerate sort rankings'
     print utils.get_mem()
 
     ct.prepare_value_rankings()
-    
+
     print '\tretrieve all records'
     utils.gc_collect()
     print utils.get_mem()
-    
+
     from whoosh.writing import BufferedWriter
     # writer = BufferedWriter(index, period=None, limit=20)
     rcs = ct.get_all_records(True)
@@ -1204,7 +1206,7 @@ def populate_index(ct, index=None):
     chrono('iterator:')
 
     record_condition = ct.get_option('condition', None)
-    
+
     pbar = utils.ProgressBar(record_count)
 
     # Indexing can use n x 100 MB
@@ -1217,25 +1219,25 @@ def populate_index(ct, index=None):
             chrono('index:')
             print utils.get_mem()
         pbar.update(i+1)
-        
+
         if (i % commit_size) == 0:
             # we have to commit every x document otherwise the memory saturates on the VM
             # BufferedWriter is buggy and will crash after a few 100x docs
             print utils.get_mem()
             if writer:
                 writer.commit(merge=False)
-            
+
             # we have to recreate after commit because commit unlock index
             writer = None
             index = None
             utils.gc_collect()
             print utils.get_mem()
-            
+
             index = ct.get_whoosh_index()
             writer = index.writer()
-        
+
         i += 1
-        
+
         if record_condition and not record_condition(record):
             continue
 
@@ -1253,7 +1255,7 @@ def populate_index(ct, index=None):
     chrono(':commit')
 
     chrono(':scan+index')
-    
+
     print h.heap()
 
     print '\tdone (%s records)' % record_count

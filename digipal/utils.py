@@ -1124,14 +1124,14 @@ def get_model_from_table_name(table_name):
     # BEWARE: not efficient!
     # Only use in command line scripts, not in site controllers/views
     ret = None
-    
+
     from django.contrib.contenttypes.models import ContentType
     for ct in ContentType.objects.all():
         atable_name = '%s_%s' % (ct.app_label, ct.model)
         if atable_name == table_name:
-            ret = ct.model_class() 
+            ret = ct.model_class()
             break
-        
+
     return ret
 
 def get_model_from_name(name):
@@ -1269,7 +1269,12 @@ def get_mem():
     return (process.memory_info().rss / 1024 / 1024)
 
 def gc_collect():
+    # clear potentially huge query info in BEDUG mode
+    # Should be quite fast
+    from django import db
+    db.reset_queries()
     # full garbage collection
+    # this may be slow so avoid calling in a fast or large loop
     import gc
     gc.collect()
 

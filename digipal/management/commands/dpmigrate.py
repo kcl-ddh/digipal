@@ -71,7 +71,7 @@ Commands:
 
   convert_exon_folio_numbers
                         Convert the folio numbers to the new system
-                        
+
   cmp_recs [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--table TABLE_FILTER]
                         Compare records between two DBs
                         e.g. pm dpmigrate cmp_recs --src=stg --table=ALL | grep ">"
@@ -198,7 +198,7 @@ Commands:
         if command == 'cmp_recs':
             known_command = True
             self.cmp_recs(options)
-        
+
         if command == 'copy':
             known_command = True
             self.migrateRecords(options)
@@ -2002,7 +2002,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         con_dst = connections[options.get('db')]
 
         with transaction.atomic(con_dst.alias):
-            
+
             self.log('COMPARE tables (*%s*) from "%s" DB to "%s" DB.' % (table_filter, con_src.alias, con_dst.alias), 2)
 
             # 1. find all the remote tables starting with the prefix
@@ -2017,13 +2017,13 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                         self.cmp_table_recs(con_src, src_table, con_dst, src_table)
                     else:
                         self.log('Table not found in destination (%s)' % src_table, 1)
-        
-    
+
+
     def cmp_table_recs(self, con_src, src_table, con_dst, dst_table):
         '''compare the records between two tables'''
         from digipal.utils import get_model_from_table_name
-        
-        # 0: remote, 1: local 
+
+        # 0: remote, 1: local
         cons = [(con_src, src_table), (con_dst, dst_table)]
 
         fields_src = con_src.introspection.get_table_description(con_src.cursor(), src_table)
@@ -2036,8 +2036,8 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 ids = [k for k, r in utils.fetch_all_dic(cursor_src, 'id').iteritems()]
                 cursor_src.close()
                 idss.append(ids)
-            
-            # 0: missing in remote, 1: missing in local 
+
+            # 0: missing in remote, 1: missing in local
             diffs = (set(idss[1]) - set(idss[0]), set(idss[0]) - set(idss[1]))
             diff_status = ''
             if diffs[1]:
@@ -2047,19 +2047,19 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             if not diff_status:
                 diff_status = '='
             print '%40s %2s %6s %6s %6s %6s' % (src_table, diff_status, len(diffs[0]), len(diffs[1]), len(idss[1]), len(idss[0]))
-            
+
             # show actual records
             if diffs[0] and self.get_verbosity() > 1:
                 missing_ids = sorted(list(diffs[0]))
                 print '  ' + ', '.join([str(v) for v in missing_ids])
-                
+
                 if self.get_verbosity() > 2:
                     model = get_model_from_table_name(src_table)
                     for rec in model.objects.filter(id__in=missing_ids):
                         print '  #%4s: %s' % (rec.id, rec)
         else:
             print '%40s NO ID FIELD' % (src_table, )
-            
+
 
     def get_verbosity(self):
         return int(self.options.get('verbosity', 1))
@@ -2210,21 +2210,22 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             params_str = params_str + ', 0, 0, 0'
 
         # 3 copy all the records over
-        print dputils.get_mem()
         recs_src = None
         if con_src:
-            recs_src = utils.sqlSelect(con_src, 'SELECT %s FROM %s' % (common_str_src, src_table))
-            print 'after query'
-            print dputils.get_mem()
+            recs_src = fetch_all_low_mem(src_table, common_str_src, con_src)
+
         c = 0
         l = -1
+
         while True:
             l += 1
             rec_src = None
 
             if recs_src:
-                rec_src = recs_src.fetchone()
-                print c, dputils.get_mem()
+                try:
+                    rec_src = recs_src.next()
+                except StopIteration:
+                    pass
             else:
                 if l < len(src_records):
                     rec_src = [src_records[l][fn] for fn in mapping.keys()]
@@ -2238,14 +2239,8 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
             utils.sqlWrite(con_dst, 'INSERT INTO %s (%s) VALUES (%s)' % (dst_table, common_str_dst, params_str), rec_src, self.is_dry_run())
             c = c + 1
-            #print c
-            #break
 
         self.log('Copied %s records' % c, 2)
-        if recs_src:
-            recs_src.close()
-        
-        print dputils.get_mem()
 
         return ret
 
@@ -2278,24 +2273,43 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
 
 def fetch_all_low_mem(table_name, fields_list_str, connection=None):
-    '''For querying large results (long or broad (e.g. big text fields))
-        with minimum memory usage.
+    '''For querying all records from one model table
+        with minimal memory usage.
         Note that this is very SLOW as we have one query per record.
-        
+
         Problem that it solves:
         PSQL cursor.execute() seems to consume a lot of memory even before
         we call fetch one.
-        
-        Approach:
     '''
+    if connection is None:
+        from django.db import connections
+        connection = connections['default']
+
+    has_id = 'id' in [f[0] for f in connection.introspection.get_table_description(connection.cursor(), table_name)]
+
+    from django import db
     cursor = connection.cursor()
-    cursor.execute('select id from %s', (table_name,))
-    rids = cursor.fetchall()
+    if has_id:
+        cursor.execute('select id from %s' % table_name)
+        rids = cursor.fetchall()
+
+        for rid in rids:
+            # That's crucial to avoid wasting hundreds of MB in DEBUG mode
+            db.reset_queries()
+
+            cursor.execute('select ' + fields_list_str + ' from ' + table_name +' where id = %s', (rid,))
+            record = cursor.fetchone()
+            yield record
+    else:
+        # No id field on this table, do a more expensive query
+        cursor.execute('select ' + fields_list_str + ' from ' + table_name)
+        while True:
+            db.reset_queries()
+            record = cursor.fetchone()
+            if not record:
+                break
+            yield record
+
     cursor.close()
-    
-    for rid in rids:
-        cursor.execute('select %s from %s where id = %s', (fields_list_str, table_name, rid))
-        record = cursor.fetchone()
-        yield record
-    
-    cursor.close()
+    cursor = None
+    dputils.gc_collect()

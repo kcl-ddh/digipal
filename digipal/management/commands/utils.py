@@ -1,9 +1,10 @@
 from django.conf import settings
+from digipal import utils as dputils
 import urllib2
 
 def fix_sequences(db_alias, silent=False):
     ret = 0
-                
+
     from django.db import connections
     db_name = settings.DATABASES[db_alias]['NAME']
     connection = connections[db_alias]
@@ -16,7 +17,7 @@ def fix_sequences(db_alias, silent=False):
         and column_default like %s
         order by table_name
         '''
-    
+
     cur = sqlSelect(connection, select_seq_info, [db_name, ur'nextval%'])
     while True:
         rec = cur.fetchone()
@@ -29,7 +30,7 @@ def fix_sequences(db_alias, silent=False):
         ret += 1
     cur.close()
     cursor.close()
-    
+
     return ret
 
 def sqlWrite(wrapper, command, arguments=[], dry_run=False):
@@ -40,6 +41,7 @@ def sqlWrite(wrapper, command, arguments=[], dry_run=False):
         cur.execute(command, arguments)
         #wrapper.commit()
         cur.close()
+        cur = None
 
 def sqlSelect(wrapper, command, arguments=[]):
     ''' return a cursor,
@@ -47,7 +49,7 @@ def sqlSelect(wrapper, command, arguments=[]):
     '''
     cur = wrapper.cursor()
     cur.execute(command, arguments)
-    
+
     return cur
 
 def fetch_all_dic(cursor, key_field_name=None):
@@ -67,7 +69,7 @@ def sqlSelectMaxDate(con, table, field):
     if rec and rec[0]:
         ret = rec[0]
     cur.close()
-    
+
     return ret
 
 def sqlSelectCount(con, table):
@@ -76,12 +78,12 @@ def sqlSelectCount(con, table):
     rec = cur.fetchone()
     ret = rec[0]
     cur.close()
-    
+
     return ret
 
 def sqlDeleteAll(con, table, dry_run=False):
     ret = True
-    
+
     from django.db import IntegrityError
 
     try:
@@ -102,20 +104,20 @@ def readFile(filepath):
     return read_file(filepath)
 
 class Logger(object):
-    
+
     FATAL   = 0
     WARNING = 1
     INFO    = 2
     DEBUG   = 3
-    
+
     def __init__(self, log_level=None):
         self.setLogLevel(log_level)
         self.resetWarning()
-                        
+
     def setLogLevel(self, log_level=None):
         self.log_level = log_level
         if self.log_level is None: self.log_level = Logger.DEBUG
-        
+
     def resetWarning(self):
         self.warning_count = 0
 
@@ -125,7 +127,7 @@ class Logger(object):
     def log(self, message, log_level=3, indent=0):
         if log_level < Logger.INFO:
             self.warning_count += 1
-        
+
         if log_level <= self.log_level:
             prefixes = ['ERROR: ', 'WARNING: ', '', '']
             from datetime import datetime
@@ -140,7 +142,7 @@ def write_file(file_name, data):
     f = open(file_name, 'wb')
     f.write(data)
     f.close()
-        
+
 def wget(url):
     ret = None
     try:
@@ -166,10 +168,10 @@ def get_obj_label(obj):
 
 def web_fetch(url):
     ret = {'error': None, 'response': None, 'status': 0, 'reason': None, 'body': None}
-    
+
     import urlparse
     parts = urlparse.urlsplit(url)
-    
+
     import httplib
     try:
         port = parts.port
@@ -210,20 +212,20 @@ def get_bool_from_mysql(mysql_bool='-1'):
     return mysql_bool and unicode(mysql_bool) == '-1'
 
 class CommandMessages(object):
-    
+
     def __init__(self):
         self.reset()
-    
+
     def reset(self):
         self.summary = {}
-    
+
     def msg(self, message, *args, **kwargs):
         category=kwargs.get('category', 'WARNING')
         message = '%s: %s' % (category, message)
         message = message.replace('%s', '{}')
         print message.format(*args)
         self.summary[message] = self.summary.get(message, 0) + 1
-    
+
     def printSummary(self):
         if not self.summary: return
         print '=' * 40

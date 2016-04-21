@@ -13,7 +13,7 @@ from django.utils.datastructures import SortedDict
 import difflib
 from django.utils.text import slugify
 from django.db import transaction
-
+from digipal import utils as dputils
 
 class Command(BaseCommand):
     help = """
@@ -241,7 +241,6 @@ Commands:
 
     @transaction.atomic
     def convert_exon_folio_numbers(self):
-        from digipal import utils as dputils
         lines = dputils.read_all_lines_from_csv(self.options['src'])
 
         from digipal.models import Image
@@ -514,7 +513,6 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         self.init_possible_sources()
 
         import digipal
-        from digipal import utils as dputils
         from digipal.models import ItemPart
 
         print '> Load manuscripts from DigiPal...\n'
@@ -659,7 +657,6 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         hi.save()
 
         # letterpattent
-        from digipal import utils as dputils
         if row['letterpatent']:
             dputils.add_keywords(ip, 'Letter Patent')
         if row['origcontemp']:
@@ -2213,9 +2210,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             params_str = params_str + ', 0, 0, 0'
 
         # 3 copy all the records over
+        print dputils.get_mem()
         recs_src = None
         if con_src:
             recs_src = utils.sqlSelect(con_src, 'SELECT %s FROM %s' % (common_str_src, src_table))
+            print 'after query'
+            print dputils.get_mem()
         c = 0
         l = -1
         while True:
@@ -2224,6 +2224,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
             if recs_src:
                 rec_src = recs_src.fetchone()
+                print c, dputils.get_mem()
             else:
                 if l < len(src_records):
                     rec_src = [src_records[l][fn] for fn in mapping.keys()]
@@ -2243,6 +2244,8 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         self.log('Copied %s records' % c, 2)
         if recs_src:
             recs_src.close()
+        
+        print dputils.get_mem()
 
         return ret
 
@@ -2273,3 +2276,26 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         for message in getattr(self, 'messages', []):
             print '\t%6d: %s' % (self.messages[message], message)
 
+
+def fetch_all_low_mem(table_name, fields_list_str, connection=None):
+    '''For querying large results (long or broad (e.g. big text fields))
+        with minimum memory usage.
+        Note that this is very SLOW as we have one query per record.
+        
+        Problem that it solves:
+        PSQL cursor.execute() seems to consume a lot of memory even before
+        we call fetch one.
+        
+        Approach:
+    '''
+    cursor = connection.cursor()
+    cursor.execute('select id from %s', (table_name,))
+    rids = cursor.fetchall()
+    cursor.close()
+    
+    for rid in rids:
+        cursor.execute('select %s from %s where id = %s', (fields_list_str, table_name, rid))
+        record = cursor.fetchone()
+        yield record
+    
+    cursor.close()

@@ -1171,10 +1171,6 @@ def get_whoosh_field_type(field, sortable=False):
     return ret
 
 def populate_index(ct, index=None):
-    from guppy import hpy
-    h = hpy()
-    h.setref()
-
     # Add documents to the index
     print '\tgenerate sort rankings'
     print utils.get_mem()
@@ -1255,8 +1251,6 @@ def populate_index(ct, index=None):
     chrono(':commit')
 
     chrono(':scan+index')
-
-    print h.heap()
 
     print '\tdone (%s records)' % record_count
 

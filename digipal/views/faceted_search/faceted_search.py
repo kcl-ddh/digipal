@@ -10,6 +10,7 @@ from django.conf import settings
 from digipal.templatetags import hand_filters, html_escape
 from digipal import utils
 from django.utils.datastructures import SortedDict
+from digipal.templatetags.hand_filters import chrono
 import digipal.models
 import re
 
@@ -196,10 +197,12 @@ class FacetedModel(object):
         ##print 'h2'
         ##print model, path
         i = 0
-        print repr(model), utils.get_mem()
-        for record in model.objects.all().order_by('id'):
+        #print repr(model), utils.get_mem()
+        for record in model.objects.all().order_by('id').iterator():
             if i == 0:
-                print utils.get_mem()
+                pass
+                #print path
+                #print utils.get_mem()
             i += 1
             value = ''
             value = self.get_record_path(record, path)
@@ -211,8 +214,6 @@ class FacetedModel(object):
             v = v or u''
 
             value_rankings[value] = v
-
-        ##print 'h3'
 
         # convert dates to numbers
         if field['type'] == 'date':
@@ -226,14 +227,13 @@ class FacetedModel(object):
             # sort by natural order
             sorted_values = utils.sorted_natural(value_rankings.values(), True)
 
-        ##print 'h4'
         # now assign the ranking to each value
         for k, v in value_rankings.iteritems():
             value_rankings[k] = sorted_values.index(v)
 
         hand_filters.chrono(':%s' % field['key'])
 
-        print '', utils.get_mem()
+        #print '', utils.get_mem()
         return value_rankings, sorted_values
         #return 0
 
@@ -1070,13 +1070,10 @@ def rebuild_index(index_filter=[]):
 def optimize_index(ct):
     utils.gc_collect()
     print 'get index'
-    print utils.get_mem()
     index = ct.get_whoosh_index()
     print 'optimize index'
-    print utils.get_mem()
     writer = index.writer()
     writer.commit(optimize=True)
-    print utils.get_mem()
 
 def create_index_schema(ct):
     print '%s' % ct.key
@@ -1171,15 +1168,18 @@ def get_whoosh_field_type(field, sortable=False):
     return ret
 
 def populate_index(ct, index=None):
+    chrono('POPULATE_INDEX:')
+    
     # Add documents to the index
     print '\tgenerate sort rankings'
-    print utils.get_mem()
 
+    chrono('RANK_VALUES:')
     ct.prepare_value_rankings()
+    chrono(':RANK_VALUES')
 
+    chrono('INDEXING QUERY:')
     print '\tretrieve all records'
     utils.gc_collect()
-    print utils.get_mem()
 
     from whoosh.writing import BufferedWriter
     # writer = BufferedWriter(index, period=None, limit=20)
@@ -1188,18 +1188,17 @@ def populate_index(ct, index=None):
     #writer = index.writer()
     writer = None
 
+    chrono(':INDEXING QUERY')
+
     print '\tadd records to index'
-    print utils.get_mem()
 
     i = 0
     #commit_size = 1000000
     commit_size = 500
 
-    from digipal.templatetags.hand_filters import chrono
-
     # settings.DEV_SERVER = True
-    chrono('scan+index:')
-    chrono('iterator:')
+    chrono('INDEXING:')
+    chrono('First record:')
 
     record_condition = ct.get_option('condition', None)
 
@@ -1211,15 +1210,12 @@ def populate_index(ct, index=None):
     # Then optimise them outside this fct on a separate index
     for record in rcs.iterator():
         if i == 0:
-            chrono(':iterator')
-            chrono('index:')
-            print utils.get_mem()
+            chrono(':First record')
         pbar.update(i+1)
 
         if (i % commit_size) == 0:
             # we have to commit every x document otherwise the memory saturates on the VM
             # BufferedWriter is buggy and will crash after a few 100x docs
-            print utils.get_mem()
             if writer:
                 writer.commit(merge=False)
 
@@ -1227,7 +1223,6 @@ def populate_index(ct, index=None):
             writer = None
             index = None
             utils.gc_collect()
-            print utils.get_mem()
 
             index = ct.get_whoosh_index()
             writer = index.writer()
@@ -1243,14 +1238,11 @@ def populate_index(ct, index=None):
     #ct.clear_value_rankings()
 
     pbar.complete()
-    chrono(':index')
+    chrono(':INDEXING')
 
     print '\n'
 
-    chrono('commit:')
-    chrono(':commit')
-
-    chrono(':scan+index')
+    chrono(':POPULATE_INDEX')
 
     print '\tdone (%s records)' % record_count
 

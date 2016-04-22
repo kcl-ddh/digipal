@@ -1890,8 +1890,27 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         ''' % (table_name, ', '.join(['%s %s' % (col[0], col[1]) for col in schema]))
 
         utils.sqlWrite(con_dst, create)
+        
+        self._create_table_index(table_name, options=options)
 
         print 'Created table %s (%s columns)' % (table_name, len(schema))
+
+    def create_table_index(self, table_name, options=None):
+        # TODO: move to local_settings.py
+        # EXON specific...
+        create_table_index_data = {
+            'entries_hands': ['hands', 'entry'],
+        }
+        
+        fields = create_table_index_data.get(table_name, None)
+
+        if fields:
+            from django.db import connections
+            con_dst = connections[options.get('db', 'default')]
+            for field in fields:
+                create = 'CREATE INDEX ON %s (%s)' % (table_name, field)
+                print '\tCreate index on field %s' % field
+                utils.sqlWrite(con_dst, create)
 
     def insertTableFromCSV(self):
         options = self.options

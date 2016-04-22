@@ -498,7 +498,7 @@ DEBUG_TOOLBAR_CONFIG = {'INTERCEPT_REDIRECTS': False}
 
 # Log debug info into debug.log
 # Includes SQL statements
-# Not for production
+# NOT for production
 DJANGO_DEBUG_LOG = False
 
 # Log the duration of each http response from django

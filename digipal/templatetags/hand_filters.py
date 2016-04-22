@@ -194,6 +194,8 @@ def chrono(label):
         In debug mode it will print this on the std output:
             before listing: CURRENT DATE TIME
     '''
+    from digipal.utils import get_mem
+
     if getattr(settings, 'DEBUG_PERFORMANCE', False):
         t = datetime.now()
         d = t - chrono.last_time
@@ -207,7 +209,7 @@ def chrono(label):
             if k in chrono.last_times:
                 slice_duration = t - chrono.last_times[k]
 
-        message = '%8.4f %8.4f %s' % (d.total_seconds(), slice_duration.total_seconds(), label)
+        message = '%5dMB %8.4f %8.4f %s' % (get_mem(), d.total_seconds(), slice_duration.total_seconds(), label)
         dplog(message)
 
     return''

@@ -1,7 +1,13 @@
 from django.utils.html import conditional_escape, escape
-import re
+import re, os
 from binhex import LINELEN
 import lxml.etree as ET
+psutil = None
+try:
+    import psutil
+except:
+    pass
+
 #_nsre = re.compile(ur'(?iu)([0-9]+|(?:\b[mdclxvi]+\b))')
 _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
 _nsre = re.compile(ur'(?iu)([0-9]+)')
@@ -1263,10 +1269,11 @@ def get_cache_key_from_string(s):
 
 def get_mem():
     # return the memory used by this process in MB
-    import os
-    import psutil
-    process = psutil.Process(os.getpid())
-    return (process.memory_info().rss / 1024 / 1024)
+    ret = 0
+    if psutil:
+        process = psutil.Process(os.getpid())
+        ret = (process.memory_info().rss / 1024 / 1024)
+    return ret
 
 def gc_collect():
     # clear potentially huge query info in BEDUG mode

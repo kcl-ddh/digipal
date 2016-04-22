@@ -618,7 +618,7 @@ CACHES = {
 
 # Uncomment this to force less to ALWAYS be compiled, even when not changed
 # Slow but useful when making changes to css
-CACHES['django-compressor'] = CACHES['default']
+#CACHES['django-compressor'] = CACHES['default']
 
 # Mezzanine settings var reuire as soon as we use django cache
 NEVERCACHE_KEY = 'NOCACHE'
@@ -741,6 +741,10 @@ import os
 RUNNING_DEVSERVER = (len(sys.argv) > 1 and sys.argv[1] == 'runserver')
 if RUNNING_DEVSERVER and DEBUG and os.environ.get('RUN_MAIN', None) != 'true':
     LOGGING = {}
+
+#
+if not COMPRESS_ENABLED:
+    CACHES['django-compressor'] = CACHES['default']
 
 ####################
 # DYNAMIC SETTINGS #

@@ -1891,7 +1891,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
 
         utils.sqlWrite(con_dst, create)
         
-        self._create_table_index(table_name, options=options)
+        self.create_table_index(table_name, options=options)
 
         print 'Created table %s (%s columns)' % (table_name, len(schema))
 
@@ -1900,6 +1900,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         # EXON specific...
         create_table_index_data = {
             'entries_hands': ['hands', 'entry'],
+            'exon_master': ['exonellisref'],
         }
         
         fields = create_table_index_data.get(table_name, None)

@@ -463,11 +463,11 @@ class FacetedModel(object):
                 except Exception, e:
                     raise Exception(u'Model path not found. Record = [%s:%s], path = %s, part = %s, value = %s' % (type(record), repr(record), path, part, repr(v)))
 
-                if v is None:
-                    break
-
                 if callable(v):
                     v = v()
+
+                if v is None:
+                    break
 
                 # We fork the path finding b/c we have a result set
                 # e.g. person.cars.color => we fork at cars and will eventually return [blue, red]

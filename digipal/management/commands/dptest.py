@@ -2,7 +2,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from os.path import isdir
-import os
+import os, sys
 import shlex
 import subprocess
 import re
@@ -131,6 +131,10 @@ Commands:
         if command =='download_images':
             known_command = True
             self.download_images(*args[1:])
+            
+        if command =='mem':
+            known_command = True
+            self.test_mem(*args[1:])
 
         if command == 'date_prob':
             known_command = True
@@ -1671,3 +1675,33 @@ Commands:
             if i.folio_number != l[1][0] or i.folio_side != l[1][1]:
                 print '\tERROR, expected %s, %s.' % (l[1][0], l[1][1])
 
+
+    def test_mem(self):
+        import gc
+        objs = gc.get_objects()
+        
+        # total size
+        print '%s used by %s objects in the GC' % (hs(sum(sys.getsizeof(o) for o in objs)), len(objs))
+        
+        # find biggest objects
+        limit = 1000000
+        l = 40
+        
+        def ostr(o):
+            try:
+                return '%s' % str(o)[:l]
+            except Exception, e:
+                return '??? %s' % type(e)
+        
+        def list_objs(objs):
+            for i in range(0, min(limit, len(objs))):
+                print '',i, hs(sys.getsizeof(objs[i])), type(objs[i]), ostr(objs[i])
+
+        objs = sorted(objs, key=lambda o: sys.getsizeof(o), reverse=True)
+        list_objs(objs)
+
+        objs = sorted(objs, key=lambda o: ostr(o))
+        list_objs(objs)
+
+def hs(size):
+    return '%.3f MB' % (1.0 * size / 1024.0 / 1024.0)

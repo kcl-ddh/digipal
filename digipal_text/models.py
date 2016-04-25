@@ -82,6 +82,9 @@ class TextUnit(object):
        for a unit of text in a TextContentXML
     '''
 
+    def __init__(self, units=None):
+        self.units = units
+
     @property
     def id(self):
         return ur'%s:%s' % (self.content_xml.id, self.unitid)

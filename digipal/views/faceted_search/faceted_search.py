@@ -1177,6 +1177,7 @@ def populate_index(ct, index=None):
     # writer = BufferedWriter(index, period=None, limit=20)
     rcs = ct.get_all_records(True)
     record_count = rcs.count()
+
     #writer = index.writer()
     writer = None
 
@@ -1226,6 +1227,8 @@ def populate_index(ct, index=None):
 
         writer.add_document(**ct.get_document_from_record(record))
 
+    if writer:
+        writer.commit(merge=False)
     #rcs = None
     #ct.clear_value_rankings()
 

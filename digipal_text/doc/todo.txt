@@ -1,9 +1,9 @@
 Bugs:
 . entry search results
     . quire not showing
-    . hand not showing
-    . Entry type facets is like the TIC facets
-    .
+    [done] hand not showing
+    [done] Entry type facets is like the TIC facets
+. empty hands and texts results
 
 .
 search history

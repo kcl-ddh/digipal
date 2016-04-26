@@ -2,6 +2,7 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from optparse import make_option
+from digipal import utils as dputils
 from digipal.utils import sorted_natural
 import regex as re
 
@@ -42,9 +43,12 @@ Commands:
 
     setquire
         Set the quire number on the images from the codicological desc.
-        
+
     marginal_entries
         List the number of the entries starting in the margin
+
+    entries2csv
+        Write a csv file entry number, transl, transc
 """
 
     args = 'locus|email'
@@ -115,11 +119,43 @@ Commands:
             known_command = True
             self.handentry_command()
 
+        if command == 'entries2csv':
+            known_command = True
+            self.entries2csv_command()
+
         if known_command:
             self.cm.printSummary()
             print 'done'
         else:
             print self.help
+
+    def entries2csv_command(self):
+        headings = ['entry', 'translation', 'transcription-sample']
+        file_path = 'entries-text.csv'
+
+        from copy import deepcopy
+        from digipal_text.models import TextContentXML
+        from digipal_text.views import viewer
+
+        rows = {}
+
+        for ctype in ['translation', 'transcription-sample']:
+            text = TextContentXML.objects.filter(text_content__type__slug=ctype).first()
+            print text.id
+            content = u'<root>%s</root>' % text.content
+            units = viewer.get_all_units(content, 'entry')
+            for unit in units:
+                entryid = unit['unitid']
+                if entryid not in rows: rows[entryid] = {}
+                rows[entryid][ctype] = dputils.get_plain_text_from_xmltext(unit['content'])
+                rows[entryid]['entry'] = unit['unitid']
+
+        rows = [rows[k] for k in sorted_natural(rows.keys())]
+
+        from digipal.utils import write_rows_to_csv
+
+        write_rows_to_csv(file_path, rows, headings=headings, encoding='utf-8')
+        print 'Written %s' % file_path
 
     def setquire(self):
         from exon.customisations.digipal_lab.views.hands import get_stints_from_text
@@ -137,18 +173,18 @@ Commands:
 
     def marginal_entries(self):
         from digipal_text.models import TextContentXML
-        
+
         #text = TextContentXML.objects.filter(text_content__type__slug='translation').first()
         text = TextContentXML.objects.filter(text_content__type__slug='transcription-sample').first()
         content = u'<root>%s</root>' % text.content
         from digipal import utils
         xml = utils.get_xml_from_unicode(content, True)
-        
+
         #print '\n'.join(list(set(re.findall('data-dpt="(.*?)"', content))))
-        
-        
+
+
         #exit()
-        
+
         # Warnings about $|£ within <add>
         for pattern in [".//span[@data-dpt='interlineation']//span[@data-dpt-loctype='entry']", ".//span[@data-dpt='marginal']//span[@data-dpt-loctype='entry']", ".//span[@data-dpt='interlineation-to-margin']//span[@data-dpt-loctype='entry']"]:
         #for pattern in [".//p//span[@data-dpt-loctype='entry']"]:
@@ -157,7 +193,7 @@ Commands:
                 print etext
 #             if etext and re.search(ur'[\$£]', etext):
 #                 self.msg('entry within <add> (%s)', repr(etext))
-        
+
 
     def handentry_command(self):
         #hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')
@@ -1588,3 +1624,4 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
     def msg(self, message, *args, **kwargs):
         self.cm.msg(message, *args, **kwargs)
+

@@ -285,16 +285,8 @@ class FacetedModel(object):
             For indexing purpose.
             Strip tags, remove some abbreviations, ...
         '''
-        # remove abbreviations
-        import regex
-        ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', value)
-
-        import HTMLParser
-        html_parser = HTMLParser.HTMLParser()
-        from django.utils.html import strip_tags
-        ret = html_parser.unescape(strip_tags(ret))
-
-        return ret
+        from digipal import utils as dputils
+        dputils.get_plain_text_from_xmltext(value)
 
     def get_field_by_key(self, key):
         # todo: think about caching this
@@ -1169,7 +1161,7 @@ def get_whoosh_field_type(field, sortable=False):
 
 def populate_index(ct, index=None):
     chrono('POPULATE_INDEX:')
-    
+
     # Add documents to the index
     print '\tgenerate sort rankings'
 

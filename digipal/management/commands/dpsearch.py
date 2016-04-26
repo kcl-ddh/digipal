@@ -37,7 +37,7 @@ Commands:
   search --if=KEYWORD [--user=USERNAME] [--qs=QUERY_STRING]
     Faceted Search
 
-  clear_cache
+  clear
     Clear the faceted search cache
 
 Options:
@@ -108,7 +108,7 @@ Options:
 
         known_command = False
 
-        if command == 'clear_cache':
+        if command == 'clear':
             known_command = True
             self.clear_cache()
 

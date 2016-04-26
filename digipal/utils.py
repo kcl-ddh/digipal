@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.utils.html import conditional_escape, escape
 import re, os
 from binhex import LINELEN
@@ -1285,3 +1286,21 @@ def gc_collect():
     import gc
     gc.collect()
 
+def get_plain_text_from_xmltext(xml_str):
+    '''Returns a plain text version of the XML <value>.
+        For INDEXING PURPOSE.
+        Strip tags, remove some abbreviations, ...
+    '''
+    # remove abbreviations
+    import regex
+    ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', xml_str)
+
+    import HTMLParser
+    html_parser = HTMLParser.HTMLParser()
+    from django.utils.html import strip_tags
+    ret = html_parser.unescape(strip_tags(ret))
+
+    # remove | (line breaks) and other expansion markup <>
+    ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '').replace(u'-|', u'').replace(u'|', u'\r')
+
+    return ret

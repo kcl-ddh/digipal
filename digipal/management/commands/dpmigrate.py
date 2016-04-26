@@ -1909,7 +1909,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             from django.db import connections
             con_dst = connections[options.get('db', 'default')]
             for field in fields:
-                create = 'CREATE INDEX %s_%s ON %s (%s)' % (table_name, field_name, table_name, field)
+                create = 'CREATE INDEX %s_%s ON %s (%s)' % (table_name, field, table_name, field)
                 print '\tCreate index on field %s' % field
                 utils.sqlWrite(con_dst, create)
 

@@ -1172,8 +1172,6 @@ def sql_select_dict(query, arguments=None):
     from digipal.management.commands.utils import sqlSelect, fetch_all_dic
     from django.db import connections
 
-    ret = []
-
     con = connections['default']
     cur = con.cursor()
     arguments = arguments or []

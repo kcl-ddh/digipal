@@ -29,6 +29,7 @@ class TextUnits(object):
         # TODO: this is VERY inefficient if we call in_bulk as we get all the records
         # We need to implement lazy loading instead
         self.options = {'select_related': [], 'prefetch_related': []}
+        self.all()
         self.load_records()
 
     def select_related(self, *args, **kwargs):
@@ -65,13 +66,15 @@ class TextUnits(object):
         return self.recs
 
     def count(self, *args, **kwargs):
-        print 'COUNT!'
         return len(self.recs)
 
     def all(self, *args, **kwargs):
+        self.options['ais'] = None
         return self
 
     def filter(self, *args, **kwargs):
+        if args or kwargs:
+            raise Exception('filter() is not yet supported')
         return self
 
     def order_by(self, *args, **kwargs):

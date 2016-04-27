@@ -1075,7 +1075,7 @@
                 menubar : false,
                 statusbar: false,
                 height: '15em',
-                content_css : "/static/digipal_text/viewer/tinymce.css?v=10"
+                content_css : '/static/digipal_text/viewer/tinymce.css?v=10,/static/digipal_text/viewer/tinymce_custom.css?v=10'
             };
 
             if (this.contentType == 'codicology') {

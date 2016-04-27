@@ -23,6 +23,8 @@ class FacetedModel(object):
     def __init__(self, options):
         self.options = options
         self.faceted_model_group = None
+        # a instance cache to avoid calculating things many times
+        self.icache = {}
 
     def set_faceted_model_group(self, faceted_model_group=None):
         self.faceted_model_group = faceted_model_group
@@ -304,7 +306,8 @@ class FacetedModel(object):
     filter_field_keys = property(get_filter_field_keys)
 
     def get_facets(self, request):
-        ret = []
+        ret = self.icache.get('get_facets', [])
+        if ret: return ret
 
         # a filter for search phrase
         phrase_facet = {'label': 'Phrase', 'type': 'textbox', 'key': 'terms', 'value': request.GET.get('terms', ''), 'id': 'search-terms', 'removable_options': []}
@@ -327,8 +330,11 @@ class FacetedModel(object):
             ret.append(ct_facet)
 
         # facets based on faceted fields
+        hand_filters.chrono('fielfds:')
+
         from copy import deepcopy
         for key in self.filter_field_keys:
+            hand_filters.chrono('Field %s' % key)
             field = self.get_field_by_key(key)
             if field is None:
                 raise Exception('Content type "%s" has no field named "%s". Check filters.' % (self.get_key(), key))
@@ -353,21 +359,32 @@ class FacetedModel(object):
         for facet in ret:
             facet['expanded'] = utils.get_int(request.GET.get('@xp_' + facet['key'], 0), 0)
 
+        hand_filters.chrono(':fielfds')
+
+        self.icache['get_facets'] = ret
+
         return ret
 
     def get_facet_options(self, field, request, sorted_by='c'):
+        from urllib import quote_plus
         ret = []
         if not field.get('count', False):
             return ret
         selected_key = request.GET.get(field['key'], '')
+
+        keyword = 'REPLACEME'
+        # this fct is expensive, we moved it out the below loop
+        href = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], field['key']: [keyword] })
+        labels = field.get('labels', {0: 'No', 1: 'Yes'})
+
+        # http://localhost:8080/digipal/search/facets/?entry_type=TO&page=1&pgs=10&wr=0&result_type=entries&view=list
         if hasattr(self, 'whoosh_groups'):
             for k, v in self.whoosh_groups[field['key']].iteritems():
                 label = k
-                labels = field.get('labels', {0: 'No', 1: 'Yes'})
                 if field['type'] == 'boolean':
                     label = labels[int(utils.get_bool_from_string(k))]
                 option = {'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k is not None)}
-                option['href'] = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], field['key']: [] if option['selected'] else [option['key']] })
+                option['href'] = mark_safe(href.replace(keyword, quote_plus('' if option['selected'] else (u'%s' % option['key']).encode('utf-8'))))
                 ret.append(option)
 
         # sort the options (by count then key or the opposite)
@@ -741,7 +758,9 @@ class FacetedModel(object):
 #                         record.found = True
             if 1:
             #else:
+                hand_filters.chrono('bulk:')
                 records = records.in_bulk(ids)
+                hand_filters.chrono(':bulk')
 
                 if len(records) != len(ids):
                     # raise Exception("DB query didn't retrieve all Whoosh results.")
@@ -984,21 +1003,27 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
 
     ct = context['result_type']
 
+    hand_filters.chrono('set group')
     ct.set_faceted_model_group(cts)
 
     context['result_type'] = ct
 
     # run the search
+    hand_filters.chrono('get requested records')
     records = ct.get_requested_records(request)
 
     # add the search parameters to the template
+    hand_filters.chrono('get facets')
     context['facets'] = ct.get_facets(request)
 
+    hand_filters.chrono('page title')
     context['search_page_title'] = ct.get_page_title(request)
 
+    hand_filters.chrono('columns')
     context['cols'] = ct.get_columns(request)
     context['lines'] = range(0, 1+max([c['line'] for c in context['cols'] if str(c['line']).isdigit()]))
 
+    hand_filters.chrono('sort')
     context['sort_key'], context['sort_reverse'] = ct.get_sort_info(request)
 
     view = ct.get_selected_view()
@@ -1008,18 +1033,22 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     # add the results to the template
     context['result'] = list(records)
 
+    hand_filters.chrono('current page')
     context['current_page'] = ct.get_current_page()
 
+    hand_filters.chrono('summary')
     context['summary'] = ct.get_summary(request)
 
     context['advanced_search_form'] = True
 
+    hand_filters.chrono('size')
     context['page_sizes'] = ct.get_page_sizes(request)
     context['page_size'] = ct.get_page_size(request)
     context['hit_count'] = ct.get_total_count()
     context['views'] = ct.views
     context['search_help_url'] = utils.get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
 
+    hand_filters.chrono('wide')
     context['wide_result'] = ct.get_wide_result(request)
     # used for the grid.html view
     context['col_per_row'] = ct.get_col_per_row(request)
@@ -1027,6 +1056,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
 
     context['wide_page'] = True
 
+    hand_filters.chrono('overview')
     from overview import draw_overview
     draw_overview(ct, context, request)
 

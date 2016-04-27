@@ -13,15 +13,28 @@ from mezzanine.generic.fields import KeywordsField
 import logging
 import digipal.models
 from django.contrib.auth.models import User
-dplog = logging.getLogger('digipal_debugger')
+#dplog = logging.getLogger('digipal_debugger')
+from digipal.utils import dplog
 
 class ClassProperty(property):
     def __get__(self, cls, owner):
         return self.fget.__get__(None, owner)()
 
+# TODO: use QuerySet so more in line with Django design
+# TODO: support for QS reuse
 class TextUnits(object):
     '''Abstract Class that behaves like a Django Model Manager
        for units of text in a TextContentXML
+
+       Some functions work like Django QS.
+       Specifically the use of iterator(), e.g.:
+
+       objs = TextUnit.objects.all()
+       a) for r in objs
+       b) for r in objs.iterator()
+
+       a) will read everything at once (+MEM) and cache it (-TIME)
+       b) will read one record at a time (-MEM), another call will redo it (+TIME)
     '''
 
     def __init__(self):
@@ -29,44 +42,55 @@ class TextUnits(object):
         # TODO: this is VERY inefficient if we call in_bulk as we get all the records
         # We need to implement lazy loading instead
         self.options = {'select_related': [], 'prefetch_related': []}
+        # this is our result cache, not always used (e.g. .iterator() bypasses it)
+        self.recs = None
         self.all()
-        self.load_records()
 
     def select_related(self, *args, **kwargs):
         self.options['select_related'] = args
-        self.load_records()
         return self
 
     def prefetch_related(self, *args, **kwargs):
         self.options['prefetch_related'] = args
-        self.load_records()
         return self
 
-    def load_records(self, aids=None):
-        self.recs = self.load_records_iter(aids=aids)
-
-    def load_records_iter(self, aids=None):
+    def load_records_iter(self):
         # to be overridden
         return list()
 
     def __iter__(self):
-        return self.recs.__iter__()
+        # NOT RECOMMENDED!
+        if self.get_bulk_ids() is None:
+            dplog('TextUnit.__iter__() called for ALL UNITS. Use .iterator() instead.', 'WARNING')
+        else:
+            dplog('TextUnit.__iter__() called', 'INFO')
+
+        if self.recs is None:
+            self.recs = list(self.iterator())
+        return self.recs
 
     def in_bulk(self, *args, **kwargs):
         # TODO: not necessarily reliable to access with args[0]
         # TODO: only get the requested units! Don't load everything.
-        ids = args[0]
+        aids = self.options['aids'] = args[0]
         ret = {}
-        for rec in self.load_records_iter(aids=ids):
-            if rec.id in ids:
+        for rec in self.iterator():
+            if rec.id in aids:
                 ret[rec.id] = rec
         return ret
 
     def iterator(self, *args, **kwargs):
-        return self.recs
+        return self.load_records_iter()
+
+    def get_bulk_ids(self):
+        return self.options.get('aids', None)
 
     def count(self, *args, **kwargs):
-        return len(self.recs)
+        # Note that this may be VERY inefficient
+        if self.recs:
+            return len((r for r in self))
+        else:
+            return len((r for r in self.iterator()))
 
     def all(self, *args, **kwargs):
         self.options['ais'] = None

@@ -384,7 +384,7 @@ class FacetedModel(object):
                 if field['type'] == 'boolean':
                     label = labels[int(utils.get_bool_from_string(k))]
                 option = {'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k is not None)}
-                option['href'] = mark_safe(href.replace(keyword, quote_plus('' if option['selected'] else (u'%s' % option['key']).encode('utf-8'))))
+                option['href'] = mark_safe(href.replace(keyword, quote_plus('' if option['selected'] else (u'%s' % option['key']).encode('utf=8'))))
                 ret.append(option)
 
         # sort the options (by count then key or the opposite)

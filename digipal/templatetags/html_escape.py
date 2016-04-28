@@ -263,11 +263,15 @@ def wrap_img(html_img, **kwargs):
 
     if record:
         content_type = record.__class__.__name__.lower()
+        # Is it an Entry (or subclass)?
+        import inspect
+        if 'TextUnit' in [c.__name__ for c in inspect.getmro(record.__class__)]:
+            content_type = 'textunit'
 
         type_class = ''
         attributes = {}
         attributes['data-type'] = content_type
-
+        
         if content_type in ['graph']:
             attributes['data-type'] = 'annotation'
             attributes['data-graph'] = record.id

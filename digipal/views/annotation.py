@@ -636,6 +636,9 @@ def image_copyright(request, image_id):
 
 
 def images_lightbox(request, collection_name):
+    '''JSON View called from the collection to get HTML img elements for the 
+        items in the collection <collection_name>
+    '''
     data = {}
     from digipal.templatetags import html_escape
     if 'data' in request.GET and request.GET.get('data', ''):
@@ -670,7 +673,10 @@ def images_lightbox(request, collection_name):
             images_list.sort(key=lambda t: graphs['images'].index(t.id))
             for image in images_list:
                 #images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
-                images.append([html_escape.iip_img(image, height=100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
+                hand_labels = []
+                if image.item_part:
+                    hand_labels = list(image.item_part.hands.values_list('label'))
+                images.append([html_escape.iip_img(image, height=100), image.id, hand_labels])
             data['images'] = images
         if 'editorial' in graphs:
             editorial_annotations = []

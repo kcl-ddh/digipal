@@ -3,6 +3,12 @@
    -- Digipal Project --> digipal.eu
  */
 
+var collection_types = {
+    'annotation': {'group': 'annotations', 'label': 'Graph'},
+    'textunit': {'group': 'textunits', 'label': 'Text Annotation'},
+    'image': {'group': 'images', 'label': 'Page'},
+    'editorial': {'group': 'editorial', 'label': 'Editorial Annotation'},
+}
 
 function update_collection_counter() {
     var basket_elements;
@@ -89,6 +95,8 @@ function add_to_lightbox(button, type, annotations, multiple) {
     var collections = JSON.parse(localStorage.getItem('collections'));
     var collection_name;
     var collection_id;
+    
+    // find the collection by its id
     $.each(collections, function(index, value) {
         if (value.id == selectedCollection) {
             current_basket = value;
@@ -97,20 +105,22 @@ function add_to_lightbox(button, type, annotations, multiple) {
         }
     });
 
+    // no collectionid sellected, select the last one
     if (!selectedCollection) {
         selectedCollection = {};
         $.each(collections, function(index, value) {
-            selectedCollection.id = value.id;
             current_basket = value;
+            collection_name = index;
+            selectedCollection.id = value.id;
         });
         localStorage.setItem('selectedCollection', selectedCollection.id);
     }
 
     if (annotations === null) {
-        notify('Error. Try again', 'danger');
+        notify('Error (no annotations). Try again', 'danger');
         return false;
     }
-
+    
     var flag, i, j, elements, image_id;
     if (multiple) {
         if (current_basket && current_basket.annotations) {
@@ -149,60 +159,47 @@ function add_to_lightbox(button, type, annotations, multiple) {
         }
     } else {
         var graph = annotations;
+        
+        type_info = collection_types[type];
+        if (!type_info) {
+            notify('Invalid item type (' + type + ') for collection.', 'danger');
+            return false;
+        }
+        
+        var group_name = type_info.group;
+        
         if (type == 'annotation') {
             if (typeof graph == 'undefined' || !graph) {
                 notify('Annotation has not been saved yet', 'danger');
                 return false;
             }
-            if (current_basket.annotations === undefined) {
-                current_basket.annotations = [];
-            }
-            elements = current_basket.annotations;
-        } else if (type == 'image') {
-            if (current_basket.images === undefined) {
-                current_basket.images = [];
-            }
-            elements = current_basket.images;
-        } else if (type == 'editorial') {
-            if (current_basket.editorial === undefined) {
-                current_basket.editorial = [];
-            }
-            elements = current_basket.editorial;
-        } else {
-            throw new Error("Wrong type");
         }
 
-        if (current_basket && elements && elements.length) {
-            flag = true;
+        if (current_basket[group_name] === undefined) {
+            current_basket[group_name] = [];
+        }
+        elements = current_basket[group_name];
 
-            if (elements.indexOf(graph) >= 0) {
-                flag = false;
-            }
-
-            if (flag) {
-                if (type == 'annotation' || type == 'editorial') {
+        if (1 || (current_basket && elements && elements.length)) {
+            
+            if (elements.indexOf(graph) < 0) {
+                if (type == 'image') {
+                    image_id = graph;
+                    elements.push(parseInt(image_id, 10));
+                } else {
                     if (annotations == 'undefined' || !annotations) {
                         notify('Annotation has not been saved yet', 'danger');
                         return false;
                     }
                     elements.push(annotations);
-                    notify('Graph added to Collection', 'success');
-                } else if (type == 'image') {
-                    image_id = graph;
-                    elements.push(parseInt(image_id, 10));
-                    notify('Image added to Collection', 'success');
                 }
+                notify(type_info.label+' added to Collection', 'success');
             } else {
-                if (type == 'annotation' || type == 'editorial') {
-                    notify('Annotation has already been added to Collection', 'danger');
-                } else {
-                    notify('Page has already been added to Collection', 'danger');
-                }
+                notify(type_info.label+' has already been added to Collection', 'danger');
             }
 
-            localStorage.setItem('collections', JSON.stringify(collections));
-
         } else {
+            // GN: 28/04/2016: Don't see why we need this branch at all??? 
 
             if (type == 'annotation' || type == 'editorial') {
                 if (type == 'annotation') {
@@ -232,8 +229,8 @@ function add_to_lightbox(button, type, annotations, multiple) {
                 }
                 notify('Image added to Collection', 'success');
             }
-            localStorage.setItem('collections', JSON.stringify(collections));
         }
+        localStorage.setItem('collections', JSON.stringify(collections));
     }
 
     update_collection_counter();

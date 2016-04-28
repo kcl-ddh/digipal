@@ -97,17 +97,18 @@ var Star = function(options) {
         }
 
     };
+    
+    var getDataAttrName = function(image) {
+        if (image.data('type') == 'textunit' || image.data('type') == 'image') {
+            return 'id';
+        }
+        return 'graph';
+    }
 
     var getData = function(image) {
-        var id;
-        if (image.data('type') == 'image') {
-            id = image.data('id');
-        } else {
-            id = image.data('graph');
-        }
         return {
             'type': image.data('type'),
-            'id': id
+            'id': image.data(getDataAttrName(image))
         };
     };
 
@@ -115,13 +116,8 @@ var Star = function(options) {
         var data = getData(image);
         if (add_to_lightbox(image, data.type, data.id, false)) {
             dialog.element.find('span').addClass('starred').removeClass('unstarred');
-            var _type;
-            if (data.type == 'image') {
-                _type = 'id';
-            } else {
-                _type = 'graph';
-            }
-            var element = $('[data-' + _type + '=' + data.id + ']');
+            var _type = getDataAttrName(image);
+            var element = $("[data-" + _type + "='" + data.id + "']");
             if (typeof element.data('add-star') !== 'undefined' && !element.data('add-star')) {
                 return false;
             }
@@ -149,14 +145,9 @@ var Star = function(options) {
         if (dialog.element) {
             dialog.element.find('span').addClass('unstarred').removeClass('starred');
         }
-        var _type;
-        if (data.type == 'images') {
-            _type = 'id';
-        } else {
-            _type = 'graph';
-        }
-
-        $('[data-' + _type + '=' + data.id + ']').find('.starred-image').remove();
+        var _type = getDataAttrName(image);
+        var element = $("[data-" + _type + "='" + data.id + "']");
+        element.find('.starred-image').remove();
         collections[collection.name] = collection;
         localStorage.setItem('collections', JSON.stringify(collections));
         update_collection_counter();
@@ -217,13 +208,16 @@ var Star = function(options) {
         var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
         $.each(graphs, function(index, value) {
             value = $(value);
-            var id;
-            if (value.data('graph')) {
-                id = value.data('graph');
-                type = 'annotation';
-            } else {
-                id = value.data('id');
-                type = 'image';
+            var id = value.data('id');
+            var type = value.data('type') || 'annotation';
+            var graphid = value.data('graph');
+            
+            if (graphid) {
+                // Yeah... I know... type = annotation BUT id of a graph!
+                // That's a major cause of confusion everywhere in the code
+                // Can't be changed easily because it is now saved in 
+                // bookmarks and localstorage.
+                id = graphid;
             }
 
             if (isInCollection(collection_id, id, type)) {

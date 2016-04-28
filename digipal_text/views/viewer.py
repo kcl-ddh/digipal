@@ -11,6 +11,7 @@ from django.conf import settings
 import json
 
 import logging
+from digipal.utils import sorted_natural
 dplog = logging.getLogger( 'digipal_debugger')
 
 MAX_FRAGMENT_SIZE = 60000
@@ -340,6 +341,33 @@ def resolve_default_location(location_type, location, response):
             break
     return location_type, location
 
+#def get_units(content, location_type, locations):
+
+def get_units(content, location_type, locations, content_xmlid=None):
+    # locations = ['1a1', '1a4']
+    # OR, for specific contentxml:
+    # locations = ['1:1a1', '1:1a4', '2:1a4']
+    # if contentxmlid == 1 => only 1:X will be returned
+
+    if locations is None:
+        return get_all_units(content, location_type)
+    else:
+        return get_units_from_locations(content, location_type, locations=locations, content_xmlid=content_xmlid)
+
+def get_units_from_locations(content, location_type, locations, content_xmlid=None):
+    extent = [0, 0]
+
+    print locations
+
+    for location in sorted_natural(locations):
+        parts = location.split(':')
+        if len(parts) == 2 and parts[0] != str(content_xmlid):
+            # different XML
+            continue
+
+        extent = get_fragment_extent(content, location_type, parts[-1], extent[1])
+        yield {'unitid': extent[2], 'content': content[extent[0]:extent[1]]}
+
 def get_all_units(content, location_type):
     '''
         Returns a list of fragments of type <location_type> from <content>
@@ -355,9 +383,10 @@ def get_all_units(content, location_type):
     while True:
         extent = get_fragment_extent(content, location_type, None, extent[1])
         if not extent: break
-        ret.append({'unitid': extent[2], 'content': content[extent[0]:extent[1]]})
+        #ret.append({'unitid': extent[2], 'content': content[extent[0]:extent[1]]})
+        yield {'unitid': extent[2], 'content': content[extent[0]:extent[1]]}
 
-    return ret
+    #return ret
 
 def get_fragment_extent(content, location_type, location=None, from_pos=0):
     ret = None
@@ -376,7 +405,7 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
         content_location = ''
         if location is not None:
             content_location = location+'<'
-        location_pattern = '<span data-dpt="location" data-dpt-loctype="'+location_type+'">'+content_location
+        location_pattern = '<span data-dpt="location" data-dpt-loctype="%s">%s' % (location_type, content_location)
         span0 = content.find(location_pattern, from_pos)
         if location is None:
             loc_end = content.find('</span>', span0 + len(location_pattern))
@@ -386,7 +415,7 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
         if span0 > -1:
             p0 = content.rfind('<p>', from_pos, span0)
             if p0 > -1:
-                span1 = content.find('<span data-dpt="location" data-dpt-loctype="'+location_type+'">', span0 + 1)
+                span1 = content.find('<span data-dpt="location" data-dpt-loctype="%s">' % location_type, span0 + 1)
                 if span1 == -1:
                     ret = [p0, len(content), location]
                 else:

@@ -1,6 +1,6 @@
 Bugs:
 . entry search results
-    . quire not showing
+    [done] quire not showing
     [done] hand not showing
     [done] Entry type facets is like the TIC facets
 [done] empty hands and texts results

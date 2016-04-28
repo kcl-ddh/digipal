@@ -370,24 +370,26 @@ class FacetedModel(object):
         ret = []
         if not field.get('count', False):
             return ret
-        selected_key = request.GET.get(field['key'], '')
+        selected_key = unicode(request.GET.get(field['key'], ''))
 
         keyword = 'REPLACEME'
-        # this fct is expensive, we moved it out the below loop
+        # this fct is expensive, we moved it out of the loop below
         href = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], field['key']: [keyword] })
         labels = field.get('labels', {0: 'No', 1: 'Yes'})
+        is_bool = field['type'] == 'boolean'
 
         # http://localhost:8080/digipal/search/facets/?entry_type=TO&page=1&pgs=10&wr=0&result_type=entries&view=list
         if hasattr(self, 'whoosh_groups'):
             for k, v in self.whoosh_groups[field['key']].iteritems():
                 label = k
-                if field['type'] == 'boolean':
+                if is_bool:
                     label = labels[int(utils.get_bool_from_string(k))]
-                option = {'key': k, 'label': label, 'count': v, 'selected': (unicode(selected_key) == unicode(k)) and (k is not None)}
+                option = {'key': k, 'label': label, 'count': v, 'selected': (selected_key == unicode(k)) and (k is not None)}
                 option['href'] = mark_safe(href.replace(keyword, quote_plus('' if option['selected'] else (u'%s' % option['key']).encode('utf=8'))))
                 ret.append(option)
 
         # sort the options (by count then key or the opposite)
+        # TODO: optimise by doing this first, then limiting (if facet is collapsed), then running the loop above
         sort_fct = lambda o: [-o['count'], o['key']]
         if sorted_by == 'o':
             sort_fct = lambda o: [o['key'], -o['count']]

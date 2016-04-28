@@ -3,11 +3,12 @@
    -- Digipal Project --> digipal.eu
  */
 
+// annotation type => group: key in the Collection dictionnary, label: Human readable label
 var collection_types = {
-    'annotation': {'group': 'annotations', 'label': 'Graph'},
-    'textunit': {'group': 'textunits', 'label': 'Text Annotation'},
-    'image': {'group': 'images', 'label': 'Page'},
-    'editorial': {'group': 'editorial', 'label': 'Editorial Annotation'},
+    'annotation':   {'group': 'annotations', 'label': 'Graph'},
+    'textunit':     {'group': 'textunits', 'label': 'Text Annotation'},
+    'image':        {'group': 'images', 'label': 'Page'},
+    'editorial':    {'group': 'editorial', 'label': 'Editorial Annotation'},
 }
 
 function update_collection_counter() {

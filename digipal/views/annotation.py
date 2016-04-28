@@ -686,6 +686,16 @@ def images_lightbox(request, collection_name):
                 full_size = u'<img alt="%s" src="%s" />' % (_annotation.graph, _annotation.get_cutout_url(True, True))
                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.id, _annotation.image.display_label, _annotation.display_note, full_size])
             data['editorial'] = editorial_annotations
+        if 'textunits' in graphs:
+            from digipal_text.models import TextAnnotation
+            #tus = TextUnit.get_annotations(graphs['textunits'])
+            #print tus
+#             textunits_annotations_list = list(Annotation.objects.filter(id__in=graphs['editorial']))
+#             textunits_annotations_list.sort(key=lambda t: graphs['textunits'].index(str(t.id)))
+#             for _annotation in textunits_annotations_list:
+#                 full_size = u'<img alt="%s" src="%s" />' % (_annotation.graph, _annotation.get_cutout_url(True, True))
+#                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.id, _annotation.image.display_label, _annotation.display_note, full_size])
+#             data['textunits'] = textunits
     return HttpResponse(json.dumps(data), content_type='application/json')
 
 def form_dialog(request, image_id):

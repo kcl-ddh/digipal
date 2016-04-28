@@ -414,7 +414,7 @@ class FacetedModel(object):
                 if 'Graph' in str(type(record)):
                     ret = html_escape.annotation_img(ret, lazy=1, a_title=record.get_short_label(), a_data_placement="bottom", a_data_toggle="tooltip", a_data_container="body", wrap=record, link=record)
                 else:
-                    ret = html_escape.annotation_img(ret, lazy=1, fixlen=800)
+                    ret = html_escape.annotation_img(ret, lazy=1, fixlen=800, wrap=record, link=record)
             else:
                 ret = html_escape.iip_img(ret, width=field.get('max_size', 50), lazy=1, wrap=record, link=record)
         if ret is None:

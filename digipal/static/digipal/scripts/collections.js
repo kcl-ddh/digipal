@@ -502,3 +502,4 @@ $(document).ready(function() {
 		collections.init();
 	});
 });
+

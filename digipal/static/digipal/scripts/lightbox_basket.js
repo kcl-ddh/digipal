@@ -144,7 +144,8 @@
 
 			var graphs = [],
 				images = [],
-				editorial = [];
+				editorial = [],
+				textunits = [];
 
 			if (typeof collection.annotations !== 'undefined' && collection.annotations.length) {
 				for (var i = 0; i < collection.annotations.length; i++) {
@@ -170,6 +171,13 @@
 				}
 				data.editorial = editorial;
 			}
+
+	         if (typeof collection.textunits !== 'undefined' && collection.textunits.length) {
+                for (d = 0; d < collection.textunits.length; d++) {
+                    textunits.push(collection.textunits[d]);
+                }
+                data.textunits = textunits;
+            }
 
 		} else {
 			/*

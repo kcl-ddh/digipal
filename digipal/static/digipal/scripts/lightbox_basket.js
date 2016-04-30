@@ -698,6 +698,10 @@
                 for (var j = 0; j < selectedItems.length; j++) {
 
                     // remove selected items from collection in localStorage
+                    // GN: note that selectedItems contains only a list of item id
+                    // No indication of the item type the id refers to
+                    // So if you remove image 1, graph 1 and text unit one 1
+                    // will also be removed from the collection!!
                     for (var i in basket) {
                         if (basket[i] instanceof Array) {
                             var itemid = selectedItems[j];

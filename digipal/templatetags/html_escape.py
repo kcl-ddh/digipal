@@ -263,15 +263,20 @@ def wrap_img(html_img, **kwargs):
 
     if record:
         content_type = record.__class__.__name__.lower()
-        # Is it an Entry (or subclass)?
-        import inspect
-        if 'TextUnit' in [c.__name__ for c in inspect.getmro(record.__class__)]:
-            content_type = 'textunit'
 
         type_class = ''
         attributes = {}
+
+        attributes['data-id'] = record.id
         attributes['data-type'] = content_type
-        
+
+        import inspect
+        # Is it an Entry (or subclass)?
+        if 'TextUnit' in [c.__name__ for c in inspect.getmro(record.__class__)]:
+            type_class = 'graph_img'
+            attributes['data-type'] = 'textunit'
+            attributes['data-id'] = '%s:%s' % (record.__class__.__name__, record.id)
+
         if content_type in ['graph']:
             attributes['data-type'] = 'annotation'
             attributes['data-graph'] = record.id
@@ -282,7 +287,6 @@ def wrap_img(html_img, **kwargs):
         if content_type == 'image':
             type_class = 'imageDatabase'
 
-        attributes['data-id'] = record.id
 
         ret = ur'''
                 <span %s class="droppable_image %s">

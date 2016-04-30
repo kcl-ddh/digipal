@@ -216,6 +216,24 @@
                 on_resize();
             },
 
+            /*
+            A micro-templating system for javascript
+            The function returns the template after substituting the variables
+
+            template: a string with HTML
+                    that can contain variable names surrounded by {{ }}.
+                    E.g. my {{adjective}} template
+            vars: an associative array with the value of the variables
+                e.g. vars.adjective = 'beautiful'
+            */
+            render: function(template, vars) {
+                return template.replace(/\{\{(.+?)\}\}/g, function(match, contents, offset, s) {
+                    var ret = vars[contents];
+                    //if (typeof ret === 'function') ret = ret();
+                    return '' + ret;
+                });
+            },
+
             /* Set up Open layer on a DOM element
                 options = {
                     target *:

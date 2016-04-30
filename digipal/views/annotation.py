@@ -211,11 +211,11 @@ def image(request, image_id):
     # 404 if content type Image not visible
     from digipal.utils import request_invisible_model, raise_404
     request_invisible_model(Image, request, 'Image')
-    
+
     # 404 if image is private and user not staff
     if image.is_private_for_user(request):
         raise_404('''This Image is private''')
-        
+
     is_admin = has_edit_permission(request, Image)
 
     #annotations_count = image.annotation_set.all().values('graph').count()
@@ -270,11 +270,11 @@ def image(request, image_id):
 
     from digipal.models import OntographType
     from digipal.utils import is_model_visible
-    
+
     images = image.item_part.images.exclude(id=image.id).prefetch_related('hands', 'annotation_set')
     images = Image.filter_permissions_from_request(images, request)
     images = Image.sort_query_set_by_locus(images, True)
-    
+
     from digipal_text.models import TextContentXML
 
     context = {
@@ -296,14 +296,14 @@ def image(request, image_id):
                'PAGE_IMAGE_SHOW_MSDATE': settings.PAGE_IMAGE_SHOW_MSDATE,
                'text_content_xmls': TextContentXML.objects.filter(text_content__item_part=image.item_part),
                }
-    
+
     if settings.PAGE_IMAGE_SHOW_MSSUMMARY:
         context['document_summary'] = image.get_document_summary()
-        
+
     context['annotations_switch_initial'] =  1 - int(context['hide_annotations'] or ((request.REQUEST.get('annotations', 'true')).strip().lower() in ['0', 'false']))
-    
+
     context['show_image'] = context['can_edit'] or not context['no_image_reason']
-    
+
     if vector_id:
         context['vector_id'] = vector_id
 
@@ -433,7 +433,7 @@ def get_vector(request, image_id, graph):
 
 def image_annotations(request, image_id, annotations_page=True, hand=False):
     """Returns a JSON of all the annotations for the requested image."""
-    
+
     can_edit = has_edit_permission(request, Annotation)
 
     if annotations_page:
@@ -500,7 +500,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         if a.after:
             an['after'] = '%d::%s' % (a.after.id, a.after.name)
         """
-        
+
     for e in editorial_annotations:
         an = {}
         annotations.append(an)
@@ -572,7 +572,7 @@ def image_allographs(request, image_id):
     """Returns a list of all the allographs/annotations for the requested
     image."""
     can_edit = has_edit_permission(request, Annotation)
-    
+
     annotations = Annotation.objects.filter(image=image_id).exclude_hidden(can_edit).select_related('graph')
 
     data_allographs = SortedDict()
@@ -636,7 +636,7 @@ def image_copyright(request, image_id):
 
 
 def images_lightbox(request, collection_name):
-    '''JSON View called from the collection to get HTML img elements for the 
+    '''JSON View called from the collection to get HTML img elements for the
         items in the collection <collection_name>
     '''
     data = {}
@@ -687,15 +687,19 @@ def images_lightbox(request, collection_name):
                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.id, _annotation.image.display_label, _annotation.display_note, full_size])
             data['editorial'] = editorial_annotations
         if 'textunits' in graphs:
-            from digipal_text.models import TextAnnotation
-            #tus = TextUnit.get_annotations(graphs['textunits'])
-            #print tus
-#             textunits_annotations_list = list(Annotation.objects.filter(id__in=graphs['editorial']))
-#             textunits_annotations_list.sort(key=lambda t: graphs['textunits'].index(str(t.id)))
-#             for _annotation in textunits_annotations_list:
-#                 full_size = u'<img alt="%s" src="%s" />' % (_annotation.graph, _annotation.get_cutout_url(True, True))
-#                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.id, _annotation.image.display_label, _annotation.display_note, full_size])
-#             data['textunits'] = textunits
+            # TODO: optimise, we don't want to load all the content etc.
+            # TODO: support for any type of textunit
+            from exon.customisations.digipal_text.models import Entry
+            units = Entry.objects.in_bulk([uid.replace('Entry:', '') for uid in graphs['textunits']])
+            images = []
+            for unit in units.values():
+                images.append([
+                    html_escape.annotation_img(unit.get_thumb(), fixlen=400, link=unit),
+                    unit.id,
+                    unit.get_label(),
+                    unit.content_xml.text_content.item_part.display_label
+                ])
+            data['textunits'] = images
     return HttpResponse(json.dumps(data), content_type='application/json')
 
 def form_dialog(request, image_id):

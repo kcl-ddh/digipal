@@ -5,6 +5,12 @@
  * data graph if this is an annotation
  *
  * Dependency: add_to_lightbox.js
+
+    <div id="dialog-star">
+        <span data-toggle="tooltip" data-container="body"
+            title="Add image to collection" class="glyphicon
+            glyphicon-star unstarred|starred" />
+    </div>
  */
 /*
 
@@ -52,21 +58,22 @@ var Star = function(options) {
         },
 
         create: function(image) {
-            var element = $('<div id="dialog-star">');
+            //var element = $('<span id="dialog-star"></span>');
+            var element = null;
             return this.fill(image, element);
         },
 
         fill: function(image, element) {
             var data = getData(image);
-            var star = $('<span data-toggle="tooltip" data-container="body" title="Add image to collection" class="glyphicon glyphicon-star unstarred">');
+            var star = $('<span id="dialog-star" data-toggle="tooltip" data-container="body" title="Add image to collection" class="glyphicon glyphicon-star star-icon unstarred"></span>');
             var selectedCollection = getCurrentCollection();
             if (isInCollection(selectedCollection, data.id, data.type)) {
                 star.addClass('starred').removeClass("unstarred");
                 star.attr('title', 'Image added to collection');
             }
             star.tooltip();
-            element.append(star);
-            return element;
+            //element.append(star);
+            return star;
         },
 
         show: function(image) {
@@ -81,28 +88,28 @@ var Star = function(options) {
         },
 
         events: function(element, image) {
-            element.on('click', function(event) {
-                event.preventDefault();
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-            });
+//             element.on('click', function(event) {
+//                 event.preventDefault();
+//                 event.stopPropagation();
+//                 event.stopImmediatePropagation();
+//             });
 
-            element.find('span').on('click', function() {
+            element.on('click', function() {
                 if ($(this).hasClass('starred')) {
                     removeFromCollection(image);
                 } else {
                     addToCollection(image);
                 }
+                return false;
             });
         }
 
     };
-    
+
     var getDataAttrName = function(image) {
-        if (image.data('type') == 'textunit' || image.data('type') == 'image') {
-            return 'id';
-        }
-        return 'graph';
+        // returns the name of the data attribute which contains the id
+        // of the object to add to the collection.
+        return collection_types[image.data('type')].idattr || 'id';
     }
 
     var getData = function(image) {
@@ -115,13 +122,13 @@ var Star = function(options) {
     var addToCollection = function(image) {
         var data = getData(image);
         if (add_to_lightbox(image, data.type, data.id, false)) {
-            dialog.element.find('span').addClass('starred').removeClass('unstarred');
+            dialog.element.addClass('starred').removeClass('unstarred');
             var _type = getDataAttrName(image);
             var element = $("[data-" + _type + "='" + data.id + "']");
             if (typeof element.data('add-star') !== 'undefined' && !element.data('add-star')) {
                 return false;
             }
-            var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+            var star = "<span class='glyphicon glyphicon-star star-icon starred-image'></span>";
             if (element.find('.starred-image').length) return false;
             element.append(star);
         }
@@ -143,7 +150,7 @@ var Star = function(options) {
             }
         }
         if (dialog.element) {
-            dialog.element.find('span').addClass('unstarred').removeClass('starred');
+            dialog.element.addClass('unstarred').removeClass('starred');
         }
         var _type = getDataAttrName(image);
         var element = $("[data-" + _type + "='" + data.id + "']");
@@ -205,17 +212,17 @@ var Star = function(options) {
     var findStarredInPage = function() {
         var collection_id = getCurrentCollection();
         var graphs = $('.droppable_image[data-graph], .droppable_image[data-id]');
-        var star = "<span class='glyphicon glyphicon-star starred-image'></span>";
+        var star = "<span class='glyphicon glyphicon-star starred-image star-icon'></span>";
         $.each(graphs, function(index, value) {
             value = $(value);
             var id = value.data('id');
             var type = value.data('type') || 'annotation';
             var graphid = value.data('graph');
-            
+
             if (graphid) {
                 // Yeah... I know... type = annotation BUT id of a graph!
                 // That's a major cause of confusion everywhere in the code
-                // Can't be changed easily because it is now saved in 
+                // Can't be changed easily because it is now saved in
                 // bookmarks and localstorage.
                 id = graphid;
             }

@@ -357,8 +357,6 @@ def get_units(content, location_type, locations, content_xmlid=None):
 def get_units_from_locations(content, location_type, locations, content_xmlid=None):
     extent = [0, 0]
 
-    print locations
-
     for location in sorted_natural(locations):
         parts = location.split(':')
         if len(parts) == 2 and parts[0] != str(content_xmlid):
@@ -376,17 +374,12 @@ def get_all_units(content, location_type):
             ...
         ]
     '''
-
-    ret = []
-
     extent = [0, 0]
     while True:
         extent = get_fragment_extent(content, location_type, None, extent[1])
         if not extent: break
         #ret.append({'unitid': extent[2], 'content': content[extent[0]:extent[1]]})
         yield {'unitid': extent[2], 'content': content[extent[0]:extent[1]]}
-
-    #return ret
 
 def get_fragment_extent(content, location_type, location=None, from_pos=0):
     ret = None

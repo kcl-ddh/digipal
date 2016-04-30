@@ -127,6 +127,13 @@ class TextUnit(object):
 
         return ret
 
+    def get_label(self):
+        return 'Text unit %s' % self.unitid
+
+    def get_text_annotationid(self):
+        ta = TextAnnotation.objects.filter(annotation__image__item_part=self.content_xml.text_content.item_part, elementid=self.get_elementid()).first()
+        return ta.id if ta else None
+
     @ClassProperty
     @classmethod
     def objects(cls, *args, **kwargs):

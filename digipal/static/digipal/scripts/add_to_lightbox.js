@@ -4,12 +4,13 @@
  */
 
 // annotation type => group: key in the Collection dictionnary, label: Human readable label
+// idattr: name of the data attribute which contains the id of the object to add to the collection.
 var collection_types = {
-    'annotation':   {'group': 'annotations', 'label': 'Graph'},
-    'textunit':     {'group': 'textunits', 'label': 'Text Annotation'},
-    'image':        {'group': 'images', 'label': 'Page'},
-    'editorial':    {'group': 'editorial', 'label': 'Editorial Annotation'},
-}
+    'annotation':       {'group': 'annotations', 'label': 'Graph', 'idattr': 'graph'},
+    'editorial':        {'group': 'editorial', 'label': 'Editorial Annotation', 'idattr': 'graph'},
+    'textunit':         {'group': 'textunits', 'label': 'Text Annotation'},
+    'image':            {'group': 'images', 'label': 'Page'},
+};
 
 function update_collection_counter() {
     var basket_elements;
@@ -54,7 +55,6 @@ function update_collection_counter() {
         }
     }
 
-
     for (var ind = 0; ind < menu_links.length; ind++) {
         if ($.trim(menu_links[ind].innerHTML) == 'Collection') {
             basket_element = $(menu_links[ind]);
@@ -68,17 +68,9 @@ function update_collection_counter() {
 
     var i = 0;
 
-    if (basket_elements[current_collection['name']]['images']) {
-        i += basket_elements[current_collection['name']]['images'].length;
-    }
-
-    if (basket_elements[current_collection['name']]['annotations']) {
-        i += basket_elements[current_collection['name']]['annotations'].length;
-    }
-
-    if (basket_elements[current_collection['name']]['editorial']) {
-        i += basket_elements[current_collection['name']]['editorial'].length;
-    }
+    $.each(collection_types, function(k, v) {
+        i += (basket_elements[current_collection['name']][v.group] || []).length;
+    });
 
     var link_label = current_collection['name'];
 
@@ -96,7 +88,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
     var collections = JSON.parse(localStorage.getItem('collections'));
     var collection_name;
     var collection_id;
-    
+
     // find the collection by its id
     $.each(collections, function(index, value) {
         if (value.id == selectedCollection) {
@@ -121,7 +113,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
         notify('Error (no annotations). Try again', 'danger');
         return false;
     }
-    
+
     var flag, i, j, elements, image_id;
     if (multiple) {
         if (current_basket && current_basket.annotations) {
@@ -160,15 +152,15 @@ function add_to_lightbox(button, type, annotations, multiple) {
         }
     } else {
         var graph = annotations;
-        
+
         type_info = collection_types[type];
         if (!type_info) {
-            notify('Invalid item type (' + type + ') for collection.', 'danger');
+            notify('Invalid collection item type (' + type + ')', 'danger');
             return false;
         }
-        
+
         var group_name = type_info.group;
-        
+
         if (type == 'annotation') {
             if (typeof graph == 'undefined' || !graph) {
                 notify('Annotation has not been saved yet', 'danger');
@@ -182,7 +174,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
         elements = current_basket[group_name];
 
         if (1 || (current_basket && elements && elements.length)) {
-            
+
             if (elements.indexOf(graph) < 0) {
                 if (type == 'image') {
                     image_id = graph;
@@ -200,7 +192,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
             }
 
         } else {
-            // GN: 28/04/2016: Don't see why we need this branch at all??? 
+            // GN: 28/04/2016: Don't see why we need this branch at all???
 
             if (type == 'annotation' || type == 'editorial') {
                 if (type == 'annotation') {

@@ -133,29 +133,60 @@
     margin-left: 0.5em;
 }
 
-.starred {
-    color: yellow;
-    font-size: 15px;
-    cursor: pointer;
-    text-shadow: 0px 0px 1px #444;
-}
-
-.unstarred{
-    cursor: pointer;
-    font-size: 15px;
-    text-shadow: 0px 0px 2px #111;
-    color: #fff;
-}
-
-.unstarred:hover {
-    text-shadow: 0px 0px 3px #000;
-}
-
 button .starred, input .starred, button .unstarred, input .unstarred{
     font-size:12px;
 }
 
-#dialog-star{
+/* -------------------------------- */
+
+// any star icon
+
+.star-icon {
+    position: absolute;
+    right: -0.5em;
+    top: -0.5em;
+    font-size: 1.5em;
+    color: yellow;
+    text-shadow: 0 0 3px #000;
+    z-index: 1001;
+    border-radius: 3px;
+}
+
+#dialog-star.unstarred {
+    color: white;
+}
+
+// star span in corner of starred images
+
+.starred-image2 {
+    position: absolute;
+    /*
+    right: 8%;
+    top: 5%;
+    */
+
+    text-shadow: 0px 0px 1px #444;
+    color: rgba(253, 253, 10, 0.8);
+}
+
+// clickable star span that appears on hover
+
+#dialog-star {
+    right: -0.6em;
+    top: -0.6em;
+    background-color: white;
+    border: 0.2em solid white;
+    text-shadow: 0 0 1px black;
+    box-shadow: 0 0 0 2px @btn-default-border;
+    z-index: 1002;
+}
+
+#dialog-star:hover {
+    background-color: @dropdown-link-hover-bg;
+    border-color: @dropdown-link-hover-bg;
+}
+
+#dialog-star2 {
     position: absolute;
     top: 0;
     left: 85%;
@@ -169,12 +200,31 @@ button .starred, input .starred, button .unstarred, input .unstarred{
     border-radius:2px;
 }
 
-#dialog-star span{
+#dialog-star2 span{
     position: absolute;
     left: 30%;
     top: 25%;
 }
 
+.starred2 {
+    color: yellow;
+    font-size: 15px;
+    cursor: pointer;
+    text-shadow: 0px 0px 1px #444;
+}
+
+.unstarred2 {
+    cursor: pointer;
+    font-size: 15px;
+    text-shadow: 0px 0px 2px #111;
+    color: #fff;
+}
+
+.unstarred2:hover {
+    text-shadow: 0px 0px 3px #000;
+}
+
+/* -------------------------------- */
 
 #table-images tr.table-row, #table-annotations tr.table-row, #table-editorial tr.table-row {
     cursor:pointer;
@@ -194,13 +244,6 @@ tr.selected {
     vertical-align: inherit;
 }
 
-.starred-image {
-    position: absolute;
-    text-shadow: 0px 0px 1px #444;
-    right: 8%;
-    top: 5%;
-    color: rgba(253, 253, 10, 0.8);
-}
 
 
 .num_row{

@@ -1,3 +1,17 @@
+. add clauses to collection
+    . fix the position of the star
+    [done] create new section on the collection page for TA
+    [done] fix the link to the unit
+        . template in settings
+        . replace itempart id and sublocation (get them from TA)
+    [done] fix the label
+        . from TA
+    [done] use annotation_img
+    . generalise to any type of textunit
+    . fix selection in collection
+
+.
+
 Import new version of the transcription
 Entry number not showing in the text viewer
 add preview entry
@@ -8,7 +22,7 @@ fix search
      r〈ex〉
   Ansge-|rus
   pa〈r〉te
-     
+
 images
     hands missing for some images -> script to regen from stints in hands desc.
         AND the corrected stints hardcoded in the hands-entries script

@@ -5,11 +5,12 @@
 
 // annotation type => group: key in the Collection dictionnary, label: Human readable label
 // idattr: name of the data attribute which contains the id of the object to add to the collection.
+// idindex: index of the value identifying uniquely the item in the array returned by annotation.py.images_lightbox()
 var collection_types = {
-    'annotation':       {'group': 'annotations', 'label': 'Graph', 'idattr': 'graph'},
-    'editorial':        {'group': 'editorial', 'label': 'Editorial Annotation', 'idattr': 'graph'},
-    'textunit':         {'group': 'textunits', 'label': 'Text Annotation'},
-    'image':            {'group': 'images', 'label': 'Page'},
+    'annotation':       {'group': 'annotations', 'label': 'Graph', 'idattr': 'graph', 'idindex': 1},
+    'editorial':        {'group': 'editorial', 'label': 'Editorial Annotation', 'idattr': 'graph', 'idindex': 2},
+    'textunit':         {'group': 'textunits', 'label': 'Text Annotation', 'idindex': 1},
+    'image':            {'group': 'images', 'label': 'Page', 'idindex': 1},
 };
 
 function update_collection_counter() {

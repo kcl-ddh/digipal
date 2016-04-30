@@ -48,67 +48,25 @@
     };
 
     function update_counter() {
-        var checkboxes = $('.checkbox_image');
-        var check_annotations_all = $('#check_annotations_all');
-        var check_images_all = $('#check_images_all');
-        var check_editorial_all = $('#check_editorial_all');
-        var annotations = 0,
-            images = 0,
-            editorial = 0;
+        $.each(collection_types, function(type, info) {
+            var check_all = $('#check_'+info.group+'_all');
 
-        $.each(checkboxes, function() {
-            if ($(this).is(':checked')) {
-                if ($(this).data('type') == 'image') {
-                    images++;
-                } else if ($(this).data('type') == 'annotation') {
-                    annotations++;
-                } else {
-                    editorial++;
-                }
+            var count = $('.checkbox_image[data-type='+ type +']:checked').length;
+
+            $('#counter-'+info.group).html(count);
+
+            if (count < 1) {
+                check_all.prop('checked', false).prop('indeterminate', false);
+            } else if ($('#table-'+ info.group +' .table-row').length == count) {
+                check_all.prop('checked', true).prop('indeterminate', false);
+            } else {
+                check_all.prop('indeterminate', true);
             }
+
+            $('#to_lightbox,#remove_from_collection').attr('disabled', !selectedItems.length);
+
+            $("#header_"+info.group).add($("#"+info.group+"-grid h2")).html(info.label+"s (" + $('#table-'+info.group).find('tr[data-graph]').length + ")");
         });
-
-        $('#counter-annotations').html(annotations);
-        $('#counter-images').html(images);
-        $('#counter-editorial').html(editorial);
-
-        if (!annotations) {
-            check_annotations_all.prop('checked', false).prop('indeterminate', false);
-        } else if ($('#table-annotations .table-row').length == annotations) {
-            check_annotations_all.prop('checked', true).prop('indeterminate', false);
-        } else {
-            check_annotations_all.prop('indeterminate', true);
-        }
-
-        if (!images) {
-            check_images_all.prop('checked', false).prop('indeterminate', false);
-        } else if ($('#table-images .table-row').length == images) {
-            check_images_all.prop('checked', true).prop('indeterminate', false);
-        } else {
-            check_images_all.prop('indeterminate', true);
-        }
-
-        if (!editorial) {
-            check_editorial_all.prop('checked', false).prop('indeterminate', false);
-        } else if ($('#table-editorial .table-row').length == editorial) {
-            check_editorial_all.prop('checked', true).prop('indeterminate', false);
-        } else {
-            check_editorial_all.prop('indeterminate', true);
-        }
-
-        if (!selectedItems.length) {
-            $('#remove_from_collection').attr('disabled', true);
-            $('#to_lightbox').attr('disabled', true);
-        } else {
-            $('#remove_from_collection').attr('disabled', false);
-            $('#to_lightbox').attr('disabled', false);
-        }
-
-
-        $("#header_annotations").add($("#annotations-grid h2")).html("Graphs (" + $('#table-annotations').find('tr[data-graph]').length + ")");
-        $("#header_editorial").add($("#editorial-grid h2")).html("Editorial Annotations (" + $('#table-editorial').find('tr[data-graph]').length + ")");
-        $("#header_images").add($("#images-grid h2")).html("Manuscript Images (" + $('#table-images').find('tr[data-graph]').length + ")");
-
     }
 
     var changeNumbers = function() {
@@ -156,44 +114,6 @@
                     }
                 }
             });
-            if (0) {
-                var graphs = [],
-                    images = [],
-                    editorial = [],
-                    textunits = [];
-
-                if (typeof collection.annotations !== 'undefined' && collection.annotations.length) {
-                    for (var i = 0; i < collection.annotations.length; i++) {
-                        graphs.push(collection.annotations[i]);
-                    }
-                    data.annotations = graphs;
-                }
-
-                if (typeof collection.images !== 'undefined' && collection.images.length) {
-                    for (d = 0; d < collection.images.length; d++) {
-                        if (typeof collection.images[d] != 'number') {
-                            images.push(parseInt(collection.images[d].id, 10));
-                        } else {
-                            images.push(parseInt(collection.images[d], 10));
-                        }
-                    }
-                    data.images = images;
-                }
-
-                if (typeof collection.editorial !== 'undefined' && collection.editorial.length) {
-                    for (d = 0; d < collection.editorial.length; d++) {
-                        editorial.push(collection.editorial[d]);
-                    }
-                    data.editorial = editorial;
-                }
-
-                 if (typeof collection.textannotations !== 'undefined' && collection.textannotations.length) {
-                    for (d = 0; d < collection.textannotations.length; d++) {
-                        textannotations.push(collection.textannotations[d]);
-                    }
-                    data.textannotations = textannotations;
-                }
-            }
 
         } else {
             /*
@@ -466,7 +386,7 @@
             for (i = 0; i < data['textunits'].length; i++) {
                 var image = data['textunits'][i];
                 s += "<tr data- class='table-row' data-graph = '" + image[1] + "'>";
-                s += "<td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='textunit' class='checkbox_textunit' /> <span class='num_row'># " + (i + 1) + "</span></td>";
+                s += "<td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='textunit' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span></td>";
                 s += "<td data-graph = '" + image[1] + "'>" + image[0] + "</td>";
                 s += "<td>" + image[2] + "</td>";
                 s += "<td>" + image[3] + "</td>";
@@ -777,32 +697,28 @@
             $('#remove_images_from_collection').unbind().on('click', function() {
                 for (var j = 0; j < selectedItems.length; j++) {
 
+                    // remove selected items from collection in localStorage
                     for (var i in basket) {
                         if (basket[i] instanceof Array) {
-                            if (basket[i].indexOf(selectedItems[j]) >= 0) {
+                            var itemid = selectedItems[j];
+                            if (basket[i].indexOf(itemid) >= 0) {
                                 if (i == "editorial") {
-                                    selectedItems[j] = selectedItems[j].toString();
+                                    itemid = itemid.toString();
                                 }
-                                basket[i].splice(basket[i].indexOf(selectedItems[j]), 1);
-                                $('[data-graph="' + selectedItems[j] + '"]').fadeOut().remove();
+                                basket[i].splice(basket[i].indexOf(itemid), 1);
+                                $('[data-graph="' + itemid + '"]').fadeOut().remove();
                                 selectedItems.splice(j, 1);
                                 j--;
                             }
                         }
                     }
 
-
+                    // remove from cache
                     for (var c in cache) {
                         for (var f = 0; f < cache[c].length; f++) {
                             if (cache[c] && cache.length) {
-                                if (c == 'annotations' || c == 'images') {
-                                    if (selectedItems[j] == cache[d][f][1]) {
-                                        cache[c].splice(f, 1);
-                                    }
-                                } else if (c == 'editorial') {
-                                    if (selectedItems[j] == cache[c][f][2]) {
-                                        cache[c].splice(f, 1);
-                                    }
+                                if (selectedItems[j] == cache[c][f][collection_types[c].idindex]) {
+                                    cache[c].splice(f, 1);
                                 }
                             }
                         }

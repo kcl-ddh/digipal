@@ -6,11 +6,9 @@
  *
  * Dependency: add_to_lightbox.js
 
-    <div id="dialog-star">
-        <span data-toggle="tooltip" data-container="body"
+        <span id="dialog-star" data-toggle="tooltip" data-container="body"
             title="Add image to collection" class="glyphicon
             glyphicon-star unstarred|starred" />
-    </div>
  */
 /*
 
@@ -88,11 +86,6 @@ var Star = function(options) {
         },
 
         events: function(element, image) {
-//             element.on('click', function(event) {
-//                 event.preventDefault();
-//                 event.stopPropagation();
-//                 event.stopImmediatePropagation();
-//             });
 
             element.on('click', function() {
                 if ($(this).hasClass('starred')) {

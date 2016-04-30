@@ -528,8 +528,7 @@
                     s += "<div class='grid-textunits row'>";
                 }
 
-                //s += "<div data-toggle='tooltip' title='" + data.images[i][3] + "' data-placement='right' class='grid-image col-md-1' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
-                s += "<div data-toggle='tooltip' title='" + data_items[i][3] + "' data-placement='right' class='grid-image' data-graph='" + data_items[i][1] + "'>" + data_items[i][0] + "</div>";
+                s += "<div data-toggle='tooltip' title='" + data_items[i][3] + ", " + data_items[i][2] + "' data-placement='right' class='grid-image' data-graph='" + data_items[i][1] + "'>" + data_items[i][0] + "</div>";
 
                 if (!data_items[i + 1] || (data_items[i][2] !== data_items[i + 1][2]) && (!attrs.sorting == 'no-group')) {
                     s += "</div>";
@@ -845,12 +844,18 @@
         });
 
         var editCollection = function(el) {
+            // Update the collection in localstorage after the order of the
+            // items has be changed by the user.
             var _collections = JSON.parse(localStorage.getItem('collections')),
                 _basket;
 
             var selectedCollection = localStorage.getItem('selectedCollection');
             var list, type, new_list = [];
 
+            // GN: why not defining ONCE in the code getCUrrentCOllection()
+            // and calling it, instead of reimplementing the same things so
+            // many times!
+            // DRY, DRY, DRY, DRY....
             $.each(_collections, function(index, value) {
                 if (value.id == selectedCollection) {
                     _basket = value;
@@ -859,15 +864,23 @@
                 }
             });
 
-            $.each($('tr[data-graph]'), function() {
+            var $table = el.closest('table');
+            $table.find('tr[data-graph]').each(function() {
                 new_list.push($(this).data('graph'));
             });
 
+            tableid = $table.attr('id');
+            $.each(collection_types, function(type, info) {
+                if (('table-' + info.group) == tableid) _basket[info.group] = new_list;
+            });
+            /*
+            el.closest('table').attr('id').
             if (el.closest('table').attr('id') == 'table-annotations') {
                 _basket['annotations'] = new_list;
             } else {
                 _basket['images'] = new_list;
             }
+            */
 
             localStorage.setItem('collections', JSON.stringify(_collections));
         };

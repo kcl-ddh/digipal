@@ -690,15 +690,18 @@ def images_lightbox(request, collection_name):
             # TODO: optimise, we don't want to load all the content etc.
             # TODO: support for any type of textunit
             from exon.customisations.digipal_text.models import Entry
-            units = Entry.objects.in_bulk([uid.replace('Entry:', '') for uid in graphs['textunits']])
+            ids = [str(uid).replace('Entry:', '') for uid in graphs['textunits']]
+            units = Entry.objects.in_bulk(ids)
             images = []
-            for unit in units.values():
-                images.append([
-                    html_escape.annotation_img(unit.get_thumb(), fixlen=400, link=unit),
-                    '%s:%s' % (unit.__class__.__name__, unit.id),
-                    unit.get_label(),
-                    unit.content_xml.text_content.item_part.display_label
-                ])
+            for aid in ids:
+                unit = units.get(aid, None)
+                if unit:
+                    images.append([
+                        html_escape.annotation_img(unit.get_thumb(), fixlen=400, link=unit),
+                        '%s:%s' % (unit.__class__.__name__, unit.id),
+                        unit.get_label(),
+                        unit.content_xml.text_content.item_part.display_label
+                    ])
             data['textunits'] = images
     return HttpResponse(json.dumps(data), content_type='application/json')
 

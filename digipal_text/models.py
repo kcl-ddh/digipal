@@ -15,6 +15,7 @@ import digipal.models
 from django.contrib.auth.models import User
 #dplog = logging.getLogger('digipal_debugger')
 from digipal.utils import dplog
+from django.utils.datastructures import SortedDict
 
 class ClassProperty(property):
     def __get__(self, cls, owner):

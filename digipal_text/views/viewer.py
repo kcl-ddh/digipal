@@ -363,8 +363,10 @@ def get_units_from_locations(content, location_type, locations, content_xmlid=No
             # different XML
             continue
 
-        extent = get_fragment_extent(content, location_type, parts[-1], extent[1])
-        yield {'unitid': extent[2], 'content': content[extent[0]:extent[1]]}
+        new_extent = get_fragment_extent(content, location_type, parts[-1], extent[1])
+        if new_extent is not None:
+            extent = new_extent
+            yield {'unitid': extent[2], 'content': content[extent[0]:extent[1]]}
 
 def get_all_units(content, location_type):
     '''

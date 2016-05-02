@@ -46,11 +46,9 @@ class FacetedModel(object):
     fields = property(get_fields)
 
     def get_model(self):
-        path = self.options['model'].split('.')
-        ret = __import__('.'.join(path[:-1]))
-        for part in path[1:]:
-            ret = getattr(ret, part)
-        return ret
+        from digipal.views.faceted_search.settings import FacettedType
+        #path = self.options['model'].split('.')
+        return FacettedType(self.options).getModelClass()
     model = property(get_model)
 
     def get_option(self, option_name, default=None):
@@ -926,7 +924,6 @@ def get_types(request):
         settings.py::FACETED_SEARCH
         or the local settings.py::FACETED_SEARCH
     '''
-    from django.conf import settings
     ret = getattr(settings, 'FACETED_SEARCH', None)
     if ret is None:
         import settings as faceted_settings

@@ -1,6 +1,6 @@
 . add clauses to collection
     [done] fix the position of the star
-    . fix the slow UI when hovering images and stars
+    (). fix the slow UI when hovering images and stars
     [done] create new section on the collection page for TA
     [done] fix the link to the unit
         . template in settings
@@ -9,9 +9,9 @@
         . from TA
     [done] use annotation_img
     . generalise to any type of textunit
-    . fix the labels
+    [done] fix the labels
     . test sorting
-    . fix selection in collection
+    [done] fix selection in collection
     . send to lightbox
 
     ! test in MoA

@@ -689,11 +689,13 @@ def images_lightbox(request, collection_name):
         if 'textunits' in graphs:
             # TODO: optimise, we don't want to load all the content etc.
             # TODO: support for any type of textunit
-            from exon.customisations.digipal_text.models import Entry
-            ids = [str(uid).replace('Entry:', '') for uid in graphs['textunits']]
-            units = Entry.objects.in_bulk(ids)
+            from digipal_text.models import TextUnit
+#            ids = [str(uid).replace('Entry:', '') for uid in graphs['textunits']]
+#             units = Entry.objects.in_bulk(ids)
+            units = TextUnit.objects.in_bulk_any_type(graphs['textunits'])
             images = []
-            for aid in ids:
+            for aid in graphs['textunits']:
+                aid = ':'.join(aid.split(':')[1:])
                 unit = units.get(aid, None)
                 if unit:
                     images.append([

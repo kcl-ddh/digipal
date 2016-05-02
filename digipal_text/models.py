@@ -80,6 +80,36 @@ class TextUnits(object):
                 ret[rec.id] = rec
         return ret
 
+    def in_bulk_any_type(self, *args, **kwargs):
+        '''Works like in_bulk() but the ids passed to the function 
+            have a prefix with the type of the TextUnit.
+            e.g. ['Clause:11:address', 'Title:11:Sheriff']
+        '''
+        from digipal.views.faceted_search.settings import FacettedType
+        
+        aids = self.options['aids'] = args[0]
+        
+        # split into types {'Clause': ['11:address']}
+        models = {}
+        for maid in aids:
+            maid = maid.split(':')
+            if maid[0] not in models:
+                models[maid[0]] = []
+            models[maid[0]].append(':'.join(maid[1:]))
+            
+        ret = {}
+        for name, ids in models.iteritems():
+            ct = FacettedType.fromModelName(name)
+            if not ct: continue
+            model = ct.getModelClass()
+            print model, ids
+            if not model: continue
+            recs = model.objects.in_bulk(ids)
+            print recs
+            ret.update(recs)
+        print ret
+        return ret
+
     def iterator(self, *args, **kwargs):
         return self.load_records_iter()
 

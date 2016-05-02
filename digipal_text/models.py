@@ -57,7 +57,7 @@ class TextUnits(object):
 
     def load_records_iter(self):
         # to be overridden
-        return list()
+        return (r for r in [])
 
     def __iter__(self):
         # NOT RECOMMENDED!
@@ -89,9 +89,9 @@ class TextUnits(object):
     def count(self, *args, **kwargs):
         # Note that this may be VERY inefficient
         if self.recs:
-            return len((r for r in self))
+            return len(self.recs)
         else:
-            return len((r for r in self.iterator()))
+            return sum((1 for r in self.iterator()))
 
     def all(self, *args, **kwargs):
         self.options['ais'] = None

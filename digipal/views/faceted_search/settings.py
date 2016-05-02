@@ -358,7 +358,6 @@ class FacettedType(object):
             ret = getattr(ret, part)
         return ret
 
-
     @staticmethod
     def getAll():
         return [FacettedType(options) for options in FACETED_SEARCH['types']]

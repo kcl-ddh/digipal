@@ -386,7 +386,7 @@
             for (i = 0; i < data['textunits'].length; i++) {
                 var image = data['textunits'][i];
                 s += "<tr data- class='table-row' data-graph = '" + image[1] + "'>";
-                s += "<td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='textunit' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span></td>";
+                s += "<td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-annotation='"+image[4]+"' data-graph = '" + image[1] + "' type='checkbox' data-type='textunit' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span></td>";
                 s += "<td data-graph = '" + image[1] + "'>" + image[0] + "</td>";
                 s += "<td>" + image[2] + "</td>";
                 s += "<td>" + image[3] + "</td>";
@@ -528,7 +528,7 @@
                     s += "<div class='grid-textunits row'>";
                 }
 
-                s += "<div data-toggle='tooltip' title='" + data_items[i][3] + ", " + data_items[i][2] + "' data-placement='right' class='grid-image' data-graph='" + data_items[i][1] + "'>" + data_items[i][0] + "</div>";
+                s += "<div data-toggle='tooltip' title='" + data_items[i][3] + ", " + data_items[i][2] + "' data-placement='right' class='grid-image' data-annotation='"+data_items[i][4]+"' data-graph='" + data_items[i][1] + "'>" + data_items[i][0] + "</div>";
 
                 if (!data_items[i + 1] || (data_items[i][2] !== data_items[i + 1][2]) && (!attrs.sorting == 'no-group')) {
                     s += "</div>";
@@ -820,7 +820,12 @@
                     }
                 }
             }
-            window.open('/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[ ' + editorial_annotations + ' ]&from=' + encodeURIComponent(location.pathname));
+
+            $('#table-textunits input[type="checkbox"][data-graph]:checked').each(function() {
+                editorial_annotations.push($(this).data('annotation'));
+            });
+
+            window.open('/lightbox/?annotations=[' + graphs.toString() + ']&images=[' + images.toString() + ']&editorial=[' + editorial_annotations + ']&from=' + encodeURIComponent(location.pathname));
         });
 
         $('tr.table-row').unbind().on('click', function(event) {

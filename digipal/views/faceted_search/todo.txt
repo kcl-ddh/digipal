@@ -14,7 +14,7 @@
     [done] fix selection in collection
     . send to lightbox
 
-    ! test in MoA
+    [done] test in MoA
 
 .
 

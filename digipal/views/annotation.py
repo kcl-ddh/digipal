@@ -702,7 +702,8 @@ def images_lightbox(request, collection_name):
                         html_escape.annotation_img(unit.get_thumb(), fixlen=400, link=unit),
                         '%s:%s' % (unit.__class__.__name__, unit.id),
                         unit.get_label(),
-                        unit.content_xml.text_content.item_part.display_label
+                        unit.content_xml.text_content.item_part.display_label,
+                        unit.get_thumb().id
                     ])
             data['textunits'] = images
     return HttpResponse(json.dumps(data), content_type='application/json')

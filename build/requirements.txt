@@ -6,7 +6,7 @@
 #
 
 BeautifulSoup==3.2.1
-git+git://github.com/Gbuomprisco/Digital-Lightbox
+git+git://github.com/geoffroy-noel-ddh/Digital-Lightbox
 Django==1.6.5
 Mezzanine==3.1.5
 regex

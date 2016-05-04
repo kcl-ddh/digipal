@@ -170,6 +170,8 @@
                         'sorting': "no-group"
                     });
 
+                    makeSortable();
+
                     if (callback) {
                         callback();
                     }
@@ -354,25 +356,9 @@
                             s += "<td>Unknown</td>";
                         }*/
 
+                s += '</tr>'
             }
 
-            s += "</table>";
-        }
-
-        if (data.images && data.images.length) {
-            if (cache && !cache.images) {
-                cache.images = data.images;
-            }
-            s += "<h3 id ='header_images'>Manuscript Images (" + data.images.length + ")</h3>";
-            s += "<table id='table-images' class='table'>";
-            s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /> <label id="counter-images" for="check_images_all"></label></th><th>Page</th><th data-sort="0" data-reverse="' + reverse + '">Label</td><th data-sort="3" data-reverse="' + reverse + '">Hand</th>';
-            for (i = 0; i < data['images'].length; i++) {
-
-                var image = data['images'][i];
-                s += "<tr data- class='table-row' data-graph = '" + image[1] + "'><td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  <td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='View page in the manuscript viewer' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
-                s += "<td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='View page in the manuscript viewer' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
-                s += "<td>" + image[3] + "</td>";
-            }
             s += "</table>";
         }
 
@@ -389,6 +375,23 @@
                 s += "<td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-annotation='"+image[4]+"' data-graph = '" + image[1] + "' type='checkbox' data-type='textunit' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span></td>";
                 s += "<td data-graph = '" + image[1] + "'>" + image[0] + "</td>";
                 s += "<td>" + image[2] + "</td>";
+                s += "<td>" + image[3] + "</td>";
+                s += '</tr>'
+            }
+            s += "</table>";
+        }
+
+        if (data.images && data.images.length) {
+            if (cache && !cache.images) {
+                cache.images = data.images;
+            }
+            s += "<h3 id ='header_images'>Manuscript Images (" + data.images.length + ")</h3>";
+            s += "<table id='table-images' class='table'>";
+            s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /> <label id="counter-images" for="check_images_all"></label></th><th>Page</th><th data-sort="0" data-reverse="' + reverse + '">Label</td><th data-sort="3" data-reverse="' + reverse + '">Hand</th>';
+            for (i = 0; i < data['images'].length; i++) {
+                var image = data['images'][i];
+                s += "<tr data- class='table-row' data-graph = '" + image[1] + "'><td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  <td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='View page in the manuscript viewer' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
+                s += "<td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='View page in the manuscript viewer' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
                 s += "<td>" + image[3] + "</td>";
                 s += '</tr>'
             }
@@ -422,6 +425,7 @@
                     }
                 }
                 s += "</td>";
+                s += '</tr>'
             }
             s += "</table>";
         }
@@ -492,6 +496,29 @@
             s += "</div>";
         }
 
+        var data_items = data.textunits;
+        if (data_items && data_items.length) {
+            s += "<div id='textunits-grid' class='panel col-md-12-no'>";
+            s += "<h2>Text Units (" + data_items.length + ")</h2>";
+
+            for (var i = 0; i < data_items.length; i++) {
+
+                if (!i || (data_items[i][2] !== data_items[i - 1][2]) && (!attrs.sorting == 'no-group')) {
+                    if (!attrs.sorting == 'no-group') {
+                        s += "<h3>" + data_items[i][2] + "</h3>";
+                    }
+                    s += "<div class='grid-images row'>";
+                }
+
+                s += "<div data-toggle='tooltip' title='" + data_items[i][3] + ", " + data_items[i][2] + "' data-placement='right' class='grid-image' data-annotation='"+data_items[i][4]+"' data-graph='" + data_items[i][1] + "'>" + data_items[i][0] + "</div>";
+
+                if (!data_items[i + 1] || (data_items[i][2] !== data_items[i + 1][2]) && (!attrs.sorting == 'no-group')) {
+                    s += "</div>";
+                }
+            }
+            s += "</div>";
+        }
+
         if (data.images && data.images.length) {
             s += "<div id='images-grid' class='panel col-md-12-no'>";
             s += "<h2>Manuscript Images (" + data.images.length + ")</h2>";
@@ -508,29 +535,6 @@
                 s += "<div data-toggle='tooltip' title='" + data.images[i][3] + "' data-placement='right' class='grid-image' data-graph='" + data.images[i][1] + "'>" + data.images[i][0] + "</div>";
 
                 if (!data.images[i + 1] || (data.images[i][2] !== data.images[i + 1][2]) && (!attrs.sorting == 'no-group')) {
-                    s += "</div>";
-                }
-            }
-            s += "</div>";
-        }
-
-        var data_items = data.textunits;
-        if (data_items && data_items.length) {
-            s += "<div id='images-grid' class='panel col-md-12-no'>";
-            s += "<h2>Text Units (" + data_items.length + ")</h2>";
-
-            for (var i = 0; i < data_items.length; i++) {
-
-                if (!i || (data_items[i][2] !== data_items[i - 1][2]) && (!attrs.sorting == 'no-group')) {
-                    if (!attrs.sorting == 'no-group') {
-                        s += "<h3>" + data_items[i][2] + "</h3>";
-                    }
-                    s += "<div class='grid-textunits row'>";
-                }
-
-                s += "<div data-toggle='tooltip' title='" + data_items[i][3] + ", " + data_items[i][2] + "' data-placement='right' class='grid-image' data-annotation='"+data_items[i][4]+"' data-graph='" + data_items[i][1] + "'>" + data_items[i][0] + "</div>";
-
-                if (!data_items[i + 1] || (data_items[i][2] !== data_items[i + 1][2]) && (!attrs.sorting == 'no-group')) {
                     s += "</div>";
                 }
             }
@@ -575,12 +579,65 @@
             update_counter();
         });
 
-        $('.grid-images').sortable();
+        //$('.grid-images').sortable();
         $('[data-toggle="tooltip"]').tooltip();
         update_counter();
         update();
     }
 
+    var editCollection = function(el) {
+        // Update the collection in localstorage after the order of the
+        // items has be changed by the user.
+        var _collections = JSON.parse(localStorage.getItem('collections')),
+            _basket;
+
+        var selectedCollection = localStorage.getItem('selectedCollection');
+        var list, type, new_list = [];
+
+        // GN: why not defining ONCE in the code getCUrrentCOllection()
+        // and calling it, instead of re-implementing the same things so
+        // many times!
+        // DRY, DRY, DRY, DRY....
+        $.each(_collections, function(index, value) {
+            if (value.id == selectedCollection) {
+                _basket = value;
+                _basket['name'] = index;
+                _basket.id = value.id;
+            }
+        });
+
+        var $table = el.closest('table, .panel');
+        $table.find('tr[data-graph], div[data-graph].grid-image').each(function() {
+            new_list.push($(this).data('graph'));
+        });
+
+        var group_name = ($table.attr('id')).replace('table-', '').replace('-grid', '');
+        $.each(collection_types, function(type, info) {
+            if (info.group == group_name) _basket[info.group] = new_list;
+        });
+        /*
+        el.closest('table').attr('id').
+        if (el.closest('table').attr('id') == 'table-annotations') {
+            _basket['annotations'] = new_list;
+        } else {
+            _basket['images'] = new_list;
+        }
+        */
+
+        localStorage.setItem('collections', JSON.stringify(_collections));
+    };
+
+    var makeSortable = function() {
+        var item_index, target_index;
+        $("tbody, .grid-images").sortable({
+            items: "tr[data-graph], div[data-graph].grid-image",
+            update: function(event, ui) {
+                changeNumbers();
+                editCollection(ui.item);
+            }
+        });
+    };
+    
     function launchEvents(isExternal) {
         update_counter();
         $('#check_images_all').unbind().on('change', function() {
@@ -847,61 +904,6 @@
             event.stopPropagation();
             event.stopImmediatePropagation();
         });
-
-        var editCollection = function(el) {
-            // Update the collection in localstorage after the order of the
-            // items has be changed by the user.
-            var _collections = JSON.parse(localStorage.getItem('collections')),
-                _basket;
-
-            var selectedCollection = localStorage.getItem('selectedCollection');
-            var list, type, new_list = [];
-
-            // GN: why not defining ONCE in the code getCUrrentCOllection()
-            // and calling it, instead of reimplementing the same things so
-            // many times!
-            // DRY, DRY, DRY, DRY....
-            $.each(_collections, function(index, value) {
-                if (value.id == selectedCollection) {
-                    _basket = value;
-                    _basket['name'] = index;
-                    _basket.id = value.id;
-                }
-            });
-
-            var $table = el.closest('table');
-            $table.find('tr[data-graph]').each(function() {
-                new_list.push($(this).data('graph'));
-            });
-
-            tableid = $table.attr('id');
-            $.each(collection_types, function(type, info) {
-                if (('table-' + info.group) == tableid) _basket[info.group] = new_list;
-            });
-            /*
-            el.closest('table').attr('id').
-            if (el.closest('table').attr('id') == 'table-annotations') {
-                _basket['annotations'] = new_list;
-            } else {
-                _basket['images'] = new_list;
-            }
-            */
-
-            localStorage.setItem('collections', JSON.stringify(_collections));
-        };
-
-        var makeSortable = function() {
-            var item_index, target_index;
-            $("tbody").sortable({
-                items: "tr[data-graph]",
-                update: function(event, ui) {
-                    changeNumbers();
-                    editCollection(ui.item);
-                }
-            });
-        };
-
-        makeSortable();
 
         $('.read-more').unbind().on('click', function(event) {
 

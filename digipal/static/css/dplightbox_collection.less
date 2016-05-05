@@ -133,12 +133,14 @@
     margin-left: 0.5em;
 }
 
-button .starred, input .starred, button .unstarred, input .unstarred{
-    font-size:12px;
-}
-
 /* -------------------------------- */
 /* Remove all the *2 rules, they are unused */
+
+button .starred, input .starred, button .unstarred, input .unstarred{
+    text-shadow: 0 0 3px #000;
+    color: yellow;
+    font-size:12px;
+}
 
 // any star icon
 
@@ -153,7 +155,8 @@ button .starred, input .starred, button .unstarred, input .unstarred{
     border-radius: 3px;
 }
 
-#dialog-star.unstarred {
+//#dialog-star.unstarred {
+.glyphicon.unstarred {
     color: white;
 }
 

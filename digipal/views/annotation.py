@@ -676,7 +676,7 @@ def images_lightbox(request, collection_name):
                 hand_labels = []
                 if image.item_part:
                     hand_labels = list(image.item_part.hands.values_list('label'))
-                images.append([html_escape.iip_img(image, height=100), image.id, hand_labels])
+                images.append([html_escape.iip_img(image, height=100), image.id, image.display_label, hand_labels])
             data['images'] = images
         if 'editorial' in graphs:
             editorial_annotations = []

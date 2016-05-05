@@ -165,7 +165,6 @@
                     };
                     displayTable(data, attrs);
 
-
                     displayGrid(data, {
                         'sorting': "no-group"
                     });
@@ -615,16 +614,10 @@
         $.each(collection_types, function(type, info) {
             if (info.group == group_name) _basket[info.group] = new_list;
         });
-        /*
-        el.closest('table').attr('id').
-        if (el.closest('table').attr('id') == 'table-annotations') {
-            _basket['annotations'] = new_list;
-        } else {
-            _basket['images'] = new_list;
-        }
-        */
 
         localStorage.setItem('collections', JSON.stringify(_collections));
+        // force rendering of the other view (grid/table)
+        $(window).trigger('storage');
     };
 
     var makeSortable = function() {
@@ -1027,10 +1020,13 @@
         });
 
         $(window).bind('storage', function(e) {
+            window.dputils.fragment_refreshing('#main_body_container');
             cache = {};
-            main();
-            update_counter();
-            update_collection_counter();
+            main(function() {
+                update_counter();
+                update_collection_counter();
+                window.dputils.fragment_refreshing('#main_body_container', true);
+            });
         });
 
     });

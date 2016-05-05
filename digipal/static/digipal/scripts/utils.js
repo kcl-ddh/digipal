@@ -199,6 +199,23 @@
 
                 return height;
             },
+            
+            fragment_refreshing: function(fragment, refreshed) {
+                var $frag = $(fragment);
+                if (refreshed) {
+                    $frag.stop().css({
+                        'background-color': 'inherit',
+                        opacity: 1,
+                        'border': 'none'
+                    });
+                } else {
+                    $frag.stop().animate({
+                        'background-color': 'white',
+                        opacity: 0.50,
+                        'border': 'none'
+                    }, 500);
+                }
+            },
 
             /*
                 Make $target height elastic. It will take the rest of the

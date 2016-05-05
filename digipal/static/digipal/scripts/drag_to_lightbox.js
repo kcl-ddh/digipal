@@ -43,7 +43,36 @@ var Star = function(options) {
             dialog.hide();
         });
 
+        events_image_to_lightbox();
     };
+
+    /*
+     * Add add/remove behaviour to the Page star button on the annotator and
+     * Image Zoom search results 
+    */
+    var events_image_to_lightbox = function() {
+        var selectedCollection = getCurrentCollection();
+        var image_to_lightbox = $("#image_to_lightbox");
+        var imageid = image_to_lightbox.data('id');
+        
+        if (isInCollection(selectedCollection, imageid, 'image')) {
+            image_to_lightbox.children().addClass('starred').removeClass('unstarred');
+            image_to_lightbox.attr('data-original-title', 'Remove page from collection');
+        }
+
+        image_to_lightbox.click(function() {
+            if ($(this).children().hasClass('starred')) {
+                removeFromCollection(image_to_lightbox, 'image');
+                $(this).children().removeClass('starred').addClass('unstarred');
+                image_to_lightbox.attr('data-original-title', 'Add page to collection');
+            } else {
+                add_to_lightbox($(this), 'image', imageid, false);
+                $(this).children().removeClass('unstarred').addClass('starred');
+                image_to_lightbox.attr('data-original-title', 'Remove page from collection');
+            }
+            return false;
+        }).tooltip();
+    }
 
     var dialog = {
 

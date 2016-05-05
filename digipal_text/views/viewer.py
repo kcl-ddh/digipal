@@ -381,7 +381,9 @@ def get_all_units(content, location_type):
         extent = get_fragment_extent(content, location_type, None, extent[1])
         if not extent: break
         #ret.append({'unitid': extent[2], 'content': content[extent[0]:extent[1]]})
-        yield {'unitid': extent[2], 'content': content[extent[0]:extent[1]]}
+        ret = {'unitid': extent[2], 'content': content[extent[0]:extent[1]]}
+        #print len(ret['content'])
+        yield ret
 
 def get_fragment_extent(content, location_type, location=None, from_pos=0):
     ret = None

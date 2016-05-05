@@ -254,7 +254,7 @@ class FacetedModel(object):
             if self.is_field_indexable(field):
                 fkey = field['key']
                 value = self.get_record_field_whoosh(record, field)
-
+                
                 # generate associated sort field
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != fkey:
@@ -286,7 +286,7 @@ class FacetedModel(object):
             Strip tags, remove some abbreviations, ...
         '''
         from digipal import utils as dputils
-        dputils.get_plain_text_from_xmltext(value)
+        return dputils.get_plain_text_from_xmltext(value)
 
     def get_field_by_key(self, key):
         # todo: think about caching this

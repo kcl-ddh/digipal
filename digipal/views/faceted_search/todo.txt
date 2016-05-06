@@ -1,4 +1,14 @@
-. add clauses to collection
+Apply visualisation to EXON.
+
+Example: point, x,y
+    [u'506r', u'Transcription (Sample)']
+    [u'506r', u'Transcription (Sample)', set([0]), u"<tr><td>Entry</td><td>506a5</td></tr><tr><td>Entry Type</td><td>[u'TO']</td></tr><tr><td>Text Type</td><td>Transcription (Sample)</td></tr><tr><td>Shire</td><td>[u'Devon']</td></tr><tr><td>Hundred</td><td>None</td></tr><tr><td>Vill</td><td>[u'Exeter']</td></tr><tr><td>Place name</td><td>None</td></tr><tr><td>TIC (1086)</td><td>None</td></tr><tr><td>Hand</td><td>[u'epsilon']</td></tr><tr><td>Quire</td><td>None</td></tr>", u'/digipal/manuscripts/1/texts/view/?center=transcription-sample/entry/506a5/&east=translation/sync/transcription-sample/&north=image/sync/transcription-sample/#text-viewer', u'506a5', '']
+    [u'527r', u'Transcription (Sample)']
+    [u'527r', u'Transcription (Sample)', set([0]), u"<tr><td>Entry</td><td>527a1</td></tr><tr><td>Entry Type</td><td>[u'GA']</td></tr><tr><td>Text Type</td><td>Transcription (Sample)</td></tr><tr><td>Shire</td><td>[u'Somerset']</td></tr><tr><td>Hundred</td><td>[u'From\\xe6']</td></tr><tr><td>Vill</td><td>None</td></tr><tr><td>Place name</td><td>None</td></tr><tr><td>TIC (1086)</td><td>None</td></tr><tr><td>Hand</td><td>None</td></tr><tr><td>Quire</td><td>None</td></tr>", u'/digipal/manuscripts/1/texts/view/?center=transcription-sample/entry/527a1/&east=translation/sync/transcription-sample/&north=image/sync/transcription-sample/#text-viewer', u'527a1', '']
+
+    http://localhost/digipal/search/facets/?q3_vcat=hand&q2_vz_gs=40&vill=Exeter&pgs=100000&vcat=hand&vz_bh=10&q3_vz_gs=40&q3_terms=bishop&q3___Redraw=Redraw&q2_vz_bh=10&q2___Redraw=Redraw&q2_wr=0&q3_pgs=100000&q3_view=overview&q2_view=overview&text_type=Translation&q2_result_type=entries&vz_gs=40&q3_entry_type=TO&wr=0&q2_vcat=text_type&q2_text_type=Translation&entry_type=TO&q3_text_type=Translation&result_type=entries&q2_entry_type=TO&q2_pgs=100000&q3_result_type=entries&q3_wr=0&q3_vz_bh=10&page=1&view=overview
+
+[done] add clauses to collection
     [done] fix the position of the star
     (). fix the slow UI when hovering images and stars
     [done] create new section on the collection page for TA

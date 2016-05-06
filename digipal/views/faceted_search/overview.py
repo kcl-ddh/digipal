@@ -329,9 +329,6 @@ class Overview(object):
                     label = faceted_search.get_record_label_html(record, self.request);
                     point = [x, ys, set([query.index]), label, record.get_absolute_url(), conflateid, '']
                     
-                    print values
-                    print point
-
                     ret[conflateid] = point
 
                     # determine large y bands for the categories
@@ -416,6 +413,11 @@ class Overview(object):
             # convert x to numerical value
             if self.fields[0]['type'] == 'date':
                 x = get_range_from_date(x)
+            elif self.fields[0]['key'] == 'locus':
+                # 12v => 25
+                n = int(x[0:-1]) * 2
+                if x[-1] == 'v': n += 1
+                x = [n] * 2
             else:
                 # ()TODO: other type than date for x
                 x = 0

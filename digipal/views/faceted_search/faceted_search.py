@@ -23,6 +23,8 @@ class FacetedModel(object):
     def __init__(self, options):
         self.options = options
         self.faceted_model_group = None
+        from digipal.views.faceted_search.settings import FacettedType
+        self.settings = FacettedType(options)
         # a instance cache to avoid calculating things many times
         self.icache = {}
 
@@ -46,9 +48,7 @@ class FacetedModel(object):
     fields = property(get_fields)
 
     def get_model(self):
-        from digipal.views.faceted_search.settings import FacettedType
-        #path = self.options['model'].split('.')
-        return FacettedType(self.options).getModelClass()
+        return self.settings.getModelClass()
     model = property(get_model)
 
     def get_option(self, option_name, default=None):

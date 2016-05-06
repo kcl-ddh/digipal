@@ -66,9 +66,12 @@ class TextUnits(object):
         else:
             dplog('TextUnit.__iter__() called', 'INFO')
 
+        ret = []
+        
         if self.recs is None:
-            self.recs = list(self.iterator())
-        return self.recs
+            ret = self.recs = list(self.iterator())
+            
+        return ret.__iter__()
 
     def in_bulk(self, *args, **kwargs):
         # TODO: not necessarily reliable to access with args[0]

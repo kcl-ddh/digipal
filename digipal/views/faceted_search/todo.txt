@@ -8,7 +8,7 @@
     [done] fix the label
         . from TA
     [done] use annotation_img
-    . generalise to any type of textunit
+    [done] generalise to any type of textunit
     [done] fix the labels
     . test sorting
     [done] fix selection in collection

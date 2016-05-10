@@ -23,6 +23,8 @@ class FacetedModel(object):
     def __init__(self, options):
         self.options = options
         self.faceted_model_group = None
+        from digipal.views.faceted_search.settings import FacettedType
+        self.settings = FacettedType(options)
         # a instance cache to avoid calculating things many times
         self.icache = {}
 
@@ -46,11 +48,7 @@ class FacetedModel(object):
     fields = property(get_fields)
 
     def get_model(self):
-        path = self.options['model'].split('.')
-        ret = __import__('.'.join(path[:-1]))
-        for part in path[1:]:
-            ret = getattr(ret, part)
-        return ret
+        return self.settings.getModelClass()
     model = property(get_model)
 
     def get_option(self, option_name, default=None):
@@ -256,7 +254,7 @@ class FacetedModel(object):
             if self.is_field_indexable(field):
                 fkey = field['key']
                 value = self.get_record_field_whoosh(record, field)
-
+                
                 # generate associated sort field
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != fkey:
@@ -288,7 +286,7 @@ class FacetedModel(object):
             Strip tags, remove some abbreviations, ...
         '''
         from digipal import utils as dputils
-        dputils.get_plain_text_from_xmltext(value)
+        return dputils.get_plain_text_from_xmltext(value)
 
     def get_field_by_key(self, key):
         # todo: think about caching this
@@ -926,7 +924,6 @@ def get_types(request):
         settings.py::FACETED_SEARCH
         or the local settings.py::FACETED_SEARCH
     '''
-    from django.conf import settings
     ret = getattr(settings, 'FACETED_SEARCH', None)
     if ret is None:
         import settings as faceted_settings

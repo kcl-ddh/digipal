@@ -344,6 +344,21 @@ class FacettedType(object):
         return ret
 
     @staticmethod
+    def fromModelName(name):
+        ret = None
+        for options in FACETED_SEARCH['types']:
+            if options['model'].lower().endswith('.%s' % name.lower()):
+                return FacettedType(options)
+        return ret
+
+    def getModelClass(self):
+        path = self.options['model'].split('.')
+        ret = __import__('.'.join(path[:-1]))
+        for part in path[1:]:
+            ret = getattr(ret, part)
+        return ret
+
+    @staticmethod
     def getAll():
         return [FacettedType(options) for options in FACETED_SEARCH['types']]
 

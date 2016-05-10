@@ -11,9 +11,12 @@
                 {{ record.display_label }}
             </span>
         </a>
+        <button data-container='body' data-toggle="tooltip" data-placement='top' class="btn btn-sm btn-default" id="image_to_lightbox" title='Add page to Collection' data-type='image' data-id='{{ record.id }}' data-add-star = 'false'>
+            <i class="glyphicon glyphicon-star unstarred"></i>
+        </button>
         
         <span class="pull-right">
-        {% include 'digipal/folio_image_counts.html' with image=record %}
+            {% include 'digipal/folio_image_counts.html' with image=record %}
         </span>
     </div>
 

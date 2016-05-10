@@ -226,7 +226,11 @@ class Overview(object):
 
         self.init_queries()
 
-        self.set_conflate('item_part')
+        # TODO: MoA, use:
+        #self.set_conflate('item_part')
+        #self.set_x_field_key('hi_date')
+        self.set_x_field_key('locus')
+        self.set_conflate('unitid')
 
         #self.set_fields()
 
@@ -238,7 +242,6 @@ class Overview(object):
             self.compact_bands()
 
             self.reframe()
-
 
     def init_queries(self):
         self.queries = Queries(self.request, self.context, self.faceted_search)
@@ -265,13 +268,20 @@ class Overview(object):
         '''Return a new faceted field whith a relative path to the conflated record id'''
         ret = {'path': 'id'}
 
-        if self.conflate:
-            # let's assume the path is already part of at least one field
-            for field in faceted_search.get_fields():
-                m = re.search(ur'(?musi)(.*\.'+re.escape(self.conflate)+')[._a-z]', field['path'])
-                if m:
-                    ret['path'] = m.group(1)+'.id'
-
+        
+        if getattr(self, 'conflate', None):
+            field = faceted_search.get_field_by_key(self.conflate)
+            if field:
+                # self.conflate is a field key
+                ret['path'] = field['path']
+            else:
+                # self.conflate is one part of a path (e.g. item_part)
+                # let's assume the path is already part of at least one field
+                for field in faceted_search.get_fields():
+                    m = re.search(ur'(?musi)(.*\.'+re.escape(self.conflate)+')[._a-z]', field['path'])
+                    if m:
+                        ret['path'] = m.group(1)+'.id'
+                    
         return ret
 
     def set_points(self):
@@ -298,7 +308,6 @@ class Overview(object):
             # with all info except coordinates.
             conflate_relative_field = self.get_conflate_relative_field(faceted_search)
 
-            #for record in query.self.context['result']:
             for record in query.get_records():
 
                 # TODO: self.fields depends on the result type!!!
@@ -319,7 +328,7 @@ class Overview(object):
 
                     label = faceted_search.get_record_label_html(record, self.request);
                     point = [x, ys, set([query.index]), label, record.get_absolute_url(), conflateid, '']
-
+                    
                     ret[conflateid] = point
 
                     # determine large y bands for the categories
@@ -404,6 +413,11 @@ class Overview(object):
             # convert x to numerical value
             if self.fields[0]['type'] == 'date':
                 x = get_range_from_date(x)
+            elif self.fields[0]['key'] == 'locus':
+                # 12v => 25
+                n = int(x[0:-1]) * 2
+                if x[-1] == 'v': n += 1
+                x = [n] * 2
             else:
                 # ()TODO: other type than date for x
                 x = 0
@@ -445,26 +459,48 @@ class Overview(object):
                 if found:
                     self.cat_hits[v][1] += 1
 
+    def set_x_field_key(self, x_field_key):
+        self.x_field_key = x_field_key
+
+    def get_x_field_key(self):
+        return self.x_field_key
+
     def set_fields(self, faceted_search):
         '''
             set self.fields = array of faceted fields such that:
-                self.fields[0] = field for Y dimensions (e.g. { hi_date })
-                self.fields[1] = field for bands (e.g. { hi_date } )
-                self.fields[2] = field for conflating (e.g. { ip.id } )
+                self.fields[0] = field for X dimensions (e.g. { hi_date })
+                self.fields[1] = field for bands (e.g. { hi_type } )
+                #self.fields[2] = field for conflating (e.g. { ip.id } )
         '''
         #faceted_search = self.faceted_search
         context = self.context
 
-        #fields = ['hi_date', 'medieval_archive']
-        #fields = ['hi_date', 'clause_type']
-        category_field = faceted_search.get_field_by_key(self.request.REQUEST.get('vcat', 'hi_type'))
-        if category_field is None: category_field = faceted_search.get_field_by_key('hi_type')
-        context['vcat'] = category_field
-
         context['vcats'] = [field for field in faceted_search.get_fields() if field.get('vcat', True)]
 
-        fields = ['hi_date', category_field['key'], 'CONFLATEID' if self.conflate else 'url']
-        self.fields = map(lambda field: faceted_search.get_field_by_key(field), fields)
+        category_field = faceted_search.get_field_by_key(self.request.REQUEST.get('vcat', 'hi_type'))
+        if category_field is None: category_field = faceted_search.get_field_by_key('hi_type')
+        if category_field is None: category_field = faceted_search.get_field_by_key('text_type')
+        if category_field is None: 
+            category_field = context['vcats'][0]
+
+        context['vcat'] = category_field
+
+        if 0:
+            fields = [
+                self.get_x_field_key(), 
+                category_field['key'], 
+                'CONFLATEID' if self.conflate else 'url'
+            ]
+        else:
+            fields = [
+                self.get_x_field_key(), 
+                category_field['key'] 
+            ]
+            
+        
+        print fields
+        
+        self.fields = [faceted_search.get_field_by_key(field) for field in fields]
 
     def init_bands(self):
         '''

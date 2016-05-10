@@ -325,7 +325,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     ret['location_type'] = location_type
     ret['location'] = location
 
-    print ret['message']
+    #print ret['message']
 
     return ret
 
@@ -381,7 +381,9 @@ def get_all_units(content, location_type):
         extent = get_fragment_extent(content, location_type, None, extent[1])
         if not extent: break
         #ret.append({'unitid': extent[2], 'content': content[extent[0]:extent[1]]})
-        yield {'unitid': extent[2], 'content': content[extent[0]:extent[1]]}
+        ret = {'unitid': extent[2], 'content': content[extent[0]:extent[1]]}
+        #print len(ret['content'])
+        yield ret
 
 def get_fragment_extent(content, location_type, location=None, from_pos=0):
     ret = None
@@ -637,6 +639,16 @@ def get_text_elements_from_content(content):
 
     return ret
 
+def get_unitid_from_xml_element(element):
+    ''' <span data-dpt=clause data-dpt-type=address>
+        => 'clause|address'
+    '''
+    ret = get_elementid_from_xml_element(element)
+    if ret:
+        ret = '|'.join([p[1] for p in ret])
+
+    return ret
+
 def get_elementid_from_xml_element(element, as_string=False):
     ''' element: an xml element (etree)
         returns the elementid as a list, e.g. [(u'', u'clause'), (u'type', u'disposition')]
@@ -660,27 +672,6 @@ def get_elementid_from_xml_element(element, as_string=False):
         parts = json.dumps(parts)
 
     return parts
-
-
-def get_text_elements_from_content_bugged(content):
-    from django.utils.text import slugify
-
-    ret = []
-    if content:
-        #for element in re.findall(ur'(?musi)((?:data-dpt-?([^=]*)="([^"]*)"[\s>]+)+)', content):
-        for element in re.findall(ur'(?musi)(data-dpt="[^>]+)([^<]{0,30})', content):
-            element_text = element[1]
-            element = element[0]
-            # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
-            parts = [attr for attr in re.findall(ur'(?musi)data-dpt-?([^=]*)="([^"]*)', element) if attr[0] not in ['cat']]
-            # white list to filter the elements
-            if parts[0][1] in ('clause', 'location', 'person'):
-                element_text = slugify(u'%s' % element_text. lower())
-                if len(element_text) > 0 and len(element_text) < 20:
-                    parts.append(['@text', element_text])
-                ret.append(parts)
-
-    return ret
 
 def find_image(request, item_partid, location_type, location, get_visible_images, visible_images):
     # return a Image object that matches the requested manuscript and location

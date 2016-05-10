@@ -287,11 +287,7 @@ function init_search_page(options) {
             // check if control-click
             if (ev.ctrlKey) return true;
 
-            $("#search-ajax-fragment").stop().animate({
-                'background-color': 'white',
-                opacity: 0.50,
-                'border': 'none'
-            }, 500);
+            window.dputils.fragment_refreshing("#search-ajax-fragment");
 
             // See http://stackoverflow.com/questions/9956255.
             // This tricks prevents caching of the fragment by the browser.

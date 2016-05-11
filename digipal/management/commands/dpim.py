@@ -391,12 +391,20 @@ class Command(BaseCommand):
     def crop_image(self, info):
         height = 200
         image = info['image']
+        if not image:
+            return
+
         file_path = self.get_image_path(image, height)
         if not file_path: return
 
         import cv2
         img = cv2.imread(file_path)
         path_out = '%s.png' % file_path
+
+        bg_color = None
+        # The background color, leave None for a more adaptive method
+        # Using a bg color is more reliable
+        bg_color = (183, 182, 182)
 
         # naive cropping technique:
         import numpy as np
@@ -409,6 +417,23 @@ class Command(BaseCommand):
 
         # Now convert back into uint8, and make original image
         center = np.uint8(center)
+
+        # Find the nearest color to our typical grey background
+        if bg_color:
+            bg_index = 0
+            best_diff = None
+            i = 0
+            import math
+            for c in center:
+                diff = math.sqrt(sum([math.pow(abs(c[d] - bg_color[d]),2) for d in [0,1,2]]))
+                #print i, c, diff
+                if best_diff is None or best_diff > diff:
+                    best_diff = diff
+                    bg_index = i
+                i += 1
+            print center[bg_index]
+
+        #print center
         res = center[label.flatten()]
         res2 = res.reshape((img.shape))
 
@@ -426,9 +451,17 @@ class Command(BaseCommand):
             defaults = [0, dims[1]-1]
             bests.append(defaults[:])
 
-            pc = 0.95
-            if d == 0:
-                pc = 0.75
+            if not bg_color:
+                pc = 0.95
+                if d == 0:
+                    pc = 0.75
+            else:
+                pc = 0.90
+                if d == 0:
+                    pc = 0.7
+
+            #pc = 0.7
+
             l = dims[0]
             c = dims[1] / 2
             th = int(pc * l)
@@ -436,8 +469,20 @@ class Command(BaseCommand):
             #print dims, l, c, dims[1]
             for x in xrange(0, dims[1]):
                 line = imgk[:, x]
-                _, cts = np.unique(line, return_counts=True)
-                m = cts.max()
+                cs, cts = np.unique(line, return_counts=True)
+                if not bg_color:
+                    m = cts.max()
+                else:
+                    m = 0
+                    for i in xrange(0, len(cs)):
+                        if cs[i] == bg_index:
+                            m = cts[i]
+#                     print cs
+#                     print cts
+#                     print m
+                    #exit()
+                    #bgi = cs.
+
                 #print x, m, th
                 #print x, m, l
                 if m > th:
@@ -451,8 +496,8 @@ class Command(BaseCommand):
 
         margin = 2
         bestsm = [(max(bests[i][0] - margin, 0), min(bests[i][1] + margin, dims[i] - 1)) for i in [0, 1]]
-        print bests
-        print bestsm
+        #print bests
+        #print bestsm
 
         path_out_cropped = '%s.cropped.png' % file_path
         img_cropped = img[bestsm[0][0]:bestsm[0][1], bestsm[1][0]:bestsm[1][1]]
@@ -461,8 +506,8 @@ class Command(BaseCommand):
         img[:,bests[1]] = [0,0,255]
         img[bests[0],:] = [0,0,255]
         print '\t%s' % path_out
-        cv2.imwrite(path_out, res2)
-
+        #cv2.imwrite(path_out, res2)
+        cv2.imwrite(path_out, img)
 
     def get_image_path(self, image, height):
         # returns a file path from the image model instance

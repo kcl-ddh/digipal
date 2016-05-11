@@ -389,16 +389,23 @@ class Command(BaseCommand):
         return ret
 
     def crop_image(self, info):
-        height = 200
+        # height of the image to request from the image server
+        # taller  => better approximations of the boundaries
+        # but bigger & slower download and processing.
+        height = 500
         image = info['image']
         if not image:
             return
+
+        print image.dimensions()
 
         file_path = self.get_image_path(image, height)
         if not file_path: return
 
         import cv2
         img = cv2.imread(file_path)
+        if img is None:
+            return
         path_out = '%s.png' % file_path
 
         bg_color = None
@@ -448,7 +455,7 @@ class Command(BaseCommand):
 
             dims = imgk.shape[:2]
 
-            defaults = [0, dims[1]-1]
+            defaults = [0, dims[1]]
             bests.append(defaults[:])
 
             if not bg_color:
@@ -490,19 +497,37 @@ class Command(BaseCommand):
                     if abs(x - c) < abs(bests[d][bi] - c):
                         bests[d][bi] = x
             #print bests[d]
+
             # discard if crop is too small in dim d
             if (bests[d][1] - bests[d][0]) < (0.4 * dims[1]):
                 bests[d] = defaults[:]
 
-        margin = 2
-        bestsm = [(max(bests[i][0] - margin, 0), min(bests[i][1] + margin, dims[i] - 1)) for i in [0, 1]]
-        #print bests
-        #print bestsm
+        # save relative boundaries in the image record
+        def short_ratio(position, length, decimals=5):
+            return round(1.0*position/length, decimals)
+        boundaries = [
+            [short_ratio(bests[1][0], dims[1]), short_ratio(bests[0][0], dims[0])],
+            [short_ratio(bests[1][1], dims[1]), short_ratio(bests[0][1], dims[0])]
+        ]
+        print boundaries
+        image.set_page_boundaries(boundaries)
+        image.save()
 
+        def get_margined(crop_points, dims, margin=2):
+            margin = 2
+            ret = [(max(crop_points[i][0] - margin, 0), min(crop_points[i][1] + margin, dims[i] - 1)) for i in [0, 1]]
+            return ret
+
+        # add margin to the boundaries
+        bestsm = get_margined(bests, dims, margin=2)
+
+        # create cropped image (with margin)
         path_out_cropped = '%s.cropped.png' % file_path
         img_cropped = img[bestsm[0][0]:bestsm[0][1], bestsm[1][0]:bestsm[1][1]]
         cv2.imwrite(path_out_cropped, img_cropped)
 
+        # save uncropped image with red boundaries
+        bests = get_margined(bests, dims, margin=0)
         img[:,bests[1]] = [0,0,255]
         img[bests[0],:] = [0,0,255]
         print '\t%s' % path_out
@@ -514,7 +539,6 @@ class Command(BaseCommand):
         # image is downloaded from image server the first time
         ret = None
 
-        height = 200
         dir_path = os.path.join(settings.IMAGE_SERVER_ROOT, 'tmp')
         if not os.path.exists(dir_path):
             print 'Create path'
@@ -522,7 +546,7 @@ class Command(BaseCommand):
         file_path = os.path.join(settings.IMAGE_SERVER_ROOT, 'tmp', 'i%s-h%s.jpg' % (image.id, height))
         if not os.path.exists(file_path):
             print 'Download image'
-            url = image.thumbnail_url(height=height)
+            url = image.thumbnail_url(height=height,uncropped=True)
             res = utils.web_fetch(url)
             if not res['error']:
                 utils.write_file(file_path, res['body'])

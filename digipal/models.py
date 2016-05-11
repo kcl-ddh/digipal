@@ -1610,6 +1610,7 @@ class Image(models.Model):
     # They are used internally as a cache for the dimensions.
     width = models.IntegerField(blank=False, null=False, default=0)
     height = models.IntegerField(blank=False, null=False, default=0)
+
     # Size of the image file in bytes.
     # This field may contain 0 even if the record points to a valid image.
     # This is because, unlike the height/width, the size cannot be obtained from the image server.
@@ -1619,6 +1620,8 @@ class Image(models.Model):
     keywords = KeywordsField(help_text='<br/>Comma separated list of keywords. Keywords are case sensitive and can contain spaces. Keywords can also be added or removed using the list above.')
 
     quire = models.CharField(max_length=10, blank=True, null=True, default=None, help_text='A quire number, e.g. 3')
+
+    page_boundaries = models.CharField(max_length=100, blank=True, null=True, default=None, help_text='relative coordinates of the page boundaries in json. e.g. [[0.3, 0.1], [0.7, 0.9]]')
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
@@ -1664,6 +1667,16 @@ class Image(models.Model):
         if not ret:
             ret = Repository.get_default_media_permission()
         return ret
+
+    def set_page_boundaries(self, boundaries):
+        ''' e.g. [[0.3, 0.1], [0.7, 0.9]] '''
+        import json
+        self.page_boundaries = json.dumps(boundaries)
+
+    def get_page_boundaries(self):
+        ''' e.g. [[0.3, 0.1], [0.7, 0.9]] '''
+        import json
+        return json.loads(self.page_boundaries)
 
     def is_media_public(self):
         return not self.is_media_private()
@@ -1855,10 +1868,11 @@ class Image(models.Model):
         is composed by combining repository/shelfmark/locus."""
         return self.iipimage.name.replace('\\', '/')
 
-    def dimensions(self):
+    def dimensions(self, cropped=False):
         """Returns a tuple with the image width and height.
             This function can SAVE the current model if the
             cache dimensions were 0 (or the image has changed).
+            If cropped = True, returns the dimensions of the page boundaries
         """
         ret = (self.width, self.height)
 
@@ -1878,6 +1892,11 @@ class Image(models.Model):
                 self.__original_iipimage = self.iipimage
                 self.save()
 
+        if cropped:
+            boundaries = self.get_page_boundaries()
+            if boundaries:
+                ret = [int((boundaries[1][d] - boundaries[0][d]) * ret[d]) for d in [0, 1]]
+
         return ret
 
     def full(self):
@@ -1894,20 +1913,37 @@ class Image(models.Model):
 
         return path
 
-    def thumbnail_url(self, height=None, width=None):
-        """Returns HTML to display the page image as a thumbnail."""
+    def thumbnail_url(self, height=None, width=None, uncropped=False):
+        """Returns URL of the image thumbnail.
+           By default the image is cropped to include only the page.
+        """
         ret = ''
         if width is None and height is None:
             height = settings.IMAGE_SERVER_THUMBNAIL_HEIGHT
         if self.iipimage:
             ret = self.iipimage.thumbnail_url(height, width)
+
+        if 1 and ret and not uncropped:
+            region = self.get_page_boundaries()
+            if region:
+                print self.id
+                print region
+                # convert region from ((x0rel, y0rel), (x1rel, y1rel))
+                # to RGN=x,y,w,h (all ratios)
+                region = [
+                    region[0][0], region[0][1],
+                    region[1][0] - region[0][0], region[1][1] - region[0][1]
+                ]
+                ret = ret.replace('&CVT=', '&RGN=%s&CVT=' % (','.join(['%0.5f' % p for p in region]),))
+                print ret
+
         return ret
 
-    def thumbnail(self, height=None, width=None):
+    def thumbnail(self, height=None, width=None, uncropped=False):
         """Returns HTML to display the page image as a thumbnail."""
         ret = ''
         if self.iipimage:
-            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url(height, width))))
+            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url(height, width, uncropped))))
         return ret
 
     def get_region_dimensions(self, region_url):

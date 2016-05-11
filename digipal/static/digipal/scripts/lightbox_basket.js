@@ -630,7 +630,7 @@
             }
         });
     };
-    
+
     function launchEvents(isExternal) {
         update_counter();
         $('#check_images_all').unbind().on('change', function() {

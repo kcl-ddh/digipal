@@ -189,9 +189,9 @@ def iip_img_a(image, *args, **kwargs):
     return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPEG">%s</a>' % (escape(image.iipimage.full_base_url.replace('\\', '/')), iip_img(image, *args, **kwargs)))
 
 @register.simple_tag
-def iip_img(image_or_iipfield, *args, **kwargs):
+def iip_img(image, *args, **kwargs):
     '''
-        Usage {% iip_img IIPIMAGE_FIELD [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] [wrap=0] %}
+        Usage {% iip_img IMAGE [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] [wrap=0] %}
 
         Render a <img src="" /> element with the url referenced by the
         iipimage field.
@@ -204,29 +204,22 @@ def iip_img(image_or_iipfield, *args, **kwargs):
                 with styles and widgets (e.g. star to collection).
     '''
     ret = u''
-    if image_or_iipfield is None:
+    if image is None:
         return ret
 
-    image = None
-    iipfield = image_or_iipfield
-    if hasattr(image_or_iipfield, 'iipimage'):
-        image = image_or_iipfield
-        iipfield = image.iipimage
+    kwargs['alt'] = u'%s' % image
+    # When we get height = 100 we calculate the width.
+    # And vice-versa
+    ds = ['width', 'height']
+    vs = [kwargs.get(d, None) for d in ds]
+    if any(vs):
+        dims = image.dimensions(cropped=True)
+        if min(dims) > 0:
+            for i in [0, 1]:
+                if vs[i] is None:
+                    kwargs[ds[i]] = int(float(vs[1-i]) / float(dims[1-i]) * float(dims[i]))
 
-    if image:
-        kwargs['alt'] = u'%s' % image
-        # When we get height = 100 we calculate the width.
-        # And vice-versa
-        ds = ['width', 'height']
-        vs = [kwargs.get(d, None) for d in ds]
-        if any(vs):
-            dims = image.dimensions()
-            if min(dims) > 0:
-                for i in [0, 1]:
-                    if vs[i] is None:
-                        kwargs[ds[i]] = int(float(vs[1-i]) / float(dims[1-i]) * float(dims[i]))
-
-        ret = img(iip_url(iipfield, *args, **kwargs), *args, **kwargs)
+    ret = img(iip_url(image, *args, **kwargs), *args, **kwargs)
 
     return ret
 
@@ -356,17 +349,6 @@ def img(src, *args, **kwargs):
         # TODO: don't hard-code the path!
         src = ur'/static/digipal/images/blank.gif'
 
-        # default dimensions
-        if 0:
-            size = {'width': kwargs.get('width', -1), 'height': kwargs.get('height', -1)}
-            for d in size:
-                s = size[d]
-                if s == -1:
-                    s = max(size.values())
-                if s == -1:
-                    s = 1
-                more += ' %s="%s" ' % (d, s)
-
     frame_css = u''
     padding = int(kwargs.get('padding', '0'))
     for a in ['height', 'width']:
@@ -408,15 +390,16 @@ def img(src, *args, **kwargs):
     return mark_safe(ret)
 
 @register.simple_tag
-def iip_url(iipfield, *args, **kwargs):
+def iip_url(image, *args, **kwargs):
     '''
-        Usage {% iip_url IIPIMAGE_FIELD [width=W] [height=H] %}
+        Usage {% iip_url IMAGE [width=W] [height=H] %}
 
-        Render a url referenced by the iipimage field.
+        Returns the url referenced by the image model instance.
         width and height are optional. See IIP Image for the way they
         are treated.
     '''
-    return mark_safe(iipfield.thumbnail_url(kwargs.get('height', None), kwargs.get('width', None)).replace('\\', '/'))
+    #return mark_safe(iipfield.thumbnail_url(kwargs.get('height', None), kwargs.get('width', None)).replace('\\', '/'))
+    return mark_safe(image.thumbnail_url(kwargs.get('height', None), kwargs.get('width', None)).replace('\\', '/'))
 
 def escapenewline(value):
     """

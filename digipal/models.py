@@ -1673,10 +1673,29 @@ class Image(models.Model):
         import json
         self.page_boundaries = json.dumps(boundaries)
 
-    def get_page_boundaries(self):
-        ''' e.g. [[0.3, 0.1], [0.7, 0.9]] '''
+    def get_page_boundaries(self, margin=0.02):
+        ''' Returns the boundaries of the page in the image.
+        [[x0, y0], [x1, y1]], all proportional to size of the image
+        e.g. [[0.3, 0.1], [0.7, 0.9]]
+        margin: to enlarge the boundaries, to compensate for boundaries
+            approximation and to be visually more pleasant
+        '''
         import json
-        return json.loads(self.page_boundaries)
+        ret = self.page_boundaries
+        if ret:
+            ret = json.loads(ret)
+        else:
+            ret = [[0.0, 0.0], [1.0, 1.0]]
+
+        dims = self.dimensions()
+        for i in [0, 1]:
+            for d in [0, 1]:
+                diff = (1.0 * margin)
+                ret[i][d] += ((i*2)-1) * diff
+                if ret[i][d] < 0: ret[i][d] = 0.0
+                if ret[i][d] > 1: ret[i][d] = 1.0
+
+        return ret
 
     def is_media_public(self):
         return not self.is_media_private()
@@ -1926,8 +1945,6 @@ class Image(models.Model):
         if 1 and ret and not uncropped:
             region = self.get_page_boundaries()
             if region:
-                print self.id
-                print region
                 # convert region from ((x0rel, y0rel), (x1rel, y1rel))
                 # to RGN=x,y,w,h (all ratios)
                 region = [
@@ -1935,7 +1952,6 @@ class Image(models.Model):
                     region[1][0] - region[0][0], region[1][1] - region[0][1]
                 ]
                 ret = ret.replace('&CVT=', '&RGN=%s&CVT=' % (','.join(['%0.5f' % p for p in region]),))
-                print ret
 
         return ret
 

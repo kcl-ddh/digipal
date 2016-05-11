@@ -104,6 +104,9 @@ class Command(BaseCommand):
         Select the images to be uploaded/listed/deleted by applying
         a filter on their name. Only files with X in their path or
         filename will be selected.
+        --filter="a b, cd e,#195"
+        Select images with (a AND b in the name) OR (cd and e in the name)
+        OR image.id = 195
 
     --offline
         Select only the images which are on disk an not in the DB
@@ -251,7 +254,7 @@ class Command(BaseCommand):
             known_command = True
             self.update_dimensions(*args)
 
-        if command in ('list', 'upload', 'unstage', 'update', 'remove'):
+        if command in ('list', 'upload', 'unstage', 'update', 'remove', 'crop'):
             known_command = True
 
             for file_info in self.get_all_files(root):
@@ -263,7 +266,7 @@ class Command(BaseCommand):
                 if online:
                     imageid = file_info['image'].id
 
-                if options['filter'].lower() not in file_relative.lower():
+                if not self.is_filtered_in(file_info):
                     continue
 
                 if options['offline'] and online:
@@ -289,6 +292,10 @@ class Command(BaseCommand):
                     counts['missing'] += 1
 
                 processed = False
+
+                if (command == 'crop' and online):
+                    self.crop_image(file_info)
+                    processed = True
 
                 if (command == 'upload' and not online) or (command == 'update' and online):
                     processed = True
@@ -355,12 +362,138 @@ class Command(BaseCommand):
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
 
+    def is_filtered_in(self, file_info):
+        '''e.g. "ab cd, ef gh"
+            => image CDAB and 1EeF9GH are returned
+            => so , means OR and space means AND
+        '''
+        ret = False
+        file_relative = file_info['path']
+        for condition in self.options['filter'].lower().split(','):
+            met = True
+            for part in condition.split(' '):
+                part = part.strip()
+                if part:
+                    if part.startswith('#'):
+                        if not file_info['image'] or ('#%s' % file_info['image'].id) != str(part):
+                            met = False
+                            break
+                    else:
+                        if part not in file_relative.lower():
+                            met = False
+                            break
+            if met:
+                ret = True
+                break
+
+        return ret
+
+    def crop_image(self, info):
+        height = 200
+        image = info['image']
+        file_path = self.get_image_path(image, height)
+        if not file_path: return
+
+        import cv2
+        img = cv2.imread(file_path)
+        path_out = '%s.png' % file_path
+
+        # naive cropping technique:
+        import numpy as np
+        dims = img.shape[:2]
+        Z = img.reshape((-1,3))
+        Z = np.float32(Z)
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+        K = 10
+        _,label,center=cv2.kmeans(Z,K,criteria,10,cv2.KMEANS_RANDOM_CENTERS)
+
+        # Now convert back into uint8, and make original image
+        center = np.uint8(center)
+        res = center[label.flatten()]
+        res2 = res.reshape((img.shape))
+
+        # image of centroid indices (one int per 'pixel')
+        center2 = np.array(range(0, K))
+        imgk = center2[label.flatten()]
+        imgk = imgk.reshape(*dims)
+
+        bests = []
+        for d in [0, 1]:
+            imgk = np.transpose(imgk)
+
+            dims = imgk.shape[:2]
+
+            defaults = [0, dims[1]-1]
+            bests.append(defaults[:])
+
+            pc = 0.95
+            if d == 0:
+                pc = 0.75
+            l = dims[0]
+            c = dims[1] / 2
+            th = int(pc * l)
+
+            #print dims, l, c, dims[1]
+            for x in xrange(0, dims[1]):
+                line = imgk[:, x]
+                _, cts = np.unique(line, return_counts=True)
+                m = cts.max()
+                #print x, m, th
+                #print x, m, l
+                if m > th:
+                    bi = 1 if (x > c) else 0
+                    if abs(x - c) < abs(bests[d][bi] - c):
+                        bests[d][bi] = x
+            #print bests[d]
+            # discard if crop is too small in dim d
+            if (bests[d][1] - bests[d][0]) < (0.4 * dims[1]):
+                bests[d] = defaults[:]
+
+        margin = 2
+        bestsm = [(max(bests[i][0] - margin, 0), min(bests[i][1] + margin, dims[i] - 1)) for i in [0, 1]]
+        print bests
+        print bestsm
+
+        path_out_cropped = '%s.cropped.png' % file_path
+        img_cropped = img[bestsm[0][0]:bestsm[0][1], bestsm[1][0]:bestsm[1][1]]
+        cv2.imwrite(path_out_cropped, img_cropped)
+
+        img[:,bests[1]] = [0,0,255]
+        img[bests[0],:] = [0,0,255]
+        print '\t%s' % path_out
+        cv2.imwrite(path_out, res2)
+
+
+    def get_image_path(self, image, height):
+        # returns a file path from the image model instance
+        # image is downloaded from image server the first time
+        ret = None
+
+        height = 200
+        dir_path = os.path.join(settings.IMAGE_SERVER_ROOT, 'tmp')
+        if not os.path.exists(dir_path):
+            print 'Create path'
+            os.makedirs(dir_path)
+        file_path = os.path.join(settings.IMAGE_SERVER_ROOT, 'tmp', 'i%s-h%s.jpg' % (image.id, height))
+        if not os.path.exists(file_path):
+            print 'Download image'
+            url = image.thumbnail_url(height=height)
+            res = utils.web_fetch(url)
+            if not res['error']:
+                utils.write_file(file_path, res['body'])
+            else:
+                print 'ERROR downloading image %s' % res['error']
+
+        if os.path.exists(file_path):
+            ret = file_path
+
+        return ret
+
     def update_dimensions(self, *args):
         options = self.options
         root = get_image_path()
         for file_info in self.get_all_files(root):
-            file_relative = file_info['path']
-            if options['filter'].lower() not in file_relative.lower():
+            if not self.is_filtered_in(file_info):
                 continue
             if file_info['disk']:
                 file_path = os.path.join(settings.IMAGE_SERVER_ROOT, file_info['image'].path())
@@ -490,7 +623,7 @@ class Command(BaseCommand):
         # list or copy the files
         for file_info in all_files:
             file_relative = file_info['path']
-            if options['filter'].lower() not in file_relative.lower():
+            if not self.is_filtered_in(file_info):
                 continue
 
             file_relative_normalised = self.getNormalisedPath(file_relative)

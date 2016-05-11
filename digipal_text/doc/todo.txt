@@ -1,3 +1,13 @@
+UI improvements
+    page navigation:
+        easier navigation to prev/next page
+        scrolling
+    too many buttons
+        show only essentials, only show the rest when hover
+    the sync UI is not intuitive: the name of the source can be confused with
+        the type of content in the panel
+
+
 Bugs:
 . entry search results
     [done] quire not showing

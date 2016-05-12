@@ -217,3 +217,33 @@ div#side-panel {
 }
 */
 
+.page-text-viewer #quick-search {
+    display: none;
+}
+.page-text-viewer .footer {
+    display: none;
+}
+
+.page-text-viewer nav.primary-nav .navbar-header {
+    height: auto;
+}
+.page-text-viewer nav.primary-nav .navbar-toggle {
+    top: auto;
+    padding: 3px 10px;
+    margin-top: 3px;
+}
+.page-text-viewer nav.primary-nav .navbar-header .navbar-brand {
+    top: auto;
+}
+@media (min-width: 768px) {
+    .page-text-viewer nav.primary-nav .navbar-header .navbar-brand {
+        display: none;
+    }
+}
+
+.page-text-viewer #logo {
+    line-height: 1em;
+    font-size: 24px;
+}
+
+

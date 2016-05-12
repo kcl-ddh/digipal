@@ -11,21 +11,21 @@
 // BANNER AND NAV BAR
 
 nav.primary-nav {
-    
+
     border-width: 0;
-    
+
     background: url('/static/digipal/images/top_bg.jpg') repeat-x scroll center top transparent;
 
     .container {
         position: relative;
         z-index: 1;
     }
-    
+
     .navbar-header {
         // the brand/banner is always on top of the menu
         float: none;
         height: @banner-height;
-        
+
         .navbar-brand {
             // place the brand in the middle of the banner
             position: absolute;
@@ -36,24 +36,25 @@ nav.primary-nav {
     .navbar-toggle {
         top: 25px;
         background-color: @dp-main;
+        color: white;
     }
 
     .navbar-collapse {
-        
+
         // prevent bg images from banner to cover navbar
         z-index: 3;
         position: relative;
-    
+
         // bg color for main menu
         background: -webkit-linear-gradient(@nav_color_bg_from, @nav_color_bg_to); // For Safari 5.1 to 6.0
         background: -o-linear-gradient(@nav_color_bg_from, @nav_color_bg_to); // For Opera 11.1 to 12.0
         background: -moz-linear-gradient(@nav_color_bg_from, @nav_color_bg_to); // For Firefox 3.6 to 15
         background: linear-gradient(@nav_color_bg_from, @nav_color_bg_to); // Standard syntax
-    
+
         .navbar-nav {
             font-weight: bold;
         }
-    
+
         .navbar-nav > li {
             // separator between menu items
             @media (min-width: @grid-float-breakpoint) {
@@ -82,7 +83,7 @@ nav.primary-nav {
     overflow: hidden;
     // avoid long brand wrapping
     white-space: nowrap;
-    
+
     .logo-brand {
         font-family: Serif;
     }
@@ -127,28 +128,28 @@ nav.primary-nav {
     @media (min-width: @grid-float-breakpoint) {
         background: url('/static/digipal/images/top_bg.jpg') repeat-x scroll center top transparent;
     }
-    
+
     form {
         // make the search strip tall enough and center the container within it
         height: 48px;
         padding-top: 8px;
-        
+
         select {
             // avoid overlong drop down
             width: 7em;
             padding-left: 3px;
             padding-right: 3px;
         }
-        
+
         .round-right {
             border-bottom-right-radius: @border-radius-base;
             border-top-right-radius: @border-radius-base;
         }
-        
+
         .advanced-search-btn:hover {
             background: none;
         }
-        
+
     }
 }
 

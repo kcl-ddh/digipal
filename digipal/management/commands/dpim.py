@@ -3,8 +3,6 @@ from dpbase import DPBaseCommand as BaseCommand
 from django.conf import settings
 from os.path import isdir
 import os
-import shlex
-import subprocess
 import re
 import utils
 from optparse import make_option
@@ -190,7 +188,7 @@ class Command(BaseCommand):
             file = join(current_path, file)
 
             if isfile(file):
-                (file_base_name, extension) = os.path.splitext(file)
+                (_, extension) = os.path.splitext(file)
                 if extension.lower() in settings.IMAGE_SERVER_UPLOAD_EXTENSIONS and not ('.tmp' in file and '.bmp' in file):
                     file_relative = os.path.relpath(file, settings.IMAGE_SERVER_ROOT)
 

@@ -41,6 +41,8 @@ def text_viewer_view(request, item_partid=0):
     ]
     context['statuses'] = TextContentXMLStatus.objects.all().order_by('sort_order')
 
+    context['body_class'] = 'page-text-viewer'
+
     update_viewer_context(context, request)
 
     return render(request, 'digipal_text/text_viewer.html', context)

@@ -7,6 +7,16 @@ UI improvements
     the sync UI is not intuitive: the name of the source can be confused with
         the type of content in the panel
 
+Done:
+    fixed some important problems with the excessive resource usage by the framework on the server
+        which made the site crash, run very slowly or fail to index the content for the search page.
+    worked on porting the visualisation from MoA to Exon
+    automatically detected the pages in the images, which means that the thumbnails show the page only
+        * the viewers will benefit from it by showing the meaningful portion of the image
+    * working on usability enhancement of the text viewer
+        scrolling issues
+        * navigation
+    * working on the TOC
 
 Bugs:
 . entry search results

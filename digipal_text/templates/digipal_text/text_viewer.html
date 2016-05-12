@@ -105,6 +105,20 @@
 
 </div>
 
+{% if DEBUG %}
+    <footer class="footer mini-footer">
+       {% if request.user.is_staff %}
+           You are logged in as {{ request.user }}
+           |
+           <a href="/admin/">Database</a>
+           |
+           <a href="/logout/?next={{request.path}}">Log out</a>
+       {% else %}
+           <a href="/login/?next={{request.path}}">Log in to see all the content</a>.
+       {% endif %}
+    </footer>
+{% endif %}
+
 {% endblock %}
 
 {% block extra_js %}
@@ -118,7 +132,7 @@
     {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js?v={% now "U:u" %}"></script> #}
     {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script> #}
     <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
-    
+
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol-debug.js"></script>
     <script src="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.min.js"></script>

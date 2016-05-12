@@ -196,15 +196,10 @@
                 noscrollbar = noscrollbar || 0;
 
                 var current_height = $element.outerHeight();
-                if (current_height > 0 && noscrollbar) {
+                if (noscrollbar) {
                     // ! only works if body height is NOT 100% !
                     height = $(window).outerHeight() - $('body').outerHeight() + current_height;
                     height = (height <= min) ? min : height;
-                    console.log('-----')
-                    console.log($(window).outerHeight());
-                    console.log($(document).outerHeight());
-                    console.log(current_height);
-                    console.log(height);
                 } else {
                     var window_height = $(window).height() - margin;
                     height = window_height - $element.offset().top + $(document).scrollTop();

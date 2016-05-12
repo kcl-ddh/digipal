@@ -165,7 +165,7 @@
             // resize the div to the available height on the browser viewport
             //var height = window.dputils.get_elastic_height(this.$root);
             //this.$panelset.css('height', Math.floor(height - this.$messageBox.outerHeight(true)));
-            var height = window.dputils.get_elastic_height(this.$panelset, 0, 0, 1);
+            var height = window.dputils.get_elastic_height(this.$panelset, 10, 0, 1);
             this.$panelset.css('height', height);
             this.$panelset.css('max-height', height);
 
@@ -196,11 +196,11 @@
         };
 
         this.ready = function() {
-            this.initEvents();
             for (var i in this.panels) {
                 this.panels[i].componentIsReady('panelset');
             }
             this.isReady = true;
+            this.initEvents();
         };
 
     };

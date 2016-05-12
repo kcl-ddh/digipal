@@ -223,6 +223,9 @@ div#side-panel {
 .page-text-viewer .footer {
     display: none;
 }
+.page-text-viewer .footer.mini-footer {
+    display: block;
+}
 
 .page-text-viewer nav.primary-nav .navbar-header {
     height: auto;

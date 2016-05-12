@@ -53,8 +53,8 @@ span.message-time {
 .text-viewer-panel .btn-toolbar {
     background-color: #f8f8f8;
     border-bottom: 1px solid lightgrey;
-    height: 2.2em;
-    overflow: hidden;
+    /* height: 2.2em;
+    overflow: hidden; */
 }
 
 .text-viewer-panel .btn-toolbar .btn {
@@ -257,4 +257,16 @@ body.page-text-viewer {
 
 .page-text-viewer h1 {
     font-size: 18px;
+}
+
+.dpauto-hide {
+    display: none;
+}
+
+.btn-toolbar:hover .dpauto-hide {
+    display: inline-block;
+}
+
+.btn-toolbar:hover .dpauto-hide.dphidden {
+    display: none;
 }

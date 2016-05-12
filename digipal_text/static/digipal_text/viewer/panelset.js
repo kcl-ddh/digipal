@@ -381,7 +381,8 @@
                 me.loadContent();
             });
 
-            this.$downloadButton.closest('.dphidden').toggle(this.isDownloadable());
+            //this.$downloadButton.closest('.dphidden').toggle(this.isDownloadable());
+            unhide(this.$downloadButton, this.isDownloadable());
             this.$downloadButton.on('click', function() {
                 // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
                 var url = me.getContentAddress('whole', '');
@@ -509,7 +510,8 @@
                 this.$statusSelect.trigger('liszt:updated');
             }
             // hide (chosen) select if no status supplied
-            this.$statusSelect.closest('.dphidden').toggle(!!contentStatus);
+            //this.$statusSelect.closest('.dphidden').toggle(!!contentStatus);
+            unhide(this.$statusSelect, !!contentStatus);
         };
 
         this.setPresentationOptions = function(presentationOptions) {
@@ -531,7 +533,8 @@
                 }
             }
             // hide (chosen) select if no status supplied
-            $pres.closest('.dphidden').toggle(!!presentationOptions && (presentationOptions.length > 0));
+            //$pres.closest('.dphidden').toggle(!!presentationOptions && (presentationOptions.length > 0));
+            unhide($pres, !!presentationOptions && (presentationOptions.length > 0));
         };
 
         // Address / Locations
@@ -587,7 +590,8 @@
             this.$locationSelect.html(htmlstr);
             // ?? not a BS DD, just a select
             this.$locationSelect.trigger('liszt:updated');
-            this.$locationSelect.closest('.dphidden').toggle(htmlstr ? true : false);
+            //this.$locationSelect.closest('.dphidden').toggle(htmlstr ? true : false);
+            unhide(this.$locationSelect, htmlstr ? true : false);
             //             if (!htmlstr) { this.loadContent(); }
             //             else
             //             {
@@ -644,7 +648,7 @@
 
         this.getLocation = function() {
             var ret = '';
-            if (this.$locationSelect.closest('.dphidden').is(':visible')) {
+            if (this.$locationSelect.closest('.dphidden,.dpunhidden').is(':visible')) {
                 ret = this.$locationSelect.val();
             }
             return ret;
@@ -662,7 +666,8 @@
             if (this.$toggleEdit) {
                 var mode = this.getEditingMode();
 
-                this.$toggleEdit.toggleClass('dphidden', !((mode === true) || (mode === false)));
+                //this.$toggleEdit.toggleClass('dphidden', !((mode === true) || (mode === false)));
+                unhide(this.$toggleEdit, !((mode === true) || (mode === false)));
 
                 this.$toggleEdit.toggleClass('active', (mode === true));
 
@@ -1261,7 +1266,8 @@
             this.annotator.addAnnotations(data.annotations);
 
             // text-image links
-            this.$linker.closest('.dphidden').toggle(true);
+            //this.$linker.closest('.dphidden').toggle(true);
+            unhide(this.$linker, true);
             this.resetLinker(data);
         }
 
@@ -1627,6 +1633,10 @@
         return ret;
     }
 
+
+    function unhide($element, condition) {
+        $element.closest('.dphidden, .dpunhidden').toggleClass('dphidden', !condition).toggleClass('dpunhidden', condition);
+    }
 
     function urldecode(str) {
         return decodeURIComponent((str+'').replace(/\+/g, '%20'));

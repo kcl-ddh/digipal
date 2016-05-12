@@ -53,6 +53,8 @@ span.message-time {
 .text-viewer-panel .btn-toolbar {
     background-color: #f8f8f8;
     border-bottom: 1px solid lightgrey;
+    height: 2.2em;
+    overflow: hidden;
 }
 
 .text-viewer-panel .btn-toolbar .btn {
@@ -253,4 +255,6 @@ body.page-text-viewer {
     height: auto;
 }
 
-
+.page-text-viewer h1 {
+    font-size: 18px;
+}

@@ -520,13 +520,14 @@
                 if (!$pres.data().hasOwnProperty('dropdownCheckbox')) {
                     $pres.dropdownCheckbox({
                         data: options,
-                        title: "Display",
+                        title: 'Display',
                         btnClass: 'btn btn-default btn-sm'
                     });
-                    $pres.find('button').append('<span class="caret"></span>');
+                    $pres.find('button').html('<span class="glyphicon glyphicon-eye-open"></span>&nbsp;<span class="caret"></span>');
                     $pres.on('mouseenter mouseleave', function($event) {
                         $pres.find('.dropdown-checkbox-content').toggle($event.type === 'mouseenter');
                     });
+
                 }
             }
             // hide (chosen) select if no status supplied

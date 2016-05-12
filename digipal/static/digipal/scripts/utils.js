@@ -179,8 +179,10 @@
             /*
                 Returns the height $element should have to fill the remaining
                 space in the viewport.
+                If noscrollbar =  1, returns height so that the whole page is
+                contained within the viewport. i.e. no scrollbar
             */
-            get_elastic_height: function($element, min, margin) {
+            get_elastic_height: function($element, min, margin, noscrollbar) {
                 var height = 0;
 
                 // This is a hack for OL - we force 100% height when it is in
@@ -191,15 +193,28 @@
 
                 min = min || 0;
                 margin = margin || 0;
+                noscrollbar = noscrollbar || 0;
 
-                var window_height = $(window).height() - margin;
-                height = window_height - $element.offset().top + $(document).scrollTop();
-                height = (height <= min) ? min : height;
-                height = (height > window_height) ? window_height : height;
+                var current_height = $element.outerHeight();
+                if (current_height > 0 && noscrollbar) {
+                    // ! only works if body height is NOT 100% !
+                    height = $(window).outerHeight() - $('body').outerHeight() + current_height;
+                    height = (height <= min) ? min : height;
+                    console.log('-----')
+                    console.log($(window).outerHeight());
+                    console.log($(document).outerHeight());
+                    console.log(current_height);
+                    console.log(height);
+                } else {
+                    var window_height = $(window).height() - margin;
+                    height = window_height - $element.offset().top + $(document).scrollTop();
+                    height = (height <= min) ? min : height;
+                    height = (height > window_height) ? window_height : height;
+                }
 
-                return height;
+                return Math.floor(height);
             },
-            
+
             fragment_refreshing: function(fragment, refreshed) {
                 var $frag = $(fragment);
                 if (refreshed) {

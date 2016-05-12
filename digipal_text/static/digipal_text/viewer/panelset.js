@@ -163,9 +163,11 @@
 
         this._resize = function(refreshLayout) {
             // resize the div to the available height on the browser viewport
-            var height = window.dputils.get_elastic_height(this.$root);
-
-            this.$panelset.css('height', height - this.$messageBox.outerHeight(true));
+            //var height = window.dputils.get_elastic_height(this.$root);
+            //this.$panelset.css('height', Math.floor(height - this.$messageBox.outerHeight(true)));
+            var height = window.dputils.get_elastic_height(this.$panelset, 0, 0, 1);
+            this.$panelset.css('height', height);
+            this.$panelset.css('max-height', height);
 
             if (refreshLayout && this.layout) {
                 this.layout.resizeAll();
@@ -722,7 +724,7 @@
 
     Panel.prototype.onResize = function () {
         // resize content to take the remaining height in the panel
-        var height = this.$root.innerHeight() - (this.$content.offset().top - this.$root.offset().top) - this.$statusBar.outerHeight(true);
+        var height = Math.floor(this.$root.innerHeight() - (this.$content.offset().top - this.$root.offset().top) - this.$statusBar.outerHeight(true));
         this.$content.css('max-height', height+'px');
         this.$content.height(height+'px');
     };

@@ -563,7 +563,7 @@
 
                     this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
                     this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
-                    this.$locationTypes.show();
+                    unhide(this.$locationTypes, 1);
                 } else {
                     // save the locations
                     this.locations = locations;
@@ -592,6 +592,10 @@
             this.$locationSelect.trigger('liszt:updated');
             //this.$locationSelect.closest('.dphidden').toggle(htmlstr ? true : false);
             unhide(this.$locationSelect, htmlstr ? true : false);
+
+            this.$locationSelect.closest('.dphidden,.dpunhidden').toggleClass('dpauto-hide', (this.getLocationType() === 'sync'));
+            this.$locationTypes.closest('.dphidden,.dpunhidden').toggleClass('dpauto-hide', (this.getLocationType() === 'sync'));
+
             //             if (!htmlstr) { this.loadContent(); }
             //             else
             //             {
@@ -640,7 +644,7 @@
 
         this.getLocationType = function() {
             var ret = 'default';
-            if (this.$locationTypes.is(':visible')) {
+            if (this.$locationTypes.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
                 ret = this.$locationTypes.dpbsdropdown('getOption');
             }
             return ret;
@@ -648,7 +652,7 @@
 
         this.getLocation = function() {
             var ret = '';
-            if (this.$locationSelect.closest('.dphidden,.dpunhidden').is(':visible')) {
+            if (this.$locationSelect.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
                 ret = this.$locationSelect.val();
             }
             return ret;
@@ -667,7 +671,7 @@
                 var mode = this.getEditingMode();
 
                 //this.$toggleEdit.toggleClass('dphidden', !((mode === true) || (mode === false)));
-                unhide(this.$toggleEdit, !((mode === true) || (mode === false)));
+                unhide(this.$toggleEdit, ((mode === true) || (mode === false)));
 
                 this.$toggleEdit.toggleClass('active', (mode === true));
 
@@ -1635,7 +1639,18 @@
 
 
     function unhide($element, condition) {
-        $element.closest('.dphidden, .dpunhidden').toggleClass('dphidden', !condition).toggleClass('dpunhidden', condition);
+        var $el = $element.closest('.dphidden, .dpunhidden');
+        if (!$el.hasClass('dphidden') && !$el.hasClass('dpunhidden')) {
+            console.log('NO CLASS 0!');
+        }
+        if ($el.length < 1) {
+            console.log('NOT FOUND!');
+        }
+        $el.toggleClass('dphidden', !condition);
+        $el.toggleClass('dpunhidden', !!condition);
+        if (!$el.hasClass('dphidden') && !$el.hasClass('dpunhidden')) {
+            console.log('NO CLASS!');
+        }
     }
 
     function urldecode(str) {

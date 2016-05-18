@@ -12,11 +12,17 @@ Done:
         which made the site crash, run very slowly or fail to index the content for the search page.
     worked on porting the visualisation from MoA to Exon
     automatically detected the pages in the images, which means that the thumbnails show the page only
-        * the viewers will benefit from it by showing the meaningful portion of the image
+        ** the viewers will benefit from it by showing the meaningful portion of the image
     * working on usability enhancement of the text viewer
-        scrolling issues
-        * navigation
-    * working on the TOC
+        [done] scrolling issues
+        ** navigation: prev / nex
+        * sync will work differently:
+            One location for the whole TE at the top
+            By default all panels are sync'ed with that location
+            Sync is BOTH WAYS, so moving in one panel will move the master location
+            Possibility to unsync and go free
+            => MUCH SIMPLER UI, enables bidir sync, - can't sync a-b then c-d
+    ** working on the TOC
 
 Bugs:
 . entry search results

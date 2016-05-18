@@ -353,6 +353,9 @@
             add_open_layer3: function(options) {
                 var ol = window.ol;
 
+                // TODO: check if this can be called multiple times...
+                ol.inherits(window.dputils.olCtrlFitWidth, ol.control.Control);
+
                 var $target = $(options.$target);
 
                 // Maps always need a projection, but Zoomify layers are not geo-referenced, and
@@ -409,12 +412,15 @@
                     // controls: ol.control.defaults().extend([
                     //   new ol.control.OverviewMap({layers: [tileLayer]})
                     // ]),
+                     controls: ol.control.defaults().extend([
+                       new window.dputils.olCtrlFitWidth({layers: [tileLayer]})
+                     ]),
                     target: $target[0],
                     view: new ol.View(view_options)
                 };
 
                 if (options.can_fullscreen) {
-                    map_options.controls = ol.control.defaults().extend([
+                    map_options.controls = map_options.controls.extend([
                         new ol.control.FullScreen()
                     ]);
                 }
@@ -427,11 +433,45 @@
 
                 options.map = new ol.Map(map_options);
 
+                window.dpol = options;
+
                 return options.map;
+            },
+
+            /**
+             * @constructor
+             * @extends {ol.control.Control}
+             * @param {Object=} opt_options Control options.
+             */
+            olCtrlFitWidth: function(opt_options) {
+
+              var options = opt_options || {};
+
+              var button = document.createElement('button');
+              button.innerHTML = 'N';
+
+              var this_ = this;
+              var handleRotateNorth = function(e) {
+                  this_.getMap().getView().setRotation(0);
+              };
+
+              button.addEventListener('click', handleRotateNorth, false);
+              button.addEventListener('touchstart', handleRotateNorth, false);
+
+              var element = document.createElement('div');
+              element.className = 'rotate-north ol-unselectable ol-control';
+              element.appendChild(button);
+
+              ol.control.Control.call(this, {
+                element: element,
+                target: options.target
+              });
+
             }
 
         };
     });
+
 })(jQuery);
 
 /**

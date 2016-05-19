@@ -1,11 +1,31 @@
 UI improvements
-    page navigation:
+    * change the sync to a master location
+        improve auto-complete
+        add location on top
+        by default the panels are synced with it
+        when synced, hidden location in panel
+        panels can be synced + 1 or  -1
+        can then implement the scrolling to next unit
+        bi-dir synced
+    * page navigation:
         easier navigation to prev/next page
         scrolling
-    too many buttons
+        use TOC to navigate?
+    image
+        auto frame to page
+        can auto frame to <->
+        can auto-frame to |
+    [done] too many buttons
         show only essentials, only show the rest when hover
+    expandable panels
+    status bar
+        hide it x seconds after a successful message has been displayed 
     the sync UI is not intuitive: the name of the source can be confused with
         the type of content in the panel
+    show detailed location (e.g. Count of Mortain, Somerset, Hand)
+    improve the search
+        search in different texts
+        search across corpus?
 
 Done:
     fixed some important problems with the excessive resource usage by the framework on the server

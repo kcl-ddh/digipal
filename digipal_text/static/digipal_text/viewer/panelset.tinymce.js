@@ -252,7 +252,7 @@ var PanelSetPlugIn = function(editor, url) {
     addDropDown('psclause', 'Address,Disposition,Witnesses', 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
 
     // Other Clauses
-    addDropDown('psClauseSecondary', 'Arenga,Boundaries,Holding,Injunction,Malediction,Narration,Notification,Prohibition,Salutation,Sealing,Subscription,Title,Warrandice', 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
+    addDropDown('psClauseSecondary', 'Arenga,Boundaries,Holding,Injunction,Malediction,Narration,Notification,Prohibition,Salutation,Sealing,Subscription,Intitulatio,Warrandice', 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
 
     // Person
     addDropDown('psperson', 'Title,Name', 'Person', null, insertPersonOnSelectedDropdownOption);

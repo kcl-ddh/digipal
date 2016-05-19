@@ -242,7 +242,11 @@ span[data-dpt] > span[data-dpt] {
 }
 
 .mce-content-body span[data-dpt-type=title]:before {
-    content: "Title";
+    content: "Title (DEPRECATED)";
+}
+
+.mce-content-body span[data-dpt-type=intitulatio]:before {
+    content: "Intitulatio";
 }
 
 .mce-content-body span[data-dpt-type=warrandice]:before {

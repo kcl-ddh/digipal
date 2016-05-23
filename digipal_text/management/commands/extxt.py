@@ -49,6 +49,10 @@ Commands:
 
     entries2csv
         Write a csv file entry number, transl, transc
+        
+    trefs2csv
+        Write a csv file with cross-references found in the translation
+        
 """
 
     args = 'locus|email'
@@ -82,6 +86,10 @@ Commands:
         self.cargs = args[1:]
 
         known_command = False
+
+        if command == 'trefs2csv':
+            known_command = True
+            self.trefs2csv()
 
         if command == 'setquire':
             known_command = True
@@ -129,6 +137,69 @@ Commands:
         else:
             print self.help
 
+    def trefs2csv(self):
+        
+        file_path = 'trefs.csv'
+        
+        from digipal_text.models import TextContentXML
+        content_xml = TextContentXML.objects.filter(text_content__type__slug='translation').first()
+        from digipal_text.views import viewer
+        
+        #root = dputils.get_xml_from_unicode((ur'<root>%s</root>' % content_xml.content), True)
+        content = u'<root>%s</root>' % content_xml.content
+        headings = ['RevisedEllisNos', 'Exon X-ref 1', 'Exon X-ref 2', 'Exon X-ref 3', 'Exon X-ref 4', 'Exon X-ref 5', 'GDB X ref 1', 'GDB X ref 2', 'GDB X ref 3']
+        rows = []
+        for unit in viewer.get_all_units(content, 'entry'):
+            row = {h: '' for h in headings}
+            #unit_xml = u'<root>%s</root>' % unit['content']
+            unit_xml = dputils.get_xml_from_unicode(u'<root>%s</root>' % unit['content'], True)
+            refs = []
+            refs2 = {'GDB': '', 'EDB': ''}
+            for ref in unit_xml.findall("//span[@data-dpt='supplied'][@data-dpt-type='reference']"):
+                #ref = dputils.get_xml_from_unicode((ur'<root>%s</root>' % content_xml.content), True)
+                ref = dputils.get_unicode_from_xml(ref, text_only=True)
+                refs.append(ref)
+                if len(ref) > 100:
+                    print 'WARNING: long ref %s' % len(ref)
+                    continue
+                ref = re.sub(ur'(?musi)\b(but|or|see|also|and|duplicated|by)\b', '', ref)
+                parts = re.split(ur'(EDB|GDB)', ref)
+                
+                i = 0
+                while i < len(parts):
+                    if parts[i] in refs2.keys():
+                        t = parts[i]
+                        i += 1
+                        if i < len(parts):
+                            if refs2[t]: refs2[t] += ' + '
+                            refs2[t] += parts[i].strip(' ;,.=')
+                    i += 1
+            
+            if refs:
+                print '%s\n\t%s\n\t%s' % (unit['unitid'], repr(refs), repr(refs2))
+                row['RevisedEllisNos'] = unit['unitid']
+                for k, v in refs2.iteritems():
+                    i = 0
+                    sp = '+'
+                    if 'EDB' in k:
+                        sp += ','
+                    for p in re.split('['+sp+']', v):
+                        i += 1
+                        col = 'Exon X-ref '
+                        if 'GDB' in k:
+                            col = 'GDB X ref '
+                        row['%s%s' % (col, i)] = p.strip('')
+                    
+                row['RevisedEllisNos'] = unit['unitid']
+                rows.append(row)
+        
+        from digipal.utils import write_rows_to_csv
+        write_rows_to_csv(file_path, rows, headings=headings, encoding='utf-8')
+        print 'Written %s' % file_path
+
+        
+        #for ref in re.findall(ur'(?musi)<span data-dpt="supplied" data-dpt-type="reference" data-dpt-cat="chars">()</span>', text.content):
+    
     def entries2csv_command(self):
         headings = ['entry', 'translation', 'transcription-sample']
         file_path = 'entries-text.csv'

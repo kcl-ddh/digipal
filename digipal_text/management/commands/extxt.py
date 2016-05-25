@@ -53,6 +53,9 @@ Commands:
     trefs2csv
         Write a csv file with cross-references found in the translation
         
+    gdb2csv
+        Write a csv file from the GDB text
+        
 """
 
     args = 'locus|email'
@@ -86,6 +89,10 @@ Commands:
         self.cargs = args[1:]
 
         known_command = False
+
+        if command == 'gdb2csv':
+            known_command = True
+            self.gdb2csv()
 
         if command == 'trefs2csv':
             known_command = True
@@ -136,6 +143,31 @@ Commands:
             print 'done'
         else:
             print self.help
+
+    def gdb2csv(self):
+        file_path = 'gdb.csv'
+        
+        rows = []
+        
+        input = 'exon/source/analysis/gdb/gdb-text'
+        content = dputils.read_file(input)
+        content = re.sub(ur'\n<\d+[a-z]>\n', ur'\n', content)
+        for part in re.split(ur'\n{3,10}', content):
+            lines = part.strip(' \n').split('\n')
+            size = len(lines)
+            if re.match(ur'^[A-Z]+', lines[0]):
+                print lines[0], size
+                rows.append({'REF': lines[0], 'CONTENT': '\r'.join(lines[1:])})
+            else:
+                if size > 3:
+                    #print repr(lines[0]), size
+                    pass
+        
+        headings = ['REF', 'CONTENT']
+        
+        from digipal.utils import write_rows_to_csv
+        write_rows_to_csv(file_path, rows, headings=headings, encoding='utf-8')
+        print 'Written %s' % file_path
 
     def trefs2csv(self):
         

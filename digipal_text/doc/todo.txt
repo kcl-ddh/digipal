@@ -27,6 +27,8 @@ UI improvements
         search in different texts
         search across corpus?
 
+TOC
+
 Done:
     fixed some important problems with the excessive resource usage by the framework on the server
         which made the site crash, run very slowly or fail to index the content for the search page.

@@ -12,6 +12,7 @@
         this.layout = null;
         this.$messageBox = null;
         this.isReady = false;
+        this.$toolbar = $('.tv-main-toolbar');
 
         this.registerPanel = function(panel) {
             if (!panel) return;
@@ -193,6 +194,9 @@
             $(window).scroll(function() {
                 me._resize(true);
                 });
+            
+            // create the location controls
+            this.$toolbar.find('.location-buttons').html($('#text-viewer-panel .location-buttons').html());
         };
 
         this.ready = function() {

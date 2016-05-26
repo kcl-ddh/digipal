@@ -23,14 +23,17 @@
 
 {% block main %}
 
-<h1><a href="{{ item_part.get_absolute_url }}">{{ item_part.display_label }}</a>: Texts</h1>
+<div class="tv-main-toolbar">
+    <span class="tvmt-heading">Text Viewer</span> 
+    - 
+    <span class="tvmt-itempart"><a href="{{ item_part.get_absolute_url }}">{{ item_part.display_label }}</a></span>
+    <div class="location-buttons">
+        Location buttons
+    </div> 
+</div>
 
 {# Template for the frame #}
 <div id="text-viewer">
-    <div class="message-box">
-        <a href="#text-viewer" style="float:left;" title="Expand" data-toggle="tooltip" data-placement="bottom"><span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></a>
-        <span class="message-content">&nbsp;</span>
-    </div>
     <div class="panels">
         <div class="ui-layout-north">North</div>
         {# <div class="ui-layout-west">Navigator</div> #}
@@ -47,14 +50,16 @@
             {% include "bootstrap/dropdown.html" with options=dd_content_types classes="auto-open" %}
         </div>
 
-        <div class="btn-group">
-            {% include "bootstrap/dropdown.html" with options=dd_location_types classes="dropdown-location-type dphidden auto-open" %}
-        </div>
-        <div class="btn-group dphidden">
-            <select name="location" class="can-add">
-                <option value="1r">1r</option>
-                <option value="1v">1v</option>
-            </select>
+        <div class="location-buttons">
+            <div class="btn-group">
+                {% include "bootstrap/dropdown.html" with options=dd_location_types classes="dropdown-location-type dphidden auto-open" %}
+            </div>
+            <div class="btn-group dphidden">
+                <select name="location" class="can-add">
+                    <option value="1r">1r</option>
+                    <option value="1v">1v</option>
+                </select>
+            </div>
         </div>
 
         <div class="btn-group dphidden dpauto-hide">
@@ -131,7 +136,7 @@
     {# TODO: remove now qs #}
     {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js?v={% now "U:u" %}"></script> #}
     {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script> #}
-    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
+    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js?v={% now "U:u" %}"></script>
 
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol-debug.js"></script>

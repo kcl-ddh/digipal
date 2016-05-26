@@ -1302,3 +1302,13 @@ def get_plain_text_from_xmltext(xml_str):
     ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '').replace(u'-|', u'').replace(u'|', u'\r')
 
     return ret
+
+def run_shell_command(self, command):
+    ret = True
+    try:
+        os.system(command)
+    except Exception, e:
+        raise Exception('Error executing command: %s (%s)' % (e, command))
+    finally:
+        pass
+    return ret

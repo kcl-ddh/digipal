@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
+from dpbase import DPBaseCommand
 from django.conf import settings
 from os.path import isdir
 import os, sys
@@ -14,7 +15,7 @@ from digipal.templatetags.hand_filters import chrono
 from django.template.defaultfilters import slugify
 from time import sleep
 
-class Command(BaseCommand):
+class Command(DPBaseCommand):
     help = """
 Digipal blog management tool.
 
@@ -50,6 +51,12 @@ Commands:
 
     download_images URL
         URL: e.g. "http://domain/path/to/image_{001_r,003_v}.jpg"
+        
+    unstatic
+        Opposite of collectstatics
+        It removes the copies of the assets
+        This is only for dev env. when you are changing the js/css, ...
+        Note that transpiled code can't be made dynamic (e.g. less, ts)
 
 """
 
@@ -147,6 +154,10 @@ Commands:
         if command =='cpip':
             known_command = True
             self.cpip(*args[1:])
+
+        if command =='unstatic':
+            known_command = True
+            self.unstatic()
 
         if command == 'chd':
             # convert hand desc from xml to html
@@ -294,6 +305,33 @@ Commands:
         if not known_command:
             print self.help
 
+    def unstatic(self):
+        print 'unstatic'
+        static_root = settings.STATIC_ROOT
+        
+        is_verbose = self.is_verbose()
+        
+        counts = {'deleted': 0, 'left': 0}
+        if len(static_root) > 10:
+            for root, subdirs, files in os.walk(static_root):
+                for filename in files:
+                    path = os.path.join(root, filename)
+
+                    ext = re.sub(ur'^.*\.', '', filename)
+                    if ext in ['less', 'ts']:
+                        counts['left'] += 1
+                        if is_verbose:
+                            print 'WARNING: leave transpiled (%s)' % os.path.relpath(path, static_root)
+                        continue
+                    
+                    try:
+                        os.unlink(path)
+                        counts['deleted'] += 1
+                    except Exception, e:
+                        print 'WARNING: %s not deleted (%s)' % (path, e)
+        
+        print '%s deleted' % counts['deleted']
+        print '%s left' % counts['left']
 
     def race(self, *args):
         '''

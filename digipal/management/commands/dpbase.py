@@ -21,11 +21,11 @@ class DPBaseCommand(BaseCommand):
         )
     
     def is_verbose(self):
-        return self.options['verbosity'] >= 2
+        return self.get_verbosity() >= 2
     
     def get_verbosity(self):
         # 0: minimal output, 1: normal output, 2: verbose, 3: very verbose
-        return self.options['verbosity']
+        return int(self.options.get('verbosity', 1))
 
     def get_arg(self, i, default=None, error=None):
         ret = default

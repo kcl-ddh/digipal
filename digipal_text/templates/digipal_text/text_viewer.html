@@ -24,12 +24,12 @@
 {% block main %}
 
 <div class="tv-main-toolbar">
-    <span class="tvmt-heading">Text Viewer</span> 
-    - 
+    <span class="tvmt-heading">Text Viewer</span>
+    -
     <span class="tvmt-itempart"><a href="{{ item_part.get_absolute_url }}">{{ item_part.display_label }}</a></span>
     <div class="location-buttons">
         Location buttons
-    </div> 
+    </div>
 </div>
 
 {# Template for the frame #}
@@ -136,7 +136,7 @@
     {# TODO: remove now qs #}
     {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js?v={% now "U:u" %}"></script> #}
     {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script> #}
-    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js?v={% now "U:u" %}"></script>
+    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
 
     <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol-debug.js"></script>
@@ -148,6 +148,7 @@
 
     <script>
         jQuery(document).ready(function($) {
+            var master_locations = {{master_locations|json}};
             var panelset = new TextViewer.PanelSet($('#text-viewer'));
             window.ps = panelset;
             panelset.setItemPartid('{{ item_partid }}');
@@ -155,6 +156,8 @@
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
 
+            panelset.setMasterLocations(master_locations);
+            panelset.setMasterLocation('{{master_location_type}}', '{{master_location}}');
             panelset.setStateFromUrl('?center=transcription/default/&east=translation/default/&north=image/default/');
 
             ///panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));

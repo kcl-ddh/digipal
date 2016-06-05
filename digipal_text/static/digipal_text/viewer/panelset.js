@@ -2,10 +2,142 @@
 
     //////////////////////////////////////////////////////////////////////
     //
+    // Located
+    //
+    //////////////////////////////////////////////////////////////////////
+    var Located = TextViewer.Located = function($root) {
+        var me = this;
+
+        this.$locationTypes = $root.find('.dropdown-location-type');
+        this.$locationSelect = $root.find('select[name=location]');
+
+        upgrade_selects($root);
+
+        this.$locationTypes.dpbsdropdown({
+            onSelect: function($el, key) { me.onSelectLocationType(key); },
+        });
+
+        this.$locationSelect.on('change', function() {
+            me.onLocationChanged();
+        });
+    };
+
+    Located.prototype.onLocationChanged = function() {
+        // to be overridden
+    };
+
+    Located.prototype.getLocationType = function() {
+        var ret = 'default';
+        if (this.$locationTypes.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
+            ret = this.$locationTypes.dpbsdropdown('getOption');
+        }
+        return ret;
+    };
+
+    Located.prototype.getLocation = function() {
+        var ret = '';
+        if (this.$locationSelect.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
+            ret = this.$locationSelect.val();
+        }
+        return ret;
+    };
+
+    Located.prototype.setLocationTypeAndLocation = function(locationType, location) {
+        // this may trigger a content load
+        if (this.getLocationType() !== 'sync') {
+            this.$locationTypes.dpbsdropdown('setOption', locationType);
+            if (this.getLocation() != location) {
+                this.$locationSelect.val(location);
+                this.$locationSelect.trigger('liszt:updated');
+                this.$locationSelect.trigger('change');
+            }
+        }
+    };
+
+    Located.prototype.updateLocations = function(locations) {
+        // Update the location drop downs from a list of locations
+        // received from the server.
+
+        if (locations) {
+            var empty = true;
+            for (var k in locations) {
+                empty = false;
+                break;
+            }
+            if (!empty) {
+                if (this.$contentTypes) {
+                    locations.sync = this.$contentTypes.dpbsdropdown('getOptions');
+                }
+
+                // save the locations
+                this.locations = locations;
+
+                // only show the available location types
+                var locationTypes = [];
+                for (var j in locations) {
+                    locationTypes.push(j);
+                }
+
+                this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
+                this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
+                unhide(this.$locationTypes, 1);
+            } else {
+                // save the locations
+                this.locations = locations;
+            }
+        }
+    };
+
+    Located.prototype.onSelectLocationType = function(locationType) {
+        // update the list of locations
+        var me = this;
+        var htmlstr = '';
+        if (this.locations && this.locations[locationType]) {
+            $(this.locations[locationType]).each(function (index, value) {
+                // we accept either a list of string or a list or [value,label]
+                var val = value;
+                var label = value;
+                if (value.sort) {
+                    val = value[0];
+                    label = value[1];
+                }
+                htmlstr += '<option value="'+val+'">'+label+'</option>';
+            });
+        }
+        this.$locationSelect.html(htmlstr);
+        // ?? not a BS DD, just a select
+        this.$locationSelect.trigger('liszt:updated');
+        //this.$locationSelect.closest('.dphidden').toggle(htmlstr ? true : false);
+        unhide(this.$locationSelect, htmlstr ? true : false);
+
+        this.$locationSelect.closest('.dphidden,.dpunhidden').toggleClass('dpauto-hide', (this.getLocationType() === 'sync'));
+        this.$locationTypes.closest('.dphidden,.dpunhidden').toggleClass('dpauto-hide', (this.getLocationType() === 'sync'));
+
+        //             if (!htmlstr) { this.loadContent(); }
+        //             else
+        //             {
+        //                 // force a load bc the location has changed
+        //                 // This will create infinite event recursion on startup:
+        //                 // this.loadContent();
+        //                 // this.loadContent(false, this.getContentAddress(locationType));
+        //                 window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
+        //             };
+        // Try to reload bc the location has changed.
+        // Note that no request is sent if address hasn't changed.
+        // This will create infinite event recursion on startup:
+        // this.loadContent();
+        // this.loadContent(false, this.getContentAddress(locationType));
+        window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
+    };
+
+
+    //////////////////////////////////////////////////////////////////////
+    //
     // PanelSet
     //
     //////////////////////////////////////////////////////////////////////
-    TextViewer.PanelSet = function($root) {
+    var PanelSet = TextViewer.PanelSet = function($root) {
+
         this.panels = [];
         this.$root = $root;
         this.$panelset = null;
@@ -13,6 +145,21 @@
         this.$messageBox = null;
         this.isReady = false;
         this.$toolbar = $('.tv-main-toolbar');
+
+        this.init = function() {
+            // create the location controls
+            var $buttons = this.$toolbar.find('.location-buttons');
+            $buttons.html($('#text-viewer-panel .location-buttons').html());
+
+            // show them
+            unhide($buttons.find('.dphidden'), true);
+        };
+
+        this.init();
+
+        Located.call(this, this.$toolbar);
+
+        // ---
 
         this.registerPanel = function(panel) {
             if (!panel) return;
@@ -116,6 +263,14 @@
             }
         };
 
+        this.setMasterLocations = function(masterLocations) {
+            this.updateLocations(masterLocations);
+        };
+
+        this.setMasterLocation = function(masterLocationType, masterLocation) {
+            this.setLocationTypeAndLocation(masterLocationType, masterLocation);
+        };
+
         this.setItemPartid = function(itemPartid) {
             // e.g. '/itemparts/1/'
             this.itemPartid = itemPartid;
@@ -194,9 +349,6 @@
             $(window).scroll(function() {
                 me._resize(true);
                 });
-            
-            // create the location controls
-            this.$toolbar.find('.location-buttons').html($('#text-viewer-panel .location-buttons').html());
         };
 
         this.ready = function() {
@@ -208,6 +360,8 @@
         };
 
     };
+
+    PanelSet.prototype = Object.create(Located.prototype);
 
     /////////////////////////////////////////////////////////////////////////
     // Panel: an abstract Panel managed by the panelset
@@ -256,12 +410,13 @@
         $panelHtml.addClass('pt-'+panelType.toLowerCase());
         this.$root.html($panelHtml);
 
+        // Enabled location selectors
+        Located.call(this, $root);
+
         // We create bindings for all the html controls on the panel
 
         this.$contentTypes = this.$root.find('.dropdown-content-type');
 
-        this.$locationTypes = this.$root.find('.dropdown-location-type');
-        this.$locationSelect = this.$root.find('select[name=location]');
         this.$linker = this.$root.find('.linker');
         this.$linkerImage = this.$linker.find('.linker-image');
         this.$linkerText = this.$linker.find('select[name=linker-text]');
@@ -272,12 +427,7 @@
             return this.getEditingMode();
         };
 
-        this.$root.find('select').each(function() {
-            $(this).chosen({
-                disable_search: $(this).hasClass('no-search'),
-                no_results_text: $(this).hasClass('can-add') ? 'Not found, select to add' : 'Location not found',
-            });
-        });
+        upgrade_selects($root);
 
         this.$content = this.$root.find('.panel-content');
         this.$statusBar = this.$root.find('.status-bar');
@@ -359,9 +509,11 @@
 
             this.onResize();
 
+            /*
             this.$locationTypes.dpbsdropdown({
                 onSelect: function($el, key) { me.onSelectLocationType(key); },
             });
+            */
             // fire onSelect event as we want to refresh the list of locations
             //this.$locationTypes.dpbsdropdown('onSelect');
 
@@ -381,9 +533,9 @@
                 me.panelSet.onPanelStateChanged(me);
             });
 
-            this.$locationSelect.on('change', function() {
-                me.loadContent();
-            });
+//             this.$locationSelect.on('change', function() {
+//                 me.loadContent();
+//             });
 
             //this.$downloadButton.closest('.dphidden').toggle(this.isDownloadable());
             unhide(this.$downloadButton, this.isDownloadable());
@@ -543,80 +695,6 @@
 
         // Address / Locations
 
-        this.updateLocations = function(locations) {
-            // Update the location drop downs from a list of locations
-            // received from the server.
-
-            if (locations) {
-                var empty = true;
-                for (var k in locations) {
-                    empty = false;
-                    break;
-                }
-                if (!empty) {
-                    locations.sync = this.$contentTypes.dpbsdropdown('getOptions');
-
-                    // save the locations
-                    this.locations = locations;
-
-                    // only show the available location types
-                    var locationTypes = [];
-                    for (var j in locations) {
-                        locationTypes.push(j);
-                    }
-
-                    this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
-                    this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
-                    unhide(this.$locationTypes, 1);
-                } else {
-                    // save the locations
-                    this.locations = locations;
-                }
-            }
-        };
-
-        this.onSelectLocationType = function(locationType) {
-            // update the list of locations
-            var me = this;
-            var htmlstr = '';
-            if (this.locations && this.locations[locationType]) {
-                $(this.locations[locationType]).each(function (index, value) {
-                    // we accept either a list of string or a list or [value,label]
-                    var val = value;
-                    var label = value;
-                    if (value.sort) {
-                        val = value[0];
-                        label = value[1];
-                    }
-                    htmlstr += '<option value="'+val+'">'+label+'</option>';
-                });
-            }
-            this.$locationSelect.html(htmlstr);
-            // ?? not a BS DD, just a select
-            this.$locationSelect.trigger('liszt:updated');
-            //this.$locationSelect.closest('.dphidden').toggle(htmlstr ? true : false);
-            unhide(this.$locationSelect, htmlstr ? true : false);
-
-            this.$locationSelect.closest('.dphidden,.dpunhidden').toggleClass('dpauto-hide', (this.getLocationType() === 'sync'));
-            this.$locationTypes.closest('.dphidden,.dpunhidden').toggleClass('dpauto-hide', (this.getLocationType() === 'sync'));
-
-            //             if (!htmlstr) { this.loadContent(); }
-            //             else
-            //             {
-            //                 // force a load bc the location has changed
-            //                 // This will create infinite event recursion on startup:
-            //                 // this.loadContent();
-            //                 // this.loadContent(false, this.getContentAddress(locationType));
-            //                 window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
-            //             };
-            // Try to reload bc the location has changed.
-            // Note that no request is sent if address hasn't changed.
-            // This will create infinite event recursion on startup:
-            // this.loadContent();
-            // this.loadContent(false, this.getContentAddress(locationType));
-            window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
-        };
-
         this.setItemPartid = function(itemPartid) {
             // e.g. '/itemparts/1/'
             this.itemPartid = itemPartid;
@@ -632,34 +710,6 @@
 
         this.getContentType = function() {
             return this.contentType;
-        };
-
-        this.setLocationTypeAndLocation = function(locationType, location) {
-            // this may trigger a content load
-            if (this.getLocationType() !== 'sync') {
-                this.$locationTypes.dpbsdropdown('setOption', locationType);
-                if (this.getLocation() != location) {
-                    this.$locationSelect.val(location);
-                    this.$locationSelect.trigger('liszt:updated');
-                    this.$locationSelect.trigger('change');
-                }
-            }
-        };
-
-        this.getLocationType = function() {
-            var ret = 'default';
-            if (this.$locationTypes.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
-                ret = this.$locationTypes.dpbsdropdown('getOption');
-            }
-            return ret;
-        };
-
-        this.getLocation = function() {
-            var ret = '';
-            if (this.$locationSelect.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
-                ret = this.$locationSelect.val();
-            }
-            return ret;
         };
 
         this.getEditingMode = function() {
@@ -695,6 +745,8 @@
         };
 
     };
+
+    Panel.prototype = Object.create(Located.prototype);
 
     Panel.prototype.onLinkerTextChanged = function() {
     };
@@ -915,7 +967,9 @@
         return true;
     };
 
-
+    Panel.prototype.onLocationChanged = function() {
+        this.loadContent();
+    };
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -1655,6 +1709,17 @@
         if (!$el.hasClass('dphidden') && !$el.hasClass('dpunhidden')) {
             console.log('NO CLASS!');
         }
+    }
+
+    // Improve all the select elements under a root element
+    // At the moment we are using Chosen plugin
+    function upgrade_selects($root) {
+        $root.find('select').each(function() {
+            $(this).chosen({
+                disable_search: $(this).hasClass('no-search'),
+                no_results_text: $(this).hasClass('can-add') ? 'Not found, select to add' : 'Location not found',
+            });
+        });
     }
 
     function urldecode(str) {

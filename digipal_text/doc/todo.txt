@@ -6,8 +6,13 @@ UI improvements
         hide location type if only one option
         change in LT
         change in L
-        add sync button to 
-    
+        add sync button to
+
+        use cases
+            http://localhost:8080/digipal/manuscripts/1/texts/view/locus/8r/
+                => must load 8r in master location
+                => load 8r in all panels
+
         improve auto-complete
         add location on top
         by default the panels are synced with it
@@ -28,7 +33,7 @@ UI improvements
     * expandable panels
     frame ratio preserved when resizing the viewport
     status bar
-        hide it x seconds after a successful message has been displayed 
+        hide it x seconds after a successful message has been displayed
     the sync UI is not intuitive: the name of the source can be confused with
         the type of content in the panel
     show detailed location (e.g. Count of Mortain, Somerset, Hand)

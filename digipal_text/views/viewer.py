@@ -16,7 +16,7 @@ dplog = logging.getLogger( 'digipal_debugger')
 
 MAX_FRAGMENT_SIZE = 60000
 
-def text_viewer_view(request, item_partid=0):
+def text_viewer_view(request, item_partid=0, master_location_type='', master_location=''):
 
     from digipal.utils import is_model_visible
     if not is_model_visible('textcontentxml', request):
@@ -43,9 +43,34 @@ def text_viewer_view(request, item_partid=0):
 
     context['body_class'] = 'page-text-viewer'
 
+    resolve_master_location(context, master_location_type, master_location)
+
     update_viewer_context(context, request)
 
     return render(request, 'digipal_text/text_viewer.html', context)
+
+def resolve_master_location(context, master_location_type, master_location):
+    '''Populate the context with the list of all the locations and location types
+       Resolve the passed location type and location if not found in the lists.
+       Set everything in the context:
+       master_location, master_location_type, master_locations = {type: [locations]}
+    '''
+    context['master_location_type'] = master_location_type
+    context['master_location'] = master_location
+
+    # now merge all LT and L from all images and Texts associated to this IP
+    context['master_locations'] = SortedDict()
+    # TODO!
+    context['master_locations']['locus'] = ['1r', '1v', '2r', '2v', '8r']
+    context['master_locations']['entry'] = ['1a1', '1a2', '1a3', '1a4']
+
+    # TODO: possible code similarity with the location request for individual content type
+    # fall back to first (LT, L) if desired location not available
+    if context['master_location_type'] not in context['master_locations']:
+        context['master_location_type'] = context['master_locations'].keys()[0]
+    available_locations = context['master_locations'][context['master_location_type']]
+    if context['master_location'] not in available_locations:
+        context['master_location'] = available_locations[0]
 
 def update_viewer_context(context, request):
     ''' To be overridden '''

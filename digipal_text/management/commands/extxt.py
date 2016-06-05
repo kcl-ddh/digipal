@@ -5,6 +5,7 @@ from optparse import make_option
 from digipal import utils as dputils
 from digipal.utils import sorted_natural
 import regex as re
+import os
 
 # pm dpxml convert exon\source\rekeyed\converted\EXON-1-493-part1.xml exon\source\rekeyed\conversion\xml2word.xslt > exon\source\rekeyed\word\EXON-word.html
 # pm extxt wordpre exon\source\rekeyed\word\EXON-word.html exon\source\rekeyed\word\EXON-word2.html
@@ -49,13 +50,13 @@ Commands:
 
     entries2csv
         Write a csv file entry number, transl, transc
-        
+
     trefs2csv
         Write a csv file with cross-references found in the translation
-        
+
     gdb2csv
         Write a csv file from the GDB text
-        
+
 """
 
     args = 'locus|email'
@@ -138,17 +139,67 @@ Commands:
             known_command = True
             self.entries2csv_command()
 
+        if command == 'latinnames':
+            known_command = True
+            self.latinnames_command()
+
         if known_command:
             self.cm.printSummary()
             print 'done'
         else:
             print self.help
 
+    def latinnames_command(self):
+        names = {}
+
+        # read all the csv files in the directory and
+        # collect all (normalised name, latin name) pairs in a dict
+
+        root = 'exon/source/analysis/offlinedb/exon-names'
+        for file in os.listdir(root):
+            print file
+            found = 0
+            if file.startswith("LatNames"):
+                file_path = os.path.join(root, file)
+                for row in dputils.read_all_lines_from_csv(file_path, encoding='utf-8'):
+                    pair = ['', '']
+                    for k,v in row.iteritems():
+                        if k.endswith('ot'):
+                            pair[1] = v
+                        if k.endswith('n'):
+                            pair[0] = v
+
+                    if pair[1] != '-':
+                        pair[1] = pair[1].strip()
+                        if pair[1]:
+                            if pair[0] not in names:
+                                names[pair[0]] = []
+
+                            found += 1
+                            names[pair[0]].append(pair[1])
+            print '\t%s' % found
+
+        # convert the dict into a single csv, second cols in comma sep.
+
+        out_path = 'latin-names.csv'
+
+        rows = []
+
+        headings = ['normalised_name', 'latin_names']
+
+        for k, v in names.iteritems():
+            rows.append(dict(zip(headings, (k, ','.join(sorted(set(v)))))))
+
+        from digipal.utils import write_rows_to_csv
+        write_rows_to_csv(out_path, rows, headings=headings, encoding='utf-8')
+        print 'Written %s' % out_path
+
+
     def gdb2csv(self):
         file_path = 'gdb.csv'
-        
+
         rows = []
-        
+
         input = 'exon/source/analysis/gdb/gdb-text'
         content = dputils.read_file(input)
         content = re.sub(ur'\n<\d+[a-z]>\n', ur'\n', content)
@@ -162,21 +213,21 @@ Commands:
                 if size > 3:
                     #print repr(lines[0]), size
                     pass
-        
+
         headings = ['REF', 'CONTENT']
-        
+
         from digipal.utils import write_rows_to_csv
         write_rows_to_csv(file_path, rows, headings=headings, encoding='utf-8')
         print 'Written %s' % file_path
 
     def trefs2csv(self):
-        
+
         file_path = 'trefs.csv'
-        
+
         from digipal_text.models import TextContentXML
         content_xml = TextContentXML.objects.filter(text_content__type__slug='translation').first()
         from digipal_text.views import viewer
-        
+
         #root = dputils.get_xml_from_unicode((ur'<root>%s</root>' % content_xml.content), True)
         content = u'<root>%s</root>' % content_xml.content
         headings = ['RevisedEllisNos', 'Exon X-ref 1', 'Exon X-ref 2', 'Exon X-ref 3', 'Exon X-ref 4', 'Exon X-ref 5', 'GDB X ref 1', 'GDB X ref 2', 'GDB X ref 3']
@@ -196,7 +247,7 @@ Commands:
                     continue
                 ref = re.sub(ur'(?musi)\b(but|or|see|also|and|duplicated|by)\b', '', ref)
                 parts = re.split(ur'(EDB|GDB)', ref)
-                
+
                 i = 0
                 while i < len(parts):
                     if parts[i] in refs2.keys():
@@ -206,7 +257,7 @@ Commands:
                             if refs2[t]: refs2[t] += ' + '
                             refs2[t] += parts[i].strip(' ;,.=')
                     i += 1
-            
+
             if refs:
                 print '%s\n\t%s\n\t%s' % (unit['unitid'], repr(refs), repr(refs2))
                 row['RevisedEllisNos'] = unit['unitid']
@@ -221,17 +272,17 @@ Commands:
                         if 'GDB' in k:
                             col = 'GDB X ref '
                         row['%s%s' % (col, i)] = p.strip('')
-                    
+
                 row['RevisedEllisNos'] = unit['unitid']
                 rows.append(row)
-        
+
         from digipal.utils import write_rows_to_csv
         write_rows_to_csv(file_path, rows, headings=headings, encoding='utf-8')
         print 'Written %s' % file_path
 
-        
+
         #for ref in re.findall(ur'(?musi)<span data-dpt="supplied" data-dpt-type="reference" data-dpt-cat="chars">()</span>', text.content):
-    
+
     def entries2csv_command(self):
         headings = ['entry', 'translation', 'transcription-sample']
         file_path = 'entries-text.csv'

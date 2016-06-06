@@ -1,7 +1,7 @@
 UI improvements
     *** change the sync to a master location
-        add LT and L drop downs to top bar
-        populate-merge them after all panels are loaded
+        [DONE] add LT and L drop downs to top bar
+        ()populate-merge them after all panels are loaded
         populate-merge after a panel type change
         hide location type if only one option
         change in LT

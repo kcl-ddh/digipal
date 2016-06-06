@@ -12,6 +12,7 @@ import json
 
 import logging
 from digipal.utils import sorted_natural
+from digipal.templatetags.hand_filters import chrono
 dplog = logging.getLogger( 'digipal_debugger')
 
 MAX_FRAGMENT_SIZE = 60000
@@ -60,9 +61,8 @@ def resolve_master_location(context, master_location_type, master_location):
 
     # now merge all LT and L from all images and Texts associated to this IP
     context['master_locations'] = SortedDict()
-    # TODO!
-    context['master_locations']['locus'] = ['1r', '1v', '2r', '2v', '8r']
-    context['master_locations']['entry'] = ['1a1', '1a2', '1a3', '1a4']
+
+    context['master_locations'] = get_all_master_locations(context)
 
     # TODO: possible code similarity with the location request for individual content type
     # fall back to first (LT, L) if desired location not available
@@ -71,6 +71,35 @@ def resolve_master_location(context, master_location_type, master_location):
     available_locations = context['master_locations'][context['master_location_type']]
     if context['master_location'] not in available_locations:
         context['master_location'] = available_locations[0]
+
+def get_all_master_locations(context):
+    # TODO!
+    #context['master_locations']['locus'] = ['1r', '1v', '2r', '2v', '8r']
+    #context['master_locations']['entry'] = ['1a1', '1a2', '1a3', '1a4']
+
+    chrono('ml:')
+
+    # Get locus from images
+    # TODO: filter only available images
+    ret = SortedDict()
+    ret['locus'] = set(context['item_part'].images.all().values_list('locus', flat=True).order_by('id'))
+    ret['entry'] = set()
+
+    # Get entry numbers from texts
+    chrono('ml-t')
+    for tcx in TextContentXML.objects.filter(text_content__item_part=context['item_part']).iterator():
+        for m in re.findall(ur'<span data-dpt="location" data-dpt-loctype="(.*?)">(.*?)</span>', tcx.content):
+            ret[m[0]].add(m[1])
+
+    # sort locations
+    chrono('ml-sort')
+
+    for k,v in ret.iteritems():
+        ret[k] = sorted_natural(v)
+
+    chrono(':ml')
+
+    return ret
 
 def update_viewer_context(context, request):
     ''' To be overridden '''

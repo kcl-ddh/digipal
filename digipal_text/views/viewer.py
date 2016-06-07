@@ -77,8 +77,6 @@ def get_all_master_locations(context):
     #context['master_locations']['locus'] = ['1r', '1v', '2r', '2v', '8r']
     #context['master_locations']['entry'] = ['1a1', '1a2', '1a3', '1a4']
 
-    chrono('ml:')
-
     # Get locus from images
     # TODO: filter only available images
     ret = SortedDict()
@@ -86,18 +84,13 @@ def get_all_master_locations(context):
     ret['entry'] = set()
 
     # Get entry numbers from texts
-    chrono('ml-t')
     for tcx in TextContentXML.objects.filter(text_content__item_part=context['item_part']).iterator():
         for m in re.findall(ur'<span data-dpt="location" data-dpt-loctype="(.*?)">(.*?)</span>', tcx.content):
             ret[m[0]].add(m[1])
 
     # sort locations
-    chrono('ml-sort')
-
     for k,v in ret.iteritems():
         ret[k] = sorted_natural(v)
-
-    chrono(':ml')
 
     return ret
 

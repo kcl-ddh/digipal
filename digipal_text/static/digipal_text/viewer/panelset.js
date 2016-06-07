@@ -8,6 +8,8 @@
     var Located = TextViewer.Located = function($root) {
         var me = this;
 
+        this.resetSubLocation();
+
         this.$locationTypes = $root.find('.dropdown-location-type');
         this.$locationSelect = $root.find('select[name=location]');
 
@@ -66,7 +68,11 @@
             }
             if (!empty) {
                 if (this.$contentTypes) {
-                    locations.sync = this.$contentTypes.dpbsdropdown('getOptions');
+                    locations.sync = [['master', 'Top Location'], ['master_plus_one', 'Top location + 1']];
+                    locations.sync = locations.sync.concat(this.$contentTypes.dpbsdropdown('getOptions'));
+//                     locations.sync = locations.sync.concat(this.panelSet.panels.map(function(panel) {
+//                         return panel.contentType;
+//                     }));
                 }
 
                 // save the locations
@@ -130,6 +136,55 @@
         window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
     };
 
+    // SubLocation: a reference within the content
+    // e.g. entry 1a1 within page 1r
+    // e.g. 'address' clause within whole text or entry 1a1
+    // it is a location at a deeper level than the address
+
+    Located.prototype.getSubLocation = function() {
+        var ret = this.subLocation;
+
+        if (ret.length <= 0) {
+            // create a subLocation from the location
+            ret = [['','location'], ['loctype', this.getLocationType()], ['@text', this.getLocation()]];
+        }
+
+        return ret;
+    };
+
+    Located.prototype.resetSubLocation = function(subLocation) {
+        this.subLocation = JSON.parse(JSON.stringify(subLocation || []));
+    };
+
+    Located.prototype.setSubLocation = function(subLocation) {
+        // clone and set the location
+        var subLocationOld = JSON.stringify(this.subLocation || []);
+        var subLocationNew = JSON.stringify(subLocation || []);
+
+        if (subLocationOld != subLocationNew) {
+            this.resetSubLocation(subLocation);
+
+            if (this.panelSet) {
+                // state has changed
+                this.panelSet.onPanelStateChanged(this);
+                // dispatch the element we are on
+                this.panelSet.syncWithPanel(this);
+            }
+        }
+    };
+
+    // TO BE OVERRIDEN
+    // Move to a sublocation
+    // if successful:
+    //  next time getSubLocation is called, the sublocation should be returned
+    //  return true
+    Located.prototype.moveToSubLocation = function(subLocation) {
+        var ret = true;
+        this.setSubLocation(subLocation);
+        return true;
+    };
+
+
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -145,6 +200,7 @@
         this.$messageBox = null;
         this.isReady = false;
         this.$toolbar = $('.tv-main-toolbar');
+        this.panelSet = this;
 
         this.init = function() {
             // create the location controls
@@ -160,6 +216,10 @@
         Located.call(this, this.$toolbar);
 
         // ---
+
+        this.getContentType = function() {
+            return 'master';
+        };
 
         this.registerPanel = function(panel) {
             if (!panel) return;
@@ -186,6 +246,7 @@
         };
 
         this.syncWithPanel = function(panel) {
+            // sync other panels with <panel>
             this.onPanelContentLoaded(panel, panel.getLocationType(), panel.getLocation());
         };
 
@@ -363,6 +424,11 @@
 
     PanelSet.prototype = Object.create(Located.prototype);
 
+    PanelSet.prototype.onLocationChanged = function() {
+        this.syncWithPanel(this);
+    };
+
+
     /////////////////////////////////////////////////////////////////////////
     // Panel: an abstract Panel managed by the panelset
     // This is the base class for all specific panel types (e.g. text, image)
@@ -400,8 +466,6 @@
         // On a load error the location may still be valid and the next
         // attempt to save will overwrite the fragment.
         this.loadedAddress = null;
-
-        this.resetSubLocation();
 
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
@@ -556,8 +620,12 @@
         };
 
         this.syncLocationWith = function(panel, locationType, location, subLocation) {
-            if ((panel !== this) && (this.getLocationType() === 'sync') && (this.getLocation().toLowerCase() == panel.getContentType().toLowerCase())) {
-                this.loadContent(false, this.getContentAddress(locationType, location), subLocation);
+            if (this.getLocationType() === 'sync') {
+                if (panel !== this) {
+                    if (this.getLocation().toLowerCase() == panel.getContentType().toLowerCase()) {
+                        this.loadContent(false, this.getContentAddress(locationType, location), subLocation);
+                    }
+                }
             }
         };
 
@@ -920,51 +988,6 @@
         // ' .ui-layout-pane-north ' -> north
         ret = ret.replace(/.*.ui-layout-pane-(\w+)\b.*/, '$1');
         return ret;
-    };
-
-    // SubLocation: a reference within the content
-    // e.g. entry 1a1 within page 1r
-    // e.g. 'address' clause within whole text or entry 1a1
-    // it is a location at a deeper level than the address
-
-    Panel.prototype.getSubLocation = function() {
-        var ret = this.subLocation;
-
-        if (ret.length <= 0) {
-            // create a subLocation from the location
-            ret = [['','location'], ['loctype', this.getLocationType()], ['@text', this.getLocation()]];
-        }
-
-        return ret;
-    };
-
-    Panel.prototype.resetSubLocation = function(subLocation) {
-        this.subLocation = JSON.parse(JSON.stringify(subLocation || []));
-    };
-
-    Panel.prototype.setSubLocation = function(subLocation) {
-        // clone and set the location
-        var subLocationOld = JSON.stringify(this.subLocation || []);
-        var subLocationNew = JSON.stringify(subLocation || []);
-
-        if (subLocationOld != subLocationNew) {
-            this.resetSubLocation(subLocation);
-            // state has changed
-            this.panelSet.onPanelStateChanged(this);
-            // dispatch the element we are on
-            this.panelSet.syncWithPanel(this);
-        }
-    };
-
-    // TO BE OVERRIDEN
-    // Move to a sublocation
-    // if successful:
-    //  next time getSubLocation is called, the sublocation should be returned
-    //  return true
-    Panel.prototype.moveToSubLocation = function(subLocation) {
-        var ret = true;
-        this.setSubLocation(subLocation);
-        return true;
     };
 
     Panel.prototype.onLocationChanged = function() {

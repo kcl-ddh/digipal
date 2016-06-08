@@ -44,55 +44,9 @@ def text_viewer_view(request, item_partid=0, master_location_type='', master_loc
 
     context['body_class'] = 'page-text-viewer'
 
-    resolve_master_location(context, master_location_type, master_location)
-
     update_viewer_context(context, request)
 
     return render(request, 'digipal_text/text_viewer.html', context)
-
-def resolve_master_location(context, master_location_type, master_location):
-    '''Populate the context with the list of all the locations and location types
-       Resolve the passed location type and location if not found in the lists.
-       Set everything in the context:
-       master_location, master_location_type, master_locations = {type: [locations]}
-    '''
-    context['master_location_type'] = master_location_type
-    context['master_location'] = master_location
-
-    # now merge all LT and L from all images and Texts associated to this IP
-    context['master_locations'] = SortedDict()
-
-    context['master_locations'] = get_all_master_locations(context)
-
-    # TODO: possible code similarity with the location request for individual content type
-    # fall back to first (LT, L) if desired location not available
-    if context['master_location_type'] not in context['master_locations']:
-        context['master_location_type'] = context['master_locations'].keys()[0]
-    available_locations = context['master_locations'][context['master_location_type']]
-    if context['master_location'] not in available_locations:
-        context['master_location'] = available_locations[0]
-
-def get_all_master_locations(context):
-    # TODO!
-    #context['master_locations']['locus'] = ['1r', '1v', '2r', '2v', '8r']
-    #context['master_locations']['entry'] = ['1a1', '1a2', '1a3', '1a4']
-
-    # Get locus from images
-    # TODO: filter only available images
-    ret = SortedDict()
-    ret['locus'] = set(context['item_part'].images.all().values_list('locus', flat=True).order_by('id'))
-    ret['entry'] = set()
-
-    # Get entry numbers from texts
-    for tcx in TextContentXML.objects.filter(text_content__item_part=context['item_part']).iterator():
-        for m in re.findall(ur'<span data-dpt="location" data-dpt-loctype="(.*?)">(.*?)</span>', tcx.content):
-            ret[m[0]].add(m[1])
-
-    # sort locations
-    for k,v in ret.iteritems():
-        ret[k] = sorted_natural(v)
-
-    return ret
 
 def update_viewer_context(context, request):
     ''' To be overridden '''
@@ -229,6 +183,68 @@ def get_or_create_text_content_records(item_part, content_type_record):
         set_message(error, '%s, server error (race conditions)' % (content_type_record.slug.capitalize(),))
 
     return ret, created, error
+
+def text_api_view_location(request, item_partid, content_type, location_type, location, user=None, max_size=MAX_FRAGMENT_SIZE):
+    '''This content type is for the list of all available locations (text, images)
+        Used by the master location widget on top of the Text Viewer web page
+    '''
+    from digipal.models import ItemPart
+    context = {'item_part': ItemPart.objects.filter(id=item_partid).first()}
+    resolve_master_location(context, location_type, location)
+    
+    ret = {
+           'location_type': context['master_location_type'],
+           'location': context['master_location'],
+           'locations': context['master_locations'],
+           }
+    
+    return ret
+
+def resolve_master_location(context, master_location_type, master_location):
+    '''Populate the context with the list of all the locations and location types
+       Resolve the passed location type and location if not found in the lists.
+       Set everything in the context:
+       master_location, master_location_type, master_locations = {type: [locations]}
+    '''
+    context['master_location_type'] = master_location_type
+    context['master_location'] = master_location
+
+    # now merge all LT and L from all images and Texts associated to this IP
+    context['master_locations'] = SortedDict()
+
+    context['master_locations'] = get_all_master_locations(context)
+
+    # TODO: possible code similarity with the location request for individual content type
+    # fall back to first (LT, L) if desired location not available
+    if context['master_location_type'] not in context['master_locations']:
+        context['master_location_type'] = context['master_locations'].keys()[0]
+    available_locations = context['master_locations'][context['master_location_type']]
+    if context['master_location'] not in available_locations:
+        context['master_location'] = available_locations[0]
+
+def get_all_master_locations(context):
+    # TODO!
+    #context['master_locations']['locus'] = ['1r', '1v', '2r', '2v', '8r']
+    #context['master_locations']['entry'] = ['1a1', '1a2', '1a3', '1a4']
+
+    # Get locus from images
+    # TODO: filter only available images
+    ret = SortedDict()
+    ret['locus'] = set(context['item_part'].images.all().values_list('locus', flat=True).order_by('id'))
+    ret['entry'] = set()
+
+    # Get entry numbers from texts
+    for tcx in TextContentXML.objects.filter(text_content__item_part=context['item_part']).iterator():
+        for m in re.findall(ur'<span data-dpt="location" data-dpt-loctype="(.*?)">(.*?)</span>', tcx.content):
+            ret[m[0]].add(m[1])
+
+    # sort locations
+    for k,v in ret.iteritems():
+        ret[k] = sorted_natural(v)
+
+    return ret
+
+    
 
 # TODO: content_type_record makes this signature non-polymorphic and even incompatible with image
 # need to use optional parameter for it

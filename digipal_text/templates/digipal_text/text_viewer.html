@@ -148,7 +148,6 @@
 
     <script>
         jQuery(document).ready(function($) {
-            var master_locations = {{master_locations|json}};
             var panelset = new TextViewer.PanelSet($('#text-viewer'));
             window.ps = panelset;
             panelset.setItemPartid('{{ item_partid }}');
@@ -156,11 +155,9 @@
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
 
-            panelset.setMasterLocations(master_locations);
-            panelset.setMasterLocation('{{master_location_type}}', '{{master_location}}');
             ////panelset.setStateFromUrl('?center=transcription/default/&east=translation/default/&north=image/default/');
-            //panelset.setStateFromUrl('?above=location/locus/2r/&center=translation/sync/location/');
-            panelset.setStateFromUrl('?above=location/locus/2r/');
+            panelset.setStateFromUrl('?above=location/locus/2r/&center=translation/sync/location/');
+            //panelset.setStateFromUrl('?above=location/locus/2r/');
             //panelset.setStateFromUrl('?center=translation/entry/2a2/');
 
             ///panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));

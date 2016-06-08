@@ -68,7 +68,7 @@
             }
             if (!empty) {
                 if (this.$contentTypes) {
-                    locations.sync = [['master', 'Top Location'], ['master_plus_one', 'Top location + 1']];
+                    locations.sync = [['location', 'Top Location'], ['location', 'Top location + 1']];
                     locations.sync = locations.sync.concat(this.$contentTypes.dpbsdropdown('getOptions'));
 //                     locations.sync = locations.sync.concat(this.panelSet.panels.map(function(panel) {
 //                         return panel.contentType;
@@ -324,14 +324,6 @@
             }
         };
 
-        this.setMasterLocations = function(masterLocations) {
-            //this.updateLocations(masterLocations);
-        };
-
-        this.setMasterLocation = function(masterLocationType, masterLocation) {
-            //this.setLocationTypeAndLocation(masterLocationType, masterLocation);
-        };
-
         this.setItemPartid = function(itemPartid) {
             // e.g. '/itemparts/1/'
             this.itemPartid = itemPartid;
@@ -421,13 +413,6 @@
         };
 
     };
-
-    PanelSet.prototype = Object.create(Located.prototype);
-
-    PanelSet.prototype.onLocationChanged = function() {
-        this.syncWithPanel(this);
-    };
-
 
     /////////////////////////////////////////////////////////////////////////
     // Panel: an abstract Panel managed by the panelset
@@ -1034,17 +1019,23 @@
     
     PanelLocation.prototype.loadContentCustom = function(loadLocations, address, subLocation) {
         // load the content with the API
-        var me = this;
-        this.callApi(
-            'loading content',
-            address,
-            function(data) {
-                me.onContentLoaded(data);
-            },
-            {
-                'load_locations': loadLocations ? 1 : 0,
-            }
-        );
+        // Special case, we only load the first time to get all the locations
+        // Next times, we don't need to load any content.
+        if (loadLocations) {
+            var me = this;
+            this.callApi(
+                'loading content',
+                address,
+                function(data) {
+                    me.onContentLoaded(data);
+                },
+                {
+                    'load_locations': loadLocations ? 1 : 0,
+                }
+            );
+        } else {
+            this.panelSet.syncWithPanel(this);
+        }
     };
 
     //////////////////////////////////////////////////////////////////////

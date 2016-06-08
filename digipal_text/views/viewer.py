@@ -189,14 +189,23 @@ def text_api_view_location(request, item_partid, content_type, location_type, lo
         Used by the master location widget on top of the Text Viewer web page
     '''
     from digipal.models import ItemPart
-    context = {'item_part': ItemPart.objects.filter(id=item_partid).first()}
-    resolve_master_location(context, location_type, location)
     
-    ret = {
-           'location_type': context['master_location_type'],
-           'location': context['master_location'],
-           'locations': context['master_locations'],
-           }
+    load_locations = utils.get_int_from_request_var(request, 'load_locations')
+    
+    if load_locations:
+        context = {'item_part': ItemPart.objects.filter(id=item_partid).first()}
+        resolve_master_location(context, location_type, location)
+        
+        ret = {
+               'location_type': context['master_location_type'],
+               'location': context['master_location'],
+               'locations': context['master_locations'],
+               }
+    else:
+        ret = {
+               'location_type': location_type,
+               'location': location,
+               }
     
     return ret
 

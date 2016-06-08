@@ -195,7 +195,7 @@
         this.setSubLocation(subLocation);
         return true;
     };
-
+    
 
     //////////////////////////////////////////////////////////////////////
     //
@@ -204,6 +204,7 @@
     //////////////////////////////////////////////////////////////////////
     var PanelSet = TextViewer.PanelSet = function($root) {
 
+        this.uuid = window.dputils.get_uuid();
         this.panels = [];
         this.$root = $root;
         this.$panelset = null;
@@ -239,21 +240,26 @@
             }
         };
 
-        this.onPanelContentLoaded = function(panel, locationType, location) {
-            for (var i in this.panels) {
-                this.panels[i].syncLocationWith(panel, locationType, location, panel.getSubLocation());
-            }
-        };
-
         this.syncWithPanel = function(panel) {
             // sync other panels with <panel>
             this.onPanelContentLoaded(panel, panel.getLocationType(), panel.getLocation());
         };
 
+        this.onPanelContentLoaded = function(panel, locationType, location) {
+            this.syncWith(panel.uuid, panel.getContentType(), locationType, location, panel.getSubLocation());
+        };
+
+        this.syncWith = function(panelUUID, contentType, locationType, location, subLocation) {
+            // sync other panels with <panel>
+            for (var i in this.panels) {
+                this.panels[i].syncLocationWith(panelUUID, contentType, locationType, location, subLocation);
+            }
+        };
+
         this.syncPanel = function(panel) {
             // sync the given panel (with others)
             for (var i in this.panels) {
-                panel.syncLocationWith(this.panels[i], this.panels[i].getLocationType(), this.panels[i].getLocation(), this.panels[i].getSubLocation());
+                panel.syncLocationWith(this.panels[i].uuid, this.panels[i].getContentType(), this.panels[i].getLocationType(), this.panels[i].getLocation(), this.panels[i].getSubLocation());
             }
         };
 
@@ -282,7 +288,14 @@
             // replace existing query string param
             url = url.replace(new RegExp(key+"=[^&#]*"), key+'='+encodeURI(state));
             window.history.replaceState('', window.title, url);
-
+            // share last URL with other text viewers 
+            localStorage.textViewer = JSON.stringify({
+                'url': window.location.href,
+                'uuid': this.uuid,
+                'panelUUID': panel.uuid,
+                'contentType': panel.getContentType(),
+                'address': panel.loadedAddress,
+            });
         };
 
         this.setStateFromUrl = function(defaultState) {
@@ -391,6 +404,25 @@
             }
         };
 
+        this.getPanelAddressParts = function(address) {
+            // IN: '/digipal/manuscripts/1/texts/location/locus/290r/'
+            //OUT: {contentType: location, locationType: locus, location: 290r}
+            ret = {contentType: '', locationType: 'locus', location: '1r'};
+            
+            var baseAddress = this.getBaseAddress();
+            if (address.substring(0, baseAddress.length) !== baseAddress) return ret;
+            address = address.substring(baseAddress.length);
+            // 'translation/locus/271r/'
+            var parts = address.split('/');
+            if (parts.length == 4) {
+                ret.contentType = parts[0];
+                ret.locationType = parts[1];
+                ret.location = parts[2];
+            }
+            
+            return ret;
+        };
+
         this.initEvents = function() {
 
             this._resize(true);
@@ -402,6 +434,21 @@
             $(window).scroll(function() {
                 me._resize(true);
                 });
+            
+            window.addEventListener('storage', function(event) {
+                if (event.key !== 'textViewer') return;
+                var data = JSON.parse(event.newValue);
+                if (data.uuid === me.uuid) return;
+                var baseAddress = me.getBaseAddress();
+                if (data.address.substring(0, baseAddress.length) !== baseAddress) return;
+                
+                parts = me.getPanelAddressParts(data.address);
+                
+                console.log(data);
+                if (parts.contentType) {
+                    me.syncWith(data.panelUUID, data.contentType, parts.locationType, parts.location);
+                }
+            });
         };
 
         this.ready = function() {
@@ -429,6 +476,8 @@
     //
     /////////////////////////////////////////////////////////////////////////
     var Panel = TextViewer.Panel = function($root, contentType, panelType, options) {
+        this.uuid = window.dputils.get_uuid();
+
         this.$root = $root;
         this.$content = $('<div></div>');
 
@@ -465,13 +514,11 @@
         this.callApi = function(title, url, onSuccess, requestData, synced) {
             var me = this;
             var onComplete = function(jqXHR, textStatus) {
-                console.log('onComplete ('+url+')');
                 if (textStatus !== 'success') {
                     me.setMessage('Error while '+title+' (status: '+textStatus+')', 'error');
                 }
             };
             var onSuccessWrapper = function(data, textStatus, jqXHR) {
-                console.log('onSuccess0 ('+url+')');
                 data.status = data.status || 'success';
                 data.message = data.message || 'done ('+title+').';
                 if (data.locations) {
@@ -481,7 +528,6 @@
                     onSuccess(data, textStatus, jqXHR);
                 }
                 me.setMessage(data.message, data.status);
-                console.log('onSuccess2 ('+url+')');
             };
             this.setMessage(title+'...', 'info');
             var ret = TextViewer.callApi(url, onSuccessWrapper, onComplete, requestData, synced);
@@ -580,12 +626,11 @@
             }
         };
 
-        this.syncLocationWith = function(panel, locationType, location, subLocation) {
-            if (this.getLocationType() === 'sync') {
-                if (panel !== this) {
-                    if (this.getLocation().toLowerCase() == panel.getContentType().toLowerCase()) {
-                        this.loadContent(false, this.getContentAddress(locationType, location), subLocation);
-                    }
+        this.syncLocationWith = function(panelUUID, contentType, locationType, location, subLocation) {
+            if ((this.getLocationType() === 'sync' && (this.getLocation().toLowerCase() == contentType.toLowerCase())) ||
+                (contentType.toLowerCase() === 'location' && contentType.toLowerCase() === this.getContentType().toLowerCase())) {
+                if (panelUUID != this.uuid) {
+                    this.loadContent(false, this.getContentAddress(locationType, location), subLocation);
                 }
             }
         };
@@ -615,7 +660,6 @@
             address = address || this.getContentAddress();
 
             if (this.loadedAddress != address || !this.moveToSubLocation(subLocation)) {
-                //console.log('loadContent '+ this.loadedAddress  + ' <> ' +  address);
                 this.setValid(false);
                 // make sure no saving happens from now on
                 // until the content is loaded
@@ -1032,7 +1076,10 @@
                 }
             );
         } else {
-            this.onContentLoaded({location: this.getLocation(), location_type: this.getLocationType()});
+            parts = this.panelSet.getPanelAddressParts(address);
+            if (parts.contentType) {
+                this.onContentLoaded({location: parts.location, location_type: parts.locationType});
+            }
         }
     };
 
@@ -1646,8 +1693,6 @@
         url = url ? url : '';
         var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
 
-        console.log('CallApi('+url+')');
-        
         var getData = {
             url: url_ajax,
             data: requestData,

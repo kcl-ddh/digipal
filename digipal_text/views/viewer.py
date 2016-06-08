@@ -38,7 +38,7 @@ def text_viewer_view(request, item_partid=0, master_location_type='', master_loc
         {'key': 'locus', 'label': 'Locus', 'icon': 'file'},
         {'key': 'entry', 'label': 'Entry', 'icon': 'entry'},
         {'key': 'section', 'label': 'Section', 'icon': 'section'},
-        {'key': 'sync', 'label': 'Synchronise with', 'icon': 'magnet'},
+        {'key': 'sync', 'label': 'Synchronise with', 'icon': 'link'},
     ]
     context['statuses'] = TextContentXMLStatus.objects.all().order_by('sort_order')
 

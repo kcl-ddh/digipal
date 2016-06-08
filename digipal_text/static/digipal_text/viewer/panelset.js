@@ -24,18 +24,27 @@
         });
         
         $root.find('.btn-page-nav').on('click', function() {
-            me.onNextPage($(this).hasClass('btn-page-previous'));
+            me.onNextPage($(this).hasClass('btn-page-previous') ? -1 : +1);
         });
         
     };
     
-    Located.prototype.onNextPage = function(previous) {
-        var locations = this.locations[this.getLocationType()];
-        var idx = locations.indexOf(this.getLocation());
-        idx += (previous ? -1 : 1);
-        if (idx < 0 && idx >= locations.length) return;
-        var location = locations[idx];
-        this.setLocationTypeAndLocation(this.getLocationType(), location);
+    Located.prototype.getLocationWithOffset = function(locationType, location, offset) {
+        var ret = location || this.getLocation();
+        
+        locationType = locationType || this.getLocationType();
+        
+        var locations = this.locations[locationType];
+        var idx = locations.indexOf(ret);
+        idx += (offset || 0);
+        if (idx >= 0 || idx < locations.length) {
+            ret = locations[idx];
+        };
+        return ret;
+    }
+
+    Located.prototype.onNextPage = function(offset) {
+        this.setLocationTypeAndLocation(this.getLocationType(), this.getLocationWithOffset(null, null, offset));
     }
 
     Located.prototype.onLocationChanged = function() {
@@ -57,6 +66,27 @@
         }
         return ret;
     };
+
+    Located.prototype.getLocationWithoutOffset = function() {
+        var info = this.getLocationParts();
+        return info.location;
+    };
+
+    Located.prototype.getLocationParts = function() {
+        // if location is 'X+1', returns {location: 'X', offset: 1}
+        var ret = {location: this.getLocation(), offset: 0};
+        
+        if (ret.location) {
+            var offset = ret.location.match(/[+-]\d+$/g);
+            if (offset) {
+                offset = offset[0];
+                ret.offset = parseInt(offset);
+                ret.location = ret.location.substring(0, ret.location.length - offset.length);
+            }
+        }
+        
+        return ret;
+    }
 
     Located.prototype.setLocationTypeAndLocation = function(locationType, location) {
         // this may trigger a content load
@@ -82,7 +112,7 @@
             }
             if (!empty) {
                 if (this.$contentTypes) {
-                    locations.sync = [['location', 'Top Location'], ['location', 'Top location + 1']];
+                    locations.sync = [['location', 'Top Location'], ['location+1', 'Top location (next)'], ['location-1', 'Top location (previous)']];
                     locations.sync = locations.sync.concat(this.$contentTypes.dpbsdropdown('getOptions'));
 //                     locations.sync = locations.sync.concat(this.panelSet.panels.map(function(panel) {
 //                         return panel.contentType;
@@ -641,7 +671,7 @@
         };
 
         this.syncLocationWith = function(panelUUID, contentType, locationType, location, subLocation) {
-            if ((this.getLocationType() === 'sync' && (this.getLocation().toLowerCase() == contentType.toLowerCase())) ||
+            if ((this.getLocationType() === 'sync' && (this.getLocationWithoutOffset().toLowerCase() == contentType.toLowerCase())) ||
                 (contentType.toLowerCase() === 'location' && contentType.toLowerCase() === this.getContentType().toLowerCase())) {
                 if (panelUUID != this.uuid) {
                     this.loadContent(false, this.getContentAddress(locationType, location), subLocation);

@@ -84,6 +84,8 @@
                     locationTypes.push(j);
                 }
 
+                // Note that we only SHOW the given location types, we don't
+                // add new entries in the drop down
                 this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
                 this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
                 unhide(this.$locationTypes, 1);
@@ -140,16 +142,26 @@
     // e.g. entry 1a1 within page 1r
     // e.g. 'address' clause within whole text or entry 1a1
     // it is a location at a deeper level than the address
-
+    // ALWAYS return a NON EMPTY array
     Located.prototype.getSubLocation = function() {
         var ret = this.subLocation;
 
         if (ret.length <= 0) {
-            // create a subLocation from the location
-            ret = [['','location'], ['loctype', this.getLocationType()], ['@text', this.getLocation()]];
+            ret = this.getSubLocationFromLocaton();
         }
 
         return ret;
+    };
+
+    // Can return an empty array if the sublocation is not more specific
+    // than the location
+    Located.prototype.getSubLocationUnresolved = function() {
+        return this.subLocation;
+    }
+
+    Located.prototype.getSubLocationFromLocaton = function() {
+        // create a subLocation from the location
+        return [['','location'], ['loctype', this.getLocationType()], ['@text', this.getLocation()]];
     };
 
     Located.prototype.setSubLocation = function(subLocation) {
@@ -468,11 +480,13 @@
         this.callApi = function(title, url, onSuccess, requestData, synced) {
             var me = this;
             var onComplete = function(jqXHR, textStatus) {
+                console.log('onComplete ('+url+')');
                 if (textStatus !== 'success') {
                     me.setMessage('Error while '+title+' (status: '+textStatus+')', 'error');
                 }
             };
             var onSuccessWrapper = function(data, textStatus, jqXHR) {
+                console.log('onSuccess0 ('+url+')');
                 data.status = data.status || 'success';
                 data.message = data.message || 'done ('+title+').';
                 if (data.locations) {
@@ -482,6 +496,7 @@
                     onSuccess(data, textStatus, jqXHR);
                 }
                 me.setMessage(data.message, data.status);
+                console.log('onSuccess2 ('+url+')');
             };
             this.setMessage(title+'...', 'info');
             var ret = TextViewer.callApi(url, onSuccessWrapper, onComplete, requestData, synced);
@@ -922,10 +937,12 @@
     };
 
     Panel.prototype.applyPresentationOptions = function() {
-        var classes = this.$presentationOptions.dropdownCheckbox("unchecked").map(function(v) { return v.id; }).join(' ');
-        this.$content.removeClass(classes);
-        classes = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
-        this.$content.addClass(classes);
+        if (this.$presentationOptions && this.$presentationOptions.length) {
+            var classes = this.$presentationOptions.dropdownCheckbox("unchecked").map(function(v) { return v.id; }).join(' ');
+            this.$content.removeClass(classes);
+            classes = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
+            this.$content.addClass(classes);
+        }
     };
 
     Panel.prototype.getState = function() {
@@ -941,14 +958,18 @@
     };
 
     Panel.prototype.getListFromPresentationOptions = function() {
-        return this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; });
+        ret = [];
+        if (this.$presentationOptions && this.$presentationOptions.length) {
+            ret = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; });
+        }
+        return ret;
     };
 
     Panel.prototype.getStateDict = function() {
         var ret = {};
         //ret.dis = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
         ret.dis = (this.getListFromPresentationOptions()).join(' ');
-        var subl = this.getSubLocation();
+        var subl = this.getSubLocationUnresolved();
         if (subl && subl.length) ret.subl = JSON.stringify(subl);
         return ret;
     };
@@ -1018,11 +1039,7 @@
             'loading content',
             address,
             function(data) {
-                if (data.content !== undefined) {
-                    me.onContentLoaded(data);
-                } else {
-                    //me.setMessage('ERROR: no content received from server.');
-                }
+                me.onContentLoaded(data);
             },
             {
                 'load_locations': loadLocations ? 1 : 0,
@@ -1640,6 +1657,8 @@
         url = url ? url : '';
         var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
 
+        console.log('CallApi('+url+')');
+        
         var getData = {
             url: url_ajax,
             data: requestData,
@@ -1756,6 +1775,8 @@
 
 
     function unhide($element, condition) {
+        if (!$element || $element.length < 1) return;
+        
         var $el = $element.closest('.dphidden, .dpunhidden');
         if (!$el.hasClass('dphidden') && !$el.hasClass('dpunhidden')) {
             console.log('NO CLASS 0!');

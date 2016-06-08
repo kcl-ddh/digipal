@@ -10,6 +10,8 @@ if settings.DEBUG:
 
 urlpatterns += patterns('digipal_text.views',
     url(r'^digipal/manuscripts/(\d+)/texts/view/([^/]+)/([^/]+)/?$', 'viewer.text_viewer_view'),
+    url(r'^digipal/manuscripts/(\d+)/texts/view/([^/]+)/?$', 'viewer.text_viewer_view'),
+    url(r'^digipal/manuscripts/(\d+)/texts/view/?$', 'viewer.text_viewer_view'),
 
     # Replace the first line with the second as apache doesn't like // (e.g. /texts/translation/whole//)
     # Django web server deals well with it.

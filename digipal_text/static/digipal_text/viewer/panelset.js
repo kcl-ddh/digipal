@@ -152,10 +152,6 @@
         return ret;
     };
 
-    Located.prototype.resetSubLocation = function(subLocation) {
-        this.subLocation = JSON.parse(JSON.stringify(subLocation || []));
-    };
-
     Located.prototype.setSubLocation = function(subLocation) {
         // clone and set the location
         var subLocationOld = JSON.stringify(this.subLocation || []);
@@ -173,6 +169,10 @@
         }
     };
 
+    Located.prototype.resetSubLocation = function(subLocation) {
+        this.subLocation = JSON.parse(JSON.stringify(subLocation || []));
+    };
+
     // TO BE OVERRIDEN
     // Move to a sublocation
     // if successful:
@@ -183,7 +183,6 @@
         this.setSubLocation(subLocation);
         return true;
     };
-
 
 
     //////////////////////////////////////////////////////////////////////
@@ -199,27 +198,16 @@
         this.layout = null;
         this.$messageBox = null;
         this.isReady = false;
-        this.$toolbar = $('.tv-main-toolbar');
         this.panelSet = this;
 
-        this.init = function() {
-            // create the location controls
-            var $buttons = this.$toolbar.find('.location-buttons');
-            $buttons.html($('#text-viewer-panel .location-buttons').html());
-
-            // show them
-            unhide($buttons.find('.dphidden'), true);
-        };
-
-        this.init();
-
-        Located.call(this, this.$toolbar);
+//        this.init = function() {
+//            // create the master location panel
+//            this.panels.push(new PanelLocation($('.tv-main-toolbar'), 'location', ''));
+//        };
+//
+//        this.init();
 
         // ---
-
-        this.getContentType = function() {
-            return 'master';
-        };
 
         this.registerPanel = function(panel) {
             if (!panel) return;
@@ -325,11 +313,11 @@
         };
 
         this.setMasterLocations = function(masterLocations) {
-            this.updateLocations(masterLocations);
+            //this.updateLocations(masterLocations);
         };
 
         this.setMasterLocation = function(masterLocationType, masterLocation) {
-            this.setLocationTypeAndLocation(masterLocationType, masterLocation);
+            //this.setLocationTypeAndLocation(masterLocationType, masterLocation);
         };
 
         this.setItemPartid = function(itemPartid) {
@@ -445,6 +433,7 @@
     /////////////////////////////////////////////////////////////////////////
     var Panel = TextViewer.Panel = function($root, contentType, panelType, options) {
         this.$root = $root;
+        this.$content = $('<div></div>');
 
         this.loadOptions = options || {};
 
@@ -467,41 +456,12 @@
         // attempt to save will overwrite the fragment.
         this.loadedAddress = null;
 
-        // clone the panel template
-        var $panelHtml = $('#text-viewer-panel').clone();
-        $panelHtml.removeAttr('id');
-        $panelHtml.addClass('ct-'+contentType);
-        $panelHtml.addClass('pt-'+panelType.toLowerCase());
-        this.$root.html($panelHtml);
+        this.createUserInterface();
+        
+        var me = this;
 
         // Enabled location selectors
         Located.call(this, $root);
-
-        // We create bindings for all the html controls on the panel
-
-        this.$contentTypes = this.$root.find('.dropdown-content-type');
-
-        this.$linker = this.$root.find('.linker');
-        this.$linkerImage = this.$linker.find('.linker-image');
-        this.$linkerText = this.$linker.find('select[name=linker-text]');
-
-        var me = this;
-
-        this.canAddLocation = function() {
-            return this.getEditingMode();
-        };
-
-        upgrade_selects($root);
-
-        this.$content = this.$root.find('.panel-content');
-        this.$statusBar = this.$root.find('.status-bar');
-
-        this.$statusSelect = this.$root.find('select[name=status]');
-        this.$presentationOptions = this.$root.find('.presentation-options');
-
-        this.$toggleEdit = this.$root.find('.toggle-edit');
-
-        this.$downloadButton = this.$root.find('.action-download');
 
         // METHODS
 
@@ -538,8 +498,10 @@
 
         this.setMessage = function(message, status) {
             // status = success|info|warning|error
-            this.$statusBar.find('.message').html(message).removeClass('message-success message-info message-warning message-error').addClass('message-'+status);
-            this.$statusBar.find('.time').html(TextViewer.getStrFromTime(new Date()));
+            if (this.$statusBar) {
+                this.$statusBar.find('.message').html(message).removeClass('message-success message-info message-warning message-error').addClass('message-'+status);
+                this.$statusBar.find('.time').html(TextViewer.getStrFromTime(new Date()));
+            }
         };
 
         this.unreadyComponents = ['panelset'];
@@ -561,62 +523,61 @@
 
             this.updateEditingModeIcon();
 
-            this.$contentTypes.dpbsdropdown({
-                onSelect: function($el, key, $a) {
-                    // the user has selected another view/content type -> we replace this panel
-                    me.panelSet.registerPanel(new TextViewer['Panel'+$a.data('class')](me.$root, key));
-                },
-            });
-            this.$contentTypes.dpbsdropdown('setOption', this.contentType, true);
+            if (this.$contentTypes) {
+                this.$contentTypes.dpbsdropdown({
+                    onSelect: function($el, key, $a) {
+                        // the user has selected another view/content type -> we replace this panel
+                        me.panelSet.registerPanel(new TextViewer['Panel'+$a.data('class')](me.$root, key));
+                    },
+                });
+                this.$contentTypes.dpbsdropdown('setOption', this.contentType, true);
+            }
 
             this.loadContent(true, this.loadOptions.contentAddress ?  this.panelSet.getBaseAddress() + this.loadOptions.contentAddress : undefined);
 
             this.onResize();
 
-            /*
-            this.$locationTypes.dpbsdropdown({
-                onSelect: function($el, key) { me.onSelectLocationType(key); },
-            });
-            */
-            // fire onSelect event as we want to refresh the list of locations
-            //this.$locationTypes.dpbsdropdown('onSelect');
-
-            this.$statusSelect.on('change', function() {
-                // digipal/api/textcontentxml/?_text_content__item_part__id=1628&_text_content__type__slug=translation&status__id=7
-                var ret = TextViewer.callApi('/digipal/api/textcontentxml/', null, null, {
-                    'method': 'PUT',
-                    '_text_content__item_part__id': me.itemPartid,
-                    '_text_content__type__slug': me.getContentType(),
-                    'status__id': $(this).val(),
-                    '@select': 'id'
+            if (this.$statusSelect) {
+                this.$statusSelect.on('change', function() {
+                    // digipal/api/textcontentxml/?_text_content__item_part__id=1628&_text_content__type__slug=translation&status__id=7
+                    var ret = TextViewer.callApi('/digipal/api/textcontentxml/', null, null, {
+                        'method': 'PUT',
+                        '_text_content__item_part__id': me.itemPartid,
+                        '_text_content__type__slug': me.getContentType(),
+                        'status__id': $(this).val(),
+                        '@select': 'id'
+                    });
                 });
-            });
+            }
 
-            this.$presentationOptions.on('change', 'input[type=checkbox]', function() {
-                me.applyPresentationOptions();
-                me.panelSet.onPanelStateChanged(me);
-            });
+            if (this.$presentationOptions) {
+                this.$presentationOptions.on('change', 'input[type=checkbox]', function() {
+                    me.applyPresentationOptions();
+                    me.panelSet.onPanelStateChanged(me);
+                });
+            }
 
-//             this.$locationSelect.on('change', function() {
-//                 me.loadContent();
-//             });
+            if (this.$downloadButton) {
+                unhide(this.$downloadButton, this.isDownloadable());
+                this.$downloadButton.on('click', function() {
+                    // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
+                    var url = me.getContentAddress('whole', '');
+                    url += '?ds=' + (me.getListFromPresentationOptions()).join(',');
+                    window.open(url, '_blank');
+                });
+            }
 
-            //this.$downloadButton.closest('.dphidden').toggle(this.isDownloadable());
-            unhide(this.$downloadButton, this.isDownloadable());
-            this.$downloadButton.on('click', function() {
-                // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
-                var url = me.getContentAddress('whole', '');
-                url += '?ds=' + (me.getListFromPresentationOptions()).join(',');
-                window.open(url, '_blank');
-            });
+            if (this.$linkerText) {
+                this.$linkerText.on('change', function() {
+                    me.onLinkerTextChanged();
+                });
+            }
 
-            this.$linkerText.on('change', function() {
-                me.onLinkerTextChanged();
-            });
-
-            setInterval(function() {
-                me.saveContent();
-            }, 2500);
+            if (this.$content) {
+                setInterval(function() {
+                    me.saveContent();
+                }, 2500);
+            }
         };
 
         this.syncLocationWith = function(panel, locationType, location, subLocation) {
@@ -661,13 +622,6 @@
                 this.loadedAddress = null;
                 this.loadContentCustom(loadLocations, address, subLocation);
             }
-        };
-
-        this.loadContentCustom = function(loadLocations, address, subLocation) {
-            // NEVER CALL THIS FUNCTION DIRECTLY
-            // ONLY loadContent() can call it
-            this.$content.html('Generic Panel Content');
-            this.onContentLoaded();
         };
 
         /* SAVING CONTENT */
@@ -816,6 +770,42 @@
 
     Panel.prototype = Object.create(Located.prototype);
 
+    Panel.prototype.createUserInterface = function() {
+        // clone the panel template
+        var $panelHtml = $('#text-viewer-panel').clone();
+        $panelHtml.removeAttr('id');
+        $panelHtml.addClass('ct-'+this.contentType);
+        $panelHtml.addClass('pt-'+this.panelType.toLowerCase());
+        this.$root.html($panelHtml);
+
+        // We create bindings for all the html controls on the panel
+        this.$contentTypes = this.$root.find('.dropdown-content-type');
+
+        this.$linker = this.$root.find('.linker');
+        this.$linkerImage = this.$linker.find('.linker-image');
+        this.$linkerText = this.$linker.find('select[name=linker-text]');
+
+        upgrade_selects(this.$root);
+
+        this.$content = this.$root.find('.panel-content');
+        this.$statusBar = this.$root.find('.status-bar');
+
+        this.$statusSelect = this.$root.find('select[name=status]');
+        this.$presentationOptions = this.$root.find('.presentation-options');
+
+        this.$toggleEdit = this.$root.find('.toggle-edit');
+
+        this.$downloadButton = this.$root.find('.action-download');
+    }
+
+    Panel.prototype.loadContentCustom = function(loadLocations, address, subLocation) {
+        // NEVER CALL THIS FUNCTION DIRECTLY
+        // ONLY loadContent() can call it
+        throw "loadContentCustom() must be overridden in the concrete class"; 
+        this.$content.html('Generic Panel Content');
+        this.onContentLoaded();
+    };
+
     Panel.prototype.onLinkerTextChanged = function() {
     };
 
@@ -857,10 +847,12 @@
     };
 
     Panel.prototype.onResize = function () {
-        // resize content to take the remaining height in the panel
-        var height = Math.floor(this.$root.innerHeight() - (this.$content.offset().top - this.$root.offset().top) - this.$statusBar.outerHeight(true));
-        this.$content.css('max-height', height+'px');
-        this.$content.height(height+'px');
+        if (this.$statusBar) {
+            // resize content to take the remaining height in the panel
+            var height = Math.floor(this.$root.innerHeight() - (this.$content.offset().top - this.$root.offset().top) - this.$statusBar.outerHeight(true));
+            this.$content.css('max-height', height+'px');
+            this.$content.height(height+'px');
+        }
     };
 
     Panel.create = function(contentType, selector, write, options) {
@@ -992,6 +984,50 @@
 
     Panel.prototype.onLocationChanged = function() {
         this.loadContent();
+    };
+
+    //////////////////////////////////////////////////////////////////////
+    //
+    // PanelLocation
+    //
+    //////////////////////////////////////////////////////////////////////
+    // TODO: Create a new class PanelContent that inherit from Panel and has a content,
+    // status bar, etc. Move all the relevant methods from Panel to PanelContent
+    // Then PanelImage, PanelText, etc would inherit from that new class
+    // But PanelLocation would inherit from Panel directly
+    var PanelLocation = TextViewer.PanelLocation = function($root, contentType, options) {
+        TextViewer.Panel.call(this, $root, contentType, 'Location', options);
+    }
+
+    PanelLocation.prototype = Object.create(Panel.prototype);
+
+    PanelLocation.prototype.createUserInterface = function() {
+        // create the location controls
+        var $buttons = this.$root.find('.location-buttons');
+        $buttons.html($('#text-viewer-panel .location-buttons').html());
+
+        // show them
+        unhide($buttons.find('.dphidden'), true);
+        
+    }
+    
+    PanelLocation.prototype.loadContentCustom = function(loadLocations, address, subLocation) {
+        // load the content with the API
+        var me = this;
+        this.callApi(
+            'loading content',
+            address,
+            function(data) {
+                if (data.content !== undefined) {
+                    me.onContentLoaded(data);
+                } else {
+                    //me.setMessage('ERROR: no content received from server.');
+                }
+            },
+            {
+                'load_locations': loadLocations ? 1 : 0,
+            }
+        );
     };
 
     //////////////////////////////////////////////////////////////////////

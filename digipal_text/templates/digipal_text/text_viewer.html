@@ -27,7 +27,7 @@
     <span class="tvmt-heading">Text Viewer</span>
     -
     <span class="tvmt-itempart"><a href="{{ item_part.get_absolute_url }}">{{ item_part.display_label }}</a></span>
-    <div class="location-buttons">
+    <div class="ui-layout-above ui-layout-pane-above">
         Location buttons
     </div>
 </div>
@@ -158,7 +158,8 @@
 
             panelset.setMasterLocations(master_locations);
             panelset.setMasterLocation('{{master_location_type}}', '{{master_location}}');
-            panelset.setStateFromUrl('?center=transcription/default/&east=translation/default/&north=image/default/');
+            ////panelset.setStateFromUrl('?center=transcription/default/&east=translation/default/&north=image/default/');
+            panelset.setStateFromUrl('?above=location/locus/2r/&center=translation/sync/location/');
 
             ///panelset.registerPanel(TextViewer.Panel.create('image', '.ui-layout-north'));
             ///panelset.registerPanel(TextViewer.Panel.create('transcription', '.ui-layout-center'));
@@ -169,8 +170,10 @@
             //panelset.setPanelSize('west', 0.5);
             panelset.ready();
             //panelset.setPanelSize('south', 0);
+            
             panelset.setPanelSize('north', 0.6);
-            panelset.setPanelSize('east', 0.5);
+            ////panelset.setPanelSize('east', 0.5);
+            
             //panelset.setPanelSize('center', 0);
             //panelset.setPanelSize('west', 0);
             //panelset.setPanelSize('south', 0);

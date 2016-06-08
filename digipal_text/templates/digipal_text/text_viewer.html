@@ -27,6 +27,7 @@
     <span class="tvmt-heading">Text Viewer</span>
     -
     <span class="tvmt-itempart"><a href="{{ item_part.get_absolute_url }}">{{ item_part.display_label }}</a></span>
+    
     <div class="ui-layout-above ui-layout-pane-above">
         <div class="location-buttons"></div>
     </div>
@@ -59,6 +60,16 @@
                     <option value="1r">1r</option>
                     <option value="1v">1v</option>
                 </select>
+            </div>
+            <div class="btn-group dphidden">
+                <button class="btn btn-default btn-sm btn-page-nav btn-page-previous">
+                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="btn-group dphidden">
+                <button class="btn btn-default btn-sm btn-page-nav btn-page-next">
+                    <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                </button>
             </div>
         </div>
 
@@ -155,8 +166,11 @@
             panelset.setMessageBox($('#text-viewer .message-box'));
             panelset.setExpandButton($('#text-viewer .message-box a'));
 
-            ////panelset.setStateFromUrl('?center=transcription/default/&east=translation/default/&north=image/default/');
-            panelset.setStateFromUrl('?above=location/&center=translation/sync/location/');
+            ////panelset.setStateFromUrl('?above=location/&center=transcription/sync/location/&east=translation/sync/location/&north=image/sync/location/');
+            
+            panelset.setStateFromUrl('?above=location/&center=transcription/sync/location/');
+            
+            //panelset.setStateFromUrl('?above=location/&center=translation/sync/location/');
             //panelset.setStateFromUrl('?above=location/locus/2r/');
             //panelset.setStateFromUrl('?center=translation/entry/2a2/');
 
@@ -171,7 +185,7 @@
             //panelset.setPanelSize('south', 0);
             
             panelset.setPanelSize('north', 0.6);
-            ////panelset.setPanelSize('east', 0.5);
+            panelset.setPanelSize('east', 0.5);
             
             //panelset.setPanelSize('center', 0);
             //panelset.setPanelSize('west', 0);

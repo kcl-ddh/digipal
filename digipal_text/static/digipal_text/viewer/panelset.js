@@ -22,7 +22,21 @@
         this.$locationSelect.on('change', function() {
             me.onLocationChanged();
         });
+        
+        $root.find('.btn-page-nav').on('click', function() {
+            me.onNextPage($(this).hasClass('btn-page-previous'));
+        });
+        
     };
+    
+    Located.prototype.onNextPage = function(previous) {
+        var locations = this.locations[this.getLocationType()];
+        var idx = locations.indexOf(this.getLocation());
+        idx += (previous ? -1 : 1);
+        if (idx < 0 && idx >= locations.length) return;
+        var location = locations[idx];
+        this.setLocationTypeAndLocation(this.getLocationType(), location);
+    }
 
     Located.prototype.onLocationChanged = function() {
         // to be overridden

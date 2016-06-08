@@ -8,7 +8,7 @@ UI improvements
         [DONE] change in L
         [DONE] add sync button to other panels
 
-        use cases
+        [DONE] use cases
             http://localhost:8080/digipal/manuscripts/1/texts/view/locus/8r/
                 => must load 8r in master location
                 => load 8r in all panels
@@ -21,7 +21,7 @@ UI improvements
         can then implement the scrolling to next unit
         bi-dir synced
     ** page navigation:
-        easier navigation to prev/next page
+        [DONE] easier navigation to prev/next page
         scrolling
         use TOC to navigate?
     * image
@@ -40,6 +40,7 @@ UI improvements
     improve the search
         search in different texts
         search across corpus?
+    [DONE] panels sync'ed across browser windows
 
 TOC
 

@@ -811,8 +811,6 @@
 
     Panel.prototype.onContentLoaded = function(data) {
         //this.setMessage('Content loaded.', 'success');
-        // TODO: update the current selections in the location dds
-        // TODO: make sure no event is triggered while doing that
         this.loadedAddress = this.getContentAddress(data.location_type, data.location);
         this.setNotDirty();
         this.setValid(true);
@@ -1034,7 +1032,7 @@
                 }
             );
         } else {
-            this.panelSet.syncWithPanel(this);
+            this.onContentLoaded({location: this.getLocation(), location_type: this.getLocationType()});
         }
     };
 

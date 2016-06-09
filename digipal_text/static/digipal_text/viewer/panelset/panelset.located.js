@@ -79,12 +79,18 @@
         
         locationType = locationType || this.getLocationType();
         
-        var locations = this.locations[locationType];
-        var idx = locations.indexOf(ret);
-        idx += (offset || 0);
-        if (idx >= 0 || idx < locations.length) {
-            ret = locations[idx];
-        };
+        if (this.locations) {
+            var locations = this.locations[locationType];
+            if (locations) {
+                var idx = locations.indexOf(ret);
+                if (idx >= 0) {
+                    idx += (offset || 0);
+                    if (idx >= 0 || idx < locations.length) {
+                        ret = locations[idx];
+                    }
+                }
+            }
+        }
         return ret;
     }
     

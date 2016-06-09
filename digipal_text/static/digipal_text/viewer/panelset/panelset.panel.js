@@ -116,7 +116,8 @@
                 this.$contentTypes.dpbsdropdown({
                     onSelect: function($el, key, $a) {
                         // the user has selected another view/content type -> we replace this panel
-                        me.panelSet.registerPanel(new TextViewer['Panel'+$a.data('class')](me.$root, key));
+                        var options = {contentAddress: key+'/sync/location/'};
+                        me.panelSet.registerPanel(new TextViewer['Panel'+$a.data('class')](me.$root, key, options));
                     },
                 });
                 this.$contentTypes.dpbsdropdown('setOption', this.contentType, true);
@@ -181,7 +182,7 @@
             if ((this.getLocationType() === 'sync' && (parts.location.toLowerCase() == contentType.toLowerCase())) ||
                 (contentType.toLowerCase() === 'location' && contentType.toLowerCase() === this.getContentType().toLowerCase())) {
                 if (panelUUID != this.uuid) {
-                    this.loadContent(false, this.getContentAddress(locationType, location[parts.offset]), subLocation);
+                    this.loadContent(!(this.locations), this.getContentAddress(locationType, location[parts.offset]), subLocation);
                 }
             }
         };

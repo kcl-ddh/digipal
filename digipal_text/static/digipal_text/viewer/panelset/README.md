@@ -14,13 +14,13 @@ Inner Working
 Class Design
 ------------
 
-* *PanelSet*: manages multiple Panel objects
-* *Located*:  a location aware object (ABSTRACT)
-    * *Panel*: a visual panel showing one view over a piece of the document (ABSTRACT)
-        * *PanelText*: XML/HTML content
-        * *PanelImage*: Highres Image from image server 
-        * *PanelSearch*: Text search & result 
-        * *PanelLocation*: master location widget
+* __PanelSet__: manages multiple Panel objects
+* __Located__:  a location aware object (ABSTRACT)
+    * __Panel__: a visual panel showing one view over a piece of the document (ABSTRACT)
+        * __PanelText__: XML/HTML content
+        * __PanelImage__: Highres Image from image server 
+        * __PanelSearch__: Text search & result 
+        * __PanelLocation__: master location widget
 
 This design is easily extensible as a lot of the general logic is 
 taken care by the Panel class. So subclasses can concentrate on content
@@ -50,7 +50,7 @@ It can also be expressed as a path:
 e.g. '/digipal/manuscripts/1/texts/translation/locus/2r/'
 
 The content returned can be more than the requested location but not less.
-A fragment of the content can also be addressed by specifying the SUBLOCATION.
+A fragment of the content can also be addressed by specifying the __SUBLOCATION__.
 For instance a person name in the current text/image.
 
 A Panel can reframe its content to display the desired sublocation 
@@ -59,15 +59,15 @@ A Panel can reframe its content to display the desired sublocation
 You can create your own location types if you wish.
 
 Special location types:
-* whole: the whole content (e.g. the entire text)
-* default: let server decide an initial location type and location for the user
-* sync: a way to sync the panel with another content type. The location of that panel is the content type to sync with. e.g. /image/sync/transcription/ means that the image panel is synced with the transcription.
+* __whole__: the whole content (e.g. the entire text)
+* __default__: let server decide an initial location type and location for the user
+* __sync__: a way to sync the panel with another content type. The location of that panel is the content type to sync with. e.g. /image/sync/transcription/ means that the image panel is synced with the transcription.
 
 State
 -----
 
 The state of each Panel is visible in the query string. The state contains
-the address, the sublocation and display settings (also called 'presentation').
+the address, the sublocation and display settings (also called 'presentation options').
 
 When it is instantiated, the PanelSet parses the Query String, extract the
 state, create the relevant Panels from it and then dispatch the Panel state
@@ -93,8 +93,8 @@ UI improvements
 ---------------
 
 * !! Master location improvements
+    [DONE] by default the panels are synced with it
     * panels can be synced + 1 or  -1
-    * by default the panels are synced with it
     * hide location type if only one option (MOA)
     * can then implement the scrolling to next unit
     * ! bi-dir synced: important otherwise the 
@@ -147,4 +147,3 @@ DONE
 // status bar, etc. Move all the relevant methods from Panel to PanelContent
 // Then PanelImage, PanelText, etc would inherit from that new class
 // But PanelLocation would inherit from Panel directly
-        

@@ -40,6 +40,13 @@
         this.setLocationTypeAndLocation(this.getLocationType(), this.getLocationWithOffset(null, null, offset));
     }
 
+    Located.prototype.getSurroundingLocations = function(locationType, location) {
+        var ret = {};
+        var me = this;
+        [-1,0,1].map(function(offset) { ret[offset] = me.getLocationWithOffset(locationType, location, offset); });
+        return ret;
+    }
+
     Located.prototype.onLocationChanged = function() {
         // to be overridden
     };
@@ -134,9 +141,6 @@
                 if (this.$contentTypes) {
                     locations.sync = [['location', 'Top Location'], ['location+1', 'Top location (next)'], ['location-1', 'Top location (previous)']];
                     locations.sync = locations.sync.concat(this.$contentTypes.dpbsdropdown('getOptions'));
-//                     locations.sync = locations.sync.concat(this.panelSet.panels.map(function(panel) {
-//                         return panel.contentType;
-//                     }));
                 }
 
                 // save the locations

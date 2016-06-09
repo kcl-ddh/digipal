@@ -41,11 +41,11 @@
 
         this.syncWithPanel = function(panel) {
             // sync other panels with <panel>
-            this.onPanelContentLoaded(panel, panel.getLocationType(), panel.getLocation());
+            this.onPanelContentLoaded(panel, panel.getLocationType(), panel.getSurroundingLocations());
         };
 
         this.onPanelContentLoaded = function(panel, locationType, location) {
-            this.syncWith(panel.uuid, panel.getContentType(), locationType, location, panel.getSubLocation());
+            this.syncWith(panel.uuid, panel.getContentType(), locationType, panel.getSurroundingLocations(locationType, location), panel.getSubLocationUnresolved());
         };
 
         this.syncWith = function(panelUUID, contentType, locationType, location, subLocation) {
@@ -58,7 +58,7 @@
         this.syncPanel = function(panel) {
             // sync the given panel (with others)
             for (var i in this.panels) {
-                panel.syncLocationWith(this.panels[i].uuid, this.panels[i].getContentType(), this.panels[i].getLocationType(), this.panels[i].getLocation(), this.panels[i].getSubLocation());
+                panel.syncLocationWith(this.panels[i].uuid, this.panels[i].getContentType(), this.panels[i].getLocationType(), this.panels[i].getSurroundingLocations(), this.panels[i].getSubLocationUnresolved());
             }
         };
 
@@ -87,6 +87,7 @@
             // replace existing query string param
             url = url.replace(new RegExp(key+"=[^&#]*"), key+'='+encodeURI(state));
             window.history.replaceState('', window.title, url);
+            
             // share last URL with other text viewers 
             localStorage.textViewer = JSON.stringify({
                 'url': window.location.href,

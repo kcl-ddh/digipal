@@ -146,7 +146,7 @@
             this.resetLinker(data);
         }
 
-        Panel.prototype.onContentLoaded.call(this, data);
+        TextViewer.Panel.prototype.onContentLoaded.call(this, data);
 
         this.last_data = data;
     };
@@ -270,7 +270,7 @@
     };
 
     PanelImage.prototype.getStateDict = function() {
-        var ret = Panel.prototype.getStateDict.call(this);
+        var ret = TextViewer.Panel.prototype.getStateDict.call(this);
 
         var map = this.map;
         if (map) {
@@ -286,7 +286,7 @@
     };
 
     PanelImage.prototype.onResize = function() {
-        Panel.prototype.onResize.call(this);
+        TextViewer.Panel.prototype.onResize.call(this);
         if (this.map) {
             this.map.updateSize();
         }

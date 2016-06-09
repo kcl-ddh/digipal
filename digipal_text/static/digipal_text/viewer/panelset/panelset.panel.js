@@ -170,10 +170,18 @@
         };
 
         this.syncLocationWith = function(panelUUID, contentType, locationType, location, subLocation) {
-            if ((this.getLocationType() === 'sync' && (this.getLocationWithoutOffset().toLowerCase() == contentType.toLowerCase())) ||
+            // <location> is a string ('2r') or a dict {0: '2r', 1: '2v', -1: '1v'}
+            
+            // if string convert to dict, but with same loc for +-1
+            if (location.substring) location = {0: location};
+            if (!location.hasOwnProperty('1')) location[1] = location[0];
+            if (!location.hasOwnProperty('-1')) location[-1] = location[0];
+            
+            var parts = this.getLocationParts();
+            if ((this.getLocationType() === 'sync' && (parts.location.toLowerCase() == contentType.toLowerCase())) ||
                 (contentType.toLowerCase() === 'location' && contentType.toLowerCase() === this.getContentType().toLowerCase())) {
                 if (panelUUID != this.uuid) {
-                    this.loadContent(false, this.getContentAddress(locationType, location), subLocation);
+                    this.loadContent(false, this.getContentAddress(locationType, location[parts.offset]), subLocation);
                 }
             }
         };

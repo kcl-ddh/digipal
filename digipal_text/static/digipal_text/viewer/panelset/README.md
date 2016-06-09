@@ -92,26 +92,29 @@ TODO
 UI improvements
 ---------------
 
-* !! Master location improvements
-    [DONE] by default the panels are synced with it
-    * panels can be synced + 1 or  -1
-    * hide location type if only one option (MOA)
-    * can then implement the scrolling to next unit
-    * ! bi-dir synced: important otherwise the 
-
-* !! page navigation:
-    * [DONE] easier navigation to prev/next page
-    * scrolling
-* TOC
-    * use TOC to navigate?
-    * show detailed location (e.g. Count of Mortain, Somerset, Hand)
-    
 * !! image
     * auto frame to page
     * can auto frame to <->
     * can auto-frame to |
+
 * !! expandable panels
 
+* !! page navigation:
+    * [DONE] easier navigation to prev/next page
+    * scrolling
+
+* !! Master location improvements
+    [DONE] by default the panels are synced with it
+    [DONE] panels can be synced + 1 or  -1
+    * hide location type if only one option (MOA)
+    * can then implement the scrolling to next unit
+    * ! bi-dir synced: important otherwise the
+    * panels can be synced + 1 or -1 across browser windows 
+
+* TOC
+    * use TOC to navigate?
+    * show detailed location (e.g. Count of Mortain, Somerset, Hand)
+    
 * frame ratio preserved when resizing the viewport
 * status bar
     * hide it x seconds after a successful message has been displayed

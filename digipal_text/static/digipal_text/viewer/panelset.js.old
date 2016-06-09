@@ -1,8 +1,27 @@
+//////////////////////////////////////////////////////////////////////
+//
+// The Text Viewer/Editor client application
+//
+// PanelSet is a frame made of multiple views on a document (ItemPart). 
+// Each view is managed by a separate Panel object.
+// Panel subclasses deal with specific types of contents:
+// e.g. PanelText for XML, PanelImage for tiled high res image, etc.
+//
+// TODO: move each class into separate source file. 
+//
+//////////////////////////////////////////////////////////////////////
 (function(TextViewer, $, undefined) {
 
     //////////////////////////////////////////////////////////////////////
     //
     // Located
+    //
+    // For location aware objects (e.g. Panel)
+    // Manages the internal location and the associated UI (drop downs)
+    // A position in a document is made of at least two parts:
+    // (locationType, location), e.g. ('locus', '2r') or ('entry', '2a3')
+    // An address is a string representation of a complete position,
+    // e.g. locus/2r/, or translation/locus/2r/
     //
     //////////////////////////////////////////////////////////////////////
     var Located = TextViewer.Located = function($root) {
@@ -29,6 +48,37 @@
         
     };
     
+    Located.prototype.onNextPage = function(offset) {
+        this.setLocationTypeAndLocation(this.getLocationType(), this.getLocationWithOffset(null, null, offset));
+    }
+
+    Located.prototype.onLocationChanged = function() {
+        // to be overridden
+    };
+
+    // Returns the selected Location Type from the drop down
+    Located.prototype.getLocationType = function() {
+        var ret = 'default';
+        if (this.$locationTypes.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
+            ret = this.$locationTypes.dpbsdropdown('getOption');
+        }
+        return ret;
+    };
+
+    // Returns the selected Location from the location drop down
+    // e.g. '2r'
+    // Returns empty string if not found
+    // This is the full value, so it may include the offset, e.g. 'location+1'
+    Located.prototype.getLocation = function() {
+        var ret = '';
+        if (this.$locationSelect.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
+            ret = this.$locationSelect.val();
+        }
+        return ret;
+    };
+
+    // e.g. ('locus', '2r', 2) => '3r'
+    // any argument can be null, default values are (current LocType, current Location, 0)
     Located.prototype.getLocationWithOffset = function(locationType, location, offset) {
         var ret = location || this.getLocation();
         
@@ -42,36 +92,18 @@
         };
         return ret;
     }
-
-    Located.prototype.onNextPage = function(offset) {
-        this.setLocationTypeAndLocation(this.getLocationType(), this.getLocationWithOffset(null, null, offset));
-    }
-
-    Located.prototype.onLocationChanged = function() {
-        // to be overridden
-    };
-
-    Located.prototype.getLocationType = function() {
-        var ret = 'default';
-        if (this.$locationTypes.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
-            ret = this.$locationTypes.dpbsdropdown('getOption');
-        }
-        return ret;
-    };
-
-    Located.prototype.getLocation = function() {
-        var ret = '';
-        if (this.$locationSelect.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
-            ret = this.$locationSelect.val();
-        }
-        return ret;
-    };
-
+    
+    // Same as getLocation() but without the offset (if any)
+    // E.g. if the location type is 'sync' and location is 'location+1'
+    // the function returns 'location'
     Located.prototype.getLocationWithoutOffset = function() {
         var info = this.getLocationParts();
         return info.location;
     };
 
+    // Returns the location without offset and the offset
+    // E.g. if the location type is 'sync' and location is 'X+1'
+    // the function returns {'location': 'X', 'offset': 1}
     Located.prototype.getLocationParts = function() {
         // if location is 'X+1', returns {location: 'X', offset: 1}
         var ret = {location: this.getLocation(), offset: 0};
@@ -245,6 +277,11 @@
     //
     // PanelSet
     //
+    // Represents and manages a set of Panels.
+    // It deals with adding/removing panels to the frame, syncing their 
+    // locations, reflecting state changes into the browser address bar,
+    // managing the visual arrangement of the panels on screen.
+    //
     //////////////////////////////////////////////////////////////////////
     var PanelSet = TextViewer.PanelSet = function($root) {
 
@@ -256,15 +293,6 @@
         this.$messageBox = null;
         this.isReady = false;
         this.panelSet = this;
-
-//        this.init = function() {
-//            // create the master location panel
-//            this.panels.push(new PanelLocation($('.tv-main-toolbar'), 'location', ''));
-//        };
-//
-//        this.init();
-
-        // ---
 
         this.registerPanel = function(panel) {
             if (!panel) return;
@@ -480,6 +508,7 @@
                 });
             
             window.addEventListener('storage', function(event) {
+                // Syncing location following a change made in another browser window
                 if (event.key !== 'textViewer') return;
                 var data = JSON.parse(event.newValue);
                 if (data.uuid === me.uuid) return;
@@ -488,7 +517,6 @@
                 
                 parts = me.getPanelAddressParts(data.address);
                 
-                console.log(data);
                 if (parts.contentType) {
                     me.syncWith(data.panelUUID, data.contentType, parts.locationType, parts.location);
                 }
@@ -506,17 +534,14 @@
     };
 
     /////////////////////////////////////////////////////////////////////////
-    // Panel: an abstract Panel managed by the panelset
-    // This is the base class for all specific panel types (e.g. text, image)
-    // It provides some basic behaviour for auto-resizing, loading/saving content
     //
-    // Usage:
-    //    var panelset = $('#text-viewer').panelset();
-    //    panelset.registerPanel(new Panel($('.ui-layout-center')));
+    // Panel: an ABSTRACT Panel managed by the PanelSet
     //
-    //    options
-    //      locationType
-    //      location
+    // This is the base class for all specific panel types (e.g. text, image).
+    // It provides some basic behaviour for auto-resizing, loading/saving content.
+    // It displays and manages: a tool bar at the top, content in the middle and 
+    // status bar at the bottom.
+    // The content can be anything and specifics are dealt with subclasses.
     //
     /////////////////////////////////////////////////////////////////////////
     var Panel = TextViewer.Panel = function($root, contentType, panelType, options) {
@@ -539,11 +564,18 @@
 
         this.panelSet = null;
 
-        // loaded is the location of the last successfully loaded text fragment
-        // content cannot be saved unless it has been loaded properly
-        // This is to avoid a loading error from erasing conent.
-        // On a load error the location may still be valid and the next
-        // attempt to save will overwrite the fragment.
+        // The address of the last successfully loaded content. 
+        // e.g. /digipal/manuscripts/1/texts/location/locus/2r/
+        //
+        // Note that this may be more specific than locationType and
+        // location drop downs. For instance if the panel is synced
+        // we could have locationType=sync, location=image but the
+        // loadedAddress is the actual address of the content.
+        //
+        // It is CRUCIAL that this is null when the displayed content
+        // doesn't reflect the location drop downs (e.g. not loaded yet
+        // being loaded, error loading) otherwise it may cause data
+        // loss on the server because of the automated save.
         this.loadedAddress = null;
 
         this.createUserInterface();
@@ -1081,6 +1113,8 @@
     //////////////////////////////////////////////////////////////////////
     //
     // PanelLocation
+    // A 'master' location widget, it has no content, just locationType, 
+    // location drop downs. Other panels can be sync'ed with it.
     //
     //////////////////////////////////////////////////////////////////////
     // TODO: Create a new class PanelContent that inherit from Panel and has a content,
@@ -1104,9 +1138,9 @@
     }
     
     PanelLocation.prototype.loadContentCustom = function(loadLocations, address, subLocation) {
-        // load the content with the API
-        // Special case, we only load the first time to get all the locations
-        // Next times, we don't need to load any content.
+        // Load all the possible locations with the API
+        // Special case: we only load the first time to get all the locations.
+        // Next times (see lese branch), we don't need to load any content.
         if (loadLocations) {
             var me = this;
             this.callApi(
@@ -1122,6 +1156,7 @@
         } else {
             parts = this.panelSet.getPanelAddressParts(address);
             if (parts.contentType) {
+                // this will for a change of location and sync other panels, etc.
                 this.onContentLoaded({location: parts.location, location_type: parts.locationType});
             }
         }
@@ -1130,6 +1165,8 @@
     //////////////////////////////////////////////////////////////////////
     //
     // PanelText
+    //
+    // A read-only Text Viewer panel. The content is simply displayed as HTML.
     //
     //////////////////////////////////////////////////////////////////////
     var PanelText = TextViewer.PanelText = function($root, contentType, options) {
@@ -1190,6 +1227,9 @@
     //////////////////////////////////////////////////////////////////////
     //
     // PanelTextWrite
+    //
+    // A Text Editor panel. The content is managed with TinyMCE.
+    // Can save modified content back to server.
     //
     //////////////////////////////////////////////////////////////////////
     TextViewer.textAreaNumber = 0;
@@ -1348,6 +1388,9 @@
     //////////////////////////////////////////////////////////////////////
     //
     // PanelImage
+    //
+    // An Image viewer panel. The content is displayed with OpenLayers.
+    // It also allows the creation of text-image annotations.
     //
     //////////////////////////////////////////////////////////////////////
 

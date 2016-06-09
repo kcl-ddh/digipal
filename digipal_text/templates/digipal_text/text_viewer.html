@@ -147,14 +147,21 @@
     {# TODO: remove now qs #}
     {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js?v={% now "U:u" %}"></script> #}
     {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script> #}
-    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script>
-
-    <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol-debug.js"></script>
-    <script src="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.min.js"></script>
-
     {% compress js %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol-debug.js"></script>
+        <script src="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.min.js"></script>
+
         <script src="{{ STATIC_URL }}digipal_text/viewer/annotation.ts" type="text/typescript"></script>
+        
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panelset.utils.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panelset.panelset.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panelset.located.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panelset.panel.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panel.location.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panel.text.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panel.image.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panel.search.js"></script>
     {% endcompress %}
 
     <script>

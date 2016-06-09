@@ -32,7 +32,7 @@
         this.panelSet = null;
 
         // The address of the last successfully loaded content. 
-        // e.g. /digipal/manuscripts/1/texts/location/locus/2r/
+        // e.g. /digipal/manuscripts/1/texts/translation/locus/2r/
         //
         // Note that this may be more specific than locationType and
         // location drop downs. For instance if the panel is synced

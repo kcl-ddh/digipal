@@ -550,6 +550,11 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
 
     # find the image
     image = find_image(request, item_partid, location_type, location, get_visible_images, visible_images)
+    
+    if location_type == 'entry':
+        # user asked for entry, we can only return a locus
+        # so we add the entry as a sublocation
+        ret['sub_location'] = ['', 'location'], ['loctype', 'entry'], ['@text', location]
 
     # deal with writing annotations
     if request.method == 'POST':

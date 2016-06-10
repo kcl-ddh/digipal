@@ -116,7 +116,8 @@
                 this.$contentTypes.dpbsdropdown({
                     onSelect: function($el, key, $a) {
                         // the user has selected another view/content type -> we replace this panel
-                        var options = {contentAddress: key+'/sync/location/'};
+                        //var options = {contentAddress: key+'/sync/location/'};
+                        var options = {contentAddress: key+'/'+me.getLocationType()+'/'+me.getLocation()+'/'};
                         me.panelSet.registerPanel(new TextViewer['Panel'+$a.data('class')](me.$root, key, options));
                     },
                 });

@@ -227,7 +227,7 @@
         this.tinymce.undoManager.clear();
         this.tinymce.undoManager.add();
         // We skip PanelText
-        Panel.prototype.onContentLoaded.call(this, data);
+        TextViewer.Panel.prototype.onContentLoaded.call(this, data);
     };
 
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

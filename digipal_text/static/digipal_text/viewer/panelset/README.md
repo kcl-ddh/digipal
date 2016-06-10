@@ -140,6 +140,10 @@ UI improvements
     * search in different texts
     * search across corpus?
 
+Focus memory
+    any change in the (master) location should return focus to last focused panel
+! After Text content loaded, sroll back to the top of the content
+
 DONE
 ====
         

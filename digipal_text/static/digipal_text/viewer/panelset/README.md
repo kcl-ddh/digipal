@@ -142,7 +142,6 @@ UI improvements
 
 Focus memory
     any change in the (master) location should return focus to last focused panel
-! After Text content loaded, sroll back to the top of the content
 
 DONE
 ====
@@ -164,6 +163,8 @@ DONE
     * ()improve auto-complete
     * [DONE] add location on top
     * [DONE] when synced, hidden location in panel
+[DONE] location preserved after changing panel type
+[DONE] After Text content loaded, sroll back to the top of the content
 
 // TODO: Create a new class PanelContent that inherit from Panel and has a content,
 // status bar, etc. Move all the relevant methods from Panel to PanelContent

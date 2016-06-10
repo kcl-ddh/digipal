@@ -223,6 +223,7 @@
 
     PanelTextWrite.prototype.onContentLoaded = function(data) {
         this.tinymce.setContent(data.content);
+        
         this.tinymce.focus();
         this.tinymce.undoManager.clear();
         this.tinymce.undoManager.add();
@@ -230,4 +231,8 @@
         TextViewer.Panel.prototype.onContentLoaded.call(this, data);
     };
 
+    PanelTextWrite.prototype.scrollToTopOfContent = function(data) {
+        if (this.tinymce) this.tinymce.getBody().firstChild.scrollIntoView();
+    }
+    
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

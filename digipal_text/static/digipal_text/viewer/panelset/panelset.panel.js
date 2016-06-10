@@ -406,7 +406,13 @@
     Panel.prototype.onLinkerTextChanged = function() {
     };
 
+    Panel.prototype.scrollToTopOfContent = function(data) {
+        if (this.$content) this.$content.scrollTop(0);
+    }
+
     Panel.prototype.onContentLoaded = function(data) {
+        this.scrollToTopOfContent();
+        
         //this.setMessage('Content loaded.', 'success');
         this.loadedAddress = this.getContentAddress(data.location_type, data.location);
         this.setNotDirty();

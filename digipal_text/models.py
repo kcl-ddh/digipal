@@ -215,22 +215,27 @@ class TextContent(models.Model):
         types = (content_types or ['transcription', 'translation'])
         ret = u'%stexts/view/' % self.item_part.get_absolute_url()
         if not unset:
-            ret += '?center=%s' % self.type.slug
-            if location_type:
+            ret += '?' if ('?' not in ret) else '&'
+            ret += 'center=%s/sync/location' % self.type.slug
+            if 0 and location_type:
                 ret += '/%s' % location_type
                 if location:
                     ret += '/%s' % location
-            ret += '/'
+            #ret += '/'
             if metas:
                 from digipal.utils import urlencode
                 ret += (';' + urlencode(metas, True)).replace('=', ':')
-            ret += '&east=%s/sync/%s/' % (set(types).difference(set([self.type.slug])).pop(), self.type.slug)
-            ret += '&north=image/sync/%s/' % self.type.slug
+            #ret += '&east=%s/sync/%s/' % (set(types).difference(set([self.type.slug])).pop(), self.type.slug)
+            #ret += '&north=image/sync/%s/' % self.type.slug
+            ret += '&east=%s/sync/location' % set(types).difference(set([self.type.slug])).pop()
+            ret += '&north=image/sync/location'
+        if location_type:
+            ret += '?' if ('?' not in ret) else '&'
+            ret += 'above=location/%s' % location_type
+            if location:
+                ret += '/%s' % location
         if qs:
-            if '?' not in ret:
-                ret += '?'
-            else:
-                ret += '&'
+            ret += '?' if ('?' not in ret) else '&'
             if qs[0] in ['&', '?']:
                 qs = qs[1:]
             ret += qs

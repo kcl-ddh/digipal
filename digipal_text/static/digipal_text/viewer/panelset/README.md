@@ -39,6 +39,34 @@ Workflow
 * The Panel updates its content and the location dropdowns accordingly.
 * This change is dispatched to other Panels so they can sync their location/content.
 
+Layout
+------
+
+The PanelSet object creates and manages the multi-panel layout. The layout is 
+based on jquery layout plugin. It allows up to 5 panels to be displayed like this:
+
+* North
+* West | Centre | East
+* South
+
+At the moment West and South are hidden, but it is easy to enable in text_viewer.html.
+
+The query string of the URL to the Text Viewer makes use of the panel labels to assign
+content types. For instance ?centre=/translation/locus/2r&north=/image/locus/3r/ .
+
+Panel Structure
+---------------
+
+The Panel basic HTML structure is cloned from the div id="text-viewer-panel"
+in text_viewer.html. It is made of a button bar (for location and content type 
+selection), a content area and a status bar at the bottom.
+
+Most of the Panel state is actually left in the value of the HTML controls on the 
+button bar. This ensures consistency between the Panel behaviour and its appearance.
+
+When a Panel is instantiated, the object will just keep jQuery handles pointing to 
+the individual controls. 
+
 Locations
 ---------
 
@@ -71,20 +99,7 @@ the address, the sublocation and display settings (also called 'presentation opt
 
 When it is instantiated, the PanelSet parses the Query String, extract the
 state, create the relevant Panels from it and then dispatch the Panel state
-to each panel so they can restore their own state. 
-
-Panel Structure
----------------
-
-The Panel basic HTML structure is cloned from the div id="text-viewer-panel"
-in text_viewer.html. It is made of a button bar (for location and content type 
-selection), a content area and a status bar at the bottom.
-
-Most of the Panel state is actually left in the value of the HTML controls on the 
-button bar. This ensures consistency between the Panel behaviour and its appearance.
-
-When a Panel is instantiated, the object will just keep jQuery handles pointing to 
-the individual controls. 
+to each panel so they can restore their own state.
 
 TODO
 ====

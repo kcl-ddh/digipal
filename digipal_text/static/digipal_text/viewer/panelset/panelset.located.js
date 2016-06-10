@@ -37,6 +37,11 @@
     };
     
     Located.prototype.onNextPage = function(offset) {
+        this.moveBy(offset);
+    }
+    
+    // Move location by <offset> units
+    Located.prototype.moveBy = function(offset) {
         this.setLocationTypeAndLocation(this.getLocationType(), this.getLocationWithOffset(null, null, offset));
     }
 

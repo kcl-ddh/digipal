@@ -77,19 +77,35 @@ It can also be expressed as a path:
 '/digipal/manuscripts/ITEMPART_ID/texts/CONTENT_TYPE/LOC_TYPE/LOCATION/'
 e.g. '/digipal/manuscripts/1/texts/translation/locus/2r/'
 
-The content returned can be more than the requested location but not less.
-A fragment of the content can also be addressed by specifying the __SUBLOCATION__.
-For instance a person name in the current text/image.
-
-A Panel can reframe its content to display the desired sublocation 
-(e.g. scrolling, highlight, panning and zooming).
-
 You can create your own location types if you wish.
 
 Special location types:
 * __whole__: the whole content (e.g. the entire text)
 * __default__: let server decide an initial location type and location for the user
 * __sync__: a way to sync the panel with another content type. The location of that panel is the content type to sync with. e.g. /image/sync/transcription/ means that the image panel is synced with the transcription.
+
+### Selected and Content locations
+
+It is important to understand the distinction between the __selected location__ and the __content location__.
+The selected location is displayed in the location drop downs at the top of a panel.
+Say, if you select 'entry', '2a3' in the dropdown of your image panel, it will
+request those to the server. Which will return image and 'locus', '2r' because 
+entry 2a3 is found on that image. The panel will still show 'entry', '2a3' but,
+internally, the panel knows that the content location is actually 'locus', '2r'.
+
+This distinction also applies to sync'ed panels.
+
+Panel.loadedAddress stores the content location, whereas Panel.getLocationType() and Panel.getLocation()
+return the selected location. 
+
+### Sub-location
+
+The content returned can be more than the requested location but not less.
+A fragment of the content can also be addressed by specifying the __SUBLOCATION__.
+For instance a person name in the current text/image.
+
+A Panel can reframe its content to display the desired sublocation 
+(e.g. scrolling, highlight, panning and zooming).
 
 State
 -----

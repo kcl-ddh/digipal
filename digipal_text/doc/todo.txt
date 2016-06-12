@@ -1,5 +1,23 @@
 TOC
 
+[OK] change all the ampersands (&) to italic <et>. 
+
+There are two slight complications here. 
+[OK] One is ual&{ent} in 270a1. Here the ampersand has been underlined by me as it is replaced by the {ent}. 
+So the resulting italic <et> should also be underlined. 
+* Similar, but not identical, is ual&{en〈t〉} on 271a2. This is my stop-gap until we turn the <&> 
+into an italic <et>. In effect the {en} belongs in the middle of the ampersand so the result should 
+be uale{n}t, with the <e> and the <t> being in italics as they are halves of the converted ampersand.
+
+* A letter <q> has appeared with a wiggle on the left 
+as opposed to the ordinary letter struck through which is <q>. 
+This “q with a wiggle” is represented by a <ɋ> which is Unicode 024B. 
+This appears in ɋ:[uae] and ɋ:[uam] and ɋ4[uae] 
+Obviously, as usual, the <ɋ> becomes a normal <q> and the colon (:) 
+and the figure (4) are lost and what is in brackets becomes italicised,
+
+---
+
 Done:
     fixed some important problems with the excessive resource usage by the framework on the server
         which made the site crash, run very slowly or fail to index the content for the search page.

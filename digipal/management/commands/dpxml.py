@@ -131,6 +131,12 @@ Commands:
         
         xml_string = utils.readFile(xml_path)
         xml_string = re.sub(ur'\bxmlns=', ur'xmlns2=', xml_string)
+        
+        # TODO: remove this hack, only for odt conversion
+        # position 33% is like 'super' style
+        xml_string = re.sub(ur'"-33%', ur'"sub', xml_string)
+        xml_string = re.sub(ur'"33%', ur'"super', xml_string)
+        
         xslt_string = utils.readFile(xslt_path)
         
         # replacements in the XSLT

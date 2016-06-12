@@ -1422,6 +1422,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
             ##exp = regex.sub(ur'ṕ', ur'p', exp)
             exp = regex.sub(ur'ƣ', ur'q', exp)
+            exp = regex.sub(ur'ɋ', ur'q', exp)
             exp = regex.sub(ur'Ł', ur'L', exp)
 
             # Remove abbreviation signs
@@ -1458,8 +1459,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = re_sub_fct(content, ur'(?musi)(:|;|÷|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
 
         # (supplied) expansions without abbreviation
+        # Wide angle brackets
         # Bal〈dwini〉 =>
-        content = regex.sub(ur'(?musi)(〈[^〈〉]{1,30}〉)', ur'<span data-dpt="exp">\1</span>', content)
+        content = regex.sub(ur'(?musi)〈([^〈〉]{1,30})〉', ur'<span data-dpt="supplied">\1</span>', content)
+        
+        # Interlineation
+        # e.g. e{n}t
+        content = regex.sub(ur'(?musi)\{([^{}]{1,300})\}', ur'<span data-dpt="interlineation">\1</span>', content)
 
         # sup
         if 0:

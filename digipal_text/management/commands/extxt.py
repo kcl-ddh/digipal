@@ -208,7 +208,9 @@ Commands:
             size = len(lines)
             if re.match(ur'^[A-Z]+', lines[0]):
                 print lines[0], size
-                rows.append({'REF': lines[0], 'CONTENT': '\r'.join(lines[1:])})
+                entry = ' '.join(lines[1:])
+                entry = re.sub(ur'(?musi)\s+', ' ', entry)
+                rows.append({'REF': lines[0], 'CONTENT': entry})
             else:
                 if size > 3:
                     #print repr(lines[0]), size
@@ -232,22 +234,37 @@ Commands:
         content = u'<root>%s</root>' % content_xml.content
         headings = ['RevisedEllisNos', 'Exon X-ref 1', 'Exon X-ref 2', 'Exon X-ref 3', 'Exon X-ref 4', 'Exon X-ref 5', 'GDB X ref 1', 'GDB X ref 2', 'GDB X ref 3']
         rows = []
-        for unit in viewer.get_all_units(content, 'entry'):
+        
+        
+        # commented out so we work from text file instead of XML record  
+##         for unit in viewer.get_all_units(content, 'entry'):
+        input_file = 'exon/source/analysis/offlinedb/3exon-translation-4.txt'
+        content = dputils.read_file(input_file)
+        
+        # 12a1 [= GDB DOR B2]
+        unit = {}
+        for m in re.findall(ur'(?musi)$\s*(\d+[ab]\d+)\s*\[(.*?)\]', content):
+            unit['unitid'] = m[0]
+            
             row = {h: '' for h in headings}
-            #unit_xml = u'<root>%s</root>' % unit['content']
-            unit_xml = dputils.get_xml_from_unicode(u'<root>%s</root>' % unit['content'], True)
+##             unit_xml = dputils.get_xml_from_unicode(u'<root>%s</root>' % unit['content'], True)
             refs = []
             refs2 = {'GDB': '', 'EDB': ''}
-            for ref in unit_xml.findall("//span[@data-dpt='supplied'][@data-dpt-type='reference']"):
-                #ref = dputils.get_xml_from_unicode((ur'<root>%s</root>' % content_xml.content), True)
-                ref = dputils.get_unicode_from_xml(ref, text_only=True)
+            
+            # commented out so we work from text file instead of XML record  
+##             for ref in unit_xml.findall("//span[@data-dpt='supplied'][@data-dpt-type='reference']"):
+
+            ref = m[1]
+
+            if 1:
+##                ref = dputils.get_unicode_from_xml(ref, text_only=True)
                 refs.append(ref)
                 if len(ref) > 100:
                     print 'WARNING: long ref %s' % len(ref)
                     continue
                 ref = re.sub(ur'(?musi)\b(but|or|see|also|and|duplicated|by)\b', '', ref)
                 parts = re.split(ur'(EDB|GDB)', ref)
-
+ 
                 i = 0
                 while i < len(parts):
                     if parts[i] in refs2.keys():
@@ -257,7 +274,7 @@ Commands:
                             if refs2[t]: refs2[t] += ' + '
                             refs2[t] += parts[i].strip(' ;,.=')
                     i += 1
-
+            
             if refs:
                 print '%s\n\t%s\n\t%s' % (unit['unitid'], repr(refs), repr(refs2))
                 row['RevisedEllisNos'] = unit['unitid']
@@ -271,7 +288,7 @@ Commands:
                         col = 'Exon X-ref '
                         if 'GDB' in k:
                             col = 'GDB X ref '
-                        row['%s%s' % (col, i)] = p.strip('')
+                        row['%s%s' % (col, i)] = p.strip(' ')
 
                 row['RevisedEllisNos'] = unit['unitid']
                 rows.append(row)

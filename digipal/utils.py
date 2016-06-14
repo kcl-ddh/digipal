@@ -1300,6 +1300,8 @@ def get_plain_text_from_xmltext(xml_str):
 
     # remove | (line breaks) and other expansion markup <>
     ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '').replace(u'-|', u'').replace(u'|', u'\r')
+    
+    ret = regex.sub(ur'(?musi)\s+', ' ', ret)
 
     return ret
 

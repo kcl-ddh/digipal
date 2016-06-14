@@ -242,11 +242,13 @@
                 $callback is called each time the height is updated.
             */
             elastic_element: function($target, callback, min, margin) {
-                var on_resize = function() {
-                    $target.css('height', dputils.get_elastic_height($target, min, margin));
+                var on_resize = function(e) {
+                    var height = dputils.get_elastic_height($target, min, margin);
+                    $target.css('height', height);
                     callback();
                 };
-                $(window).on('resize scroll', function() {on_resize();});
+                $(window).on('resize scroll', function(e) {on_resize(e);});
+                $(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange MSFullscreenChange', function(e) {on_resize(e);});
                 on_resize();
             },
 

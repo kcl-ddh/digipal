@@ -1926,10 +1926,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         if same_as_above:
             same_as_above.split(',')
         fct_args = {
-                    'ignore_incomplete_lines': options.get('iil', False),
-                    'same_as_above': same_as_above,
-                    'encoding': options.get('encoding', None)
-                    }
+            'ignore_incomplete_lines': options.get('iil', False),
+            'same_as_above': same_as_above,
+            'encoding': options.get('encoding', None)
+        }
         lines = read_all_lines_from_csv(file_path, **fct_args)
 
         table_name = self.getTablenameFromPath(file_path)

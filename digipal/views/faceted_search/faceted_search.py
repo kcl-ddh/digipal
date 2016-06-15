@@ -1090,9 +1090,8 @@ def rebuild_index(index_filter=[]):
 
 def optimize_index(ct):
     utils.gc_collect()
-    print 'get index'
     index = ct.get_whoosh_index()
-    print 'optimize index'
+    print '\toptimize index'
     writer = index.writer()
     writer.commit(optimize=True)
 

@@ -54,14 +54,8 @@ class FacetedModel(object):
     def get_option(self, option_name, default=None):
         return self.options.get(option_name, default)
 
-    @classmethod
-    def get_default_view(cls, selected=False):
-        return {'icon': 'list', 'label': 'List', 'key': 'list', 'selected': selected}
-
     def get_views(self):
-        ret = self.get_option('views', [self.get_default_view(selected=False)])
-        ret = ret[:]
-        ret.append({'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'selected': False, 'page_sizes': [100000]})
+        ret = self.settings.getViewsEnabled()
 
         found = False
         if hasattr(self, 'request'):
@@ -1066,7 +1060,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     fragment = ''
     if request.is_ajax():
         fragment = '_fragment'
-
+        
     ret = render_to_response('search/faceted/search_whoosh%s.html' % fragment, context, context_instance=RequestContext(request))
 
     hand_filters.chrono(':TEMPLATE')

@@ -1,6 +1,12 @@
 import re
 
 FACETED_SEARCH = {
+    'fragments': {
+        'overview': {'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'selected': False, 'page_sizes': [100000]}
+    },
+}
+
+FACETED_SEARCH.update({
     'types': [
                 # label = the label displayed on the screen
                 # label_col = the label in the column in the result table
@@ -288,7 +294,7 @@ FACETED_SEARCH = {
                               ],
                 },
             ]
-}
+})
 
 from copy import deepcopy
 graph_sample = deepcopy(FACETED_SEARCH['types'][-1])
@@ -336,6 +342,10 @@ class FacettedType(object):
         return self.options['key']
 
     @staticmethod
+    def getFragment(key, default=None):
+        return FACETED_SEARCH['fragments'].get(key, default)
+    
+    @staticmethod
     def fromKey(akey):
         ret = None
         for options in FACETED_SEARCH['types']:
@@ -361,7 +371,7 @@ class FacettedType(object):
     @staticmethod
     def getAll():
         return [FacettedType(options) for options in FACETED_SEARCH['types']]
-
+    
     def addField(self, field_definition=None):
         if field_definition:
             self.options['fields'].append(field_definition)
@@ -380,6 +390,51 @@ class FacettedType(object):
 
     def getOption(self, key, default=None):
         return self.options.get(key, default)
+    
+    @staticmethod
+    def getDefaultView(selected=False):
+        return {'icon': 'list', 'label': 'List', 'key': 'list', 'selected': selected}
+
+    def getViewsRaw(self):
+        '''Returns the views'''
+        ret = self.options.get('views', None)
+        if ret is None:
+            ret = self.options['views'] = []
+        return ret
+    
+    def getViews(self):
+        '''Returns a copy of the views with possibly additional default views'''
+        ret = self.getViewsRaw()[:]
+        view_keys = [v['key'] for v in ret]
+
+        # add default view
+        default_view = self.getDefaultView()
+        if default_view['key'] not in view_keys:
+            ret.insert(0, default_view)
+            
+        # add overview
+        overview = self.getFragment('overview')
+        if overview['key'] not in view_keys:
+            ret.append(overview)
+        
+        return ret
+
+    def getViewsEnabled(self):
+        '''Returns a copy of the views, with default views, but only the enabled ones'''
+        return [v for v in self.getViews() if not v.get('disabled', False)]
+
+    def disableView(self, key, enable=False):
+        views = self.getViewsRaw()
+        view = None
+        for v in views:
+            if v['key'] == key:
+                view = view
+                break
+        if not view and not enable:
+            view = {'key': key}
+            views.append(view)
+        if view:
+            view['disabled'] = not enable
 
     def getFilterKeys(self):
         ''' Returns a list of fitler field keys in the order they should appear in the filter panel'''

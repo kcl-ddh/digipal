@@ -302,7 +302,7 @@ class FacetedModel(object):
         if ret: return ret
 
         # a filter for search phrase
-        phrase_facet = {'label': 'Phrase', 'type': 'textbox', 'key': 'terms', 'value': request.GET.get('terms', ''), 'id': 'search-terms', 'removable_options': []}
+        phrase_facet = {'label': 'Keywords', 'type': 'textbox', 'key': 'terms', 'value': request.GET.get('terms', ''), 'id': 'search-terms', 'removable_options': []}
         if getattr(settings, 'AUTOCOMPLETE_PUBLIC_USER', True):
             phrase_facet['classes'] = ' autocomplete '
 
@@ -714,7 +714,8 @@ class FacetedModel(object):
                         pass
 
             # Paginate
-            self.paginator = Paginator(ret['ids'], self.get_page_size(request))
+            page_size = self.get_page_size(request)
+            self.paginator = Paginator(ret['ids'], page_size if page_size > -1 else 1000000)
             current_page = self.get_page_number(request)
             if current_page < 1: current_page = 1
             if current_page > self.paginator.num_pages:

@@ -1,18 +1,20 @@
 {% load pagination_tags html_escape hand_filters %}
 {% if page_sizes %}
     <div class="btn-group pagination-group">
-        <div class="btn-group">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                {{ page_size }} / pages
-               <span class="caret"></span>
-            </button>
-            <input type="hidden" name="pgs" value="{{ page_size }}"/>
-            <ul class="dropdown-menu" role="menu">
-                {% for size in page_sizes %}
-                    <li><a href="{% filter add_query_params:request.META.QUERY_STRING %}?pgs={{ size }}&page=1{% endfilter %}">{{ size }}</a></li>
-                {% endfor %}
-            </ul>
-        </div>
+        <input type="hidden" name="pgs" value="{{ page_size }}"/>
+        {% if page_sizes|length > 1 %}
+            <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    {{ page_size }} / pages
+                   <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    {% for size in page_sizes %}
+                        <li><a href="{% filter add_query_params:request.META.QUERY_STRING %}?pgs={{ size }}&page=1{% endfilter %}">{{ size }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
         {% include "pagination/pagination.html" %}
     </div>
 {% endif %}

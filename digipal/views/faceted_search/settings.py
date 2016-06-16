@@ -1,8 +1,10 @@
 import re
+from copy import deepcopy
 
 FACETED_SEARCH = {
     'fragments': {
-        'overview': {'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'selected': False, 'page_sizes': [100000]}
+        'overview':     {'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'selected': False, 'page_sizes': [-1]},
+        'view_default': {'icon': 'th-list', 'label': 'List', 'key': 'list', 'selected': False}
     },
 }
 
@@ -95,7 +97,7 @@ FACETED_SEARCH.update({
                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
                     'views': [
-                              {'icon': 'th-list', 'label': 'List', 'key': 'list'},
+                              deepcopy(FACETED_SEARCH['fragments']['view_default']),
                               {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
                               {'icon': 'picture', 'label': 'Zoom', 'key': 'zoom', 'type': 'zoom', 'page_sizes': [1]},
                               ],
@@ -289,14 +291,13 @@ FACETED_SEARCH.update({
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'views': [
-                              {'icon': 'th-list', 'label': 'List', 'key': 'list'},
+                              deepcopy(FACETED_SEARCH['fragments']['view_default']),
                               {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid', 'template': 'graph_grid', 'page_sizes': [50, 100, 200]},
                               ],
                 },
             ]
 })
 
-from copy import deepcopy
 graph_sample = deepcopy(FACETED_SEARCH['types'][-1])
 graph_sample.update({
                     'disabled': True,
@@ -342,8 +343,11 @@ class FacettedType(object):
         return self.options['key']
 
     @staticmethod
-    def getFragment(key, default=None):
-        return FACETED_SEARCH['fragments'].get(key, default)
+    def getFragment(key, default=None, copy=False):
+        ret = FACETED_SEARCH['fragments'].get(key, default)
+        if copy:
+            ret = deepcopy(ret)
+        return ret
     
     @staticmethod
     def fromKey(akey):
@@ -393,7 +397,9 @@ class FacettedType(object):
     
     @staticmethod
     def getDefaultView(selected=False):
-        return {'icon': 'list', 'label': 'List', 'key': 'list', 'selected': selected}
+        ret = FacettedType.getFragment('view_default')
+        ret['selected'] = selected
+        return ret
 
     def getViewsRaw(self):
         '''Returns the views'''

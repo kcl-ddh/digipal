@@ -313,7 +313,7 @@ class FacetedModel(object):
         # a filter for the content types
         if self.faceted_model_group and len(self.faceted_model_group) > 1:
             # ct_facet = {'label': 'Type', 'key': 'result_type', 'value': request.GET.get('result_type', ''), 'removable_options': [], 'options': []}
-            ct_facet = {'label': 'Result Type', 'key': 'result_type', 'value': self.key, 'removable_options': [], 'options': [], 'expanded_always': True}
+            ct_facet = {'label': 'Result Type', 'key': 'result_type', 'value': self.key, 'removable_options': [], 'options': [], 'expanded': 2}
             for faceted_model in self.faceted_model_group:
                 selected = faceted_model.key == ct_facet['value']
                 option = {'label': faceted_model.label_plural, 'key': faceted_model.key, 'count': '', 'selected': selected}
@@ -331,7 +331,7 @@ class FacetedModel(object):
             if field is None:
                 raise Exception('Content type "%s" has no field named "%s". Check filters.' % (self.get_key(), key))
             facet = deepcopy(field)
-            facet['sorted_by'] = request.GET.get('@st_' + field['key'], 'c')
+            facet['sorted_by'] = request.GET.get('_st_' + field['key'], 'c')
             facet['options'] = self.get_facet_options(field, request, facet['sorted_by'])
 
             facet['value'] = request.GET.get(field['key'], '')
@@ -349,7 +349,8 @@ class FacetedModel(object):
             ret.append(facet)
 
         for facet in ret:
-            facet['expanded'] = utils.get_int(request.GET.get('@xp_' + facet['key'], 0), 0)
+            # Set facet expansion from the query string
+            facet['expanded'] = utils.get_int_from_request_var(request, '_xp_' + facet['key'], facet.get('expanded', 0))
 
         hand_filters.chrono(':fielfds')
 
@@ -1061,7 +1062,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     fragment = ''
     if request.is_ajax():
         fragment = '_fragment'
-        
+    
     ret = render_to_response('search/faceted/search_whoosh%s.html' % fragment, context, context_instance=RequestContext(request))
 
     hand_filters.chrono(':TEMPLATE')

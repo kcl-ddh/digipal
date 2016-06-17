@@ -22,6 +22,10 @@ FACETED_SEARCH.update({
                 # viewable = True if the field can be displayed in the result set
 
                 # index = True iff (search or filter or count)
+                
+                # expanded = 1 to show all option in the facet by default, 
+                #    0 to show first 5, -1 to collapse the facet
+                #    2 always expanded
 
                 # e.g. ann: viewable, full_size: count, repo_city: viewable+count+search
                 # id: special

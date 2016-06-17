@@ -112,6 +112,9 @@ class FacetedModel(object):
 
         return ret
 
+    def is_toolbar_hidden(self):
+        return self.options.get('toolbar_hidden', False)
+    
     def get_sort_info(self, request):
         key = request.REQUEST.get('sort', '')
         reverse = key.startswith('-')

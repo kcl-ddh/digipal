@@ -23,40 +23,42 @@
         <form action="." method="get" class="">
 
             <div class="col-md-{%if wide_result%}12{% else %}10{%endif%} pull-right-md">
-                
-                <div class="panel panel-default">
-                    <div class="btn-toolbar" role="toolbar">
-                        <div class="btn-group">
-                            <input type="hidden" name="wr" value="{{ wide_result }}" />
-                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?wr={% if wide_result %}0{%else%}1{% endif %}{% endfilter %}"
-                                class="btn btn-default {% if wide_result %} active {% endif %} hidden-sm hidden-xs"
-                                title="Toggle wide view" data-toggle="tooltip">
-                                <span class="glyphicon glyphicon-resize-horizontal"></span>
-                            </a>
-                        </div>
-
-                        {% dp_pagination_with_size_for current_page %}
-
-                        <div class="btn-group pull-right">
-                            {% for view in views %}
-                                {% if view.selected %}
-                                    <input type="hidden" name="view" value="{{ view.key }}" />
-                                {% endif %}
-                                {% if views|length > 1 %}
-                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}"
-                                        class="btn btn-default {% if view.selected %} active {% endif %}"
-                                        title="{{ view.label }} View" data-toggle="tooltip">
-                                        <span class="glyphicon glyphicon-{{ view.icon }}"></span>
-                                    </a>
-                                {% endif %}
-                            {% endfor %}
+                    
+                {% if not result_type.is_toolbar_hidden %}
+                    <div class="panel panel-default">
+                        <div class="btn-toolbar" role="toolbar">
+                            <div class="btn-group">
+                                <input type="hidden" name="wr" value="{{ wide_result }}" />
+                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?wr={% if wide_result %}0{%else%}1{% endif %}{% endfilter %}"
+                                    class="btn btn-default {% if wide_result %} active {% endif %} hidden-sm hidden-xs"
+                                    title="Toggle wide view" data-toggle="tooltip">
+                                    <span class="glyphicon glyphicon-resize-horizontal"></span>
+                                </a>
+                            </div>
+        
+                            {% dp_pagination_with_size_for current_page %}
+        
+                            <div class="btn-group pull-right">
+                                {% for view in views %}
+                                    {% if view.selected %}
+                                        <input type="hidden" name="view" value="{{ view.key }}" />
+                                    {% endif %}
+                                    {% if views|length > 1 %}
+                                        <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}"
+                                            class="btn btn-default {% if view.selected %} active {% endif %}"
+                                            title="{{ view.label }} View" data-toggle="tooltip">
+                                            <span class="glyphicon glyphicon-{{ view.icon }}"></span>
+                                        </a>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
-                </div>
-
+                {% endif %}
+        
                 {% if result %}
                     {% include result_type.selected_view_template %}
-
+    
                     {% dp_pagination_with_size_for current_page %}
                 {% else %}
                     <div class='alert alert-warning'>
@@ -65,7 +67,7 @@
                         <p>It may help to try other Result Types than '{{ result_type.label_plural }}'.</p>
                     </div>
                 {% endif %}
-
+        
             </div>
 
             <div class="col-md-{%if wide_result%}12{%else%}2{%endif%} facets" id="facets">

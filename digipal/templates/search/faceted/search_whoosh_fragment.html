@@ -4,7 +4,13 @@
     {% load pages_tags mezzanine_tags i18n %}
     {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
-    <h1 class='header1' id="search-top">Search: {{ result_type.label_plural }} ({{ hit_count }})
+    <h1 class='header1' id="search-top">
+        {% if result_type.get_result_heading %}
+            {{ result_type.get_result_heading }}
+        {% else %}
+            Search: {{ result_type.label_plural }} ({{ hit_count }})
+        {% endif %}
+        
         <span class="dp-small pull-right">
             <a href="/digipal/search/?s=1&terms={{ request.REQUEST.terms|urlencode }}&amp;result_type={{ request.REQUEST.result_type|urlencode }}&amp;from_link=true" data-toggle="tooltip" title="Go to the Advanced Search page">
                 Advanced Search
@@ -123,7 +129,7 @@
                                 {% endif %}
                                 {% if facet.options %}
                                     <table class="table">
-                                        {% if facet.options.5 and facet.options.0.count != '' %}
+                                        {% if facet.options.5 and facet.options.0.count %}
                                             <tr>
                                                 <th><a href="{% filter add_query_params:request.META.QUERY_STRING %}?_st_{{facet.key}}=o{% endfilter %}">
                                                     {% if facet.sorted_by == 'o' %}<span class="glyphicon glyphicon-arrow-down"></span>{% endif %}

@@ -16,8 +16,8 @@ FACETED_SEARCH.update({
 
                 # path = a field name (can go through a related object or call a function)
 
-                # count = True to show the number of hits for each possible value of the field (i.e. show facet options)
-                # filter = True to let the user filter by this field
+                # filter = True to let the user filter by this field (i.e. it is a facet with options)
+                # count = True to show the number of hits for each possible value of the field => implies filter = True
                 # search = True if the field can be searched on (phrase query)
                 # viewable = True if the field can be displayed in the result set
 
@@ -462,6 +462,10 @@ class FacettedType(object):
         l = self.options[option]
         index = l.index(after_key) + 1 if after_key else len(l)
         l.insert(index, key)
+        
+    @classmethod
+    def isFieldAFacet(cls, field):
+        return field.get('count', False) or field.get('filter', False)
 
     def setDateRange(self, rng):
         for f in self.fields:

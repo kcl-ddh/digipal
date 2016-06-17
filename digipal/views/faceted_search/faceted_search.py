@@ -112,6 +112,9 @@ class FacetedModel(object):
 
         return ret
 
+    def get_result_heading(self):
+        return self.options.get('result_heading', None)
+
     def is_toolbar_hidden(self):
         return self.options.get('toolbar_hidden', False)
     
@@ -296,7 +299,7 @@ class FacetedModel(object):
         ''' Returns a list of fields keys in the order they should appear in the filter panel '''
         ret = self.get_option('filter_order', None)
         if ret is None:
-            ret = [field['key'] for field in self.fields if field.get('count', False) or field.get('filter', False)]
+            ret = [field['key'] for field in self.fields if self.settings.isFieldAFacet(field)]
         return ret
     filter_field_keys = property(get_filter_field_keys)
 
@@ -364,7 +367,7 @@ class FacetedModel(object):
     def get_facet_options(self, field, request, sorted_by='c'):
         from urllib import quote_plus
         ret = []
-        if not field.get('count', False):
+        if not self.settings.isFieldAFacet(field):
             return ret
         selected_key = unicode(request.GET.get(field['key'], ''))
 
@@ -375,20 +378,26 @@ class FacetedModel(object):
         is_bool = field['type'] == 'boolean'
 
         # http://localhost:8080/digipal/search/facets/?entry_type=TO&page=1&pgs=10&wr=0&result_type=entries&view=list
+        is_count_needed = field.get('count', False)
         if hasattr(self, 'whoosh_groups'):
             for k, v in self.whoosh_groups[field['key']].iteritems():
                 label = k
                 if is_bool:
                     label = labels[int(utils.get_bool_from_string(k))]
-                option = {'key': k, 'label': label, 'count': v, 'selected': (selected_key == unicode(k)) and (k is not None)}
+                option = {'key': k, 'label': label, 'selected': (selected_key == unicode(k)) and (k is not None)}
+                if is_count_needed:
+                    option['count'] = v
                 option['href'] = mark_safe(href.replace(keyword, quote_plus('' if option['selected'] else (u'%s' % option['key']).encode('utf=8'))))
                 ret.append(option)
 
         # sort the options (by count then key or the opposite)
         # TODO: optimise by doing this first, then limiting (if facet is collapsed), then running the loop above
-        sort_fct = lambda o: [-o['count'], o['key']]
-        if sorted_by == 'o':
-            sort_fct = lambda o: [o['key'], -o['count']]
+        if is_count_needed:
+            sort_fct = lambda o: [-o['count'], o['key']]
+            if sorted_by == 'o':
+                sort_fct = lambda o: [o['key'], -o['count']]
+        else:
+            sort_fct = lambda o: o['key']
         ret = sorted(ret, key=sort_fct)
 
         return ret
@@ -538,9 +547,10 @@ class FacetedModel(object):
 
         ret = []
         for field in self.fields:
-            if field.get('count', False):
+            if self.settings.isFieldAFacet(field):
                 field_facet = sorting.StoredFieldFacet(
-                    field['key'], maptype=sorting.Count,
+                    field['key'], 
+                    maptype= sorting.Count if field.get('count', False) else sorting.UnorderedList,
                     # It tells whoosh that the a record can have more than one value
                     # for that facet
                     # Without it whoosh crashes trying to count using a list as a key
@@ -830,7 +840,7 @@ class FacetedModel(object):
                    }
 
             for field in self.fields:
-                if field.get('count', False):
+                if self.settings.isFieldAFacet(field):
                     ret['facets'][field['key']] = res.groups(field['key'])
 
             cache.set(search_key, json.dumps(ret))

@@ -32,31 +32,33 @@
                     
                 {% if not result_type.is_toolbar_hidden %}
                     <div class="panel panel-default">
-                        <div class="btn-toolbar" role="toolbar">
-                            <div class="btn-group">
-                                <input type="hidden" name="wr" value="{{ wide_result }}" />
-                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?wr={% if wide_result %}0{%else%}1{% endif %}{% endfilter %}"
-                                    class="btn btn-default {% if wide_result %} active {% endif %} hidden-sm hidden-xs"
-                                    title="Toggle wide view" data-toggle="tooltip">
-                                    <span class="glyphicon glyphicon-resize-horizontal"></span>
-                                </a>
-                            </div>
-        
-                            {% dp_pagination_with_size_for current_page %}
-        
-                            <div class="btn-group pull-right">
-                                {% for view in views %}
-                                    {% if view.selected %}
-                                        <input type="hidden" name="view" value="{{ view.key }}" />
-                                    {% endif %}
-                                    {% if views|length > 1 %}
-                                        <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}"
-                                            class="btn btn-default {% if view.selected %} active {% endif %}"
-                                            title="{{ view.label }} View" data-toggle="tooltip">
-                                            <span class="glyphicon glyphicon-{{ view.icon }}"></span>
-                                        </a>
-                                    {% endif %}
-                                {% endfor %}
+                        <div class="panel-body dptoolbar">
+                            <div class="btn-toolbar" role="toolbar">
+                                <div class="btn-group">
+                                    <input type="hidden" name="wr" value="{{ wide_result }}" />
+                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?wr={% if wide_result %}0{%else%}1{% endif %}{% endfilter %}"
+                                        class="btn btn-default {% if wide_result %} active {% endif %} hidden-sm hidden-xs"
+                                        title="Toggle wide view" data-toggle="tooltip">
+                                        <span class="glyphicon glyphicon-resize-horizontal"></span>
+                                    </a>
+                                </div>
+            
+                                {% dp_pagination_with_size_for current_page %}
+            
+                                <div class="btn-group pull-right">
+                                    {% for view in views %}
+                                        {% if view.selected %}
+                                            <input type="hidden" name="view" value="{{ view.key }}" />
+                                        {% endif %}
+                                        {% if views|length > 1 %}
+                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}"
+                                                class="btn btn-default {% if view.selected %} active {% endif %}"
+                                                title="{{ view.label }} View" data-toggle="tooltip">
+                                                <span class="glyphicon glyphicon-{{ view.icon }}"></span>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                     </div>

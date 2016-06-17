@@ -60,8 +60,14 @@
     <div class="panel panel-default">
         <div class="panel-heading">Visualisation Settings</div>
         <div class="panel-body">
-            Bar size: <input name="vz_bh" type="text" value="{{viz.vz_bh}}" /><br/>
-            Graph size: <input name="vz_gs" type="text" value="{{viz.vz_gs}}" /><br/>
+            <div class="input-group">
+                <label for="vz_bh">Bar size:</label>
+                <input id="vz_bh" type="text" value="{{viz.vz_bh}}" class="form-control" />
+            </div>
+            <div class="input-group">
+                <label for="vz_gs">Graph size:</label>
+                <input id="vz_gs" type="text" value="{{viz.vz_gs}}" class="form-control" />
+            </div>
             <input class="btn btn-default" type="submit" name="__Redraw" value="Redraw" />
         </div>
     </div>

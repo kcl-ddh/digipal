@@ -3,15 +3,20 @@ from copy import deepcopy
 
 FACETED_SEARCH = {
     'fragments': {
-        'overview':     {'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'selected': False, 'page_sizes': [-1]},
-        'view_default': {'icon': 'th-list', 'label': 'List', 'key': 'list', 'selected': False}
+        'overview':     {'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'page_sizes': [-1]},
+        'view_default': {'icon': 'th-list', 'label': 'List', 'key': 'list'}
     },
 }
 
 FACETED_SEARCH.update({
     'visualisation': {
+        # VISUALISATION SETTINGS
         'field_x':          'hi_date',
         'field_conflate':   'item_part',
+        # a list of facet keys that can be used to categorise the visualisation 
+        # e.g. ['hi_type', 'clause_type', 'medieval_archive', 'issuer', 'issuer_type'],
+        # if empty, all possible facets are available
+        'categories': [],
     },
     'types': [
                 # label = the label displayed on the screen
@@ -413,7 +418,7 @@ class FacettedType(object):
     
     @staticmethod
     def getDefaultView(selected=False):
-        ret = FacettedType.getFragment('view_default')
+        ret = FacettedType.getFragment('view_default', copy=True)
         ret['selected'] = selected
         return ret
 
@@ -426,7 +431,7 @@ class FacettedType(object):
     
     def getViews(self):
         '''Returns a copy of the views with possibly additional default views'''
-        ret = self.getViewsRaw()[:]
+        ret = deepcopy(self.getViewsRaw())
         view_keys = [v['key'] for v in ret]
 
         # add default view
@@ -435,7 +440,7 @@ class FacettedType(object):
             ret.insert(0, default_view)
             
         # add overview
-        overview = self.getFragment('overview')
+        overview = self.getFragment('overview', copy=True)
         if overview['key'] not in view_keys:
             ret.append(overview)
         

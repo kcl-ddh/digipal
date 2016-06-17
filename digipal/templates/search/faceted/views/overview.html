@@ -6,10 +6,10 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Color
+                <th>Colour
                 {{ queries.get_hidden_inputs|safe }}
                 </th>
-                <th>Count</th>
+                <th>Hits</th>
                 <th>Query</th>
                 <th>Actions</th>
             </tr>
@@ -26,7 +26,7 @@
                         {% if query.index > 1 and forloop.last %}<a href="{{ query.get_remove_link }}" class="btn btn-default">Remove</a>{% endif %}
 
                         <a href="{% filter add_query_params:request.META.QUERY_STRING %}?q{{ query.index }}_hidden={% if query.is_hidden %}0{% else %}1{% endif %}{% endfilter %}" class="btn btn-default">
-                            {% if query.is_hidden %}Hidden{% else %}Visible{% endif %}
+                            {% if query.is_hidden %}Show{% else %}Hide{% endif %}
                         </a>
                     </td>
                 </tr>

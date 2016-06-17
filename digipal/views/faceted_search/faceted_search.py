@@ -67,8 +67,9 @@ class FacetedModel(object):
                     ret[0]['selected'] = False
                 view['selected'] = selected
         if not found:
+            #raise Exception('Yo!')
             ret[0]['selected'] = True
-
+        
         return ret
     views = property(get_views)
 
@@ -1067,7 +1068,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     hand_filters.chrono('overview')
     from overview import draw_overview
     draw_overview(ct, context, request)
-
+    
     hand_filters.chrono(':SEARCH')
 
     hand_filters.chrono('TEMPLATE:')

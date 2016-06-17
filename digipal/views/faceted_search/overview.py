@@ -21,7 +21,6 @@ class Query(object):
             return self.faceted_search.overview_records
 
     def get_count(self):
-        ret = 0
         return len(self.get_records())
 
     def get_summary(self):
@@ -57,10 +56,15 @@ class Query(object):
         return ret
 
     def set_from_request(self, request, faceted_search):
+        '''
+        Query 0: a full search on the currently selected result type (always there)
+        Query 1: the current result set (but if it's a full search, it is invalidated)
+        Query 2, ...: the query saved in the query string. qi_X=Y
+        '''
         if self.index < 1:
             self.is_valid = 1
         if self.index == 1:
-            if not faceted_search.is_full_search:
+            if not faceted_search.is_full_search():
                 self.is_valid = 1
 
         index = utils.get_int_from_request_var(request, 'qi', 1)
@@ -81,20 +85,24 @@ class Query(object):
             from digipal.views.faceted_search.faceted_search import simple_search
 
             new_url = '/?'
+            url_is_set = False
             for k, v in self.request.GET.iteritems():
                 if k.startswith('q%s_' % self.index):
                     new_url += '&%s=%s' % (k.replace('q%s_' % self.index, ''), v)
-
-            from django.test.client import RequestFactory
-            request = RequestFactory().get(new_url)
-            user = self.request.user
-            self.request = request
-            self.request.user = user
-
-            self.faceted_search = simple_search(request)
-
+                    url_is_set = True
+            
+            if url_is_set:
+                from django.test.client import RequestFactory
+                request = RequestFactory().get(new_url)
+                user = self.request.user
+                self.request = request
+                self.request.user = user
+    
+                self.faceted_search = simple_search(request)
+        
 class Queries(object):
     def __init__(self, request, context, faceted_search):
+        '''Instantiate all the queries from the query string'''
         self.request = request
         self.context = context
         self.faceted_search = faceted_search
@@ -227,7 +235,7 @@ class Overview(object):
         if self.faceted_search.get_selected_view()['key'] != 'overview': return
 
         self.init_queries()
-
+        
         # TODO: MoA, use:
         #self.set_conflate('item_part')
         #self.set_x_field_key('hi_date')
@@ -481,7 +489,12 @@ class Overview(object):
         #faceted_search = self.faceted_search
         context = self.context
 
-        context['vcats'] = [field for field in faceted_search.get_fields() if field.get('vcat', True)]
+        possible_categories = self.settings['categories']
+        # generate the list of vertical categories
+        # we take all the fields of the current result type
+        # minus those not found in the global 'categories' list
+        # minus those with vcat = False  
+        context['vcats'] = [field for field in faceted_search.get_fields() if field.get('vcat', True) and (not possible_categories or field['key'] in possible_categories)]
 
         category_field = faceted_search.get_field_by_key(self.request.REQUEST.get('vcat', 'hi_type'))
         if category_field is None: category_field = faceted_search.get_field_by_key('hi_type')

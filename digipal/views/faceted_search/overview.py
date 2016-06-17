@@ -188,6 +188,8 @@ class Overview(object):
     def __init__(self, faceted_search, context, request):
         # if True, we group all the results by document to avoid stacking graphs or clauses
         self.faceted_search = faceted_search
+        self.settings = self.faceted_search.settings.getGlobal('visualisation')
+        
         self.context = context
         self.request = request
         # an index used to detect data point overlap and create stack
@@ -229,8 +231,12 @@ class Overview(object):
         # TODO: MoA, use:
         #self.set_conflate('item_part')
         #self.set_x_field_key('hi_date')
-        self.set_x_field_key('locus')
-        self.set_conflate('unitid')
+        # EXON
+        #self.set_x_field_key('locus')
+        #self.set_conflate('unitid')
+
+        self.set_x_field_key(self.settings['field_x'])
+        self.set_conflate(self.settings['field_conflate'])
 
         #self.set_fields()
 
@@ -497,11 +503,8 @@ class Overview(object):
                 category_field['key'] 
             ]
             
-        
-        print fields
-        
         self.fields = [faceted_search.get_field_by_key(field) for field in fields]
-
+        
     def init_bands(self):
         '''
             Initialise the vertical category-bands with a fixed height and label

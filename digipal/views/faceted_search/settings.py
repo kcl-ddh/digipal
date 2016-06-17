@@ -9,6 +9,10 @@ FACETED_SEARCH = {
 }
 
 FACETED_SEARCH.update({
+    'visualisation': {
+        'field_x':          'hi_date',
+        'field_conflate':   'item_part',
+    },
     'types': [
                 # label = the label displayed on the screen
                 # label_col = the label in the column in the result table
@@ -349,6 +353,14 @@ class FacettedType(object):
     @staticmethod
     def getFragment(key, default=None, copy=False):
         ret = FACETED_SEARCH['fragments'].get(key, default)
+        if copy:
+            ret = deepcopy(ret)
+        return ret
+
+    @staticmethod
+    def getGlobal(key, default=None, copy=False):
+        '''Returns a value at the root of FACETED_SEARCH'''
+        ret = FACETED_SEARCH.get(key, default)
         if copy:
             ret = deepcopy(ret)
         return ret

@@ -505,14 +505,12 @@ class FacetedModel(object):
                 href = html_escape.update_query_params('?' + request.META['QUERY_STRING'], {'page': [1], facet['key']: []})
                 ret += u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip"><span class="label label-default">%s</span></a>' % (href, facet['label'], option['label'], option['label'])
 
-        from django.utils.safestring import mark_safe
-
         if passive:
             ret = re.sub(ur'<[^>]*>', ur' ', ret)
 
         if not ret.strip():
             ret = 'All'
-
+            
         return mark_safe(ret)
 
     def get_columns(self, request):
@@ -746,8 +744,7 @@ class FacetedModel(object):
                 #ret = records.filter(id__in=self.ids)
                 #ret = records.in_bulks(ids)
                 ##print self.overview_records.count()
-                self.is_full_search = not (search_phrase or field_queries)
-                self.is_full_search = (self.get_summary(request, True).strip().lower() == 'all')
+                #self.is_full_search = not (search_phrase or field_queries)
 #                 if self.is_full_search:
 #                     self.ids = []
 #                     if str(record.id) in ids and (search_phrase or field_queries):
@@ -791,6 +788,9 @@ class FacetedModel(object):
 
         return ret
 
+    def is_full_search(self):
+        return self.get_summary(self.request, True).strip().lower() == 'all'
+    
     @classmethod
     def get_cache(cls):
         from django.core.cache import get_cache

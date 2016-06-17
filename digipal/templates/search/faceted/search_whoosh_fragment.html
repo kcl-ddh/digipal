@@ -12,10 +12,12 @@
         </span>
     </h1>
 
-    <div class="panel faceted-summary">
-        You are searching for: {{ summary }}
-        <a class="{% if not wide_result %}hidden-md hidden-lg{% endif %}" data-target="managed" href="#facets"> (Change)</a>
-    </div>
+    {% if not result_type.is_full_search %}
+        <div class="panel faceted-summary">
+            You are searching for: {{ summary }}
+            <a class="{% if not wide_result %}hidden-md hidden-lg{% endif %}" data-target="managed" href="#facets"> (Change)</a>
+        </div>
+    {% endif %}
 
     <div class="row faceted-search">
         <form action="." method="get" class="">
@@ -141,7 +143,11 @@
                                                         {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
                                                     </td>
                                                     {% if facet.options.0.count != '' %}
-                                                        <td class="count">{{ option.count }}</td>
+                                                        <td class="count">
+                                                            <a href="{{ option.href }}">
+                                                                {{ option.count }}
+                                                            </a>
+                                                        </td>
                                                     {% endif %}
                                                 </tr>
                                             {% endif %}

@@ -189,9 +189,32 @@
     padding-bottom: 5px;
 }
 
+.facets .panel-body tr.active:hover td {
+    position: relative;
+    &:before {
+        // text-decoration: line-through;
+        content: " ";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        border-bottom: 1px solid white;
+        width: 100%;
+    }
+}
+.facets .panel-body tr.active:hover td a {
+    text-decoration: none;
+}
 .facets .panel-body tr.active td {
     background-color: @dp-main;
     color: white;
+}
+.facets .panel-body tr.active td:first-child {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+.facets .panel-body tr.active td:last-child {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
 
 .facets .panel-body tr.active td a {

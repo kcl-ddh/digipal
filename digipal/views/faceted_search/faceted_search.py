@@ -195,6 +195,11 @@ class FacetedModel(object):
         value_rankings[None] = u''
         value_rankings['None'] = u''
         value_rankings[u''] = u''
+
+        # add the values from the mapping
+        for k, v in field.get('mapping', {}).iteritems():
+            value_rankings[v] = v
+
         ##print 'h2'
         ##print model, path
         i = 0
@@ -455,7 +460,15 @@ class FacetedModel(object):
         if use_path_result and 'path_result' in afield:
             path = afield['path_result']
 
-        return self.get_record_path(record, path)
+        ret = self.get_record_path(record, path)
+
+        # value mapping
+        # TODO: make it work with multi-valued fields (ret is an array)
+        mapping = afield.get('mapping')
+        if mapping and not isinstance(ret, list):
+            ret = mapping.get(ret, ret)
+
+        return ret
 
     def get_record_path(self, record, path):
         '''

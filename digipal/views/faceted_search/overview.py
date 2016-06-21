@@ -90,16 +90,16 @@ class Query(object):
                 if k.startswith('q%s_' % self.index):
                     new_url += '&%s=%s' % (k.replace('q%s_' % self.index, ''), v)
                     url_is_set = True
-            
+
             if url_is_set:
                 from django.test.client import RequestFactory
                 request = RequestFactory().get(new_url)
                 user = self.request.user
                 self.request = request
                 self.request.user = user
-    
+
                 self.faceted_search = simple_search(request)
-        
+
 class Queries(object):
     def __init__(self, request, context, faceted_search):
         '''Instantiate all the queries from the query string'''
@@ -197,7 +197,7 @@ class Overview(object):
         # if True, we group all the results by document to avoid stacking graphs or clauses
         self.faceted_search = faceted_search
         self.settings = self.faceted_search.settings.getGlobal('visualisation')
-        
+
         self.context = context
         self.request = request
         # an index used to detect data point overlap and create stack
@@ -235,7 +235,7 @@ class Overview(object):
         if self.faceted_search.get_selected_view()['key'] != 'overview': return
 
         self.init_queries()
-        
+
         # TODO: MoA, use:
         #self.set_conflate('item_part')
         #self.set_x_field_key('hi_date')
@@ -282,7 +282,7 @@ class Overview(object):
         '''Return a new faceted field whith a relative path to the conflated record id'''
         ret = {'path': 'id'}
 
-        
+
         if getattr(self, 'conflate', None):
             field = faceted_search.get_field_by_key(self.conflate)
             if field:
@@ -295,7 +295,7 @@ class Overview(object):
                     m = re.search(ur'(?musi)(.*\.'+re.escape(self.conflate)+')[._a-z]', field['path'])
                     if m:
                         ret['path'] = m.group(1)+'.id'
-                    
+
         return ret
 
     def set_points(self):
@@ -342,7 +342,7 @@ class Overview(object):
 
                     label = faceted_search.get_record_label_html(record, self.request);
                     point = [x, ys, set([query.index]), label, record.get_absolute_url(), conflateid, '']
-                    
+
                     ret[conflateid] = point
 
                     # determine large y bands for the categories
@@ -493,31 +493,31 @@ class Overview(object):
         # generate the list of vertical categories
         # we take all the fields of the current result type
         # minus those not found in the global 'categories' list
-        # minus those with vcat = False  
+        # minus those with vcat = False
         context['vcats'] = [field for field in faceted_search.get_fields() if field.get('vcat', True) and (not possible_categories or field['key'] in possible_categories)]
 
         category_field = faceted_search.get_field_by_key(self.request.REQUEST.get('vcat', 'hi_type'))
         if category_field is None: category_field = faceted_search.get_field_by_key('hi_type')
         if category_field is None: category_field = faceted_search.get_field_by_key('text_type')
-        if category_field is None: 
+        if category_field is None:
             category_field = context['vcats'][0]
 
         context['vcat'] = category_field
 
         if 0:
             fields = [
-                self.get_x_field_key(), 
-                category_field['key'], 
+                self.get_x_field_key(),
+                category_field['key'],
                 'CONFLATEID' if self.conflate else 'url'
             ]
         else:
             fields = [
-                self.get_x_field_key(), 
-                category_field['key'] 
+                self.get_x_field_key(),
+                category_field['key']
             ]
-            
+
         self.fields = [faceted_search.get_field_by_key(field) for field in fields]
-        
+
     def init_bands(self):
         '''
             Initialise the vertical category-bands with a fixed height and label

@@ -4,9 +4,17 @@ from copy import deepcopy
 FACETED_SEARCH = {
     'fragments': {
         'overview':     {'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'page_sizes': [-1]},
-        'view_default': {'icon': 'th-list', 'label': 'List View', 'key': 'list'}
+        'view_default': {'icon': 'th-list', 'label': 'List View', 'key': 'list'},
+
+        'field_mapping_empty': {None: 'unspecified', '': 'unspecified'},
     },
 }
+
+def get_fragment(key, default=None, original=False):
+    ret = FACETED_SEARCH['fragments'].get(key, default)
+    if not original:
+        ret = deepcopy(ret)
+    return ret
 
 FACETED_SEARCH.update({
     'visualisation': {
@@ -98,7 +106,7 @@ FACETED_SEARCH.update({
                                {'key': 'repo_city', 'label': 'Repository City', 'path': 'item_part.current_item.repository.place.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'repo_place', 'label': 'Repository', 'path': 'item_part.current_item.repository.human_readable', 'path_result': 'item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                                {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark', 'search': True, 'viewable': True, 'type': 'code'},
-                               {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code', 'sort_fct': lambda r: u'%s %s %s' % (r.folio_number or '', r.folio_side or '', r.locus or '')},
+                               {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code', 'sort_fct': lambda r: u'%s %s %s' % (r.folio_number or '', r.folio_side or '', r.locus or ''), 'mapping2': get_fragment('field_mapping_empty')},
                                {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations', 'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
                                {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail', 'path': '', 'type': 'image', 'viewable': True, 'max_size': 70},
 
@@ -112,7 +120,7 @@ FACETED_SEARCH.update({
                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
                     'views': [
-                              deepcopy(FACETED_SEARCH['fragments']['view_default']),
+                              get_fragment('view_default'),
                               {'icon': 'th', 'label': 'Grid View', 'key': 'grid', 'type': 'grid'},
                               {'icon': 'picture', 'label': 'Zoom View', 'key': 'zoom', 'type': 'zoom', 'page_sizes': [1]},
                               ],
@@ -306,7 +314,7 @@ FACETED_SEARCH.update({
                     #'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'views': [
-                              deepcopy(FACETED_SEARCH['fragments']['view_default']),
+                              get_fragment('view_default'),
                               {'icon': 'th', 'label': 'Grid View', 'key': 'grid', 'type': 'grid', 'template': 'graph_grid', 'page_sizes': [50, 100, 200]},
                               ],
                 },

@@ -44,6 +44,38 @@
                 window.setTimeout(f, 0);
             },
 
+            addSliderTotextInput: function(text_input) {
+                // execute f after the current event loop
+                var $input = $(text_input);
+                $input.attr('autocomplete', 'off');
+                var $slider = $('<div class="dpslider"></div>');
+                $input.after($slider);
+
+                // add a size preview (variable size span)
+                var $block = $('<div class="dpslider-block"></div>');
+                $slider.after($block);
+
+                // update input when slider change
+                var onchange = function(e, ui) {
+                    $input.val(ui.value);
+                    $block.css('width', ui.value);
+                    $block.css('height', ui.value);
+                };
+                var slider = $slider.slider({
+                    change: onchange,
+                    slide: onchange,
+                    max: $input.data('max') || 100,
+                });
+                // update slider when input change
+                $input.on('change keyup', function(e) {
+                    var val = $input.val();
+                    if (e.type !== 'keyup' || val.trim()) {
+                        $slider.slider('value', val);
+                    }
+                });
+                $slider.slider('value', $input.val());
+            },
+
             escapeHtml: function(string) {
                 return String(string).replace(/[&<>"'\/]/g, function (s) {
                     return window.dputils.entityMap[s];
@@ -108,7 +140,7 @@
                     }
                 }
             },
-            
+
             get_uuid: function() {
                 return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
                     var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);

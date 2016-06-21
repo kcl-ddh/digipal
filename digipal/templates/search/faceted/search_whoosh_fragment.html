@@ -1,6 +1,6 @@
 <div id="search-ajax-fragment">
     <input type="hidden" id="search_page_title" name="search_page_title" value="{{ search_page_title }}" />
-    
+
     {% load pages_tags mezzanine_tags i18n %}
     {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
@@ -10,7 +10,7 @@
         {% else %}
             Search: {{ result_type.label_plural }} ({{ hit_count }})
         {% endif %}
-        
+
         <span class="dp-small pull-right">
             <a href="/digipal/search/?s=1&terms={{ request.REQUEST.terms|urlencode }}&amp;result_type={{ request.REQUEST.result_type|urlencode }}&amp;from_link=true" data-toggle="tooltip" title="Go to the Advanced Search page">
                 Advanced Search
@@ -29,7 +29,7 @@
         <form action="." method="get" class="">
 
             <div class="col-md-{%if wide_result%}12{% else %}10{%endif%} pull-right-md">
-                    
+
                 {% if not result_type.is_toolbar_hidden %}
                     <div class="panel panel-default">
                         <div class="panel-body dptoolbar">
@@ -42,9 +42,9 @@
                                         <span class="glyphicon glyphicon-resize-horizontal"></span>
                                     </a>
                                 </div>
-            
+
                                 {% dp_pagination_with_size_for current_page %}
-            
+
                                 <div class="btn-group pull-right">
                                     {% for view in views %}
                                         {% if view.selected %}
@@ -53,7 +53,7 @@
                                         {% if views|length > 1 %}
                                             <a href="{% filter add_query_params:request.META.QUERY_STRING %}?page=1&view={{view.key}}{% endfilter %}"
                                                 class="btn btn-default {% if view.selected %} active {% endif %}"
-                                                title="{{ view.label }} View" data-toggle="tooltip">
+                                                title="{{ view.label }}" data-toggle="tooltip">
                                                 <span class="glyphicon glyphicon-{{ view.icon }}"></span>
                                             </a>
                                         {% endif %}
@@ -63,10 +63,10 @@
                         </div>
                     </div>
                 {% endif %}
-        
+
                 {% if result %}
                     {% include result_type.selected_view_template %}
-    
+
                     {% dp_pagination_with_size_for current_page %}
                 {% else %}
                     <div class='alert alert-warning'>
@@ -75,7 +75,7 @@
                         <p>It may help to try other Result Types than '{{ result_type.label_plural }}'.</p>
                     </div>
                 {% endif %}
-        
+
             </div>
 
             <div class="col-md-{%if wide_result%}12{%else%}2{%endif%} facets" id="facets">

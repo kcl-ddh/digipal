@@ -1,19 +1,165 @@
+MOA
+
+
+https://confluence.dighum.kcl.ac.uk/display/MOA/2016-02-17+PAS,+GN+and+SJB
+
+Add clause facets to text
+NB limitations: eg. if you want a single bar per document, then can't filter by text in a given clause
+
+Popup on mouseover:
+    Ideally have different content in popup depending on result type
+    Ideally have different tabs in popup to allow user to set content
+--
+
+Bugs
+
+    ** The search results for the visualisation need to be checked. I have noticed
+    some weird issues: e.g. select an option under a facet and categorise by that
+    facet => not all bars under that category are highlighted, why?
+    Make sure the results are reliable, or as reliable as the underlying data.
+
+    ** Date list showing up
+
+    ** Viewer
+
+--
+
+7/4
+
+Arranging results by date: The default setting for results orders by shelf mark.
+When results are ordered by date, documents with date ranges use the mid-point.
+ To arrange graphs by date, results must be changed in the table view first, and
+ then they will be arranged by date in the grid view. SB suggested this could be
+ made more obvious to users.
+
+Intitulatio: This was decided as the most appropriate term (despite being the
+only example of a Latin term). This, along with other terms (such as ‘arenga’)
+will appear in the glossary.
+
+Clauses: In the table view, ‘clause type’ should be added as a column so that
+you can arrange results by clause type.
+
+** Displaying faces only as default: to be completed.
+
+Issuer: to be completed. Categories should be as follows: royal, episcopal,
+papal, other ecclesiastical, private. The ‘Hammond numbers’ can be used to
+establish most groups: see http://www.poms.ac.uk/information/numbering-system-for-documents/.
+
+Date and summary of MS: to be added to all image page below shelf mark
+
+Medieval archive: now called ‘institutional beneficiary’. Dates of foundation
+have been removed from names that include it, e.g. ‘Dunfermline Abbey (fd.1128)’.
+
+** GN will experiment with different ways of presenting the bars to make closely
+dated documents more prominent than those with large date ranges. These will then
+be presented for initial feedback to the Glasgow team on Monday 6 June at 2pm.
+
+    Ideas included: hatching the bars with long date ranges; having thicker bars
+    for more precise dates; allowing users to filter by different dates (e.g.
+    day/month/year, 5-year range, 10-year range). There was a preference for the
+    latter.
+    There is an issue with presenting results of graphs. At the moment they are
+    attached to the bottom right corner of the bar. DB suggested having thumbnails
+    presented above the barcode, and in a rough chronological sequence. The
+    thumbnail would highlight the bar in the charter when you hover over it.
+
+GN: make it more obvious how to arrange graph thumbnails by date in the grid view.
+GN: in the table view, add a ‘clause type’ column so that you can arrange results by clause type.
+GN: make default image search display ‘faces’ only.
+GN: create new ‘issuer’ categories (royal, episcopal, papal, other ecclesiastical, private).
+GN: add date and summary of each MS to the image page below the shelf mark.
+GN: experiment with different ways of presenting the bars in the bar code.
+
+--
+
+Requests from the project team:
+
+    [done]
+
+    Don't hide histogram when "all records" are hidden.
+    New search with "save copy":  keep old results in original colour. (ii) Explain
+        the meaning of combined colours on screen – 3 or more searches, colour combinations become confusing.
+    Use slider rather than numbers for scale on visualisation settings.
+    Add "remove" to each search query.
+    [done] Use "Hide" and "show" rather than "visible" "hidden"
+    For "save copy", have "new query" as a separate button. Remove "save copy" option.
+    [done] For "Count", use ? "Hits" or "Total"
+    [done] For "Color" use "Colour"
+    Results display filter only working for document type. On attached screenshot, document types are being included in medieval archive view.
+    [done] Also, we think only the following filters would be useful: Document type; clause type; medieval archive; issuer; issuer type.
+    When searching for graphs the links to document images highlights random letters, and not the ones searched for.
+    How will combined searches for graphs be displayed? At the moment only one thumbnail per document is visible.
+    Add reset button.
+
+--
+6/4
+
+IAG (Joanna's notes)
+
+GN: separate transl/transc
+
+GN: Make italics (i.e. expansions) visible when displaying transcriptions in
+    table view.
+    RS: It is useful (for comparison with English charters) to be able to see
+    whether titles are written out in full or abbreviated (e.g. vic’,
+    vicec’, justic’). SB showed how this can be done by searching for, e.g.,
+    vic*. However, table view of transcriptions should show the italics
+    (i.e. expansions).
+
+GN: Explore whether thumbnails of ‘graphs’ can be presented by charter in the grid view.
+
+    Can the thumbnails of ‘graphs’ be presented by charter in the grid view? PS explained
+    that they are grouped by charter in ‘My Collection’.
+
+GN: Experiment with how best to present documents in the bar code (in particular,
+    to make the dated documents more prominent).
+
+    In the top part at the moment, the bars which represent documents give
+    prominence to those with less precise dates (compared to the precisely dated
+     charters which are given much less prominence). Could a filter be added to
+     give the option of only searching for documents which have a relatively
+     precise date (e.g. within a year)? These results could then be compared
+     with the undated documents. MH: Perhaps the large date ranges could be
+     presented as a line, rather than a block to gives less weight to them
+     (and also to save space)? SB: We could add ‘hatching’ to the undated
+     documents and full colour for those dated?
+
+--
+
+IAG (PS) - https://confluence.dighum.kcl.ac.uk/display/MOA/Rough+Notes+from+IAG+meeting
+
+    ‘Overview view’ -> ‘Overview'
+    Problem of synthetic view
+        Weight by precision of dating?
+        Cluster by decade in synthetic view?
+        Allow user to set cluster periods?
+        Allow user to exclude those which can’t be dated to cluster?
+        Exclude all charters which aren’t closely dated
+    Check DEEDS to see how they visualise
+    Try not optimising layout, but ordering by (approximate) date
+
+    Graph results view: useful to add grouping there too, e.g. by MS
+        User annotations: user may want to use system structured component/features
+
+--------
+
+
 TOC
 
-[OK] change all the ampersands (&) to italic <et>. 
+[OK] change all the ampersands (&) to italic <et>.
 
-There are two slight complications here. 
-[OK] One is ual&{ent} in 270a1. Here the ampersand has been underlined by me as it is replaced by the {ent}. 
-So the resulting italic <et> should also be underlined. 
-* Similar, but not identical, is ual&{en〈t〉} on 271a2. This is my stop-gap until we turn the <&> 
-into an italic <et>. In effect the {en} belongs in the middle of the ampersand so the result should 
+There are two slight complications here.
+[OK] One is ual&{ent} in 270a1. Here the ampersand has been underlined by me as it is replaced by the {ent}.
+So the resulting italic <et> should also be underlined.
+* Similar, but not identical, is ual&{en〈t〉} on 271a2. This is my stop-gap until we turn the <&>
+into an italic <et>. In effect the {en} belongs in the middle of the ampersand so the result should
 be uale{n}t, with the <e> and the <t> being in italics as they are halves of the converted ampersand.
 
-* A letter <q> has appeared with a wiggle on the left 
-as opposed to the ordinary letter struck through which is <q>. 
-This “q with a wiggle” is represented by a <ɋ> which is Unicode 024B. 
-This appears in ɋ:[uae] and ɋ:[uam] and ɋ4[uae] 
-Obviously, as usual, the <ɋ> becomes a normal <q> and the colon (:) 
+* A letter <q> has appeared with a wiggle on the left
+as opposed to the ordinary letter struck through which is <q>.
+This “q with a wiggle” is represented by a <ɋ> which is Unicode 024B.
+This appears in ɋ:[uae] and ɋ:[uam] and ɋ4[uae]
+Obviously, as usual, the <ɋ> becomes a normal <q> and the colon (:)
 and the figure (4) are lost and what is in brackets becomes italicised,
 
 ---

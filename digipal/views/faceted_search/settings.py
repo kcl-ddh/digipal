@@ -4,7 +4,7 @@ from copy import deepcopy
 FACETED_SEARCH = {
     'fragments': {
         'overview':     {'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'page_sizes': [-1]},
-        'view_default': {'icon': 'th-list', 'label': 'List', 'key': 'list'}
+        'view_default': {'icon': 'th-list', 'label': 'List View', 'key': 'list'}
     },
 }
 
@@ -13,7 +13,7 @@ FACETED_SEARCH.update({
         # VISUALISATION SETTINGS
         'field_x':          'hi_date',
         'field_conflate':   'item_part',
-        # a list of facet keys that can be used to categorise the visualisation 
+        # a list of facet keys that can be used to categorise the visualisation
         # e.g. ['hi_type', 'clause_type', 'medieval_archive', 'issuer', 'issuer_type'],
         # if empty, all possible facets are available
         'categories': [],
@@ -31,8 +31,8 @@ FACETED_SEARCH.update({
                 # viewable = True if the field can be displayed in the result set
 
                 # index = True iff (search or filter or count)
-                
-                # expanded = 1 to show all option in the facet by default, 
+
+                # expanded = 1 to show all option in the facet by default,
                 #    0 to show first 5, -1 to collapse the facet
                 #    2 always expanded
 
@@ -111,8 +111,8 @@ FACETED_SEARCH.update({
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus'],
                     'views': [
                               deepcopy(FACETED_SEARCH['fragments']['view_default']),
-                              {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid'},
-                              {'icon': 'picture', 'label': 'Zoom', 'key': 'zoom', 'type': 'zoom', 'page_sizes': [1]},
+                              {'icon': 'th', 'label': 'Grid View', 'key': 'grid', 'type': 'grid'},
+                              {'icon': 'picture', 'label': 'Zoom View', 'key': 'zoom', 'type': 'zoom', 'page_sizes': [1]},
                               ],
                 },
 
@@ -305,7 +305,7 @@ FACETED_SEARCH.update({
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'locus', 'allograph'],
                     'views': [
                               deepcopy(FACETED_SEARCH['fragments']['view_default']),
-                              {'icon': 'th', 'label': 'Grid', 'key': 'grid', 'type': 'grid', 'template': 'graph_grid', 'page_sizes': [50, 100, 200]},
+                              {'icon': 'th', 'label': 'Grid View', 'key': 'grid', 'type': 'grid', 'template': 'graph_grid', 'page_sizes': [50, 100, 200]},
                               ],
                 },
             ]
@@ -369,7 +369,7 @@ class FacettedType(object):
         if copy:
             ret = deepcopy(ret)
         return ret
-    
+
     @staticmethod
     def fromKey(akey):
         ret = None
@@ -396,7 +396,7 @@ class FacettedType(object):
     @staticmethod
     def getAll():
         return [FacettedType(options) for options in FACETED_SEARCH['types']]
-    
+
     def addField(self, field_definition=None):
         if field_definition:
             self.options['fields'].append(field_definition)
@@ -415,7 +415,7 @@ class FacettedType(object):
 
     def getOption(self, key, default=None):
         return self.options.get(key, default)
-    
+
     @staticmethod
     def getDefaultView(selected=False):
         ret = FacettedType.getFragment('view_default', copy=True)
@@ -428,7 +428,7 @@ class FacettedType(object):
         if ret is None:
             ret = self.options['views'] = []
         return ret
-    
+
     def getViews(self):
         '''Returns a copy of the views with possibly additional default views'''
         ret = deepcopy(self.getViewsRaw())
@@ -438,12 +438,12 @@ class FacettedType(object):
         default_view = self.getDefaultView()
         if default_view['key'] not in view_keys:
             ret.insert(0, default_view)
-            
+
         # add overview
         overview = self.getFragment('overview', copy=True)
         if overview['key'] not in view_keys:
             ret.append(overview)
-        
+
         return ret
 
     def getViewsEnabled(self):
@@ -479,7 +479,7 @@ class FacettedType(object):
         l = self.options[option]
         index = l.index(after_key) + 1 if after_key else len(l)
         l.insert(index, key)
-        
+
     @classmethod
     def isFieldAFacet(cls, field):
         return field.get('count', False) or field.get('filter', False)

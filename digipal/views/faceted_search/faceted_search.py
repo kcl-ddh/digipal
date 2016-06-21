@@ -616,7 +616,6 @@ class FacetedModel(object):
     def is_user_agent_banned(self, request):
         # JIRA-673: Baidu doesn't respect the nofollow on the DigiPal search page
         user_agent = request.META.get('HTTP_USER_AGENT', '')
-        import re
         m = re.search(ur'(?i)baiduspider|AhrefsBot', user_agent)
         return m
 

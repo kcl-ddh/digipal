@@ -1,5 +1,34 @@
 MOA
 
+http://localhost:8080/digipal/search/facets/?repo_city=Edinburgh
+&q3_vcat=hi_type
+&q2_vz_gs=40
+&pgs=-1
+&vcat=hi_type
+&vz_bh=18
+&q3_vz_gs=40
+&q3_terms=scia%2A
+&q3_view=overview
+&q2_terms=scia%2A
+&q2___Redraw=Redraw
+&q2_wr=0
+&q3_result_type=texts
+&terms=scia%2A
+&q3___Redraw=Redraw
+&q2_view=overview
+&q2_vz_bh=18
+&q2_result_type=texts
+&vz_gs=40
+&wr=0
+&q2_vcat=hi_type
+&q3_wr=0
+&page=1
+&q2_pgs=-1
+&q3_pgs=-1
+&q3_vz_bh=18
+&result_type=texts
+&view=overview
+
 
 https://confluence.dighum.kcl.ac.uk/display/MOA/2016-02-17+PAS,+GN+and+SJB
 

@@ -25,8 +25,10 @@ FACETED_SEARCH.update({
 
                 # path = a field name (can go through a related object or call a function)
 
-                # filter = True to let the user filter by this field (i.e. it is a facet with options)
-                # count = True to show the number of hits for each possible value of the field => implies filter = True
+                # filter = True to show a facet widget that lets the user filter by this field (e.g. facets with options or range)
+                # hide_options = True we don't show the options in the facet widget (e.g. a slider / text box)
+                #    see areFieldOptionsShown()
+                # count = True to show the number of hits for each option => implies filter = True
                 # search = True if the field can be searched on (phrase query)
                 # viewable = True if the field can be displayed in the result set
 
@@ -52,7 +54,7 @@ FACETED_SEARCH.update({
 
                                {'key': 'hi_has_images', 'label': 'Image Availablity', 'path': 'get_has_public_image_label', 'type': 'code', 'count': True},
 
-                               {'key': 'hi_date', 'label': 'MS Date', 'path': 'historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
+                               {'key': 'hi_date', 'label': 'MS Date', 'path': 'historical_item.get_date_sort', 'type': 'date', 'filter': True, 'hide_options': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
                                {'key': 'hi_index', 'label': 'Cat. Num.', 'path': 'historical_item.catalogue_number', 'type': 'code', 'viewable': True, 'search': True},
                                # id to avoid clashes on partials (e.g. brieve/charter vs brieve-charter)
                                {'key': 'hi_type', 'label': 'Document Type', 'path': 'historical_item.historical_item_type.name', 'type': 'id', 'viewable': True, 'count': True},
@@ -482,7 +484,13 @@ class FacettedType(object):
 
     @classmethod
     def isFieldAFacet(cls, field):
+        '''Is this field displayed as a facet on the faceted search'''
         return field.get('count', False) or field.get('filter', False)
+
+    @classmethod
+    def areFieldOptionsShown(cls, field):
+        '''Should the field values be retrieved and displayed as facet options?'''
+        return cls.isFieldAFacet(field) and not field.get('hide_options', field['type'] in ['date'])
 
     def setDateRange(self, rng):
         for f in self.fields:

@@ -69,7 +69,7 @@ class FacetedModel(object):
         if not found:
             #raise Exception('Yo!')
             ret[0]['selected'] = True
-        
+
         return ret
     views = property(get_views)
 
@@ -118,7 +118,7 @@ class FacetedModel(object):
 
     def is_toolbar_hidden(self):
         return self.options.get('toolbar_hidden', False)
-    
+
     def get_sort_info(self, request):
         key = request.REQUEST.get('sort', '')
         reverse = key.startswith('-')
@@ -255,7 +255,7 @@ class FacetedModel(object):
             if self.is_field_indexable(field):
                 fkey = field['key']
                 value = self.get_record_field_whoosh(record, field)
-                
+
                 # generate associated sort field
                 whoosh_sortable_field = self._get_sortable_whoosh_field(field)
                 if whoosh_sortable_field and whoosh_sortable_field != fkey:
@@ -368,7 +368,7 @@ class FacetedModel(object):
     def get_facet_options(self, field, request, sorted_by='c'):
         from urllib import quote_plus
         ret = []
-        if not self.settings.isFieldAFacet(field):
+        if not self.settings.areFieldOptionsShown(field):
             return ret
         selected_key = unicode(request.GET.get(field['key'], ''))
 
@@ -523,7 +523,7 @@ class FacetedModel(object):
 
         if not ret.strip():
             ret = 'All'
-            
+
         return mark_safe(ret)
 
     def get_columns(self, request):
@@ -548,9 +548,9 @@ class FacetedModel(object):
 
         ret = []
         for field in self.fields:
-            if self.settings.isFieldAFacet(field):
+            if self.settings.areFieldOptionsShown(field):
                 field_facet = sorting.StoredFieldFacet(
-                    field['key'], 
+                    field['key'],
                     maptype= sorting.Count if field.get('count', False) else sorting.UnorderedList,
                     # It tells whoosh that the a record can have more than one value
                     # for that facet
@@ -804,7 +804,7 @@ class FacetedModel(object):
 
     def is_full_search(self):
         return self.get_summary(self.request, True).strip().lower() == 'all'
-    
+
     @classmethod
     def get_cache(cls):
         from django.core.cache import get_cache
@@ -841,7 +841,7 @@ class FacetedModel(object):
                    }
 
             for field in self.fields:
-                if self.settings.isFieldAFacet(field):
+                if self.settings.areFieldOptionsShown(field):
                     ret['facets'][field['key']] = res.groups(field['key'])
 
             cache.set(search_key, json.dumps(ret))
@@ -1068,7 +1068,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     hand_filters.chrono('overview')
     from overview import draw_overview
     draw_overview(ct, context, request)
-    
+
     hand_filters.chrono(':SEARCH')
 
     hand_filters.chrono('TEMPLATE:')
@@ -1076,7 +1076,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     fragment = ''
     if request.is_ajax():
         fragment = '_fragment'
-    
+
     ret = render_to_response('search/faceted/search_whoosh%s.html' % fragment, context, context_instance=RequestContext(request))
 
     hand_filters.chrono(':TEMPLATE')

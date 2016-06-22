@@ -74,7 +74,7 @@
                                         </ul>
                                         <a class="btn btn-default" href="{% filter add_query_params:request.META.QUERY_STRING %}?sort={% if not sort_reverse %}-{%endif%}{{ sort_key }}{% endfilter %}"
                                             data-toggle="tooltip" title="Reverse sort order">
-                                            <span class="pull-left glyphicon glyphicon-arrow-{% if sort_reverse %}up{%else%}down{%endif%}"></span>
+                                            <span class="glyphicon glyphicon-arrow-{% if sort_reverse %}up{%else%}down{%endif%}"></span>
                                         </a>
                                     </div>
                                 {% endif %}

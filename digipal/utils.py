@@ -13,9 +13,9 @@ except:
 _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
 _nsre = re.compile(ur'(?iu)([0-9]+)')
 
-def sorted_natural(l, roman_numbers=False):
+def sorted_natural(l, roman_numbers=False, is_locus=False):
     '''Sorts l and returns it. Natural sorting is applied.'''
-    ret = sorted(l, key=lambda e: natural_sort_key(e, roman_numbers))
+    ret = sorted(l, key=lambda e: natural_sort_key(e, roman_numbers, is_locus))
     # make sure the empty values are at the end
     for v in [None, u'', '']:
         if v in ret:
@@ -23,7 +23,7 @@ def sorted_natural(l, roman_numbers=False):
             ret.append(v)
     return ret
 
-def natural_sort_key(s, roman_numbers=False):
+def natural_sort_key(s, roman_numbers=False, is_locus=False):
     '''
         Returns a list of tokens from a string.
         This list of tokens can be feed into a sorting function to come up with a natural sorting.
@@ -34,8 +34,18 @@ def natural_sort_key(s, roman_numbers=False):
         e.g. MS A; MS B; MS C. In this case C is a letter and not 500.
             MS A.ix In this case ix is a number
         So as a heuristic we only consider roman number if preceded by '.'
+
+        If is_locus is True, 'face' will appear before 'dorse', etc.
     '''
     if s is None: s = ''
+
+    if is_locus:
+        print s
+        s = re.sub(ur'(?i)\b(cover)\b', '50', s)
+        s = re.sub(ur'(?i)\b(face|recto)\b', '100', s)
+        s = re.sub(ur'(?i)\b(dorse|verso)\b', '200', s)
+        s = re.sub(ur'(?i)\bseal\b', '300', s)
+        print s
 
     if roman_numbers:
         while True:
@@ -1300,7 +1310,7 @@ def get_plain_text_from_xmltext(xml_str):
 
     # remove | (line breaks) and other expansion markup <>
     ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '').replace(u'-|', u'').replace(u'|', u'\r')
-    
+
     ret = regex.sub(ur'(?musi)\s+', ' ', ret)
 
     return ret

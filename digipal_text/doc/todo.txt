@@ -1,5 +1,11 @@
 MOA
 
+http://localhost:8080/digipal/manuscripts/650/texts/view/?above=location/face/&center=transcription/sync/location&east=translation/sync/location&north=image/sync/location#text-viewer
+
+http://localhost:8080/digipal/manuscripts/650/texts/view/?above=location/face/;subl:%5B%5B%22%22%2C+%22clause%22%5D%2C+%5B%22type%22%2C+%22disposition%22%5D%5D&center=transcription/sync/location&east=translation/sync/location&north=image/sync/location#text-viewer
+
+
+
 http://localhost:8080/digipal/search/facets/?repo_city=Edinburgh
 &q3_vcat=hi_type
 &q2_vz_gs=40

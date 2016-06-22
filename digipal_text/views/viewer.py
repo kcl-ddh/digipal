@@ -189,13 +189,13 @@ def text_api_view_location(request, item_partid, content_type, location_type, lo
         Used by the master location widget on top of the Text Viewer web page
     '''
     from digipal.models import ItemPart
-    
+
     load_locations = utils.get_int_from_request_var(request, 'load_locations')
-    
+
     if load_locations:
         context = {'item_part': ItemPart.objects.filter(id=item_partid).first()}
         resolve_master_location(context, location_type, location)
-        
+
         ret = {
                'location_type': context['master_location_type'],
                'location': context['master_location'],
@@ -206,7 +206,7 @@ def text_api_view_location(request, item_partid, content_type, location_type, lo
                'location_type': location_type,
                'location': location,
                }
-    
+
     return ret
 
 def resolve_master_location(context, master_location_type, master_location):
@@ -219,8 +219,6 @@ def resolve_master_location(context, master_location_type, master_location):
     context['master_location'] = master_location
 
     # now merge all LT and L from all images and Texts associated to this IP
-    context['master_locations'] = SortedDict()
-
     context['master_locations'] = get_all_master_locations(context)
 
     # TODO: possible code similarity with the location request for individual content type
@@ -232,10 +230,6 @@ def resolve_master_location(context, master_location_type, master_location):
         context['master_location'] = available_locations[0]
 
 def get_all_master_locations(context):
-    # TODO!
-    #context['master_locations']['locus'] = ['1r', '1v', '2r', '2v', '8r']
-    #context['master_locations']['entry'] = ['1a1', '1a2', '1a3', '1a4']
-
     # Get locus from images
     # TODO: filter only available images
     ret = SortedDict()
@@ -249,11 +243,16 @@ def get_all_master_locations(context):
 
     # sort locations
     for k,v in ret.iteritems():
-        ret[k] = sorted_natural(v)
+        locations = sorted_natural(v, roman_numbers=True, is_locus=True)
+        print locations
+        # make sure face is before dorse
+        # dorse is before seal
+        # TODO: move this logic to a deeper level, that's useful in many places on
+        # the site
+        ret[k] = locations
 
     return ret
 
-    
 
 # TODO: content_type_record makes this signature non-polymorphic and even incompatible with image
 # need to use optional parameter for it
@@ -550,7 +549,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
 
     # find the image
     image = find_image(request, item_partid, location_type, location, get_visible_images, visible_images)
-    
+
     if location_type == 'entry':
         # user asked for entry, we can only return a locus
         # so we add the entry as a sublocation

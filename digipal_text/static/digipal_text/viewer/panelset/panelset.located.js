@@ -29,28 +29,28 @@
         this.$locationSelect.on('change', function() {
             me.onLocationChanged();
         });
-        
+
         $root.find('.btn-page-nav').on('click', function() {
             me.onNextPage($(this).hasClass('btn-page-previous') ? -1 : +1);
         });
-        
+
     };
-    
+
     Located.prototype.onNextPage = function(offset) {
         this.moveBy(offset);
-    }
-    
+    };
+
     // Move location by <offset> units
     Located.prototype.moveBy = function(offset) {
         this.setLocationTypeAndLocation(this.getLocationType(), this.getLocationWithOffset(null, null, offset));
-    }
+    };
 
     Located.prototype.getSurroundingLocations = function(locationType, location) {
         var ret = {};
         var me = this;
         [-1,0,1].map(function(offset) { ret[offset] = me.getLocationWithOffset(locationType, location, offset); });
         return ret;
-    }
+    };
 
     Located.prototype.onLocationChanged = function() {
         // to be overridden
@@ -81,9 +81,9 @@
     // any argument can be null, default values are (current LocType, current Location, 0)
     Located.prototype.getLocationWithOffset = function(locationType, location, offset) {
         var ret = location || this.getLocation();
-        
+
         locationType = locationType || this.getLocationType();
-        
+
         if (this.locations) {
             var locations = this.locations[locationType];
             if (locations) {
@@ -97,8 +97,8 @@
             }
         }
         return ret;
-    }
-    
+    };
+
     // Same as getLocation() but without the offset (if any)
     // E.g. if the location type is 'sync' and location is 'location+1'
     // the function returns 'location'
@@ -113,7 +113,7 @@
     Located.prototype.getLocationParts = function() {
         // if location is 'X+1', returns {location: 'X', offset: 1}
         var ret = {location: this.getLocation(), offset: 0};
-        
+
         if (ret.location) {
             var offset = ret.location.match(/[+-]\d+$/g);
             if (offset) {
@@ -122,9 +122,9 @@
                 ret.location = ret.location.substring(0, ret.location.length - offset.length);
             }
         }
-        
+
         return ret;
-    }
+    };
 
     Located.prototype.setLocationTypeAndLocation = function(locationType, location) {
         // this may trigger a content load
@@ -236,7 +236,7 @@
     // than the location
     Located.prototype.getSubLocationUnresolved = function() {
         return this.subLocation;
-    }
+    };
 
     Located.prototype.getSubLocationFromLocaton = function() {
         // create a subLocation from the location
@@ -274,5 +274,5 @@
         this.setSubLocation(subLocation);
         return true;
     };
-    
+
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

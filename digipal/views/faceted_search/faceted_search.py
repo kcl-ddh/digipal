@@ -1046,6 +1046,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
 
     hand_filters.chrono('sort')
     context['sort_key'], context['sort_reverse'] = ct.get_sort_info(request)
+    context['sort_key_valid'] = context['sort_key'] in [f['key'] for f in context['cols'] if f.get('sortable', False)]
 
     view = ct.get_selected_view()
     if view:

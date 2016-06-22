@@ -45,6 +45,41 @@
 
                                 {% dp_pagination_with_size_for current_page %}
 
+                                {# SORT DROP DOWN (for grid view only) #}
+                                {% if result_type.get_selected_view.key = 'grid' %}
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                            <span data-toggle="tooltip" title="Sort result by">
+                                                {% if not sort_key_valid %}
+                                                    Sort by
+                                                {% endif %}
+                                                {% for col in cols %}
+                                                    {% if col.key == sort_key %}
+                                                        {{ col.label }}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </span>
+                                            <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" role="menu">
+                                            {% for col in cols %}
+                                                {% if col.sortable %}
+                                                    <li>
+                                                        <a href="{% filter add_query_params:request.META.QUERY_STRING %}?sort={% if sort_reverse %}-{%endif%}{{ col.key }}{% endfilter %}">
+                                                            {{ col.label }}
+                                                        </a>
+                                                    </li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                        <a class="btn btn-default" href="{% filter add_query_params:request.META.QUERY_STRING %}?sort={% if not sort_reverse %}-{%endif%}{{ sort_key }}{% endfilter %}"
+                                            data-toggle="tooltip" title="Reverse sort order">
+                                            <span class="pull-left glyphicon glyphicon-arrow-{% if sort_reverse %}up{%else%}down{%endif%}"></span>
+                                        </a>
+                                    </div>
+                                {% endif %}
+
+                                {# VIEWS LIST #}
                                 <div class="btn-group pull-right">
                                     {% for view in views %}
                                         {% if view.selected %}

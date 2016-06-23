@@ -153,7 +153,7 @@
                                         </span>
                                     </div>
                                     {% if facet.type == 'date' %}
-                                        <div >
+                                        <div>
                                             <div class="slider"
                                                 {% if facet.id %}data-label-selector="#{{ facet.id }}"{% endif %}
                                                 data-min="{{ facet.min }}"
@@ -162,6 +162,26 @@
                                                 data-max-value="{% if facet.value %}{{ facet.values.1 }}{% else %}{{ facet.max }}{% endif %}"
                                             ></div>
                                         </div>
+
+                                        <div>Precision (in years)</div>
+                                        <div class="input-group">
+                                            <select name="{{ facet.key }}_diff_op" class="form-control">
+                                                {% for op in facet.ops %}
+                                                    <option value="{{ op.key }}" {% if op.key == facet.value_diff_op %}selected{% endif %}>{{ op.label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control {{ facet.classes }}" value="{{ facet.value_diff }}" name="{{facet.key}}_diff" autocomplete="off"
+                                                {% if facet.id %}id="{{ facet.id }}_diff"{% endif %}
+                                            >
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-default" type="submit" {% if facet.id %}data-focus="#{{ facet.id }}_diff"{% endif %}>
+                                                    <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                                                </button>
+                                            </span>
+                                        </div>
+
                                     {% endif %}
                                 {% endif %}
                                 {% if facet.options %}

@@ -278,6 +278,7 @@ class FacetedModel(object):
                     rng = get_range_from_date(value)
                     ret[fkey + '_min'] = rng[0]
                     ret[fkey + '_max'] = rng[1]
+                    ret[fkey + '_diff'] = abs(rng[1] - rng[0])
                     if is_max_date_range(rng):
                         # we don't want the empty dates and invalid dates to be found
                         ret[fkey + '_max'] = ret[fkey + '_min']
@@ -347,10 +348,17 @@ class FacetedModel(object):
             facet['options'] = self.get_facet_options(field, request, facet['sorted_by'])
 
             facet['value'] = request.GET.get(field['key'], '')
+            facet['value_diff'] = request.GET.get(field['key']+'_diff', '')
+            facet['value_diff_op'] = request.GET.get(field['key']+'_diff_op', '')
 
-            if facet['value'] and field['type'] == 'date':
-                from digipal.utils import get_range_from_date
-                facet['values'] = get_range_from_date(facet['value'])
+            if field['type'] == 'date':
+                if facet['value']:
+                    from digipal.utils import get_range_from_date
+                    facet['values'] = get_range_from_date(facet['value'])
+                facet['ops'] = [
+                    {'key': 'lte', 'label': 'at most'},
+                    {'key': 'gte', 'label': 'at least'},
+                ]
 
             facet['removable_options'] = []
             if facet['options']:
@@ -358,6 +366,8 @@ class FacetedModel(object):
             else:
                 if facet['value']:
                     facet['removable_options'] = [{'label': facet['value'], 'key': facet['value'], 'count': '?', 'selected': True}]
+                if facet['value_diff']:
+                    facet['removable_options'] = [{'label': facet['value_diff'], 'key': facet['value_diff'], 'count': '?', 'selected': True}]
             ret.append(facet)
 
         for facet in ret:
@@ -643,6 +653,7 @@ class FacetedModel(object):
         field_queries = u''
         for field in self.fields:
             value = request.GET.get(field['key'], '').strip()
+            value_diff = request.GET.get(field['key']+'_diff', '').strip()
 
             # Reserved field name to fide private content from public users
             if field['key'] == 'PRIVATE':
@@ -658,6 +669,11 @@ class FacetedModel(object):
                     field_queries += u' %s_min:<=%s %s_max:>=%s ' % (field['key'], rng[1], field['key'], rng[0])
                 else:
                     field_queries += u' %s:"%s" ' % (field['key'], value)
+
+            if value_diff:
+                value_diff_op = request.GET.get(field['key']+'_diff_op', '').strip()
+                op = {'lte': '<=', 'gte': '>='}.get(value_diff_op, 'gte')
+                field_queries += u' %s_diff:%s%s ' % (field['key'], op, value_diff)
 
         # add the search phrase
         if search_phrase or field_queries:
@@ -842,10 +858,6 @@ class FacetedModel(object):
         if ret is None:
             utils.dplog('Cache MISS')
             res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
-
-            #print q
-            #print res
-            #print limit
 
             ret = {
                    'ids': [hit['id'] for hit in res],
@@ -1152,6 +1164,7 @@ def get_whoosh_field_types(field):
         ret[''] = get_whoosh_field_type({'type': 'code'})
         ret['_min'] = get_whoosh_field_type({'type': 'int'}, True)
         ret['_max'] = get_whoosh_field_type({'type': 'int'}, True)
+        ret['_diff'] = get_whoosh_field_type({'type': 'int'}, True)
     else:
         ret[''] = get_whoosh_field_type(field)
 

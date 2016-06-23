@@ -408,9 +408,14 @@ class FacettedType(object):
     def getAll():
         return [FacettedType(options) for options in FACETED_SEARCH['types']]
 
-    def addField(self, field_definition=None):
+    def addField(self, field_definition=None, after_key=None):
         if field_definition:
-            self.options['fields'].append(field_definition)
+            index = 0
+            for field in self.getFields():
+                if field['key'] == after_key:
+                    break
+                index += 1
+            self.options['fields'].insert(index + 1, field_definition)
 
     def getField(self, key):
         ret = None
@@ -487,9 +492,13 @@ class FacettedType(object):
             after_key = key
 
     def addFieldToOption(self, option='filter_order', key=None, after_key=None):
-        l = self.options[option]
-        index = l.index(after_key) + 1 if after_key else len(l)
-        l.insert(index, key)
+        l = self.options.get(option, None)
+        if l:
+            try:
+                index = l.index(after_key) + 1 if after_key else len(l)
+                l.insert(index, key)
+            except ValueError:
+                pass
 
     @classmethod
     def isFieldAFacet(cls, field):

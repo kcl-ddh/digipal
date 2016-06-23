@@ -594,6 +594,8 @@
             $(".fancybox").fancybox();
         }
 
+        $(window).trigger('dputils:ready');
+
     });
 })(jQuery);
 

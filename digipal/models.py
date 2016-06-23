@@ -19,6 +19,7 @@ from django.db import transaction
 from mezzanine.generic.fields import KeywordsField
 import logging
 from django.utils.text import slugify
+import utils as dputils
 dplog = logging.getLogger('digipal_debugger')
 
 from patches import iipimage_patches, admin_patches, whoosh_patches
@@ -645,6 +646,28 @@ class HistoricalItem(models.Model):
         #if re.search(ur'\d{3,4}$', date) and not re.search(ur'(?i)circa', date) and not re.search(ur'(?i)\bx\b', date) and not re.search(ur'(?i)\bc\b', date):
         if re.match(ur'\d{1,2}\s+\w+\s+\d{4}$', date) and not re.search(ur'(?i)circa', date) and not re.search(ur'(?i)\bx\b', date) and not re.search(ur'(?i)\bc\b', date):
             ret = True
+        return ret
+
+    def get_date_sort_range_diff(self):
+        ret = 1000
+        date = self.get_date_sort()
+        if date:
+            rng = dputils.get_range_from_date(date)
+            diff = abs(rng[0] - rng[1])
+#             if diff == 0:
+#                 ret.append('precise year')
+#             if diff <= 5:
+#                 ret.append('5 year (or less)')
+#             if diff <= 10:
+#                 ret.append('10 years (or less)')
+#             if diff <= 20:
+#                 ret.append('20 years (or less)')
+#             if diff > 20:
+#                 ret.append('More than 20 years')
+#         else:
+#             ret.append('Unspecified')
+            ret = diff
+
         return ret
 
     def get_date_sort(self):

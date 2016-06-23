@@ -160,8 +160,14 @@ function dpvis() {
 
         // update sliders
         $('.input-to-slider').each(function() {
+            var $input = this;
+            var handler = function($input) {
+                window.dputils.addSliderTotextInput($input);
+            };
             if (window.dputils) {
-                window.dputils.addSliderTotextInput(this);
+                handler($input);
+            } else {
+                $(window).on('dputils:ready', function() {handler($input);});
             }
         });
 

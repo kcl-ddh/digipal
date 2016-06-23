@@ -180,7 +180,16 @@ class Overview(object):
                 drawing
                     points:
                         [
-                            [[x1, x2], y, found, label, url, conflatedid]
+                            [[x1, x2], y, found, label, url, conflatedid, annotation]
+                            [
+                                0: [x1, x2],
+                                1: ys,
+                                2: set([query.index]),
+                                3: label,
+                                4: record.get_absolute_url(),
+                                5: conflateid,
+                                6: URL annotation,
+                            ]
                             ...
                         ]
                     point_height: 7
@@ -282,7 +291,6 @@ class Overview(object):
         '''Return a new faceted field whith a relative path to the conflated record id'''
         ret = {'path': 'id'}
 
-
         if getattr(self, 'conflate', None):
             field = faceted_search.get_field_by_key(self.conflate)
             if field:
@@ -340,7 +348,7 @@ class Overview(object):
                     x = values[0]
                     ys = values[1]
 
-                    label = faceted_search.get_record_label_html(record, self.request);
+                    label = faceted_search.get_record_label_html(record, self.request)
                     point = [x, ys, set([query.index]), label, record.get_absolute_url(), conflateid, '']
 
                     ret[conflateid] = point
@@ -357,45 +365,16 @@ class Overview(object):
                     # add layerid
                     point[2].add(query.index)
 
-                    # add image
+                    # add annotation to data point
                     from digipal.models import Graph
                     if not point[6] and isinstance(record, Graph):
                         info = record.annotation.get_cutout_url_info(esc=False, rotated=False, fixlen=self.graph_size)
                         point[6] = info['url']
 
-
-#         if 0:
-#             for record in self.context['result']:
-#
-#                 # TODO: self.fields depends on the result type!!!
-#                 # once we allow a mix of result type we'll have to get the fields differently
-#                 conflateid = faceted_search.get_record_field(record, conflate_relative_field)
-#
-#                 point = ret.get(conflateid, None)
-#                 if point is None:
-#                     point = []
-#
-#                     # TODO: one request for the whole thing
-#                     values = []
-#                     for field in self.fields[:2]:
-#                         values.append(faceted_search.get_record_field(record, field))
-#
-#                     x = values[0]
-#                     ys = values[1]
-#
-#                     label = faceted_search.get_record_label_html(record, self.request);
-#                     point = [x, ys, set([0]), label, record.get_absolute_url(), conflateid, '']
-#
-#                     ret[conflateid] = point
-#
-#                 if str(record.id) in self.faceted_search.ids:
-#                     # add layerid
-#                     point[2].add(1)
-#                     # add image
-#                     from digipal.models import Graph
-#                     if isinstance(record, Graph):
-#                         info = record.annotation.get_cutout_url_info(esc=False, rotated=False, fixlen=self.graph_size)
-#                         point[6] = info['url']
+                        # we want to show the label of visible graph
+                        point[3] = faceted_search.get_record_label_html(record, self.request)
+                        # same with link
+                        point[4] = record.get_absolute_url()
 
         self.points = ret
 
@@ -409,6 +388,7 @@ class Overview(object):
         points = self.drawing['points']
 
         self.drawing['colors'] = [query.get_color() for query in self.queries.get_queries()]
+        self.drawing['summaries'] = [query.get_summary() for query in self.queries.get_queries()]
 
         # {'agreement': [10, 20]}
 

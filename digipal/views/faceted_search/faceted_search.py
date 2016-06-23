@@ -74,12 +74,12 @@ class FacetedModel(object):
     views = property(get_views)
 
     def get_record_label_html(self, record, request):
-        ret = u''.join([u'<tr><td>%s</td><td>%s</td></tr>' % (field['label'], self.get_record_field(record, field)) for field in self.get_columns(request) if field['type'] in ['code', 'title', 'date']])
+        ret = u''.join([u'<tr><td>%s</td><td>%s</td></tr>' % (field['label'], self.get_record_field(record, field)) for field in self.get_columns(request) if field['type'] in ['id', 'code', 'title', 'date']])
+        #ret = u''.join([u'<tr><td>%s</td><td>%s</td></tr>' % (field['label'], self.get_record_field(record, field)) for field in self.get_fields() if field['type'] in ['id', 'code', 'title', 'date']])
 
         return ret
 
     def get_selected_views_template(self):
-
         for view in self.views:
             if view.get('selected', False):
                 ret = view.get('template', view.get('key', 'table'))

@@ -481,6 +481,8 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
             loc_end = content.find('</span>', span0 + len(location_pattern))
             if loc_end > -1:
                 location = content[span0 + len(location_pattern):loc_end]
+                location = re.sub(ur'<.*?>', '', location)
+                location = location.strip()
 
         if span0 > -1:
             p0 = content.rfind('<p>', from_pos, span0)

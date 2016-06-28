@@ -100,6 +100,10 @@ def plural(value, count=2):
     return plural(value, count)
 
 @register.filter
+def dictget(content, key=''):
+    return content.get(key, None)
+
+@register.filter
 def json(value):
     import json
     return mark_safe(json.dumps(value))

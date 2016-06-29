@@ -40,12 +40,10 @@ def natural_sort_key(s, roman_numbers=False, is_locus=False):
     if s is None: s = ''
 
     if is_locus:
-        print s
         s = re.sub(ur'(?i)\b(cover)\b', '50', s)
         s = re.sub(ur'(?i)\b(face|recto)\b', '100', s)
         s = re.sub(ur'(?i)\b(dorse|verso)\b', '200', s)
         s = re.sub(ur'(?i)\bseal\b', '300', s)
-        print s
 
     if roman_numbers:
         while True:

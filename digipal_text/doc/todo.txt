@@ -1,3 +1,32 @@
+Codicological Model
+
+. show sequence with properties
+
+. show all properties
+    . H
+    . W
+    . Number of ruled lines
+    . H text
+    . W text
+    . Quire
+    . locus
+    . 
+
+. contextual info
+    . add image preview
+    . add codicological desc?
+
+. represent values in a way that helps spotting discontinuities
+
+. alternative order based on properties
+
+. highlight discontinuities
+
+. suggested sequences
+
+. comparison of two sequences
+
+
 MOA
 
 http://localhost:8080/digipal/manuscripts/650/texts/view/?above=location/face/&center=transcription/sync/location&east=translation/sync/location&north=image/sync/location#text-viewer

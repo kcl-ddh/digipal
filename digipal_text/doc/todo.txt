@@ -1,19 +1,22 @@
 Codicological Model
 
-. show sequence with properties
+1-281 + 495-525
 
-. show all properties
-    . H
-    . W
-    . Number of ruled lines
-    . H text
-    . W text
-    . Quire
-    . locus
-    . 
+[DONE]. show sequence with properties
+
+[DONE]. show all basic properties
+    [DONE]. H
+    [DONE]. W
+    [DONE]. Number of ruled lines
+    [DONE]. H text
+    [DONE]. W text
+    [DONE]. Quire
+    [DONE]. locus
+
+. separate folio number and folio side
 
 . contextual info
-    . add image preview
+    [DONE]. add image preview
     . add codicological desc?
 
 . represent values in a way that helps spotting discontinuities
@@ -26,6 +29,7 @@ Codicological Model
 
 . comparison of two sequences
 
+. clustering!
 
 MOA
 

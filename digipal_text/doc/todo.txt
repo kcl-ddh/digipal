@@ -13,23 +13,31 @@ Codicological Model
     [DONE]. Quire
     [DONE]. locus
 
+. optimisation
+
 . separate folio number and folio side
+
+. highlight discontinuities
+
+. represent values in a way that helps spotting discontinuities
+
+. show discontinuities next to scrollbar
+
+. alternative order based on properties
+
+. comparison of two sequences
+
+. suggested sequences
+
+. clustering!
+
+Optional
 
 . contextual info
     [DONE]. add image preview
     . add codicological desc?
 
-. represent values in a way that helps spotting discontinuities
-
-. alternative order based on properties
-
-. highlight discontinuities
-
-. suggested sequences
-
-. comparison of two sequences
-
-. clustering!
+----------------------------------------------------------------
 
 MOA
 

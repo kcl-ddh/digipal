@@ -1,6 +1,6 @@
 import re
 from digipal import utils
-from digipal.utils import inc_counter
+from digipal.utils import inc_counter, sorted_natural
 
 def draw_overview(faceted_search, context, request):
     view = Overview(faceted_search, context, request)
@@ -409,9 +409,7 @@ class Overview(object):
                 x = get_range_from_date(x)
             elif self.fields[0]['key'] == 'locus':
                 # 12v => 25
-                n = int(x[0:-1]) * 2
-                if x[-1] == 'v': n += 1
-                x = [n] * 2
+                x = self.get_int_from_locus(x)
             else:
                 # ()TODO: other type than date for x
                 x = 0
@@ -458,6 +456,11 @@ class Overview(object):
 
     def get_x_field_key(self):
         return self.x_field_key
+
+    def get_int_from_locus(self, x):
+        n = int(re.sub(ur'^(\d+).*$', ur'\1', x)) * 2
+        if 'v' in x[-1]: n += 1
+        return n
 
     def set_fields(self, faceted_search):
         '''
@@ -600,9 +603,62 @@ class Overview(object):
         # X axis
         # eg. 1055, 1150 => [[5, 100, 1060], [15, 100,  1070], ...]
         step = 10
+        if 1:
+            # dynamic step for the labels on the X axis
+            # minimum timeline width on screen (approx)
+            width_timeline = 400
+            # width in pixel of a x label plus some margin
+            width_label = 20
+            # range of x data values
+            data_range = self.maxs[0] - self.mins[0]
+            steps = [1, 10, 20, 50, 100, 200, 500, 1000]
+            import math
+            if self.fields[0]['key'] == 'locus':
+                steps = [int(math.ceil(s * 2.0)) for s in steps]
+            for s in steps:
+                if (data_range * 1.0 / s * width_label) < width_timeline:
+                    break
+            step = s
         date0 = self.mins[0] - (self.mins[0] % step)
-        drawing['x'] = [[d - self.mins[0], xaxis_y, '%s' % d] for d in range(date0, self.maxs[0], step)]
+
+        def get_xlabel_from_xvalue(x):
+            ret = '%s' % d
+            if self.fields[0]['key'] == 'locus':
+                ret = '%s%s' % (d / 2, 'v' if d % 2 else 'r')
+            return ret
+
+        drawing['x'] = [[d - self.mins[0], xaxis_y, get_xlabel_from_xvalue(d)] for d in range(date0, self.maxs[0], step)]
         drawing['y'] = [[0, y, label, self.cat_hits.get(label, [0, 0])[0], self.cat_hits.get(label, [0, 0])[1]] for label, y in self.bands]
 
+        self.add_quire_divisions()
+
         self.context['canvas']['drawing'] = drawing
+
+    def add_quire_divisions(self):
+        if self.fields[0]['key'] != 'locus':
+            return
+
+        drawing = self.drawing
+
+        from digipal.models import Image
+        # TODO: remove hardcoded ID
+        quire_locuses = {}
+        for locus_quire in Image.objects.filter(item_part_id=1).values_list('locus', 'quire').order_by('locus'):
+            quire_locuses[locus_quire[0]] = locus_quire[1]
+
+        q = None
+        xaxis = drawing['x'][0][1]
+        drawing['xdivs'] = []
+        for l in sorted_natural(quire_locuses.keys()):
+            q2 = quire_locuses[l]
+            if q2 != q:
+                q = q2
+                x = self.get_int_from_locus(l)
+                if x > self.maxs[0]:
+                    break
+                drawing['xdivs'].append([x - self.mins[0], xaxis, 'q.%s' % q])
+
+        #print locus_quires
+        #for x in xrange(self.mins[0], self.maxs[0]):
+
 

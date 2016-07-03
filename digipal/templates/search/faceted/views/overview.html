@@ -310,6 +310,17 @@ function dpvis() {
 
             axis.map(function(pt, pti) {draw_label_x(pt); });
             //draw_label(axis[0]);
+
+            xdivs = data.drawing.xdivs;
+            if (xdivs) {
+                xdivs.map(function(pt, pti) {draw_xdiv(pt); });
+            }
+        }
+
+        function draw_xdiv(pt) {
+            ctx.fillStyle = '#B0B0B0';
+            var cs = coord(pt[0], pt[1]);
+            ctx.fillRect(cs[0], 0, 1, cs[1]);
         }
 
         function draw_label_x(pt) {

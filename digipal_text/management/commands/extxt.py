@@ -4,6 +4,7 @@ from django.conf import settings
 from optparse import make_option
 from digipal import utils as dputils
 from digipal.utils import sorted_natural
+from digipal.utils import write_rows_to_csv
 import regex as re
 import os
 
@@ -44,6 +45,12 @@ Commands:
 
     setquire
         Set the quire number on the images from the codicological desc.
+
+    quires2csv
+        Write a csv file with first folio number for each quire
+
+    csv2quires
+        Assign image.quire from a csv file (quire, start)
 
     marginal_entries
         List the number of the entries starting in the margin
@@ -102,6 +109,14 @@ Commands:
         if command == 'setquire':
             known_command = True
             self.setquire()
+
+        if command == 'quires2csv':
+            known_command = True
+            self.quires2csv()
+
+        if command == 'csv2quires':
+            known_command = True
+            self.csv2quires()
 
         if command == 'wordpre':
             known_command = True
@@ -190,7 +205,6 @@ Commands:
         for k, v in names.iteritems():
             rows.append(dict(zip(headings, (k, ','.join(sorted(set(v)))))))
 
-        from digipal.utils import write_rows_to_csv
         write_rows_to_csv(out_path, rows, headings=headings, encoding='utf-8')
         print 'Written %s' % out_path
 
@@ -234,24 +248,24 @@ Commands:
         content = u'<root>%s</root>' % content_xml.content
         headings = ['RevisedEllisNos', 'Exon X-ref 1', 'Exon X-ref 2', 'Exon X-ref 3', 'Exon X-ref 4', 'Exon X-ref 5', 'GDB X ref 1', 'GDB X ref 2', 'GDB X ref 3']
         rows = []
-        
-        
-        # commented out so we work from text file instead of XML record  
+
+
+        # commented out so we work from text file instead of XML record
 ##         for unit in viewer.get_all_units(content, 'entry'):
         input_file = 'exon/source/analysis/offlinedb/3exon-translation-4.txt'
         content = dputils.read_file(input_file)
-        
+
         # 12a1 [= GDB DOR B2]
         unit = {}
         for m in re.findall(ur'(?musi)$\s*(\d+[ab]\d+)\s*\[(.*?)\]', content):
             unit['unitid'] = m[0]
-            
+
             row = {h: '' for h in headings}
 ##             unit_xml = dputils.get_xml_from_unicode(u'<root>%s</root>' % unit['content'], True)
             refs = []
             refs2 = {'GDB': '', 'EDB': ''}
-            
-            # commented out so we work from text file instead of XML record  
+
+            # commented out so we work from text file instead of XML record
 ##             for ref in unit_xml.findall("//span[@data-dpt='supplied'][@data-dpt-type='reference']"):
 
             ref = m[1]
@@ -264,7 +278,7 @@ Commands:
                     continue
                 ref = re.sub(ur'(?musi)\b(but|or|see|also|and|duplicated|by)\b', '', ref)
                 parts = re.split(ur'(EDB|GDB)', ref)
- 
+
                 i = 0
                 while i < len(parts):
                     if parts[i] in refs2.keys():
@@ -274,7 +288,7 @@ Commands:
                             if refs2[t]: refs2[t] += ' + '
                             refs2[t] += parts[i].strip(' ;,.=')
                     i += 1
-            
+
             if refs:
                 print '%s\n\t%s\n\t%s' % (unit['unitid'], repr(refs), repr(refs2))
                 row['RevisedEllisNos'] = unit['unitid']
@@ -304,7 +318,6 @@ Commands:
         headings = ['entry', 'translation', 'transcription-sample']
         file_path = 'entries-text.csv'
 
-        from copy import deepcopy
         from digipal_text.models import TextContentXML
         from digipal_text.views import viewer
 
@@ -323,9 +336,62 @@ Commands:
 
         rows = [rows[k] for k in sorted_natural(rows.keys())]
 
-        from digipal.utils import write_rows_to_csv
-
         write_rows_to_csv(file_path, rows, headings=headings, encoding='utf-8')
+        print 'Written %s' % file_path
+
+    def csv2quires(self):
+        '''Set image.quire from the (quire, start) rows found in a CSV
+            Where start is the first locus for that quire.
+            Rows in the CSV are in no particular order.
+        '''
+
+        # get all start => quire from CSV
+        file_path = 'quires.csv'
+        locus_quire = {}
+        for row in dputils.read_all_lines_from_csv(file_path, encoding='utf-8'):
+            locus_quire[row['start']] = row['quire']
+
+        locuses = sorted_natural(locus_quire.keys(), roman_numbers=True, is_locus=True)
+
+        # now get all images from DB
+        from digipal.models import Image
+        images = {image.locus: image for image in Image.objects.filter(item_part_id=1)}
+        locuses_images = sorted_natural(images.keys(), roman_numbers=True, is_locus=True)
+
+        # let's move in // through those two sorted list
+        i1 = 0
+        i2 = 0
+        while i1 < len(locuses):
+            quire = locus_quire[locuses[i1]]
+            if i2 >= len(locuses_images): break
+
+            while locuses_images[i2] != locuses[i1]:
+                i2 += 1
+                if i2 >= len(locuses_images): break
+            if i2 >= len(locuses_images): break
+
+            next_quire_start = locuses[i1 + 1] if i1 < (len(locuses) - 1) else '100000r'
+            while locuses_images[i2] != next_quire_start:
+                image = images[locuses_images[i2]]
+                if quire != image.quire and image.quire is not None:
+                    print 'Warning: image #%s, locus %s, quire %s <> quire %s' % (image.id, image.locus, image.quire, quire)
+                else:
+                    image.quire = quire
+                    image.save()
+                print image.locus, image.quire
+                i2 += 1
+                if i2 >= len(locuses_images): break
+
+            i1 += 1
+
+    def quires2csv(self):
+        file_path = 'quires.csv'
+        rows = []
+        from digipal.models import ItemPart
+        quires = ItemPart.get_quires_from_id(1)
+        for quire, data in quires.iteritems():
+            rows.append({'quire': quire, 'start': data['start']})
+        write_rows_to_csv(file_path, rows, encoding='utf-8')
         print 'Written %s' % file_path
 
     def setquire(self):
@@ -350,11 +416,6 @@ Commands:
         content = u'<root>%s</root>' % text.content
         from digipal import utils
         xml = utils.get_xml_from_unicode(content, True)
-
-        #print '\n'.join(list(set(re.findall('data-dpt="(.*?)"', content))))
-
-
-        #exit()
 
         # Warnings about $|£ within <add>
         for pattern in [".//span[@data-dpt='interlineation']//span[@data-dpt-loctype='entry']", ".//span[@data-dpt='marginal']//span[@data-dpt-loctype='entry']", ".//span[@data-dpt='interlineation-to-margin']//span[@data-dpt-loctype='entry']"]:
@@ -1479,7 +1540,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # Wide angle brackets
         # Bal〈dwini〉 =>
         content = regex.sub(ur'(?musi)〈([^〈〉]{1,30})〉', ur'<span data-dpt="supplied">\1</span>', content)
-        
+
         # Interlineation
         # e.g. e{n}t
         content = regex.sub(ur'(?musi)\{([^{}]{1,300})\}', ur'<span data-dpt="interlineation">\1</span>', content)

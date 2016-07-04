@@ -20,6 +20,8 @@ from mezzanine.generic.fields import KeywordsField
 import logging
 from django.utils.text import slugify
 import utils as dputils
+from digipal.utils import sorted_natural
+from django.utils.datastructures import SortedDict
 dplog = logging.getLogger('digipal_debugger')
 
 from patches import iipimage_patches, admin_patches, whoosh_patches
@@ -1492,15 +1494,35 @@ class ItemPart(models.Model):
         return self.historical_items.first()
 
     def get_current_items(self):
-         # this function will return all related current items.
-         # by looking at this CI and also the subdivisions CI.
-         ret = {}
-         if self.current_item:
-             ret[self.current_item.id] = self.current_item
-         for subdivision in self.subdivisions.all().order_by('id'):
-             if subdivision.current_item:
-                 ret[subdivision.current_item.id] = subdivision.current_item
-         return ret.values()
+        # this function will return all related current items.
+        # by looking at this CI and also the subdivisions CI.
+        ret = {}
+        if self.current_item:
+            ret[self.current_item.id] = self.current_item
+        for subdivision in self.subdivisions.all().order_by('id'):
+            if subdivision.current_item:
+                ret[subdivision.current_item.id] = subdivision.current_item
+        return ret.values()
+
+    def get_quires(self):
+        return self.get_quires_from_id(self.id)
+
+    @classmethod
+    def get_quires_from_id(cls, item_partid):
+        '''Returns a dict of quire information
+            {QUIRE_NUMBER: {'start': LOCUS}}
+           In no particular order.
+        '''
+        locus_quire = {}
+        for info in Image.objects.filter(item_part_id=item_partid).values_list('locus', 'quire').order_by('id'):
+            locus_quire[info[0]] = info[1]
+
+        # only keep the first locus for each quire
+        ret = {}
+        for locus in sorted_natural(locus_quire.keys(), roman_numbers=True, is_locus=True)[::-1]:
+            ret[locus_quire[locus]] = {'start': locus}
+
+        return ret
 
 ''' This is used to build the front-end URL of the item part objects
     See set_models_absolute_urls()

@@ -640,25 +640,14 @@ class Overview(object):
 
         drawing = self.drawing
 
-        from digipal.models import Image
         # TODO: remove hardcoded ID
-        quire_locuses = {}
-        for locus_quire in Image.objects.filter(item_part_id=1).values_list('locus', 'quire').order_by('locus'):
-            quire_locuses[locus_quire[0]] = locus_quire[1]
+        from digipal.models import ItemPart
 
-        q = None
         xaxis = drawing['x'][0][1]
         drawing['xdivs'] = []
-        for l in sorted_natural(quire_locuses.keys()):
-            q2 = quire_locuses[l]
-            if q2 != q:
-                q = q2
-                x = self.get_int_from_locus(l)
-                if x > self.maxs[0]:
-                    break
-                drawing['xdivs'].append([x - self.mins[0], xaxis, 'q.%s' % q])
-
-        #print locus_quires
-        #for x in xrange(self.mins[0], self.maxs[0]):
-
+        for quire, data in ItemPart.get_quires_from_id(1).iteritems():
+            x = self.get_int_from_locus(data['start'])
+            if x > self.maxs[0] or x < self.mins[0]:
+                continue
+            drawing['xdivs'].append([x - self.mins[0], xaxis, 'q.%s' % quire])
 

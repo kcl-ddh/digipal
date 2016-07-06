@@ -64,6 +64,9 @@ Commands:
     gdb2csv
         Write a csv file from the GDB text
 
+    optcod
+        Optimisation of the codicological sequence
+
 """
 
     args = 'locus|email'
@@ -97,6 +100,10 @@ Commands:
         self.cargs = args[1:]
 
         known_command = False
+
+        if command == 'optcod':
+            known_command = True
+            self.optcod()
 
         if command == 'gdb2csv':
             known_command = True
@@ -163,6 +170,11 @@ Commands:
             print 'done'
         else:
             print self.help
+
+    def optcod(self):
+        from exon.customisations.digipal_lab.views.codicology import CodicologicalSequence
+        cs = CodicologicalSequence()
+        cs.getContext()
 
     def latinnames_command(self):
         names = {}

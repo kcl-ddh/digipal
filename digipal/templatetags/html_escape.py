@@ -43,6 +43,10 @@ def anchorify(value):
     return mark_safe(re.sub(u'[-\s]+', u'-', value))
 
 @register.filter()
+def multiply(value, arg):
+    return float(value)*float(arg) if value and arg else 0.0
+
+@register.filter()
 def update_query_params(content, updates):
     ''' The query strings in the content are updated by the filter.
         In case of conflict, the parameters in the filter always win.
@@ -524,6 +528,8 @@ def record_field(content_type, record, field):
         {% record_field object field %}
     '''
     return content_type.get_record_field_html(record, field)
+
+
 
 @register.filter
 def dpfootnotes(html):

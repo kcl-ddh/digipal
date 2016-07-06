@@ -509,7 +509,6 @@ class Overview(object):
         '''
         #value_rankings, self.bands = self.faceted_search.get_field_value_ranking(self.fields[1])
 
-        from digipal.utils import sorted_natural
         self.bands = sorted_natural(list(set(self.bands)))
         # eg. {'type1': 0, 'type2': 1000}
         self.bands = {self.bands[i]: i*self.band_width for i in range(0, len(self.bands))}

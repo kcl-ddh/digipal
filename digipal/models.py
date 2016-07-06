@@ -2064,7 +2064,6 @@ class Image(models.Model):
                     (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
                             self.path())
 
-
         return zoomify
 
     def get_duplicates(self):

@@ -1,24 +1,8 @@
 Codicological Model
 
+
 1-281 + 495-525
 
-Questions (m:):
-    . if the book had to be rebound, what would be the best order?
-    . what is odd in the current sequence of quires and folios?
-    . can we explain those oddities?
-    . what are the relationship between the different parts of the book? Namely GA, TO and Fiefs?
-    . m: can we find different groups of quires? which perhaps different origins?
-    . is there a correlation between quires and hands?
-    . can we locate missing parts?
-    . can we find evidences hinting at a chronology in writing?
-
-Underlying questions:
-    . what is the meaning of a single order? order of what?
-    . different chronology: collecting information, quire making, writing, correcting, ...
-
-    http://www.british-history.ac.uk/vch/som/vol1/pp383-432
-    http://www1.somerset.gov.uk/archives/ASH/Domesom.htm
-    https://www.escholar.manchester.ac.uk/api/datastream?publicationPid=uk-ac-man-scw:1m1937&datastreamId=POST-PEER-REVIEW-PUBLISHERS-DOCUMENT.PDF
 
 
 [DONE]. show sequence with properties
@@ -33,28 +17,36 @@ Underlying questions:
     [DONE]. locus
 
 . missing data
-    . quires
+    [DONE]. quires
         [done] 80% from cod. desc.
         [done] rest can be obtained from Ker's table
             see: pm extxt csv2quires exon/source/analysis/working/quires.csv
-    . hundreds
+    [DONE]. hundreds
         . autocomplete based on other (shire, hundred, vill) tuples?
-    . alternative locii
+        -- Fill in missing hundred name
+        update exon_master
+        set exonhundname = hundred
+        where exonentrytype = 'F'
+        and length(exonellisref) > 1
+    ***. alternative locii
     . separate folio number and folio side
 
 . optimisation
 
-. highlight discontinuities
+**. highlight discontinuities
 
-. represent values in a way that helps spotting discontinuities
+(). represent values in a way that helps spotting discontinuities
 
-. show discontinuities next to scrollbar
+[DONE]. show discontinuities next to scrollbar
 
 . alternative order based on properties
+    . sorting if single column with locus
+    . glob opt of quires
+        . operators adapted should move entire quires not individual pages
 
-. comparison of two sequences
+** . comparison of two sequences
 
-. suggested sequences
+***. suggested sequences
 
 . clustering!
 

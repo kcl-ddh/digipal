@@ -358,7 +358,7 @@ Commands:
         '''
 
         # get all start => quire from CSV
-        file_path = 'quires.csv'
+        file_path = self.cargs[0]
         locus_quire = {}
         for row in dputils.read_all_lines_from_csv(file_path, encoding='utf-8'):
             locus_quire[row['start']] = row['quire']

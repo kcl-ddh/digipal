@@ -31,11 +31,15 @@ Codicological Model
     ***. alternative locii
     . separate folio number and folio side
 
-. optimisation
+[DONE]. sticky headers
+    . stickiness on scroll
+    . offset the scrolling position to show the page with clicked on in the scrollbar
 
-**. highlight discontinuities
+. jump to next discontinuity for the selected property
 
-(). represent values in a way that helps spotting discontinuities
+[DONE]. highlight discontinuities
+
+[DONE]. represent values in a way that helps spotting discontinuities
 
 [DONE]. show discontinuities next to scrollbar
 

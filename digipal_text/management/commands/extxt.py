@@ -175,6 +175,7 @@ Commands:
         from exon.customisations.digipal_lab.views.codicology import CodicologicalSequence
         cs = CodicologicalSequence()
         cs.getContext()
+        cs.sort()
 
     def latinnames_command(self):
         names = {}

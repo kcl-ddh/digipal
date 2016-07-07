@@ -29,7 +29,7 @@ Codicological Model
         where exonentrytype = 'F'
         and length(exonellisref) > 1
     ***. alternative locii
-    . separate folio number and folio side
+    (). separate folio number and folio side
 
 [DONE]. sticky headers
     . stickiness on scroll
@@ -50,7 +50,7 @@ Codicological Model
 
 ** . comparison of two sequences
 
-***. suggested sequences
+[DONE] . work with only a section of the document
 
 . clustering!
 
@@ -59,6 +59,10 @@ Optional
 . contextual info
     [DONE]. add image preview
     . add codicological desc?
+
+Case studies:
+    Investigate highlights in Written Height and Parchment Side
+
 
 ----------------------------------------------------------------
 

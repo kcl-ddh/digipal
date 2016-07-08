@@ -28,8 +28,10 @@ Codicological Model
         set exonhundname = hundred
         where exonentrytype = 'F'
         and length(exonellisref) > 1
+    . ruling space
     ***. alternative locii
     (). separate folio number and folio side
+    * . quire structure (see Ker, also the cod desc for singleton)
 
 [DONE]. sticky headers
     . stickiness on scroll
@@ -44,7 +46,7 @@ Codicological Model
 [DONE]. show discontinuities next to scrollbar
 
 . alternative order based on properties
-    . sorting if single column with locus
+    ** . sorting if single column with locus
     . glob opt of quires
         . operators adapted should move entire quires not individual pages
 

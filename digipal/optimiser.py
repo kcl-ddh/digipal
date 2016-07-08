@@ -25,11 +25,12 @@ class Optimiser:
     def __init__(self):
         pass
 
-    def reset(self, costfn, printfn, seed, popSize=None, ln=None, maxGen=5000, lowcost=0.0, improvementGap=1000):
+    def reset(self, costfn, printfn, seed, popSize=None, ln=None, maxGen=5000, lowcost=0.0, improvementGap=1000, replaceSeed=False):
         self.costfn = costfn
         self.printfn = printfn
         self.seed = deepcopy(seed) if seed else []
         self.ln = ln or len(self.seed[0])
+        self.replaceSeed = replaceSeed
 
         if popSize is None:
             popSize = self.ln * 3
@@ -109,8 +110,10 @@ class Optimiser:
     def select(self):
         return self.selectOne(), self.selectOne()
 
-    def crossOver(self, v1, v2):
-        if random() < self.crossOverRate:
+    def crossOver(self, v1, v2, rate=None):
+        if rate is None:
+            rate = self.crossOverRate
+        if random() < rate:
             return self.crossOverOnePoint(v1, v2)
         else:
             return v1[:], v2[:]
@@ -149,10 +152,12 @@ class Optimiser:
 
         return v3, v4
 
-    def mutate(self, v):
+    def mutate(self, v, mutationRate=None):
         ret = v
+        if mutationRate is None:
+            mutationRate = self.mutationRate
         for i in range(0, self.ln):
-            if random() < self.mutationRate:
+            if random() < mutationRate:
                 #ri = randint(0, self.ln - 1)
                 #ret[i], ret[ri] = ret[ri], ret[i]
                 ri = i + 1
@@ -189,20 +194,33 @@ class Optimiser:
         self.bestGen = 0
 
         # create population
+        toRemove = 0
+        if self.replaceSeed:
+            toRemove = len(self.seed)
         self.vs = deepcopy(self.seed)
 
         # make up vectors to meet pop size
         while len(self.vs) < self.popSize:
             self.vs.append(self.getRandomVector())
+            # TODO: improve this dirty implementation of seed repalcement
+            if toRemove:
+                self.vs = self.vs[1:]
+                toRemove -= 1
 
         # truncate to match pop size
         self.vs = self.vs[0:self.popSize]
 
         self.popCosts = [0] * len(self.vs)
 
-    def getRandomVector(self):
-        ret = range(0, self.ln)
-        shuffle(ret)
+    def getRandomVector(self, random=False):
+        if random or not self.seed:
+            ret = range(0, self.ln)
+            shuffle(ret)
+        else:
+            v1 = self.seed[-1]
+            v2 = self.mutate(v1, 0.9)
+            v23 = self.crossOver(v1, v2, 1)
+            ret = v23[0]
         return ret
 
     def getSolution(self):

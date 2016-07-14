@@ -267,11 +267,12 @@ Options:
                         ret['values'] = sorted(list(set(values)))
 
                 if query:
-                    ret['results'] = self.whoosh_search(query, searcher, index)
+                    info = {}
+                    ret['results'] = self.whoosh_search(query, searcher, index, info)
 
         return ret
 
-    def whoosh_search(self, query, searcher, index):
+    def whoosh_search(self, query, searcher, index, info):
         ret = ''
         # run a whoosh search and display the hits
         # query applies to all fields in the schema
@@ -311,6 +312,11 @@ Options:
             for v, c in vs.iteritems():
                 ret += '\t%6s x %s\n' % (c, repr(v))
 
+        info['results'] = ret
+        info['result_size'] = len(res)
+        
+        ret += '\n\n%s documents found' % len(res)
+        
         return ret
 
     def test(self, options):

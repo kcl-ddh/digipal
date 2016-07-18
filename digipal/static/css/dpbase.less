@@ -675,8 +675,18 @@ different height depending when they are selected and push the other values down
 }
 
 .auto-open:hover > ul.dropdown-menu {
-  display: block;
+    @media (min-width: @grid-float-breakpoint) {
+        display: block;
+    }
 }
+
+.auto-open a {
+    @media (max-width: @grid-float-breakpoint) {
+        cursor: pointer;
+    }
+}
+
+
 
 // BootstrapSwitch
 // TODO: use LESS for BSSwitch

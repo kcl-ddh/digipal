@@ -15,7 +15,7 @@
                 <div class="item {% if not forloop.counter0 %}active{% endif %}">
                     <a href="{{ item.link }}">
                         <img src="{% if item.image %}{{ item.image }}{% else %}{% get_media_prefix %}{{ item.image_file }}{% endif %}" 
-                            alt="{{ item.image_alt }}" title="{{ item.image_title }}" class="img-responsive" />
+                            alt="{{ item.image_alt }}" title="{{ item.image_title }}" class="img-responsive img-responsive-ie" />
                     </a>
                     <div class='carousel-caption'>
                         <p>{{ item.title_with_link }}</p>

@@ -95,7 +95,12 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
         var cls = 'chzn-container-active';
         $('.'+cls).removeClass(cls);
         // refocus OL
-        $('#map').focus();
+        //$('#map').focus();
+        // If OL is bigger than the viewport, each time the
+        // user close a drop down the focus would scroll back to
+        // get the whole OL (pushing DD offscreen).
+        // So we disable scrolling.
+        window.dputils.focusWithoutScrolling($('#map'));
     };
     
     this.open_allograph_selector = function() {

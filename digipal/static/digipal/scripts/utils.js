@@ -43,6 +43,12 @@
                 // execute f after the current event loop
                 window.setTimeout(f, 0);
             },
+            
+            focusWithoutScrolling($el) {
+                var x = $(document).scrollLeft(), y = $(document).scrollTop();
+                $el.focus();
+                window.scrollTo(x, y);
+            },
 
             addSliderTotextInput: function(text_input) {
                 // execute f after the current event loop

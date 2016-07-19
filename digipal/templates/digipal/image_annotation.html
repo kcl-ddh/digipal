@@ -222,7 +222,16 @@
                     }
                     // jQuery Chosen refocus to the select after the change event
                     // so postponing is necessary to focus to something else after selection.
-                    $('select').on('change', function() { annotator.set_focus_postponed(); });
+                    // liszt:hiding_dropdown is necessary. Because reselecting the same option
+                    // doesn't trigger change or blur but we want to refocus on openlayers.
+                    $('select[name=hand],select[name=allograph]').on('change liszt:hiding_dropdown', function(e) {
+                        console.log(e.type);
+                        // chosen closes previously selected DD AFTER user opens the next one
+                        // text case = click hand DD then click allograph DD => allo DD should still be open 
+                        if ($('.chzn-single-with-drop').size() == 0) {
+                            annotator.set_focus_postponed();
+                        }
+                    });
                 }
     
                 if(from_tab){

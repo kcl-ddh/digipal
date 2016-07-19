@@ -85,10 +85,16 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
     ////////////////////////////////////////
     
     this.set_focus_postponed = function() {
-        window.dputils.postpone(function() {self.set_focus();});
+        window.dputils.postpone(function() {
+            self.set_focus();
+        });
     };
 
     this.set_focus = function() {
+        // make sure the chosen dropdown is no longer highlighted
+        var cls = 'chzn-container-active';
+        $('.'+cls).removeClass(cls);
+        // refocus OL
         $('#map').focus();
     };
     

@@ -137,8 +137,9 @@
 }
 
 .list-allographs{
-    margin:1%;
+    margin: 0.2em 0;
     min-height: 100px;
+    clear:both;
 }
 
 .annotations h1, .annotations h2, .annotations ul {
@@ -228,9 +229,6 @@
     margin-left:4%;
 }
 
-.list-allographs{
-    clear:both;
-}
 .allographs-list {
     margin: 2%;
     margin-left:0;
@@ -242,7 +240,7 @@
 
 .allograph-item{
      border-bottom: 1px solid #efefef;
-     padding: 1.5em;
+     //padding: 1.5em;
      overflow: hidden;
  }
 

@@ -283,8 +283,8 @@
 
 .buttons_annotations_list{
     display: none;
-    left: 10%;
-    margin-top: 1%;
+    left: 4em;
+    // margin-top: 1%;
 }
 
 .allograph-item:hover .buttons_annotations_list{

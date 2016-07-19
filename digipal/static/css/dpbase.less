@@ -210,11 +210,13 @@ div.dropdown-checkbox label {
     Any default label within a <a> becomes brown.
 */
 
-a .label-default, .btn-digipal{
+a.label-default[href], a[href] .label-default, .btn-digipal {
     background: @dp-main;
 }
 
-a:hover .label-default, a:focus .label-default, a:active .label-default {
+a[href]:hover .label-default, a[href].label-default:hover, 
+a[href]:focus .label-default, a[href].label-default:focus, 
+a[href]:active .label-default, a[href].label-default:active {
     background: @link-hover-color;
     text-decoration: none;
 }
@@ -595,6 +597,14 @@ a.link-icon, a.link-icon:hover {
     /* line-height: 170%; */
     border: 1px solid #eee;
     border-radius: 5px;
+}
+
+.panel.labels-list {
+    // allographs list on the annotation tab
+    line-height: 1.6em;
+    .label {
+        margin-right: 0.2em;
+    }
 }
 
 .form-control:focus, .form-control:active {

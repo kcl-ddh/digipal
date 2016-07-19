@@ -46,11 +46,11 @@
 
             <h3>Allographs List</h3>
 
-            <div class='panel'>
+            <div class="panel labels-list">
                 <!-- links to allographs -->
                 {% for allograph, graphs in allographs.items %}
-                    <a data-toggle='tooltip' data-container='body' title='Go to {{allograph}}' href='#{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}'>
-                        <span class="label label-default">{{ allograph }}</span>
+                    <a data-toggle='tooltip' title='Go to {{allograph}}' href='#{{key.id}}_{{allograph.id|anchorify}}_{{allograph|anchorify}}' class="label label-default">
+                        {{ allograph }}
                     </a>
                 {% endfor %}
             </div>

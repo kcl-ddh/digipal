@@ -93,6 +93,8 @@ def richfield(val):
     if ret:
         is_xml = (val[0] == u'<')
         if not is_xml:
+            # _italics_
+            ret = re.sub(ur'(?musi)_(\w+)_', ur'<em>\1</em>', ret)
             # this is a plain text field
             # convert to HTML by surrounding lines with <p>
             ret = u'<p>%s</p>' % (u'</p><p>'.join(re.split(ur'[\r\n]+', ret)),)

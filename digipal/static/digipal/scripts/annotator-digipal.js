@@ -1461,7 +1461,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
                             j = 1;
                             s += "<label class='hands_labels' data-hand = '" + data[0].hand + "' id='hand_" + data[0].hand + "'>Hand: " + data[0].hand_name + "</label>\n";
                             data_hand = data[0].hand;
-                            s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-graph='" + data[0].graph + "' title='Click on the image to center the map; Double click to select letter'>" + data[0].image + '</span>\n';
+                            s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-graph='" + data[0].graph + "' title='Hover over a graph to highlight it on the image; click on a graph to move to it'>" + data[0].image + '</span>\n';
                         } else {
                             for (var i = 0; i < data.length; i++) {
                                 j++;
@@ -1479,7 +1479,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
                                     data_hand = data[i].hand;
                                     s += "<label class='hands_labels' data-hand = '" + data[i].hand + "'  id='hand_" + data_hand + "'>Hand: " + data[i].hand_name + "</label>\n";
                                 }
-                                s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-graph='" + data[i].graph + "' title='Click on the image to center the map; Double click to select letter'>" + data[i].image + '</span>\n';
+                                s += "<span data-hand = '" + data_hand + "' class='vector_image_link' data-graph='" + data[i].graph + "' title='Hover over a graph to highlight it on the image; click on a graph to move to it'>" + data[i].image + '</span>\n';
                             }
                         }
                     } else {

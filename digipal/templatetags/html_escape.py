@@ -530,7 +530,6 @@ def record_field(content_type, record, field):
     return content_type.get_record_field_html(record, field)
 
 
-
 @register.filter
 def dpfootnotes(html):
     example = u'''
@@ -555,7 +554,7 @@ def dpfootnotes(html):
     ret = re.sub(ur'(?musi)<a\s+[^>]*>\s*</a>(\s*\[\d+\])', ur'\1', ret)
     # <a ...>[1] X</a> => [1] X
     ret = re.sub(ur'(?musi)<a\s+[^>]*>(\s*\[\d+\].*?)</a>', ur'\1', ret)
-
+    
     # 2. add the new anchors
     def sub_footnote(match):
         ret = match.group(0)

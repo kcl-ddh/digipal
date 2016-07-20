@@ -214,8 +214,8 @@ a.label-default[href], a[href] .label-default, .btn-digipal {
     background: @dp-main;
 }
 
-a[href]:hover .label-default, a[href].label-default:hover, 
-a[href]:focus .label-default, a[href].label-default:focus, 
+a[href]:hover .label-default, a[href].label-default:hover,
+a[href]:focus .label-default, a[href].label-default:focus,
 a[href]:active .label-default, a[href].label-default:active {
     background: @link-hover-color;
     text-decoration: none;
@@ -630,7 +630,7 @@ because it spreads across a column. */
     text-align: left;
 }
 
-@media (min-width: 992px) {
+@media (min-width: @screen-md-min) {
 
     .pager.compact {
         float: right;
@@ -759,16 +759,14 @@ div.has-switch:focus {
     white-space: nowrap;
 }
 
-/*
-Bootstrap patch for extra small devices
+// Force tabs to stack up on small devices
 
- */
-
-@media (max-width: 767px) {
+@media (max-width: @screen-xs-max) {
     .nav-tabs > li {
         float:none;
-        border:1px solid #dddddd;
+        // border:1px solid #dddddd;
     }
+    /*
     .nav-tabs > li.active > a{
         border:none;
     }
@@ -779,8 +777,8 @@ Bootstrap patch for extra small devices
         background:none;
         border:none;
     }
+    */
 }
-
 
 /*
 a[data-toggle="pill"]{

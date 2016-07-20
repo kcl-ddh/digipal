@@ -1,3 +1,10 @@
+. annotations with different coordinate systems
+    . change the OL3 coordinates to be compatible with OL2
+    . data migration script to convert existing OL3 annotation to new system
+    . hide text annotations from annotator
+    . hide graph annotations from text viewer
+
+
 Codicological Model
 
 

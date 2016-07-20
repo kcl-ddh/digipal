@@ -27,14 +27,14 @@
             <img {% if url == image.id|slugify or url == 'allographs' %} class='pull-right' {% else %} class="hidden pull-right" {% endif %} src='{{ STATIC_URL }}digipal/images/ajax-loader3.gif' id ='loading_allographs_image' alt='loading page image' />
         {% endif %}
     </h2>
-    
+
     {% if PAGE_IMAGE_SHOW_MSDATE or document_summary %}
         <p>
             <span title="Date of the document" data-toggle="tooltip">{{ image.item_part.historical_item.date|default:'Unspecified' }}{% if PAGE_IMAGE_SHOW_MSDATE and document_summary %}:{% endif %}</span>
             <span data-toggle="tooltip" title="{{ document_summary|escape }}">{{ document_summary|truncatewords:15 }}</span>
         </p>
     {% endif %}
-    
+
     <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
 
     <div class='row'>
@@ -60,11 +60,11 @@
                         <a data-toggle="tab" data-target='#hands' href="/digipal/page/{{ image.id }}/hands/">Hands ({{image.hands.all.count}})</a>
                     </li>
                 {% endif %}
-			    {% if cansee.textcontentxml %}
-			        <li class="{% if url = "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
-			            <a href="/digipal/page/{{ image.id }}/texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ text_content_xmls.count }})</a>
-		            </li>
-			    {% endif %}
+                {% if cansee.textcontentxml %}
+                    <li class="{% if url = "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
+                        <a href="/digipal/page/{{ image.id }}/texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ text_content_xmls.count }})</a>
+                    </li>
+                {% endif %}
                 {% if 0 %}
                     <li {% if url == 'metadata' %} class='active in' {% endif %}>
                         <a data-toggle="tab" data-target='#metadata' href='/digipal/page/{{ image.id }}/metadata/'>Metadata</a>
@@ -74,11 +74,11 @@
                     <a data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Manuscript Images ({{ images.count }})</a>
                 </li>
                 {% if cansee.itempart %}
-	                <li {% if not image.item_part %} class='disabled' {% endif %}>
-	                    <a data-toggle="tooltip" title="More info about this document ({{ image.item_part  }})" href='{{ image.item_part.get_absolute_url }}' class="link-internal">
-	                       Document
-	                    </a>
-	                </li>
+                    <li {% if not image.item_part %} class='disabled' {% endif %}>
+                        <a data-toggle="tooltip" title="More info about this document ({{ image.item_part  }})" href='{{ image.item_part.get_absolute_url }}' class="link-internal">
+                           Document
+                        </a>
+                    </li>
                 {% endif %}
                 <li {% if url == 'copyright' %} class='active in' {% endif %}>
                     <a data-toggle="tab" data-target='#copyright' href='/digipal/page/{{ image.id }}/copyright/'>Image Copyright</a>
@@ -86,7 +86,7 @@
             </ul>
         </div>
     </div> {% comment %}DIV row{% endcomment %}
-    
+
     <div id='tabbable-annotator-page'>
         <div class="tabbable">
             <div class="tab-content">
@@ -101,6 +101,7 @@
                         {% include "digipal/image_annotation_settings.html" %}
                         <div id='annotations'></div>
                         <div class='row' id='allographs_filtersBox'></div>
+                        <p><a href="{{ image.get_absolute_url }}copyright">Image copyright and license.</a></p>
                     {% endif %}
                 </div>
 
@@ -116,7 +117,7 @@
                     </div>
                 {% endif %}
 
-                {% include "pages/tab_texts.html" %}
+                {% include "pages/tab_texts.html" with item_part=image.item_part %}
 
                 {% if 0 %}
                     <div class="tab-pane fade {% if url == 'metadata' %} active in {% endif %}" id='metadata'>
@@ -146,7 +147,7 @@
     <script>
         var img_url = "{{ url }}";
     </script>
-    
+
     {% if show_image %}
         <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers/OpenLayers-latest.js"></script>
         <script src="{{ STATIC_URL }}digipal/scripts/libs/openlayers-image-annotation/annotator-helper.js"></script>
@@ -173,17 +174,17 @@
                     main();
                 }
             });
-    
+
             function main(from_tab){
-    
+
                 if($('#loading_allographs_image').hasClass("hidden")){
                     $('#loading_allographs_image').removeClass("hidden");
                 }
-    
+
                 annotator = new DigipalAnnotator('{{ MEDIA_URL }}',
                 'x', {{ width }}, {{ height }},
                 '{{ image_server_url }}', "{{is_admin}}");
-    
+
                 {% if not is_admin %}
                     annotator.toolbarPanel.controls.splice(4, 4);
                     annotator.toolbarPanel.redraw();
@@ -206,13 +207,13 @@
                 {% else %}
                     vector_id = false;
                 {% endif %}
-    
+
                 {% if no_image_reason %}
                     //no_image_reason = true;
                 {% endif %}
-    
+
                 /* Calling page script */
-    
+
                 if(annotator){
                     annotator.annotations_switch_initial = {{ annotations_switch_initial }};
                     annotator.hide_annotations = {{ hide_annotations }};
@@ -227,20 +228,20 @@
                     $('select[name=hand],select[name=allograph]').on('change liszt:hiding_dropdown', function(e) {
                         console.log(e.type);
                         // chosen closes previously selected DD AFTER user opens the next one
-                        // text case = click hand DD then click allograph DD => allo DD should still be open 
+                        // text case = click hand DD then click allograph DD => allo DD should still be open
                         if ($('.chzn-single-with-drop').size() == 0) {
                             annotator.set_focus_postponed();
                         }
                     });
                 }
-    
+
                 if(from_tab){
                     annotator.vectorLayer.events.register("loadend", annotator.vectorLayer, function() {
                         restoreFullscreenPositions();
                     });
                 }
             }
-    
+
         </script>
     {% endif %}
     <script>
@@ -250,10 +251,10 @@
             }
         });
     </script>
-    
+
     <script src="{{ STATIC_URL }}scripts/tabs.js"></script>
     <script src="{{ STATIC_URL }}digipal/scripts/drag_to_lightbox.js"></script>
-    
+
     {% if not can_edit %}
         <script src="{{ STATIC_URL }}digipal/scripts/allographs-public-user.js"></script>
     {% endif %}

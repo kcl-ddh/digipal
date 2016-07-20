@@ -4,6 +4,9 @@
     . hide text annotations from annotator
     . hide graph annotations from text viewer
 
+    . e.g.
+        . http://localhost:8080/digipal/page/3200/
+
 
 Codicological Model
 

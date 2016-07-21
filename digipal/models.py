@@ -2657,6 +2657,8 @@ class Annotation(models.Model):
     # GN: A temporary id set on the client side.
     # Used ONLY until the id of the new record has been returned to the client.
     clientid = models.CharField(max_length=24, blank=True, null=True, db_index=True)
+    # 'text' for text annotation; ('editorial' for editorial annotation, not used yet)
+    type = models.CharField(max_length=15, blank=True, null=True, db_index=True, default=None)
 
     objects = AnnotationManager()
 

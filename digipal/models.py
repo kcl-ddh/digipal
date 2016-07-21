@@ -2676,6 +2676,15 @@ class Annotation(models.Model):
     def is_publicly_visible(self):
         return self.display_note or self.graph_id
 
+    def get_absolute_url(self):
+        ret = '/'
+        # TODO: change to ID instead of vector id!
+#         if self.image and self.vector_id:
+#             ret = u'/digipal/page/%s/?vector_id=%s' % (self.image.id, self.vector_id)
+        if self.image and self.graph:
+            ret = u'/digipal/page/%s/?graph=%s' % (self.image.id, self.graph.id)
+        return ret
+
     def get_geo_json_as_dict(self, geo_json_str=None):
         import json
         # See JIRA-229, some old geo_json format are not standard JSON
@@ -2691,7 +2700,15 @@ class Annotation(models.Model):
         if geo_json_str:
             geo_json_str = geo_json_str.replace('\'', '"')
             ret = json.loads(geo_json_str)
+        #self.correct_geometry(ret)
         return ret
+
+    def correct_geometry(self, geo_json):
+        if 'geometry' in geo_json:
+            dims = self.image.dimensions()
+            for point in geo_json['geometry']['coordinates'][0]:
+                if point[1] < 0:
+                    point[1] += dims[1]
 
     def set_geo_json_from_dict(self, geo_json):
         import json
@@ -2709,15 +2726,6 @@ class Annotation(models.Model):
         # TODO: test if this exists!
         geo_json['geometry']['coordinates'][0] = path
         self.set_geo_json_from_dict(geo_json)
-
-    def get_absolute_url(self):
-        ret = '/'
-        # TODO: change to ID instead of vector id!
-#         if self.image and self.vector_id:
-#             ret = u'/digipal/page/%s/?vector_id=%s' % (self.image.id, self.vector_id)
-        if self.image and self.graph:
-            ret = u'/digipal/page/%s/?graph=%s' % (self.image.id, self.graph.id)
-        return ret
 
     def get_coordinates(self, geo_json_str=None, y_from_top=False, rotated=False):
         ''' Returns the coordinates of the smallest rectangle
@@ -3031,11 +3039,15 @@ class Annotation(models.Model):
         from templatetags.html_escape import annotation_img
         return annotation_img(self, lazy=1)
 
-    def thumbnail_with_link(self):
-        return mark_safe(u'<a href="%s">%s</a>' % (self.get_cutout_url(True), self.thumbnail()))
-
     thumbnail.short_description = 'Thumbnail'
     thumbnail.allow_tags = True
+
+    def thumbnail_with_link(self):
+        #return mark_safe(u'<a href="%s">%s</a>' % (self.get_cutout_url(True), self.thumbnail()))
+        return mark_safe(u'<a href="%s">%s</a>' % (self.get_absolute_url(), self.thumbnail()))
+
+    thumbnail_with_link.short_description = 'Thumbnail'
+    thumbnail_with_link.allow_tags = True
 
 #     def __unicode__(self):
 #         return u'%s' % (self.name)

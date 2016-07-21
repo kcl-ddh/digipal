@@ -594,12 +594,17 @@ def get_annotations_from_image(image):
     '''Returns a dict with a list of all TextAnnotation for this image'''
     ret = {'annotations': []}
 
+    # TODO: we also grab the editorial annotations (b/c not linke to a graph)
+    # So we need a way to dinstiguish editorial vs text annotations
+    # Possibly with a type field in the database.
+    # Some Text Annotation have been drawn but not assign to a Text Element
+    # and therfore not yet in textAnnotation table.
+
     from digipal.models import Annotation
-    for annotation in Annotation.objects.filter(image=image, graph__isnull=True):
+    for annotation in Annotation.objects.filter(image=image, graph__isnull=True).prefetch_related('textannotations'):
         info = {'geojson': annotation.get_geo_json_as_dict()}
         geojson = info['geojson']
         geojson['id'] = annotation.id
-        # TODO: optimise the retrieval of the textannotations
         for textannotation in annotation.textannotations.all():
             geojson['properties'] = geojson.get('properties', None) or {}
             geojson['properties']['elementid'] = json.loads(textannotation.elementid or [])

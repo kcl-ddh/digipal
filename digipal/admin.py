@@ -3,7 +3,7 @@ from django.contrib.admin.models import LogEntry
 from django.db.models import Count
 from django import forms
 from django.core.urlresolvers import reverse
-from models import Allograph, AllographComponent, Alphabet, Annotation, \
+from digipal.models import Allograph, AllographComponent, Alphabet, Annotation, \
         Appearance, Aspect, \
         CatalogueNumber, Category, Character, CharacterForm, Collation, Component, County, \
         ComponentFeature, CurrentItem, \
@@ -182,13 +182,14 @@ class AnnotationAdmin(DigiPalModelAdmin):
 
     fieldsets = (
                 (None, {'fields': ('graph', 'image')}),
+                #('Preview', {'fields': ('thumbnail', )}),
                 ('Metadata', {'fields': ('before', 'after', 'rotation', 'status')}),
                 ('Notes', {'fields': ('internal_note', 'display_note')}),
                 ('Internal data', {'fields': ('geo_json', 'holes', 'vector_id', 'cutout')}),
                 )
 
-    list_display = ['id', 'author', 'image', 'before', 'thumbnail', 'get_graph_desc', 'after', 'created', 'modified', 'status']
-    list_display_links = list_display
+    list_display = ['id', 'get_graph_desc', 'thumbnail_with_link', 'image', 'author', 'created', 'modified', 'status']
+    list_display_links = ['id', 'get_graph_desc', 'image', 'author', 'created', 'modified', 'status']
     search_fields = ['id', 'graph__id', 'vector_id', 'image__display_label',
             'graph__idiograph__allograph__character__name']
     list_filter = ['author__username', 'graph__idiograph__allograph__character__name', 'status']
@@ -198,6 +199,7 @@ class AnnotationAdmin(DigiPalModelAdmin):
         if obj and obj.graph:
             ret = u'%s (#%s)' % (obj.graph, obj.graph.id)
         return ret
+    get_graph_desc.short_description = 'Graph'
 
     readonly_fields = ('graph',)
 

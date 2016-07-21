@@ -6,7 +6,35 @@
 
     . e.g.
         . http://localhost:8080/digipal/page/3200/
-
+        . [Xleft, Ybottom]
+        . salutem: {"geometry": {"type": "Polygon", "coordinates": [[
+            [2221.6762980702492, -251.55895691609987],
+            [2221.6762980702492, -423.54314174649465],
+            [2442.432117404786, -423.54314174649465],
+            [2442.432117404786, -251.55895691609987],
+            [2221.6762980702492, -251.55895691609987]]]}, "type": "Feature", "properties": {"elementid": [["", "clause"], ["type", "salutation"], ["@text", "salutem"]]}}
+        . address: {"geometry": {"type": "Polygon", "coordinates": [[[590.5013244364804, -200.60866912362624], [590.5013244364804, -430.33795150713377], [2428.3355835045404, -430.33795150713377], [2428.3355835045404, -200.60866912362624], [590.5013244364804, -200.60866912362624]]]}, "type": "Feature", "properties": {"elementid": [["", "clause"], ["type", "address"]]}}
+        . dispo:   {"geometry": {"type": "Polygon", "coordinates": [[[538.1924198250731, -217.34693877551027], [538.1924198250731, -1407.580174927114], [3177.405247813412, -1407.580174927114], [3177.405247813412, -217.34693877551027], [538.1924198250731, -217.34693877551027]]]}, "type": "Feature", "properties": {"elementid": [["", "clause"], ["type", "disposition"]]}}
+        . S of salutem: graph=223
+            . {'type':'Feature','properties':{'saved':0},'geometry':{'type':'Polygon','coordinates':[[[2380,3045.8750000000055],[2380,3218.3750000000055],[2542,3218.3750000000055],[2542,3045.8750000000055],[2380,3045.8750000000055]]]},'crs':{'type':'name','properties':{'name':'EPSG:3785'}}}
+        . OL2: projection = EPSG:3785
+        . OL3: projection.code = ZOOMIFY
+        . =>
+            . in TV, if geo_json.Y < 0, Ybottom = Height + Y
+            . in annotator, if geo_json < 0, Ybottom = -Y (i.e. below the bottom if the image)
+            . why is it intepreted differently? *OL version diff or diff settings?
+            . why are the Y obtained from OL different?
+    . map
+        . view
+            . projection
+                . code: EPSG:3785
+                . unit: m
+                . axisOrientation: enu
+        . layers
+            . ol.layer.Tile
+            . ol.layer.Vector
+            . layer
+                . source
 
 Codicological Model
 

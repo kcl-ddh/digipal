@@ -43,7 +43,7 @@
                 // execute f after the current event loop
                 window.setTimeout(f, 0);
             },
-            
+
             focusWithoutScrolling($el) {
                 var x = $(document).scrollLeft(), y = $(document).scrollTop();
                 $el.focus();
@@ -409,8 +409,10 @@
                 // are only measured in pixels.  So, we create a fake projection that the map
                 // can use to properly display the layer.
                 var proj = new ol.proj.Projection({
-                  code: 'ZOOMIFY',
-                  units: 'pixels',
+                  //code: 'ZOOMIFY',
+                  //units: 'pixels',
+                  code: 'EPSG:3785',
+                  units: 'm',
                   extent: [0, 0, options.image_width, options.image_height]
                 });
 

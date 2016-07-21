@@ -99,6 +99,8 @@ class AnnotatorOL3 {
     lastDrawnFeature: ol.Feature;
     //
     theme: string = '';
+    //
+    compatibilityProjection: ol.proj.Projection;
 
     constructor(map: ol.Map) {
         this.map = map;
@@ -374,7 +376,7 @@ class AnnotatorOL3 {
     }
 
     getGeoJSONFromFeature(feature?: ol.Feature): string {
-        return (new ol.format.GeoJSON()).writeFeature(feature);
+        return (new ol.format.GeoJSON()).writeFeature(feature, {featureProjection: this.getProjection()});
     }
 
     selectFeature(feature?: ol.Feature): void {
@@ -389,6 +391,10 @@ class AnnotatorOL3 {
         }
     }
 
+    getProjection(): ol.proj.Projection {
+        return this.map.getView().getProjection();
+    }
+
     addAnnotations(annotations?: Array<any>): void {
         var geojsonObject  = {
             'type': 'FeatureCollection',
@@ -399,7 +405,7 @@ class AnnotatorOL3 {
             },
             'features': annotations.map((v) => {return v.geojson})
         };
-        var features = (new ol.format.GeoJSON()).readFeatures(JSON.stringify(geojsonObject));
+        var features = (new ol.format.GeoJSON()).readFeatures(JSON.stringify(geojsonObject), {featureProjection: this.getProjection()});
         this.source.addFeatures(features);
     }
 

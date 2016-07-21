@@ -409,14 +409,24 @@
                 // are only measured in pixels.  So, we create a fake projection that the map
                 // can use to properly display the layer.
                 var proj = new ol.proj.Projection({
-                  //code: 'ZOOMIFY',
-                  //units: 'pixels',
-                  code: 'EPSG:3785',
-                  units: 'm',
-                  extent: [0, 0, options.image_width, options.image_height]
+                    code: 'ZOOMIFY',
+                    units: 'pixels',
+//                   code: 'EPSG:3785',
+//                   units: 'm',
+                    extent: [0, 0, options.image_width, options.image_height]
                 });
+                // TODO: dynamic height?
+                ol.proj.addCoordinateTransforms('EPSG:4326', proj,
+                    function(coord) {
+                        return [coord[0], -options.image_height + coord[1]];
+                    },
+                    function(coord) {
+                        return [coord[0], options.image_height + coord[1]];
+                    }
+                );
 
                 var source = new ol.source.Zoomify({
+                    projection: proj,
                     url: options.image_url,
                     size: [options.image_width, options.image_height],
                     crossOrigin: 'anonymous'

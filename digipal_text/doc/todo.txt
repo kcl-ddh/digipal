@@ -34,7 +34,7 @@
             . ol.layer.Tile
             . ol.layer.Vector
             . layer
-                . source
+                . source (e.g. ol.source.Vector)
 
 Codicological Model
 

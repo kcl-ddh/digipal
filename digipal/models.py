@@ -2700,7 +2700,6 @@ class Annotation(models.Model):
         if geo_json_str:
             geo_json_str = geo_json_str.replace('\'', '"')
             ret = json.loads(geo_json_str)
-        #self.correct_geometry(ret)
         return ret
 
     def correct_geometry(self, geo_json):

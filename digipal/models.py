@@ -2605,7 +2605,7 @@ class Status(models.Model):
 class AnnotationQuerySet(models.query.QuerySet):
     def editorial(self):
         '''returns only annotations which don't have a graph'''
-        return self.exclude(graph_id__gt=0)
+        return self.filter(type='editorial')
 
     def with_graph(self):
         '''returns only annotations which have a graph'''

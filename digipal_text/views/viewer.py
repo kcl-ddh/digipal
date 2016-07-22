@@ -601,7 +601,7 @@ def get_annotations_from_image(image):
     # and therfore not yet in textAnnotation table.
 
     from digipal.models import Annotation
-    for annotation in Annotation.objects.filter(image=image, graph__isnull=True).prefetch_related('textannotations'):
+    for annotation in Annotation.objects.filter(image=image, type='text').prefetch_related('textannotations'):
         info = {'geojson': annotation.get_geo_json_as_dict()}
         geojson = info['geojson']
         geojson['id'] = annotation.id
@@ -658,7 +658,7 @@ def update_text_image_link(request, image):
                         raise Exception('Cannot find annotation by server id %s' % serverid)
                     #print 'create annotation'
                     author = request.user
-                    annotation = Annotation(clientid=clientid, image=image, author=author)
+                    annotation = Annotation(clientid=clientid, image=image, author=author, type='text')
 
                 # update annotation and link
                 #print 'update annotation'

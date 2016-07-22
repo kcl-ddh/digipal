@@ -7,6 +7,7 @@ from django.db import models
 def correct_geometry(annotation):
     import json
     geo_json = annotation.geo_json
+    annotation.type = 'editorial'
     if geo_json:
         geo_json = json.loads(geo_json.replace('\'', '"'))
         if 'geometry' in geo_json:
@@ -14,6 +15,7 @@ def correct_geometry(annotation):
             if height:
                 for point in geo_json['geometry']['coordinates'][0]:
                     if point[1] < 0:
+                        annotation.type = 'text'
                         point[1] += height
                 annotation.geo_json = json.dumps(geo_json)
             else:
@@ -121,6 +123,7 @@ class Migration(DataMigration):
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'rotation': ('django.db.models.fields.FloatField', [], {'default': '0.0'}),
             'status': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.Status']", 'null': 'True', 'blank': 'True'}),
+            'type': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '15', 'null': 'True', 'db_index': 'True', 'blank': 'True'}),
             'vector_id': ('django.db.models.fields.TextField', [], {'default': "u''", 'blank': 'True'})
         },
         u'digipal.apitransform': {

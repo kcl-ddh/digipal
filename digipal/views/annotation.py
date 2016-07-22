@@ -841,7 +841,7 @@ def save_editorial(request, graphs):
                 if count > 0:
                     annotation = Annotation.objects.get(image=image, id=_id)
                 else:
-                    annotation = Annotation(image=image)
+                    annotation = Annotation(image=image, type='editorial')
 
                 form = ImageAnnotationForm(data=get_data)
                 if form.is_valid():

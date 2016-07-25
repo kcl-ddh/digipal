@@ -532,7 +532,7 @@ class ItemPartAdmin(DigiPalModelAdmin):
                     'get_image_count', 'get_part_count', 'keywords_string',
                     'created', 'modified']
     list_display_links = list_display
-    search_fields = ['locus', 'display_label',
+    search_fields = ['id', 'locus', 'display_label',
             'historical_items__display_label', 'current_item__display_label',
             'subdivisions__display_label', 'group__display_label',
             'type__name', 'keywords_string', 'notes']

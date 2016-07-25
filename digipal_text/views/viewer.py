@@ -243,11 +243,10 @@ def get_all_master_locations(context):
 
     # sort locations
     for k,v in ret.iteritems():
+        if not v:
+            del ret[k]
+            continue
         locations = sorted_natural(v, roman_numbers=True, is_locus=True)
-        # make sure face is before dorse
-        # dorse is before seal
-        # TODO: move this logic to a deeper level, that's useful in many places on
-        # the site
         ret[k] = locations
 
     return ret

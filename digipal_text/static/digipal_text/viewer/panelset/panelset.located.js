@@ -59,9 +59,9 @@
     // Returns the selected Location Type from the drop down
     Located.prototype.getLocationType = function() {
         var ret = 'default';
-        if (this.$locationTypes.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
+        //if (this.$locationTypes.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
             ret = this.$locationTypes.dpbsdropdown('getOption');
-        }
+        //}
         return ret;
     };
 
@@ -169,8 +169,8 @@
                 if (locationTypes.length > 0) {
                     this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
                 }
-                TextViewer.unhide(this.$locationTypes, (locationTypes.length > 1));
                 //TextViewer.unhide(this.$locationTypes, 1);
+                TextViewer.unhide(this.$locationTypes, (locationTypes.length > 1));
             } else {
                 // save the locations
                 this.locations = locations;

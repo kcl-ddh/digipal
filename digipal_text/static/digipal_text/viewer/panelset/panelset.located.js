@@ -166,8 +166,11 @@
                 // Note that we only SHOW the given location types, we don't
                 // add new entries in the drop down
                 this.$locationTypes.dpbsdropdown('showOptions', locationTypes);
-                this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
-                TextViewer.unhide(this.$locationTypes, 1);
+                if (locationTypes.length > 0) {
+                    this.$locationTypes.dpbsdropdown('setOption', locationTypes[0]);
+                }
+                TextViewer.unhide(this.$locationTypes, (locationTypes.length > 1));
+                //TextViewer.unhide(this.$locationTypes, 1);
             } else {
                 // save the locations
                 this.locations = locations;

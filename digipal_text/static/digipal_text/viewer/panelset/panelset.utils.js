@@ -125,12 +125,14 @@
         }
 
         return ret;
-    }
+    };
 
 
+    // Show the given $element if condition is 1
+    // Hide if undefined or 0
     TextViewer.unhide = function($element, condition) {
         if (!$element || $element.length < 1) return;
-        
+
         var $el = $element.closest('.dphidden, .dpunhidden');
         if (!$el.hasClass('dphidden') && !$el.hasClass('dpunhidden')) {
             console.log('NO CLASS 0!');
@@ -143,7 +145,7 @@
         if (!$el.hasClass('dphidden') && !$el.hasClass('dpunhidden')) {
             console.log('NO CLASS!');
         }
-    }
+    };
 
     // Improve all the select elements under a root element
     // At the moment we are using Chosen plugin
@@ -154,11 +156,11 @@
                 no_results_text: $(this).hasClass('can-add') ? 'Not found, select to add' : 'Location not found',
             });
         });
-    }
+    };
 
     TextViewer.urldecode = function(str) {
         return decodeURIComponent((str+'').replace(/\+/g, '%20'));
-    }
+    };
 
     initLayoutAddOns();
 

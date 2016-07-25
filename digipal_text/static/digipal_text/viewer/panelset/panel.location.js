@@ -20,7 +20,6 @@
 
         // show them
         TextViewer.unhide($buttons.find('.dphidden'), true);
-
     };
 
     PanelLocation.prototype.loadContentCustom = function(loadLocations, address, subLocation) {

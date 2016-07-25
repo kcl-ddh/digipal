@@ -411,11 +411,11 @@
                 var proj = new ol.proj.Projection({
                     code: 'ZOOMIFY',
                     units: 'pixels',
-//                   code: 'EPSG:3785',
-//                   units: 'm',
                     extent: [0, 0, options.image_width, options.image_height]
                 });
-                // TODO: dynamic height?
+                // See http://gis.stackexchange.com/questions/203081/direction-of-the-y-axis-in-openlayers
+                // Make OL3 vector coordinate backward-compatible with OL2.
+                // Important as we have saved coordinates in the DB.
                 ol.proj.addCoordinateTransforms('EPSG:4326', proj,
                     function(coord) {
                         return [coord[0], -options.image_height + coord[1]];
@@ -471,9 +471,9 @@
                     // controls: ol.control.defaults().extend([
                     //   new ol.control.OverviewMap({layers: [tileLayer]})
                     // ]),
-                     controls: ol.control.defaults().extend([
-                       new window.dputils.olCtrlFitWidth({layers: [tileLayer]})
-                     ]),
+                    controls: ol.control.defaults({attribution: false}).extend([
+                        new window.dputils.olCtrlFitWidth({layers: [tileLayer]})
+                    ]),
                     target: $target[0],
                     view: new ol.View(view_options)
                 };
@@ -497,6 +497,8 @@
                 return options.map;
             },
 
+            // TODO: need a fit to height/page
+            // TODO: make it a toggle. Unselected automatically when zoomed/unzoomed
             /**
              * @constructor
              * @extends {ol.control.Control}
@@ -504,27 +506,37 @@
              */
             olCtrlFitWidth: function(opt_options) {
 
-              var options = opt_options || {};
+                var options = opt_options || {};
 
-              var button = document.createElement('button');
-              button.innerHTML = 'N';
+                var button = document.createElement('button');
+                // left-right arrow (8597 for up-down)
+                button.innerHTML = '&#8596;';
 
-              var this_ = this;
-              var handleRotateNorth = function(e) {
-                  this_.getMap().getView().setRotation(0);
-              };
+                // TODO: fit to document boundaries!
+                var this_ = this;
+                var fitToWidth = function(e) {
+                    var map = this_.getMap();
+                    var layers = map.getLayers().getArray();
+                    for (var i = 0; i < layers.length; i++) {
+                        if (layers[i] instanceof ol.layer.Vector) {
+                            var extent = layers[i].getSource().getExtent();
+                            map.getView().fit(extent, map.getSize());
+                            break;
+                        }
+                    }
+                };
 
-              button.addEventListener('click', handleRotateNorth, false);
-              button.addEventListener('touchstart', handleRotateNorth, false);
+                button.addEventListener('click', fitToWidth, false);
+                button.addEventListener('touchstart', fitToWidth, false);
 
-              var element = document.createElement('div');
-              element.className = 'rotate-north ol-unselectable ol-control';
-              element.appendChild(button);
+                var element = document.createElement('div');
+                element.className = 'rotate-north ol-unselectable ol-control';
+                element.appendChild(button);
 
-              ol.control.Control.call(this, {
-                element: element,
-                target: options.target
-              });
+                ol.control.Control.call(this, {
+                    element: element,
+                    target: options.target
+                });
 
             }
 

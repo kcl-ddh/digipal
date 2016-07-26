@@ -3,7 +3,7 @@
 // PanelSet
 //
 // Represents and manages a set of Panels.
-// It deals with adding/removing panels to the frame, syncing their 
+// It deals with adding/removing panels to the frame, syncing their
 // locations, reflecting state changes into the browser address bar,
 // managing the visual arrangement of the panels on screen.
 //
@@ -20,6 +20,7 @@
         this.$messageBox = null;
         this.isReady = false;
         this.panelSet = this;
+        this.userIsStaff = false;
 
         this.registerPanel = function(panel) {
             if (!panel) return;
@@ -58,6 +59,11 @@
         this.syncPanel = function(panel) {
             // sync the given panel (with others)
             for (var i in this.panels) {
+                // TODO: this won't work when panels[i] is also synced.
+                // One option is to trigger a onPanelContentLoaded on that panel
+                // but info only in loadedAddress
+                // Or we use a getLoadedLocationType() returning the real LT
+                // but surrounding locations won't work.
                 panel.syncLocationWith(this.panels[i].uuid, this.panels[i].getContentType(), this.panels[i].getLocationType(), this.panels[i].getSurroundingLocations(), this.panels[i].getSubLocationUnresolved());
             }
         };
@@ -87,8 +93,8 @@
             // replace existing query string param
             url = url.replace(new RegExp(key+"=[^&#]*"), key+'='+encodeURI(state));
             window.history.replaceState('', window.title, url);
-            
-            // share last URL with other text viewers 
+
+            // share last URL with other text viewers
             localStorage.textViewer = JSON.stringify({
                 'url': window.location.href,
                 'uuid': this.uuid,
@@ -106,6 +112,14 @@
             }, '?');
             this.setState(state);
         };
+
+        this.setUserIsStaff = function(isUserStaff) {
+            this.userIsStaff = isUserStaff;
+        };
+
+        this.isUserStaff = function() {
+            return this.userIsStaff;
+        }
 
         this.getQSArgs = function(queryString, decode) {
             // in: '?k1=v1&k2=v2'
@@ -208,7 +222,7 @@
             // IN: '/digipal/manuscripts/1/texts/location/locus/290r/'
             //OUT: {contentType: location, locationType: locus, location: 290r}
             ret = {contentType: '', locationType: 'locus', location: '1r'};
-            
+
             var baseAddress = this.getBaseAddress();
             if (address.substring(0, baseAddress.length) !== baseAddress) return ret;
             address = address.substring(baseAddress.length);
@@ -219,7 +233,7 @@
                 ret.locationType = parts[1];
                 ret.location = parts[2];
             }
-            
+
             return ret;
         };
 
@@ -234,7 +248,7 @@
             $(window).scroll(function() {
                 me._resize(true);
                 });
-            
+
             window.addEventListener('storage', function(event) {
                 // Syncing location following a change made in another browser window
                 if (event.key !== 'textViewer') return;
@@ -242,9 +256,9 @@
                 if (data.uuid === me.uuid) return;
                 var baseAddress = me.getBaseAddress();
                 if (data.address.substring(0, baseAddress.length) !== baseAddress) return;
-                
+
                 parts = me.getPanelAddressParts(data.address);
-                
+
                 if (parts.contentType) {
                     me.syncWith(data.panelUUID, data.contentType, parts.locationType, parts.location);
                 }

@@ -66,8 +66,10 @@ class AOL3Interactions {
         map.addInteraction(interaction);
     }
 
-    setActive(key: string, active: boolean) {
-        this[key].setActive(active);
+    setActive(key: string, active: boolean): boolean {
+        var interaction = this[key];
+        if (interaction) interaction.setActive(active);
+        return !!interaction;
     }
 
     /**
@@ -77,10 +79,13 @@ class AOL3Interactions {
     switch(key: string) {
         var alternatives = {'select': 'draw', 'draw': 'select'};
         var alt = alternatives[key];
-        this.setActive(key, true);
-        if (alt) {
+        if (this.setActive(key, true) && alt) {
             this.setActive(alt, false);
         }
+    }
+
+    isDrawing(): boolean {
+        return (this.draw && this.draw.isStarted());
     }
 
 }
@@ -100,10 +105,11 @@ class AnnotatorOL3 {
     //
     theme: string = '';
     //
-    compatibilityProjection: ol.proj.Projection;
+    canEdit: boolean;
 
-    constructor(map: ol.Map) {
+    constructor(map: ol.Map, canEdit = false) {
         this.map = map;
+        this.canEdit = canEdit;
 
         this.addAnnotationLayer();
 
@@ -122,56 +128,9 @@ class AnnotatorOL3 {
         this.map.addLayer(this.layer);
     }
 
-    getStyles(part?:string): ol.style.Style {
-        var ret: ol.style.Style = null;
-
-        if (part === 'select') {
-            // TODO: avoid creating new style object each time!!!
-            if (this.theme && this.theme === 'hidden') {
-                ret = new ol.style.Style({
-                    fill: new ol.style.Fill({
-                        color: 'rgba(255, 255, 255, 0.07)'
-                    }),
-                    stroke: new ol.style.Stroke({
-                        color: 'rgba(0,153,255, 0.4)',
-                        width: 3
-                    }),
-                })
-            } else {
-                ret = new ol.style.Style({
-                    fill: new ol.style.Fill({
-                        color: 'rgba(255, 255, 255, 0.07)'
-                    }),
-                    stroke: new ol.style.Stroke({
-                        color: 'rgba(0,153,255, 1)',
-                        width: 3
-                    }),
-                })
-            }
-        } else {
-            ret = new ol.style.Style({
-                fill: new ol.style.Fill({
-                  color: 'rgba(255, 255, 255, 0.07)'
-                }),
-                stroke: new ol.style.Stroke({
-                  color: '#ffcc33',
-                  width: 2
-                }),
-                image: new ol.style.Circle({
-                  radius: 7,
-                  fill: new ol.style.Fill({
-                    color: '#ffcc33'
-                  })
-                })
-            });
-        }
-
-        return ret;
-    }
-
     initInteractions(): void {
         // Interactions are processed in reverse order:
-        this.initDraw();
+        if (this.canEdit) this.initDraw();
         this.initSelect();
         // Selector BEFORE draw and select
         // so we can chose which one handle the current event
@@ -194,7 +153,7 @@ class AnnotatorOL3 {
 
             // CTRL + pointerdown
             if (type === 'pointerdown') {
-                if (ctrl && !this.interactions.draw.isStarted()) {
+                if (ctrl && !this.isDrawing()) {
                     //console.log('CTRL-CLICK ACTIVATE DRAW');
                     this.interactions.switch('draw');
                 }
@@ -223,6 +182,8 @@ class AnnotatorOL3 {
     }
 
     removeSelectedFeatures(): void {
+        if (!this.canEdit) return;
+
         var features = this.getSelectedFeatures();
         // clone the selection before it is cleared
         var features_deleted = features.getArray().map((v) => v);
@@ -235,7 +196,7 @@ class AnnotatorOL3 {
     }
 
     isDrawing(): boolean {
-        return this.interactions.draw.isStarted();
+        return this.interactions.isDrawing();
     }
 
     // Set a style theme, possible values:
@@ -410,9 +371,9 @@ class AnnotatorOL3 {
     }
 
     /**
-     * Register an event listener
+     * Register an event listener for the OL features
      *
-     * listener: function({annotator: , action: 'select|unselect|deleted'})
+     * listener: function({annotator: this, action: 'select'|'unselect'|'changed'|'deleted'})
      */
     addListener(listener): void {
         var features = this.getSelectedFeatures();
@@ -426,6 +387,52 @@ class AnnotatorOL3 {
         listener(e);
     }
 
+    getStyles(part?:string): ol.style.Style {
+        var ret: ol.style.Style = null;
+
+        if (part === 'select') {
+            // TODO: avoid creating new style object each time!!!
+            if (this.theme && this.theme === 'hidden') {
+                ret = new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: 'rgba(255, 255, 255, 0.07)'
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: 'rgba(0,153,255, 0.4)',
+                        width: 3
+                    }),
+                })
+            } else {
+                ret = new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: 'rgba(255, 255, 255, 0.07)'
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: 'rgba(0,153,255, 1)',
+                        width: 3
+                    }),
+                })
+            }
+        } else {
+            ret = new ol.style.Style({
+                fill: new ol.style.Fill({
+                  color: 'rgba(255, 255, 255, 0.07)'
+                }),
+                stroke: new ol.style.Stroke({
+                  color: '#ffcc33',
+                  width: 2
+                }),
+                image: new ol.style.Circle({
+                  radius: 7,
+                  fill: new ol.style.Fill({
+                    color: '#ffcc33'
+                  })
+                })
+            });
+        }
+
+        return ret;
+    }
 }
 
 

@@ -67,7 +67,7 @@
                 can_rotate: true,
             });
 
-            this.annotator = window.ann3 = new window.AnnotatorOL3(this.map);
+            this.annotator = window.ann3 = new window.AnnotatorOL3(this.map, this.getEditingMode());
 
             this.annotator.addListener(function (e) { me.annotatorEventHandler(e); });
 
@@ -127,6 +127,13 @@
             }
         };
 
+        this.getEditingMode = function() {
+            // returns:
+            //  undefined: no edit mode at all
+            //  true: editing
+            //  false: not editing
+            return this.panelSet.isUserStaff();
+        };
     };
 
     PanelImage.prototype = Object.create(TextViewer.Panel.prototype);
@@ -218,11 +225,13 @@
             feature = this.annotator.getFeatureFromElementId(elementid);
         }
 
+        var me = this;
+
         if (!feature) {
             // no feature for this element
             // assign the element to the currently selected feature
             this.annotator.getSelectedFeatures().forEach(function(afeature) {
-                afeature.set('elementid', elementid);
+                if (me.getEditingMode()) afeature.set('elementid', elementid);
                 feature = afeature;
             });
         }
@@ -314,5 +323,6 @@
 
         this.annotator.setStyleTheme((classes.indexOf('highlight') > -1) ? '' : 'hidden');
     };
+
 
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

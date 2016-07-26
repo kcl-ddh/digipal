@@ -557,7 +557,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
 
     # deal with writing annotations
     if request.method == 'POST':
-        ret['newids'] = update_text_image_link(request, image)
+        update_text_image_link(request, image, ret)
     else:
         # display settings
         ret['presentation_options'] = [["highlight", "Highlight Text Units"]]
@@ -611,8 +611,14 @@ def get_annotations_from_image(image):
 
     return ret
 
-def update_text_image_link(request, image):
-    ret = {}
+def update_text_image_link(request, image, ret):
+    if ret is None: ret = {}
+    ret['newids'] = {}
+
+    from digipal.models import has_edit_permission, Annotation
+    if not has_edit_permission(request, Annotation):
+        set_message(ret, 'Insufficient rights to edit annotations', 'error')
+        return ret
 
     #print 'TEXT IMAGE LINK: image #%s' % image.id
     links = request.REQUEST.get('links', None)
@@ -636,7 +642,6 @@ def update_text_image_link(request, image):
             if not clientid and not serverid:
                 raise Exception('Cannot find annotation, need either "id" or "clientid"')
 
-            from digipal.models import Annotation
             filter = {}
             if serverid:
                 filter['id'] = serverid
@@ -664,7 +669,7 @@ def update_text_image_link(request, image):
                 annotation.set_geo_json_from_dict(geojson)
                 annotation.save()
                 if not serverid:
-                    ret[clientid] = annotation.id
+                    ret['newids'][clientid] = annotation.id
 
                 # update the text-annotation
                 from digipal_text.models import TextAnnotation

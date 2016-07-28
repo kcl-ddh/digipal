@@ -145,7 +145,9 @@
             this.applyOpenLayer(data);
 
             // annotations
-            this.annotator.addAnnotations(data.annotations);
+            if (this.annotator) {
+                this.annotator.addAnnotations(data.annotations);
+            }
 
             // text-image links
             //this.$linker.closest('.dphidden').toggle(true);

@@ -4,7 +4,7 @@
 //
 // This is the base class for all specific panel types (e.g. text, image).
 // It provides some basic behaviour for auto-resizing, loading/saving content.
-// It displays and manages: a tool bar at the top, content in the middle and 
+// It displays and manages: a tool bar at the top, content in the middle and
 // status bar at the bottom.
 // The content can be anything and specifics are dealt with subclasses.
 //
@@ -31,7 +31,7 @@
 
         this.panelSet = null;
 
-        // The address of the last successfully loaded content. 
+        // The address of the last successfully loaded content.
         // e.g. /digipal/manuscripts/1/texts/translation/locus/2r/
         //
         // Note that this may be more specific than locationType and
@@ -46,7 +46,7 @@
         this.loadedAddress = null;
 
         this.createUserInterface();
-        
+
         var me = this;
 
         // Enabled location selectors
@@ -173,18 +173,23 @@
 
         this.syncLocationWith = function(panelUUID, contentType, locationType, location, subLocation) {
             // <location> is a string ('2r') or a dict {0: '2r', 1: '2v', -1: '1v'}
-            
+            if (panelUUID === this.uuid) return;
+
             // if string convert to dict, but with same loc for +-1
             if (location.substring) location = {0: location};
             if (!location.hasOwnProperty('1')) location[1] = location[0];
             if (!location.hasOwnProperty('-1')) location[-1] = location[0];
-            
+
             var parts = this.getLocationParts();
+            // Load new address only if:
+            // a) we are synced with emitting location type
             if ((this.getLocationType() === 'sync' && (parts.location.toLowerCase() == contentType.toLowerCase())) ||
+                // OR b) bidir sync: we are a location widget and the emitting panel is synced with us
+                //(0 && this.getContentType().toLowerCase() === 'location' && locationType === 'sync' && location[parts.offset] == this.getContentType().toLowerCase()) ||
+                // OR c) cross web-page sync: both this panel and the emitting one are location widgets
                 (contentType.toLowerCase() === 'location' && contentType.toLowerCase() === this.getContentType().toLowerCase())) {
-                if (panelUUID != this.uuid) {
-                    this.loadContent(!(this.locations), this.getContentAddress(locationType, location[parts.offset]), subLocation);
-                }
+
+                this.loadContent(!(this.locations), this.getContentAddress(locationType, location[parts.offset]), subLocation);
             }
         };
 
@@ -398,7 +403,7 @@
     Panel.prototype.loadContentCustom = function(loadLocations, address, subLocation) {
         // NEVER CALL THIS FUNCTION DIRECTLY
         // ONLY loadContent() can call it
-        throw "loadContentCustom() must be overridden in the concrete class"; 
+        throw "loadContentCustom() must be overridden in the concrete class";
         this.$content.html('Generic Panel Content');
         this.onContentLoaded();
     };
@@ -408,11 +413,11 @@
 
     Panel.prototype.scrollToTopOfContent = function(data) {
         if (this.$content) this.$content.scrollTop(0);
-    }
+    };
 
     Panel.prototype.onContentLoaded = function(data) {
         this.scrollToTopOfContent();
-        
+
         //this.setMessage('Content loaded.', 'success');
         this.loadedAddress = this.getContentAddress(data.location_type, data.location);
         this.setNotDirty();

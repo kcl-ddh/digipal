@@ -42,7 +42,7 @@
 
         this.syncWithPanel = function(panel) {
             // sync other panels with <panel>
-            this.onPanelContentLoaded(panel, panel.getLocationType(), panel.getSurroundingLocations());
+            this.onPanelContentLoaded(panel, panel.getLocationType(), panel.getLocation());
         };
 
         this.onPanelContentLoaded = function(panel, locationType, location) {
@@ -95,13 +95,15 @@
             window.history.replaceState('', window.title, url);
 
             // share last URL with other text viewers
-            localStorage.textViewer = JSON.stringify({
-                'url': window.location.href,
-                'uuid': this.uuid,
-                'panelUUID': panel.uuid,
-                'contentType': panel.getContentType(),
-                'address': panel.loadedAddress,
-            });
+            if (panel.loadedAddress) {
+                localStorage.textViewer = JSON.stringify({
+                    'url': window.location.href,
+                    'uuid': this.uuid,
+                    'panelUUID': panel.uuid,
+                    'contentType': panel.getContentType(),
+                    'address': panel.loadedAddress,
+                });
+            }
         };
 
         this.setStateFromUrl = function(defaultState) {
@@ -119,7 +121,7 @@
 
         this.isUserStaff = function() {
             return this.userIsStaff;
-        }
+        };
 
         this.getQSArgs = function(queryString, decode) {
             // in: '?k1=v1&k2=v2'
@@ -221,7 +223,7 @@
         this.getPanelAddressParts = function(address) {
             // IN: '/digipal/manuscripts/1/texts/location/locus/290r/'
             //OUT: {contentType: location, locationType: locus, location: 290r}
-            ret = {contentType: '', locationType: 'locus', location: '1r'};
+            var ret = {contentType: '', locationType: 'locus', location: '1r'};
 
             var baseAddress = this.getBaseAddress();
             if (address.substring(0, baseAddress.length) !== baseAddress) return ret;
@@ -255,9 +257,9 @@
                 var data = JSON.parse(event.newValue);
                 if (data.uuid === me.uuid) return;
                 var baseAddress = me.getBaseAddress();
-                if (data.address.substring(0, baseAddress.length) !== baseAddress) return;
+                if (!data.address || data.address.substring(0, baseAddress.length) !== baseAddress) return;
 
-                parts = me.getPanelAddressParts(data.address);
+                var parts = me.getPanelAddressParts(data.address);
 
                 if (parts.contentType) {
                     me.syncWith(data.panelUUID, data.contentType, parts.locationType, parts.location);

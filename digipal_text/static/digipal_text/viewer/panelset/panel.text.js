@@ -175,7 +175,7 @@
                     me.componentIsReady('tinymce');
                 },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | pslocation | psperson | psex pssupplied psdel | code ',
+                toolbar: 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | psperson | pslocation | psex pssupplied psdel | code ',
                 paste_word_valid_elements: 'i,em,p,span',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted
@@ -223,7 +223,7 @@
 
     PanelTextWrite.prototype.onContentLoaded = function(data) {
         this.tinymce.setContent(data.content);
-        
+
         this.tinymce.focus();
         this.tinymce.undoManager.clear();
         this.tinymce.undoManager.add();
@@ -234,5 +234,5 @@
     PanelTextWrite.prototype.scrollToTopOfContent = function(data) {
         if (this.tinymce) this.tinymce.getBody().firstChild.scrollIntoView();
     }
-    
+
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

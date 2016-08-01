@@ -128,8 +128,8 @@
     };
 
 
-    // Show the given $element if condition is 1
-    // Hide if undefined or 0
+    // Show the given $element if condition is 0
+    // Hide if undefined or 1
     TextViewer.unhide = function($element, condition) {
         if (!$element || $element.length < 1) return;
 

@@ -326,5 +326,10 @@
         this.annotator.setStyleTheme((classes.indexOf('highlight') > -1) ? '' : 'hidden');
     };
 
+    PanelImage.prototype.updateEditingModeIcon = function() {
+        if (this.$toggleEdit) {
+            TextViewer.unhide(this.$toggleEdit, 0);
+        }
+    }
 
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

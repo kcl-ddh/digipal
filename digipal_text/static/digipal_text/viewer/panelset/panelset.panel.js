@@ -344,34 +344,10 @@
             return undefined;
         };
 
-        this.updateEditingModeIcon = function() {
-            if (this.$toggleEdit) {
-                var mode = this.getEditingMode();
-
-                //this.$toggleEdit.toggleClass('dphidden', !((mode === true) || (mode === false)));
-                TextViewer.unhide(this.$toggleEdit, ((mode === true) || (mode === false)));
-
-                this.$toggleEdit.toggleClass('active', (mode === true));
-
-                this.$toggleEdit.attr('title', (mode === true) ? 'Preview the text' : 'Edit the text');
-
-                this.$toggleEdit.tooltip();
-
-                var me = this;
-                this.$toggleEdit.on('click', function() {
-                    var options = {
-                        contentAddress: me.getContentAddressRelative()
-                    };
-                    me.panelSet.registerPanel(new TextViewer['PanelText'+(mode ? '' : 'Write')](me.$root, me.getContentType(), options));
-                    return false;
-                });
-            }
-        };
-
     };
 
     Panel.prototype = Object.create(TextViewer.Located.prototype);
-
+    
     Panel.prototype.createUserInterface = function() {
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
@@ -596,6 +572,30 @@
 
     Panel.prototype.onLocationChanged = function() {
         this.loadContent();
+    };
+
+    Panel.prototype.updateEditingModeIcon = function() {
+        if (this.$toggleEdit) {
+            var mode = this.getEditingMode();
+
+            //this.$toggleEdit.toggleClass('dphidden', !((mode === true) || (mode === false)));
+            TextViewer.unhide(this.$toggleEdit, ((mode === true) || (mode === false)));
+
+            this.$toggleEdit.toggleClass('active', (mode === true));
+
+            this.$toggleEdit.attr('title', (mode === true) ? 'Preview the text' : 'Edit the text');
+
+            this.$toggleEdit.tooltip();
+
+            var me = this;
+            this.$toggleEdit.on('click', function() {
+                var options = {
+                    contentAddress: me.getContentAddressRelative()
+                };
+                me.panelSet.registerPanel(new TextViewer['PanelText'+(mode ? '' : 'Write')](me.$root, me.getContentType(), options));
+                return false;
+            });
+        }
     };
 
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

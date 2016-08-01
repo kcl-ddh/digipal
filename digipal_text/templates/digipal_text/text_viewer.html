@@ -29,7 +29,9 @@
     <span class="tvmt-itempart"><a href="{{ item_part.get_absolute_url }}">{{ item_part.display_label }}</a></span>
 
     <div class="ui-layout-above ui-layout-pane-above">
-        <div class="location-buttons"></div>
+        <div class="btn-toolbar">
+            <div class="location-buttons btn-group"></div>
+        </div>
     </div>
 </div>
 
@@ -51,26 +53,18 @@
             {% include "bootstrap/dropdown.html" with options=dd_content_types classes="auto-open" %}
         </div>
 
-        <div class="location-buttons">
-            <div class="btn-group">
-                {% include "bootstrap/dropdown.html" with options=dd_location_types classes="dropdown-location-type dphidden auto-open" %}
-            </div>
-            <div class="btn-group dphidden">
-                <select name="location" class="can-add">
-                    <option value="1r">1r</option>
-                    <option value="1v">1v</option>
-                </select>
-            </div>
-            <div class="btn-group dphidden">
-                <button class="btn btn-default btn-sm btn-page-nav btn-page-previous">
-                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
-                </button>
-            </div>
-            <div class="btn-group dphidden">
-                <button class="btn btn-default btn-sm btn-page-nav btn-page-next">
-                    <i class="fa fa-chevron-right" aria-hidden="true"></i>
-                </button>
-            </div>
+        <div class="location-buttons btn-group dpauto-hide">
+            {% include "bootstrap/dropdown.html" with options=dd_location_types classes="dropdown-location-type dphidden auto-open" %}
+            <select name="location" class="can-add dphidden">
+                <option value="1r">1r</option>
+                <option value="1v">1v</option>
+            </select>
+            <button class="btn btn-default btn-sm btn-page-nav btn-page-previous dphidden">
+                <i class="fa fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <button class="btn btn-default btn-sm btn-page-nav btn-page-next dphidden">
+                <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            </button>
         </div>
 
         <div class="dphidden dpauto-hide btn-group presentation-options"></div>

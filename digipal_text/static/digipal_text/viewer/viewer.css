@@ -104,8 +104,9 @@ ul.dropdown-menu.dpbs-clicked {
 .btn-toolbar .chzn-container {
     /* width: 10em !important; */
     width: auto !important;
-    margin-top: 2px !important;
-    margin-bottom: 2px !important;
+    margin-top: 1px !important;
+    margin-bottom: 1px !important;
+    float: left;
 }
 
 .btn-toolbar .linker .chzn-container {
@@ -264,7 +265,7 @@ body.page-text-viewer {
 }
 
 .btn-toolbar:hover .dpauto-hide {
-    display: inline-block;
+    display: inline;
 }
 
 .btn-toolbar:hover .dpauto-hide.dphidden {
@@ -283,4 +284,9 @@ body.page-text-viewer {
 .location-buttons .btn-page-nav i {
     /* font-size: 1.3em;
     padding: 1px 10px; */
+}
+
+.ui-layout-above.ui-layout-pane-above {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
 }

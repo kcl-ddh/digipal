@@ -1449,11 +1449,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = regex.sub(ur'(?mus)<st>\s*q\s*</st>', ur'ƣ', content)
         content = regex.sub(ur'(?mus)<st>\s*Q\s*</st>', ur'Ƣ', content)
         # <st>L</st> => Ł
+        content = regex.sub(ur'(?mus)<st>\s*ll\s*</st>', ur'łł', content)
+        content = regex.sub(ur'(?mus)<st>\s*LL\s*</st>', ur'ŁŁ', content)
         content = regex.sub(ur'(?mus)<st>\s*l\s*</st>', ur'ł', content)
         content = regex.sub(ur'(?mus)<st>\s*L\s*</st>', ur'Ł', content)
-
-        # ƹ
-        content = content.replace(ur'ƹ', 'r')
 
         # <u> =>
         content = regex.sub(ur'(?musi)</?u>', ur'', content)
@@ -1525,6 +1524,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             exp = regex.sub(ur'\d', ur'', exp)
             # ƥ -> p (e.g. 1v super illos)
             exp = exp.replace(ur'ƥ', ur'p')
+            # ƹ
+            exp = exp.replace(ur'ƹ', 'r')
 
             ##exp = regex.sub(ur'ṕ', ur'p', exp)
             exp = regex.sub(ur'ƣ', ur'q', exp)

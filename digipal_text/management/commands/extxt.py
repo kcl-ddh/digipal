@@ -1357,12 +1357,12 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             hr[v] = k
         return [hr[i] for i in v1]
 
-    def get_unique_matches(self, pattern, content):
+    def get_unique_matches(self, pattern, content, replacement):
         ret = re.findall(pattern, content)
 
         import json
 
-        print repr(pattern)
+        print 'Pattern: %s' % repr(pattern)
 
         matches = {}
         for match in ret:
@@ -1371,6 +1371,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         for key, freq in sorted([(key, freq) for key, freq in matches.iteritems()], key=lambda item: item[1]):
             print '%3d %s' % (freq, key)
+            if replacement:
+                print '\t\t -> %s' % json.dumps(re.sub(pattern, replacement, json.loads(key)))
 
         print len(ret)
 
@@ -1379,15 +1381,22 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
     def pattern(self):
         input_path = self.cargs[0]
         pattern = self.cargs[1]
+        replacement = self.cargs[2] if len(self.cargs) > 2 else None
 
         from digipal.utils import read_file
 
         content = read_file(input_path)
 
         print
-        self.get_unique_matches(pattern, content)
+        self.get_unique_matches(pattern, content, replacement)
 
         print
+
+    def convert_errors(self, content):
+        ret = content
+        ret = ret.replace(ur'[|', ur']|')
+        ret = ret.replace(ur'[|', ur']|')
+        return ret
 
     def upload(self):
         input_path = self.cargs[0]
@@ -1419,6 +1428,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # convert &amp; to #AMP#
         content = content.replace('&amp;', '#AMP#')
 
+        # Custom fixes
+        content = self.convert_errors(content)
+
         # Line breaks from editor (<br/> => ¦)
         # Hyphenation: remove the line break after <br/> (see EXON-87)
         # e.g. Turche-| tillus => Turche-|tillus (8b2)
@@ -1439,6 +1451,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # <st>L</st> => Ł
         content = regex.sub(ur'(?mus)<st>\s*l\s*</st>', ur'ł', content)
         content = regex.sub(ur'(?mus)<st>\s*L\s*</st>', ur'Ł', content)
+
+        # ƹ
+        content = content.replace(ur'ƹ', 'r')
 
         # <u> =>
         content = regex.sub(ur'(?musi)</?u>', ur'', content)
@@ -1566,11 +1581,15 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             content = regex.sub(ur'(?musi)<sub>', ur'<span data-dpt="hi" data-dpt-rend="sub">', content)
             content = regex.sub(ur'(?musi)</sup>|</sub>', ur'</span>', content)
 
+        content = self.convert_exceptions(content)
+
         # convert #AMP# to &amp;
         content = content.replace(ur'#AMP#', ur'&amp;')
 
         # & => et
-        content = content.replace(ur'&amp;', ur'<i>et</i>')
+        #content = content.replace(ur'&amp;', ur'<i>et</i>')
+        # Safe to assume &amp are not inside expension: [ & ]
+        content = content.replace(ur'&amp;', ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp">et</span>')
 
         #
         content = regex.sub(ur'</p>', u'</p>\n', content)
@@ -1583,6 +1602,20 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         #print repr(content)
 
         text_content_xml.save()
+
+    def convert_exceptions(self, content):
+        '''Convert exceptions to the rules, as described by FT.'''
+        # _underlined_, /italics/
+        ret = content
+        # 417b1: ual&{bat} -> ual/e_t_/{bat}
+        ret = re.sub(ur'(ual)#AMP#(<span data-dpt="interlineation">bat</span>)',
+            ur'\1<span data-dpt="abbr">&amp;</span><span data-dpt="exp">e<span data-dpt="del" data-dpt-type="supplied">t</span></span>\2',
+            ret)
+        # 490a6: ten_&_{en} -> ten/_e_/{en}/t/
+        ret = re.sub(ur'(ten)<span data-dpt="del" data-dpt-type="supplied">#AMP#</span><span data-dpt="interlineation">en</span>',
+            ur'\1<span data-dpt="del" data-dpt-type="supplied"><span data-dpt="abbr">&amp;</span><span data-dpt="exp">e</span></span><span data-dpt="interlineation">en</span><span data-dpt="exp">et</span>',
+            ret)
+        return ret
 
     def word_preprocess(self):
         input_path = self.cargs[0]

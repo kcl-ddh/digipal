@@ -1369,7 +1369,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             key = json.dumps(match)
             matches[key] = matches.get(key, 0) + 1
 
-        for key, freq in sorted([(key, freq) for key, freq in matches.iteritems()], key=lambda item: item[1]):
+        for key, freq in sorted([(key, freq) for key, freq in matches.iteritems()], key=lambda item: (item[1], item[0])):
             print '%3d %s' % (freq, key)
             if replacement:
                 print '\t\t -> %s' % json.dumps(re.sub(pattern, replacement, json.loads(key)))
@@ -1380,7 +1380,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
     def pattern(self):
         input_path = self.cargs[0]
-        pattern = self.cargs[1]
+        pattern = self.cargs[1].decode('utf-8')
         replacement = self.cargs[2] if len(self.cargs) > 2 else None
 
         from digipal.utils import read_file
@@ -1428,6 +1428,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         return ret
 
     def merge_repeated_elements_xpath(self, xml, xpath):
+        merged_into = {}
         merged = {}
         for node in xml.findall(xpath):
             if id(node) in merged: continue
@@ -1438,6 +1439,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                     break
 
                 # merge
+                merged_into[id(node)] = 1
                 node.append(dup)
                 dup.tag = 'TOBEREMOVED'
                 if dup.tail:
@@ -1447,8 +1449,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 merged[id(dup)] = 1
                 if dup.tail is not None: break
 
-        dputils.strip_xml_tags(xml, './/TOBEREMOVED')
+        #print 'Merged into %s groups (%s)' % (len(merged_into.keys()), xpath)
 
+        dputils.strip_xml_tags(xml, './/TOBEREMOVED')
 
     def upload(self):
         input_path = self.cargs[0]
@@ -1475,7 +1478,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # unescape XML tags coming from MS Word
         # E.g. &lt;margin&gt;Д‘ mМѓ&lt;/margin&gt;
-        content = regex.sub(ur'(?musi)&lt;(/?[a-z]+)&gt;', ur'<\1>', content)
+        content = regex.sub(ur'(?musi)&lt;(/?[a-z]+)(&gt;)?', ur'<\1>', content)
+        # removed the misplaced anchors. Can't convert them.
+        #print len(regex.findall(ur'&gt;|&lt;', content))
+        content = regex.sub(ur'&gt;|&lt;', ur'', content)
 
         #print u'\n'.join(list(set(re.findall(ur'(?musi)\S+&\S*|\S*&\S+', content))))
         #print u'\n'.join(list(set(regex.findall(ur'(?musi)(?:<st>)[^<]+', content))))
@@ -1525,6 +1531,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # <del>de his</del> =>
         ##content = regex.sub(ur'(?musi)<del>(.*?)</del>', ur'', content)
 
+        # move all spaces outside [ro ] => [ro]
+        content = re.sub(ur'(?musi)\[(\s+)', ur'\1[', content)
+        content = re.sub(ur'(?musi)(\s+)\]', ur']\1', content)
+
         # Folio number
         # [fol. 1. b.] or [fol. 1.]
         # TODO: check for false pos. or make the rule more strict
@@ -1539,7 +1549,11 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # Entry number
         # [1a3]
         # TODO: check for false pos. or make the rule more strict
-        content = regex.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
+        content = regex.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)\s*]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
+
+        # now all remaining [] with a space inside are notes or accidental markup
+        # convert to ()
+        content = regex.sub(ur'\[([^\]\[]*\s[^\[\]]*)\]', ur'(\1)', content)
 
         # <margin></margin>
         content = content.replace('<margin>', '<span data-dpt="note" data-dpt-place="margin">')
@@ -1593,6 +1607,11 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             exp = exp.replace(ur'ƹ', 'r')
 
             ##exp = regex.sub(ur'ṕ', ur'p', exp)
+            exp = regex.sub(ur'ƒ', ur'f', exp)
+            exp = regex.sub(ur'Ƀ', ur'B', exp)
+            exp = regex.sub(ur'Ɓ', ur'B', exp)
+            exp = regex.sub(ur'ɓ', ur'B', exp)
+            exp = regex.sub(ur'Ƣ', ur'Q', exp)
             exp = regex.sub(ur'ƣ', ur'q', exp)
             exp = regex.sub(ur'ɋ', ur'q', exp)
             exp = regex.sub(ur'Ł', ur'L', exp)
@@ -1634,7 +1653,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # (supplied) expansions without abbreviation
         # Wide angle brackets
         # Bal〈dwini〉 =>
-        content = regex.sub(ur'(?musi)〈\s*([^〈〉]{1,30})\s*〉', ur'<span data-dpt="supplied">\1</span>', content)
+        content = regex.sub(ur'(?musi)〈〉', ur'', content)
+        content = regex.sub(ur'(?musi)〈\s*([^〈〉]{1,100})\s*〉', ur'<span data-dpt="supplied">\1</span>', content)
 
         # Interlineation
         # e.g. e{n}t

@@ -1346,6 +1346,7 @@ def is_xml_well_formed(xml_string):
         return False
 
 def strip_xml_tags(doc, xpath):
+    '''Keep only the XML content of all the elements matching xpath'''
     temp_name = 'TOBEREMOVED'
     node = None
     for node in doc.xpath(xpath):
@@ -1353,3 +1354,11 @@ def strip_xml_tags(doc, xpath):
 
     if node is not None:
         ET.strip_tags(doc, temp_name)
+
+def remove_xml_elements(xml, xpath):
+    ret = 0
+    '''Remove all the elements matching xpath (and all their content)'''
+    for element in xml.xpath(xpath):
+        ret += 1
+        element.getparent().remove(element)
+    return ret

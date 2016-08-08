@@ -1,3 +1,12 @@
+. word list
+    . still special chars in the expanded text
+    . <span data-dpt="abbr">collegert̃</span><span data-dpt="exp">colleger<i>un</i>t</span> <span data-dpt="abbr">geldũ</span><span data-dpt="exp">geldu<i>m</i></span>
+
+    . barro-|nes is encoded barro-<span MS>|</span>nes
+        . how is that indexed?
+        . why is it encoded like that
+
+
 . annotations with different coordinate systems
     . change the OL3 coordinates to be compatible with OL2
     . data migration script to convert existing OL3 annotation to new system

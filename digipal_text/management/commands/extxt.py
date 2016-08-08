@@ -1398,6 +1398,58 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         ret = ret.replace(ur'[|', ur']|')
         return ret
 
+    def test_merge_repeated_elements(self):
+        input = u'''regis <span data-dpt="del" data-dpt-rend="underlined">.xliiii. hiđ[as] 7 dim</span><span data-dpt="del" data-dpt-rend="underlined"><sup>4</sup></span><span data-dpt="del" data-dpt-rend="underlined">[idiam] 7 dim</span><span data-dpt="del" data-dpt-rend="underlined"><sup>4</sup></span><span data-dpt="del" data-dpt-rend="underlined">[idiam] uirga〈m〉.</span>7 de'''
+        output = self.merge_repeated_elements(input)
+        expected = u'''regis <span data-dpt="del" data-dpt-rend="underlined">.xliiii. hiđ[as] 7 dim<sup>4</sup>[idiam] 7 dim<sup>4</sup>[idiam] uirga〈m〉.</span>7 de'''
+
+        if output != expected:
+            print input
+            print
+            print output
+            print
+            print expected
+            print
+
+    def merge_repeated_elements(self, content):
+        # General form <a>AB</a><a>CD</a> => <a>ABCD</a>
+        # Conditions:
+        #    1. nothing between both <a>
+        #    2. both elements have the same attributes
+        #    3. only some predefined tags. Would be incorrect on <p>.
+        # Reason: this will prevent conversion errors
+        #     e.g. a <del> splitting parts of abbreviated/expanded words, dim|4
+        xml = dputils.get_xml_from_unicode(content, add_root=True)
+
+        #self.merge_repeated_elements_xpath(xml, './/span[@data-dpt="del"][@data-dpt-rend="underlined"]')
+        self.merge_repeated_elements_xpath(xml, './/span[@data-dpt="del"]')
+
+        ret = dputils.get_unicode_from_xml(xml, remove_root=True)
+        return ret
+
+    def merge_repeated_elements_xpath(self, xml, xpath):
+        merged = {}
+        for node in xml.findall(xpath):
+            if id(node) in merged: continue
+            if node.tail is not None: continue
+            for dup in node.itersiblings():
+                # same tag and attribute?
+                if not(dup.tag == node.tag and '|'.join(sorted(node.values())) == '|'.join(sorted(dup.values()))):
+                    break
+
+                # merge
+                node.append(dup)
+                dup.tag = 'TOBEREMOVED'
+                if dup.tail:
+                    node.tail = (node.tail or '') + dup.tail
+                    dup.tail = None
+
+                merged[id(dup)] = 1
+                if dup.tail is not None: break
+
+        dputils.strip_xml_tags(xml, './/TOBEREMOVED')
+
+
     def upload(self):
         input_path = self.cargs[0]
         recordid = self.cargs[1]
@@ -1413,6 +1465,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         if len(content) == l0:
             print 'ERROR: could not find <body> element'
             return
+
+        #self.test_merge_repeated_elements()
+        #exit()
+        content = self.merge_repeated_elements(content)
 
         # Remove spaces at the beginning of each line
         content = regex.sub(ur'(?musi)^ +', ur'', content)
@@ -1431,6 +1487,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # Custom fixes
         content = self.convert_errors(content)
 
+        # remove elements with blank content
+        content = regex.sub(ur'(?mus)<(\w+)[^>]*?>(\s*)</\1>', ur'\2', content)
+
         # Line breaks from editor (<br/> => ¦)
         # Hyphenation: remove the line break after <br/> (see EXON-87)
         # e.g. Turche-| tillus => Turche-|tillus (8b2)
@@ -1441,8 +1500,14 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # line breaks from MS (| => |)
         content = regex.sub(ur'(?musi)\|', ur'<span data-dpt="lb" data-dpt-src="ms">|</span>', content)
 
+        # [---] Erasure
+        content = regex.sub(ur'(?musi)(\[-+\])', ur'<span data-dpt="del" data-dpt-rend="erasure">\1</span>', content)
+        # [...] Gap
+        content = regex.sub(ur'(?musi)(\[\.+\])', ur'<span data-dpt="gap">\1</span>', content)
+
         #content = regex.sub(ur'(?musi)<br/>', ur'</p><p>', content)
 
+        # Promote style constructs to special chars
         # <st>p</st> => ṕ
         content = regex.sub(ur'(?mus)<st>\s*p\s*</st>', ur'ṕ', content)
         # <st>q</st> => ƣ
@@ -1458,7 +1523,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = regex.sub(ur'(?musi)</?u>', ur'', content)
 
         # <del>de his</del> =>
-        content = regex.sub(ur'(?musi)<del>(.*?)</del>', ur'', content)
+        ##content = regex.sub(ur'(?musi)<del>(.*?)</del>', ur'', content)
 
         # Folio number
         # [fol. 1. b.] or [fol. 1.]
@@ -1532,6 +1597,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             exp = regex.sub(ur'ɋ', ur'q', exp)
             exp = regex.sub(ur'Ł', ur'L', exp)
 
+            # e.g. st~
+            exp = remove_accents(exp)
+
             # Remove abbreviation signs
             # ! we must make sure that the content no longer contains entities!
             # E.g. &amp; => &
@@ -1544,8 +1612,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             exp = regex.sub(ur'÷', ur'', exp)
             # ʇ
             exp = regex.sub(ur'ʇ', ur'', exp)
-            # e.g. st~
-            exp = remove_accents(exp)
 
             # remove sub/sup from the expanded form as it usually contains abbreviation mark
             # ? Exception: hiđ4[ae]ϛ {ϛ 7 dim̃[idia] uirga.}
@@ -1568,19 +1634,15 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # (supplied) expansions without abbreviation
         # Wide angle brackets
         # Bal〈dwini〉 =>
-        content = regex.sub(ur'(?musi)〈([^〈〉]{1,30})〉', ur'<span data-dpt="supplied">\1</span>', content)
+        content = regex.sub(ur'(?musi)〈\s*([^〈〉]{1,30})\s*〉', ur'<span data-dpt="supplied">\1</span>', content)
 
         # Interlineation
         # e.g. e{n}t
-        content = regex.sub(ur'(?musi)\{([^{}]{1,300})\}', ur'<span data-dpt="interlineation">\1</span>', content)
+        content = regex.sub(ur'(?musi)\{\s*([^{}]{1,300})\s*\}', ur'<span data-dpt="interlineation">\1</span>', content)
 
-        # sup
-        if 0:
-            content = regex.sub(ur'(?musi)<sup>', ur'<span data-dpt="hi" data-dpt-rend="sup">', content)
-
-            # sub
-            content = regex.sub(ur'(?musi)<sub>', ur'<span data-dpt="hi" data-dpt-rend="sub">', content)
-            content = regex.sub(ur'(?musi)</sup>|</sub>', ur'</span>', content)
+        # remove accidental spaces in sup/sub
+        content = regex.sub(ur'(?musi)(<sup>)\s*(.*?)\s*(</sup>)', ur'\1\2\3', content)
+        content = regex.sub(ur'(?musi)(<sub>)\s*(.*?)\s*(</sub>)', ur'\1\2\3', content)
 
         content = self.convert_exceptions(content)
 
@@ -1590,7 +1652,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # & => et
         #content = content.replace(ur'&amp;', ur'<i>et</i>')
         # Safe to assume &amp are not inside expension: [ & ]
-        content = content.replace(ur'&amp;', ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp">et</span>')
+        content = content.replace(ur'&amp;', ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>et</i></span>')
 
         #
         content = regex.sub(ur'</p>', u'</p>\n', content)

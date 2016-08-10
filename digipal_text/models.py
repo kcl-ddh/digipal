@@ -383,6 +383,37 @@ class TextAnnotation(models.Model):
         ret = ' '.join([p[1] for p in ret])
         return ret
 
-from digipal.models import set_additional_models_methods
+###########################################################################
+#
+#    EntryHand
+#
+###########################################################################
+class EntryHand(models.Model):
+    item_part = models.ForeignKey('digipal.ItemPart', blank=False, null=False, related_name='entry_hands')
+    entry_number = models.CharField(max_length=20, blank=False, null=False, db_index=True)
+    hand_label = models.CharField(max_length=20, blank=False, null=False, db_index=True)
+    
+    order = models.IntegerField(blank=False, null=False, default=0, db_index=True)
+    correction = models.BooleanField(blank=False, null=False, default=False, db_index=True)
+    certainty = models.FloatField(blank=False, null=False, default=1.0)
+    
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 
+    class Meta:
+        unique_together = ['item_part', 'entry_number', 'hand_label', 'order', 'correction']
+
+    def __unicode__(self):
+        return u'%s %ss %s' % (self.hand_label, self.get_intervention_label(), self.entry_number)
+    
+    def get_intervention_label(self):
+        ret = 'begin'
+        if self.order > 0:
+            ret = 'continue'
+        if self.correction:
+            ret = 'correct'
+        return ret
+
+
+from digipal.models import set_additional_models_methods
 set_additional_models_methods()

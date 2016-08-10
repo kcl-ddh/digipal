@@ -46,6 +46,9 @@ Commands:
     setquire
         Set the quire number on the images from the codicological desc.
 
+    setentryhand
+        Regenerate exon_entryhand from exon_reference_system
+
     quires2csv
         Write a csv file with first folio number for each quire
 
@@ -112,6 +115,10 @@ Commands:
         if command == 'trefs2csv':
             known_command = True
             self.trefs2csv()
+            
+        if command == 'setentryhand':
+            known_command = True
+            self.setentryhand()
 
         if command == 'setquire':
             known_command = True
@@ -249,6 +256,62 @@ Commands:
         write_rows_to_csv(file_path, rows, headings=headings, encoding='utf-8')
         print 'Written %s' % file_path
 
+    def setentryhand(self):
+        # populate digipal_text.entryhand from exon_reference_system
+    
+        print 'delete all records'
+        from digipal_text.models import EntryHand
+        [r.delete() for r in EntryHand.objects.all()]
+
+        print 'read scribes from exon_reference_system'
+        query = u'''
+            select revisedellisnos as entry_number, newfoliationellis, scribe1, scribe2, scribe3
+            from exon_reference_system
+            ;
+        '''
+        
+        recs = dputils.sql_select_dict(query)
+        
+        def add_entryhand(rec, scribe_column_number):
+            # add one record in EntryHand from a scribe column in exon_reference_system record
+            scribes = [s.strip().lower() for s in (rec['scribe%s' % scribe_column_number] or '').split(',')]
+            
+            for scribe in scribes:
+                if scribe:
+                    rec['order'] = rec.get('order', -1) + 1
+                    correction = (scribe_column_number == 3)
+                    certainty = 1
+                    hand_label = re.sub(ur'[?$*]', '', scribe)
+                    if hand_label != scribe:
+                        certainty = 0.5
+                    if '*' in scribe:
+                        certainty = 0.2
+                    if not hand_label:
+                        hand_label = 'unknown'
+                        certainty = 0
+                    EntryHand(entry_number=rec['entry_number'], item_part_id=1, hand_label=hand_label, order=rec['order'], correction=correction, certainty=certainty).save()
+        
+        print 'insert EntryHand records'
+        for rec in recs:
+            rec = {k: (v or '').strip() for k, v in rec.iteritems()}
+            if rec['entry_number']:
+                for i in [1, 2, 3]:
+                    add_entryhand(rec, i)
+        
+        # Use this query to find all hands with labels not found in digipal_hand
+        '''
+        select eh.hand_label, count(*), min(entry_number), max(entry_number)
+        from digipal_text_entryhand eh 
+        left join digipal_hand ha on eh.hand_label = lower(ha.label)
+        where ha.label is null
+        --order by entry_number, hand_label, "order"
+        group by eh.hand_label
+        order by eh.hand_label
+        ;
+        '''
+                    
+        print '%s EntryHand inserted' % EntryHand.objects.count()
+        
     def trefs2csv(self):
 
         file_path = 'trefs.csv'

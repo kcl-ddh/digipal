@@ -3,6 +3,7 @@ from django.utils.html import conditional_escape, escape
 import re, os
 from binhex import LINELEN
 import lxml.etree as ET
+from lxml.etree import XMLSyntaxError
 psutil = None
 try:
     import psutil
@@ -411,25 +412,37 @@ def get_one2one_object(model, field_name):
 #
 #-------------------------------------
 
-def get_string_from_xml(xmltree):
+def get_string_from_xml(xmltree, remove_root=False):
     '''Serialise the given XML node into a string.
         BEWARE: the method returns the TAIL, that is,
         the text that follows the element.
         E.g. '<a>some text</a> and its tail'
-    '''
-    return ET.tostring(xmltree)
 
-def get_unicode_from_xml(xmltree, encoding='utf-8', text_only=False):
+        WARNING: this function may generate entities
+        for special chars.
+        But get_unicode_from_xml() won't.
+    '''
+    ret = ET.tostring(xmltree)
+    if remove_root:
+        ret = ret.replace('<root>', '').replace('</root>', '')
+    return ret
+
+def get_unicode_from_xml(xmltree, encoding='utf-8', text_only=False, remove_root=False):
     # if text_only = True => strip all XML tags
     # EXCLUDE the TAIL
     if text_only:
         return get_xml_element_text(xmltree)
     else:
+        if hasattr(xmltree, 'getroot'):
+            xmltree = xmltree.getroot()
         ret = ET.tostring(xmltree, encoding=encoding).decode('utf-8')
         if xmltree.tail is not None and ret[0] == '<':
             # remove the tail
             import regex as re
             ret = re.sub(ur'[^>]+$', '', ret)
+
+        if remove_root:
+            ret = ret.replace('<root>', '').replace('</root>', '')
 
         return ret
 
@@ -1321,4 +1334,31 @@ def run_shell_command(self, command):
         raise Exception('Error executing command: %s (%s)' % (e, command))
     finally:
         pass
+    return ret
+
+def is_xml_well_formed(xml_string):
+    try:
+        get_xml_from_unicode(xml_string, add_root=True)
+        return True
+    except ET.XMLSyntaxError, e:
+        return False
+    except ET.ParseError, e:
+        return False
+
+def strip_xml_tags(doc, xpath):
+    '''Keep only the XML content of all the elements matching xpath'''
+    temp_name = 'TOBEREMOVED'
+    node = None
+    for node in doc.xpath(xpath):
+        node.tag = temp_name
+
+    if node is not None:
+        ET.strip_tags(doc, temp_name)
+
+def remove_xml_elements(xml, xpath):
+    ret = 0
+    '''Remove all the elements matching xpath (and all their content)'''
+    for element in xml.xpath(xpath):
+        ret += 1
+        element.getparent().remove(element)
     return ret

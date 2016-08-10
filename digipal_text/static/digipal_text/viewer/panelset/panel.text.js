@@ -233,6 +233,6 @@
 
     PanelTextWrite.prototype.scrollToTopOfContent = function(data) {
         if (this.tinymce) this.tinymce.getBody().firstChild.scrollIntoView();
-    }
+    };
 
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

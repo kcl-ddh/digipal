@@ -1,12 +1,12 @@
 /*
-    GENERAL and PROJECT-INDEPENDENT CSS for the texts displayed in the 
+    GENERAL and PROJECT-INDEPENDENT CSS for the texts displayed in the
     Text Viewer and on the Search Page
-    
+
     For project-specific CSS, please see tinymce_custom.css
-    
+
     PLEASE BE CAREFUL about side effects when editing this file,
     other projects are basing their custom styles on the classes
-    defined below. 
+    defined below.
 */
 
 @font-face {
@@ -22,14 +22,14 @@
 }
 
 .mce-content-body p[data-dpt], .mce-content-body span[data-dpt], .mce-content-body div[data-dpt] {
-    
+
 }
 
 /*
 TODO: Generate this CSS dynamically with Python
 Use a config file for the editor buttons/elements
 Generate a hash key from it and use it in the query string to force reload when the styles have changed
- 
+
 */
 
 /* -------------------------------------------------------------------------*/
@@ -97,7 +97,7 @@ span[data-dpt] > span[data-dpt] {
 .mce-content-body span[data-dpt=record]:before {
     color: OrangeRed ;
 }
-    
+
 .mce-content-body span[data-dpt-cat=chars]:before,
 .mce-content-body span[data-dpt=person]:before
 {
@@ -371,7 +371,7 @@ span[data-dpt] > span[data-dpt] {
     position: relative;
 }
  */
- 
+
 .preview.mce-content-body span[data-dpt=supplied] {
     background: transparent;
 }
@@ -428,6 +428,9 @@ span[data-dpt] > span[data-dpt] {
 }
 .preview.mce-content-body span[data-dpt=del][data-dpt-type=supplied] {
     text-decoration: underline;
+}
+.preview.mce-content-body span[data-dpt=del][data-dpt-rend=erasure] {
+    text-decoration: none;
 }
 
 .preview.line-breaks.mce-content-body span[data-dpt=lb],

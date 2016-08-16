@@ -154,6 +154,7 @@
             $(this).chosen({
                 disable_search: $(this).hasClass('no-search'),
                 no_results_text: $(this).hasClass('can-add') ? 'Not found, select to add' : 'Location not found',
+                disable_search_threshold: 6,
             });
         });
     };

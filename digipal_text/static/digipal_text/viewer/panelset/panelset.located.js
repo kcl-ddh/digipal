@@ -182,6 +182,7 @@
         // update the list of locations
         var me = this;
         var htmlstr = '';
+        var locationsCount = 0;
         if (this.locations && this.locations[locationType]) {
             $(this.locations[locationType]).each(function (index, value) {
                 // we accept either a list of string or a list or [value,label]
@@ -192,6 +193,7 @@
                     label = value[1];
                 }
                 htmlstr += '<option value="'+val+'">'+label+'</option>';
+                locationsCount += 1;
             });
         }
         this.$locationSelect.html(htmlstr);
@@ -199,9 +201,11 @@
         this.$locationSelect.trigger('liszt:updated');
         //this.$locationSelect.closest('.dphidden').toggle(htmlstr ? true : false);
         TextViewer.unhide(this.$locationSelect, htmlstr ? true : false);
-
+        
         this.$locationSelect.closest('.dphidden,.dpunhidden').toggleClass('dpauto-hide', (this.getLocationType() === 'sync'));
         this.$locationTypes.closest('.dphidden,.dpunhidden').toggleClass('dpauto-hide', (this.getLocationType() === 'sync'));
+        
+        TextViewer.unhide(this.$root.find('.btn-page-nav.enabled'), (locationsCount > 1));
 
         //             if (!htmlstr) { this.loadContent(); }
         //             else

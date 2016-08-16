@@ -19,7 +19,8 @@
         $buttons.html($('#text-viewer-panel .location-buttons').html());
 
         // show them
-        TextViewer.unhide($buttons.find('.dphidden'), true);
+        //TextViewer.unhide($buttons.find('.dphidden'), true);
+        $buttons.find('.dphidden').addClass('enabled');
     };
 
     PanelLocation.prototype.loadContentCustom = function(loadLocations, address, subLocation) {

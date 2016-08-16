@@ -18,9 +18,9 @@
         var $buttons = this.$root.find('.location-buttons');
         $buttons.html($('#text-viewer-panel .location-buttons').html());
 
-        // show them
+        // enable the prev/next
         //TextViewer.unhide($buttons.find('.dphidden'), true);
-        $buttons.find('.dphidden').addClass('enabled');
+        $buttons.find('.btn-page-nav').addClass('enabled');
     };
 
     PanelLocation.prototype.loadContentCustom = function(loadLocations, address, subLocation) {

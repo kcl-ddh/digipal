@@ -113,8 +113,17 @@ ul.dropdown-menu.dpbs-clicked {
     width: 15em !important;
 }
 
-.btn-toolbar .chzn-container-single .chzn-single {
+.text-viewer-panel .btn-toolbar .chzn-container-single .chzn-single {
     font-size: 10px;
+}
+
+.btn-toolbar .chzn-container-single.disabled .chzn-single {
+    background: none;
+    border: none;
+}
+
+.btn-toolbar .chzn-container-single.disabled .chzn-single div {
+    display: none;
 }
 
 /* fixes */

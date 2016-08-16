@@ -55,7 +55,7 @@
 
         <div class="location-buttons btn-group dpauto-hide">
             {% include "bootstrap/dropdown.html" with options=dd_location_types classes="dropdown-location-type dphidden auto-open" %}
-            <select name="location" class="can-add dphidden">
+            <select name="location" class="dphidden">
                 <option value="1r">1r</option>
                 <option value="1v">1v</option>
             </select>
@@ -75,13 +75,11 @@
                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                 </button>
                 {% if statuses.count > 1 %}
-                    <span class="dphidden">
-                        <select name="status" class="no-search">
-                            {% for status in statuses %}
-                                <option value="{{ status.id }}">{{ status.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </span>
+                    <select name="status" class="no-search dphidden">
+                        {% for status in statuses %}
+                            <option value="{{ status.id }}">{{ status.name }}</option>
+                        {% endfor %}
+                    </select>
                 {% endif %}
             </div>
             <div class="btn-group dpauto-hide">

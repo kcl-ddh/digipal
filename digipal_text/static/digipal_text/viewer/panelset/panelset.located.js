@@ -71,7 +71,7 @@
     // This is the full value, so it may include the offset, e.g. 'location+1'
     Located.prototype.getLocation = function() {
         var ret = '';
-        if (this.$locationSelect.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
+        if (TextViewer.getCtrl(this.$locationSelect).closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
             ret = this.$locationSelect.val();
         }
         return ret;
@@ -90,7 +90,7 @@
                 var idx = locations.indexOf(ret);
                 if (idx >= 0) {
                     idx += (offset || 0);
-                    if (idx >= 0 || idx < locations.length) {
+                    if (idx >= 0 && idx < locations.length) {
                         ret = locations[idx];
                     }
                 }
@@ -197,15 +197,20 @@
             });
         }
         this.$locationSelect.html(htmlstr);
-        // ?? not a BS DD, just a select
+        // refresh the chosen dropdown
         this.$locationSelect.trigger('liszt:updated');
-        //this.$locationSelect.closest('.dphidden').toggle(htmlstr ? true : false);
+
+        // hide the drop down if no option
         TextViewer.unhide(this.$locationSelect, htmlstr ? true : false);
         
-        this.$locationSelect.closest('.dphidden,.dpunhidden').toggleClass('dpauto-hide', (this.getLocationType() === 'sync'));
-        this.$locationTypes.closest('.dphidden,.dpunhidden').toggleClass('dpauto-hide', (this.getLocationType() === 'sync'));
+        // don't auto-hide locations if not synced
+        this.$root.find('.location-buttons').toggleClass('dpauto-hide', (locationType === 'sync'));
         
+        // hide prev/next buttons if only one location available
         TextViewer.unhide(this.$root.find('.btn-page-nav.enabled'), (locationsCount > 1));
+        
+        // disable drop down appearance if only one option
+        TextViewer.getCtrl(this.$locationSelect).toggleClass('disabled', (locationsCount < 2));
 
         //             if (!htmlstr) { this.loadContent(); }
         //             else

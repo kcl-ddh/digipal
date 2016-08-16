@@ -127,35 +127,51 @@
         return ret;
     };
 
+    // Returns $element 
+    // or the chosen element associated to it 
+    TextViewer.getCtrl = function($element) {
+        var ret = $element.next('.chzn-container');
+        if (ret.length < 1) ret = $element;
+        return ret;
+    }
 
     // Show the given $element if condition is 0
     // Hide if undefined or 1
     TextViewer.unhide = function($element, condition) {
         if (!$element || $element.length < 1) return;
-
+        
+        // use chosen element instead if any
+        $element = TextViewer.getCtrl($element);
+        
+        // find parent or itself with dp(un)hidden class
         var $el = $element.closest('.dphidden, .dpunhidden');
         if (!$el.hasClass('dphidden') && !$el.hasClass('dpunhidden')) {
-            console.log('NO CLASS 0!');
+            console.log('NO dp(un)hidden CLASS!');
         }
         if ($el.length < 1) {
-            console.log('NOT FOUND!');
+            console.log('.dp(un)hidden NOT FOUND!');
         }
         $el.toggleClass('dphidden', !condition);
         $el.toggleClass('dpunhidden', !!condition);
         if (!$el.hasClass('dphidden') && !$el.hasClass('dpunhidden')) {
-            console.log('NO CLASS!');
+            console.log('NO dp(un)hidden CLASS SET!');
         }
     };
 
     // Improve all the select elements under a root element
     // At the moment we are using Chosen plugin
     TextViewer.upgrade_selects = function($root) {
-        $root.find('select').each(function() {
+        
+        $root.find('select').not('.chzn-done').each(function() {
+            var classes = $(this).attr('class');
             $(this).chosen({
                 disable_search: $(this).hasClass('no-search'),
                 no_results_text: $(this).hasClass('can-add') ? 'Not found, select to add' : 'Location not found',
                 disable_search_threshold: 6,
             });
+            // transfer all the classes from the select to the chosen element
+            TextViewer.getCtrl($(this)).addClass(classes);
+            $(this).removeClass(classes);
         });
     };
 

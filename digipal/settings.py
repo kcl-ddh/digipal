@@ -276,6 +276,7 @@ MIDDLEWARE_CLASSES = (
         # Uncomment the following if using any of the SSL settings:
         # 'mezzanine.core.middleware.SSLRedirectMiddleware',
         "django.middleware.gzip.GZipMiddleware",
+        'digipal.middleware.ErrorMiddleware',
         )
 
 ###################

@@ -4,6 +4,8 @@ import re, os
 from binhex import LINELEN
 import lxml.etree as ET
 from lxml.etree import XMLSyntaxError
+from django.http.response import HttpResponseNotFound
+from django.shortcuts import render, render_to_response
 psutil = None
 try:
     import psutil
@@ -1049,19 +1051,19 @@ def is_user_staff(user=None):
 
     return user and user.is_staff
 
-def raise_404(message=None):
+def raise_404(message=None, title=None):
     from django.http import Http404
-    options = []
-    if message:
-        options.append(message)
-    raise Http404(*options)
+    # Prior to 1.9 the production template would not receive any parameter
+    # when calling django default Http404
+    # See digipal.middleware.py.ErrorMiddleware
+    raise Http404(message)
 
 def request_invisible_model(model, request, model_label=None):
     # Raise 404 if the model is not visible
     if not is_model_visible(model, request):
-        message = None
+        message = message = u'''You don't have access to this record type.'''
         if model_label:
-            message = u'''You don't have access to this %s record.''' % model_label
+            message = u'''You don't have access to %s records.''' % model_label
         raise_404(message)
 
 def convert_xml_to_html(xml):

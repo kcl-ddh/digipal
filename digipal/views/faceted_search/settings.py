@@ -247,7 +247,7 @@ FACETED_SEARCH.update({
                         {'key': 'thumbnail', 'label': 'thumbnail', 'path': 'get_thumb', 'search': False, 'viewable': True, 'type': 'image', 'line': 1, 'link': True, 'request': True},
                         {'key': 'clause_type', 'label': 'Clause Type', 'path': 'clause_type', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                         {'key': 'annotated', 'label': 'Annotated', 'path': 'get_thumb', 'viewable': False, 'search': False, 'type': 'boolean', 'count': True, 'labels': {0: 'not annotated', 1: 'annotated'}},
-                        {'key': 'mp_permission', 'label': 'Availability', 'path': 'get_thumb.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
+                        {'key': 'mp_permission', 'label': 'Image availability', 'path': 'get_thumb.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
                         {'key': 'PRIVATE', 'label': 'Private', 'path': 'content_xml.is_private', 'type': 'boolean', 'search': True},
                     ],
 #                    'select_related': ['content_xml.text_content.item_partitem_part__current_item__repository__place', 'assigned_place', 'assigned_date'],

@@ -470,7 +470,7 @@ class FacetedModel(object):
         if use_path_result and 'path_result' in afield:
             path = afield['path_result']
 
-        ret = self.get_record_path(record, path)
+        ret = self.get_record_path(record, path, afield)
 
         # value mapping
         # TODO: make it work with multi-valued fields (ret is an array)
@@ -480,13 +480,15 @@ class FacetedModel(object):
 
         return ret
 
-    def get_record_path(self, record, path):
+    def get_record_path(self, record, path, afield=None):
         '''
             Return one or more values related to a record
             by following the given path through the data model.
             See get_record_field
             e.g. get_record_path(ItemPart.objects.get(id=598), 'images.all.id')
             => [3200, 3201]
+
+            afield is an optional field defition (see settings.py)
         '''
         v = record
         if path not in (None, ''):
@@ -504,7 +506,11 @@ class FacetedModel(object):
                     raise Exception(u'Model path not found. Record = [%s:%s], path = %s, part = %s, value = %s' % (type(record), repr(record), path, part, repr(v)))
 
                 if callable(v):
-                    v = v()
+                    if len(parts) == 0 and afield and afield.get('request', False):
+                        # the method needs a request object
+                        v = v(self.request)
+                    else:
+                        v = v()
 
                 if v is None:
                     break

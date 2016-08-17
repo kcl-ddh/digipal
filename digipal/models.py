@@ -1759,7 +1759,7 @@ class Image(models.Model):
 
     def is_private_for_user(self, request):
         from digipal.utils import is_staff
-        return (self.get_media_permission().permission <= MediaPermission.PERM_PRIVATE) and (not is_staff(request))
+        return (not is_staff(request)) and (self.get_media_permission().permission <= MediaPermission.PERM_PRIVATE)
 
     def get_media_right_label(self):
         ret = 'Full size image'

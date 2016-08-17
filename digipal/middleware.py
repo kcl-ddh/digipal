@@ -23,7 +23,7 @@ class ErrorMiddleware(object):
             context['title'] = args.pop(0) if args else ''
             return render(request, 'errors/404.html', context, status=404)
         else:
-            raise exception
+            return None
 
 class HttpsAdminMiddleware(object):
     def process_request(self, request):

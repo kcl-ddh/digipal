@@ -155,9 +155,18 @@ class TextUnit(object):
         #return '%s/entry/%s/' % (self.content_xml.get_absolute_url(), self.unitid)
         return '%s' % self.content_xml.get_absolute_url(qs=qs, metas=metas)
 
-    def get_thumb(self):
+    def get_thumb(self, request=None):
+        '''Returns the Annotation object for this TextUnit.
+        If request <> None AND the user has no permission on the image,
+            returns None
+        '''
         from digipal.models import Annotation
         ret = Annotation.objects.filter(image__item_part=self.content_xml.text_content.item_part, textannotations__elementid=self.get_elementid()).first()
+
+        # returns None if request user doesn't have permission
+        if request and ret and ret.image.is_private_for_user(request):
+            print 'NO PERM %s' % ret
+            ret = None
 
         return ret
 

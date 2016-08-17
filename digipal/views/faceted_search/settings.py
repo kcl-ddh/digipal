@@ -39,6 +39,7 @@ FACETED_SEARCH.update({
                 # count = True to show the number of hits for each option => implies filter = True
                 # search = True if the field can be searched on (phrase query)
                 # viewable = True if the field can be displayed in the result set
+                # request = True if the path ends with a method that takes the request as an argument
 
                 # index = True iff (search or filter or count)
 
@@ -243,9 +244,10 @@ FACETED_SEARCH.update({
                         #{'key': 'unitid', 'label': 'Ref', 'path': 'unitid', 'search': True, 'viewable': True, 'type': 'code'},
                         {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml', 'line': 2, 'classes': 'mce-content-body preview'},
                         #{'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'text', 'line': 2},
-                        {'key': 'thumbnail', 'label': 'thumbnail', 'path': 'get_thumb', 'search': False, 'viewable': True, 'type': 'image', 'line': 1, 'link': True},
+                        {'key': 'thumbnail', 'label': 'thumbnail', 'path': 'get_thumb', 'search': False, 'viewable': True, 'type': 'image', 'line': 1, 'link': True, 'request': True},
                         {'key': 'clause_type', 'label': 'Clause Type', 'path': 'clause_type', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
-                        {'key': 'annotated', 'label': 'Annotated', 'path': 'get_thumb', 'viewable': False, 'search': False,'type': 'boolean', 'count': True, 'labels': {0: 'not annotated', 1: 'annotated'}},
+                        {'key': 'annotated', 'label': 'Annotated', 'path': 'get_thumb', 'viewable': False, 'search': False, 'type': 'boolean', 'count': True, 'labels': {0: 'not annotated', 1: 'annotated'}},
+                        {'key': 'mp_permission', 'label': 'Availability', 'path': 'get_thumb.image.get_media_permission.get_permission_label', 'type': 'code', 'count': True},
                         {'key': 'PRIVATE', 'label': 'Private', 'path': 'content_xml.is_private', 'type': 'boolean', 'search': True},
                     ],
 #                    'select_related': ['content_xml.text_content.item_partitem_part__current_item__repository__place', 'assigned_place', 'assigned_date'],

@@ -67,10 +67,10 @@ class TextUnits(object):
             dplog('TextUnit.__iter__() called', 'INFO')
 
         ret = []
-        
+
         if self.recs is None:
             ret = self.recs = list(self.iterator())
-            
+
         return ret.__iter__()
 
     def in_bulk(self, *args, **kwargs):
@@ -392,11 +392,11 @@ class EntryHand(models.Model):
     item_part = models.ForeignKey('digipal.ItemPart', blank=False, null=False, related_name='entry_hands')
     entry_number = models.CharField(max_length=20, blank=False, null=False, db_index=True)
     hand_label = models.CharField(max_length=20, blank=False, null=False, db_index=True)
-    
+
     order = models.IntegerField(blank=False, null=False, default=0, db_index=True)
     correction = models.BooleanField(blank=False, null=False, default=False, db_index=True)
     certainty = models.FloatField(blank=False, null=False, default=1.0)
-    
+
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 
@@ -405,7 +405,7 @@ class EntryHand(models.Model):
 
     def __unicode__(self):
         return u'%s %ss %s' % (self.hand_label, self.get_intervention_label(), self.entry_number)
-    
+
     def get_intervention_label(self):
         ret = 'begin'
         if self.order > 0:

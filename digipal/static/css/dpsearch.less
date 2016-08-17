@@ -197,13 +197,18 @@
 .facets .panel-body tr.active:hover td {
     position: relative;
     &:before {
-        // text-decoration: line-through;
+        // SIMULATE text-decoration: line-through;
         content: " ";
         position: absolute;
         top: 50%;
         left: 0;
         border-bottom: 1px solid white;
         width: 100%;
+    }
+}
+#panel-result_type .panel-body tr.active:hover td {
+    &:before {
+        border: none;
     }
 }
 .facets .panel-body tr.active:hover td a {

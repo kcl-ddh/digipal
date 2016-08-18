@@ -184,12 +184,12 @@
 
         var htmlstr = '<option value="">Unspecified</option>';
         elements.map(function(el) {
-            // e.g. el = [ [["", "person"], ["type", "name"], ["@text", "willelmus-cumin"]] , 'willelmus-cumin (person)' ]
+            // e.g. el = [ [["", "person"], ["type", "name"], ["@text", "willelmus-cumin"]] , 'willelmus-cumin (name)' ]
             var key = JSON.stringify(el[0]);
             htmlstr += '<option value="'+window.dputils.escapeHtml(key)+'">'+el[1]+'</option>';
         });
         this.$linkerText.html(htmlstr);
-        this.$linkerText.trigger('liszt:updated');
+        this.refreshLinkerText();
     };
 
     PanelImage.prototype.annotatorEventHandler = function(e) {
@@ -212,11 +212,29 @@
             elementid = JSON.stringify(feature.get('elementid') || '[]');
         });
         this.$linkerText.val(elementid);
-        this.$linkerText.trigger('liszt:updated');
+        this.refreshLinkerText();
 
         // send the changes to the server
         if (e.action === 'changed' || e.action === 'deleted') {
             this.onAnnotationChanged(e.features, e.action);
+        }
+    };
+
+    PanelImage.prototype.refreshLinkerText = function() {
+        this.$linkerText.trigger('liszt:updated');
+        var self = this;
+
+        // color the elements in the drop down which have no annotation
+        if (this.annotator) {
+            var feature = null;
+            var $lis = this.$linkerText.next('.chzn-container').find('li');
+            this.$linkerText.find('option').each(function(i) {
+                var elid = $(this).attr('value');
+                if (elid && elid.startsWith('[')) {
+                    feature = self.annotator.getFeatureFromElementId(JSON.parse(elid || '[]'));
+                }
+                $($lis[i]).toggleClass('unlinked', !feature);
+            });
         }
     };
 

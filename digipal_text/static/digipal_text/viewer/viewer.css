@@ -299,3 +299,11 @@ body.page-text-viewer {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
 }
+
+.chzn-container .chzn-results li.linked {
+    color: blue;
+}
+
+.chzn-container .chzn-results li.unlinked {
+    color: orange;
+}

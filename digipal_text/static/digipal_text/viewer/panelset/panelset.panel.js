@@ -347,7 +347,7 @@
     };
 
     Panel.prototype = Object.create(TextViewer.Located.prototype);
-    
+
     Panel.prototype.createUserInterface = function() {
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
@@ -374,7 +374,7 @@
         this.$toggleEdit = this.$root.find('.toggle-edit');
 
         this.$downloadButton = this.$root.find('.action-download');
-    }
+    };
 
     Panel.prototype.loadContentCustom = function(loadLocations, address, subLocation) {
         // NEVER CALL THIS FUNCTION DIRECTLY

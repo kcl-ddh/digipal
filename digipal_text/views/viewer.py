@@ -713,21 +713,26 @@ def get_text_elements_from_content(content):
     Each elementid is unique in the list.
     Each label is unique in the list.
     '''
+    from digipal import utils as dputils
     ret = []
     if content:
+        idcount = {}
+
         xml = utils.get_xml_from_unicode(content, ishtml=True, add_root=True)
 
         for element in xml.findall("//*[@data-dpt]"):
 
             elementid = get_elementid_from_xml_element(element)
             if elementid:
-                order = ret.count(elementid)
-                if order > 0:
+                order = dputils.inc_counter(idcount, repr(elementid))
+                if order > 1:
                     # add (u'@o', u'2') if it is the 2nd occurence of this elementid
-                    elementid.append((u'@o', u'%s' % (order + 1)))
+                    elementid.append((u'@o', u'%s' % order))
                 ret.append(elementid)
 
     ret = [[elementid, get_label_from_elementid(elementid)] for elementid in ret]
+
+    #print '\n'.join([repr(r) for r in ret])
 
     return ret
 
@@ -758,8 +763,6 @@ def get_label_from_elementid(elementid, full=False):
     return ret
 
 def get_unitid_from_xml_element(element):
-    # Shouldn't be used anymore
-    raise Exception('Deprecated function')
     ''' <span data-dpt=clause data-dpt-type=address>
         => 'clause|address'
     '''

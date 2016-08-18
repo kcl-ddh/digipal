@@ -713,7 +713,6 @@ def get_text_elements_from_content(content):
     Each elementid is unique in the list.
     Each label is unique in the list.
     '''
-    from digipal import utils as dputils
     ret = []
     if content:
         idcount = {}
@@ -722,15 +721,9 @@ def get_text_elements_from_content(content):
 
         for element in xml.findall("//*[@data-dpt]"):
 
-            elementid = get_elementid_from_xml_element(element)
+            elementid = get_elementid_from_xml_element(element, idcount=idcount)
             if elementid:
-                order = dputils.inc_counter(idcount, repr(elementid))
-                if order > 1:
-                    # add (u'@o', u'2') if it is the 2nd occurence of this elementid
-                    elementid.append((u'@o', u'%s' % order))
-                ret.append(elementid)
-
-    ret = [[elementid, get_label_from_elementid(elementid)] for elementid in ret]
+                ret.append([elementid, get_label_from_elementid(elementid)])
 
     #print '\n'.join([repr(r) for r in ret])
 
@@ -762,19 +755,23 @@ def get_label_from_elementid(elementid, full=False):
 
     return ret
 
-def get_unitid_from_xml_element(element):
-    ''' <span data-dpt=clause data-dpt-type=address>
+def get_unitid_from_xml_elementid(elementid):
+    ''' elementid is a list as produced by get_elementid_from_xml_element
+        <span data-dpt=clause data-dpt-type=address>
         => 'clause|address'
     '''
-    ret = get_elementid_from_xml_element(element)
-    if ret:
-        ret = '|'.join([p[1] for p in ret])
+    return '|'.join([p[1] for p in elementid])
 
-    return ret
+def get_elementid_from_xml_element(element, idcount, as_string=False):
+    ''' returns the elementid as a list
+        e.g. [(u'', u'clause'), (u'type', u'disposition')]
 
-def get_elementid_from_xml_element(element, as_string=False):
-    ''' element: an xml element (etree)
-        returns the elementid as a list, e.g. [(u'', u'clause'), (u'type', u'disposition')]
+        element: an xml element (etree)
+        idcount: a dictionary, new for each enclosing text unit. Used to know
+            which occurrence of an element we are seeing and generate a
+            unique id. E.g. two same titles ('sheriff') marked up in the same
+            way within the same entry => we need a count to differentiate
+            them. We add [@o, 2] to second occurrence, etc.
     '''
     from django.utils.text import slugify
 
@@ -791,8 +788,12 @@ def get_elementid_from_xml_element(element, as_string=False):
     else:
         parts = None
 
-    if as_string:
-        parts = json.dumps(parts)
+    if parts:
+        from digipal import utils as dputils
+        order = dputils.inc_counter(idcount, repr(parts))
+        if order > 1:
+            # add (u'@o', u'2') if it is the 2nd occurence of this elementid
+            parts.append((u'@o', u'%s' % order))
 
     return parts
 

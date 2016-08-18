@@ -496,6 +496,33 @@ def get_xslt_transform(source, template, error=None):
 
     return ret
 
+def is_xml_well_formed(xml_string):
+    try:
+        get_xml_from_unicode(xml_string, add_root=True)
+        return True
+    except ET.XMLSyntaxError, e:
+        return False
+    except ET.ParseError, e:
+        return False
+
+def strip_xml_tags(doc, xpath):
+    '''Keep only the XML content of all the elements matching xpath'''
+    temp_name = 'TOBEREMOVED'
+    node = None
+    for node in doc.xpath(xpath):
+        node.tag = temp_name
+
+    if node is not None:
+        ET.strip_tags(doc, temp_name)
+
+def remove_xml_elements(xml, xpath):
+    ret = 0
+    '''Remove all the elements matching xpath (and all their content)'''
+    for element in xml.xpath(xpath):
+        ret += 1
+        element.getparent().remove(element)
+    return ret
+
 #-------------------------------------
 #
 #             WHOOSH
@@ -1338,29 +1365,3 @@ def run_shell_command(self, command):
         pass
     return ret
 
-def is_xml_well_formed(xml_string):
-    try:
-        get_xml_from_unicode(xml_string, add_root=True)
-        return True
-    except ET.XMLSyntaxError, e:
-        return False
-    except ET.ParseError, e:
-        return False
-
-def strip_xml_tags(doc, xpath):
-    '''Keep only the XML content of all the elements matching xpath'''
-    temp_name = 'TOBEREMOVED'
-    node = None
-    for node in doc.xpath(xpath):
-        node.tag = temp_name
-
-    if node is not None:
-        ET.strip_tags(doc, temp_name)
-
-def remove_xml_elements(xml, xpath):
-    ret = 0
-    '''Remove all the elements matching xpath (and all their content)'''
-    for element in xml.xpath(xpath):
-        ret += 1
-        element.getparent().remove(element)
-    return ret

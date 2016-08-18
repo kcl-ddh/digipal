@@ -117,9 +117,27 @@
             }
             // add slugified small text content
             if (ret.length > 0) {
-                var text = $el.text().toLowerCase().replace(/(^\s+|\s+$)/g, '').replace(/\W/g, '-');
+                var text = TextViewer.slugify($el.text());
                 if (text.length > 0 && text.length < 20) {
                     ret.push(['@text', text]);
+                }
+            }
+
+            // find out the occurrence number. e.g. ['@o', '2'] for second occurrence.
+            if (1) {
+                var order = 0;
+
+                var selectorInfo = TextViewer.getSelectorFromSublocation(ret);
+                $el.parents('.panel-content').find(selectorInfo.selector).each(function() {
+                    var $oel = $(this);
+                    if (!selectorInfo.text || (TextViewer.slugify($oel.text()) == selectorInfo.text)) {
+                        order += 1;
+                    }
+                    if ($oel[0] === $el[0]) return false;
+                });
+
+                if (order > 1) {
+                    ret.push(['@o', '' + order]);
                 }
             }
         }
@@ -127,22 +145,51 @@
         return ret;
     };
 
-    // Returns $element 
-    // or the chosen element associated to it 
+    TextViewer.slugify = function(s) {
+        return s.toLowerCase().replace(/(^\s+|\s+$)/g, '').replace(/\W/g, '-');
+    };
+
+    TextViewer.getSelectorFromSublocation = function(sublocation) {
+        // input: [["", "person"], ["type", "name"], ["@text", "bob"], ["@o", "2"]]
+        // output: {"order":"2","selector":"[data-dpt=person][data-dpt-type=name]","text":"bob"}
+        var ret = {order: 1, selector: '', text: ''};
+
+        var sel = '';
+
+        sublocation.map(function(pair) {
+            if (pair[0] == '@o') {
+                ret.order = pair[1];
+                return;
+            }
+            if (pair[0] == '@text') {
+                ret.text = pair[1];
+                return;
+            }
+            var attr = 'data-dpt' + (pair[0] ? '-' : '') + pair[0];
+            sel += '['+attr+'='+pair[1]+']';
+        });
+
+        ret.selector = sel;
+
+        return ret;
+    };
+
+    // Returns $element
+    // or the chosen element associated to it
     TextViewer.getCtrl = function($element) {
         var ret = $element.next('.chzn-container');
         if (ret.length < 1) ret = $element;
         return ret;
-    }
+    };
 
     // Show the given $element if condition is 0
     // Hide if undefined or 1
     TextViewer.unhide = function($element, condition) {
         if (!$element || $element.length < 1) return;
-        
+
         // use chosen element instead if any
         $element = TextViewer.getCtrl($element);
-        
+
         // find parent or itself with dp(un)hidden class
         var $el = $element.closest('.dphidden, .dpunhidden');
         if (!$el.hasClass('dphidden') && !$el.hasClass('dpunhidden')) {
@@ -161,7 +208,7 @@
     // Improve all the select elements under a root element
     // At the moment we are using Chosen plugin
     TextViewer.upgrade_selects = function($root) {
-        
+
         $root.find('select').not('.chzn-done').each(function() {
             var classes = $(this).attr('class');
             $(this).chosen({

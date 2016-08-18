@@ -150,7 +150,6 @@
             }
 
             // text-image links
-            //this.$linker.closest('.dphidden').toggle(true);
             TextViewer.unhide(this.$linker, true);
             this.resetLinker(data);
         }
@@ -173,19 +172,21 @@
     };
 
     PanelImage.prototype.resetLinker = function(data) {
-        // eg.:  "text_elements": [[["", "clause"], ["type", "address"]], [["", "clause"], ["type", "disposition"]], [["", "clause"], ["type", "witnesses"]]]
+        /* eg.:  data = {
+            "text_elements": [
+                [["", "clause"], ["type", "address"]],
+                [["", "person"], ["type", "name"], ["@text", "willelmus-cumin"]]
+            ]
+           }
+        */
         var me = this;
         var elements = data.text_elements;
 
         var htmlstr = '<option value="">Unspecified</option>';
         elements.map(function(el) {
-            var key = JSON.stringify(el);
-            // clause > address
-            //var label = (el_shorten.map(function(attr) { return attr[1]; })).join(' > ');
-            // address (clause)
-            var label = el.pop()[1];
-            if (el.length > 0) label += ' (' + el.pop()[1] + ')';
-            htmlstr += '<option value="'+window.dputils.escapeHtml(key)+'">'+label+'</option>';
+            // e.g. el = [ [["", "person"], ["type", "name"], ["@text", "willelmus-cumin"]] , 'willelmus-cumin (person)' ]
+            var key = JSON.stringify(el[0]);
+            htmlstr += '<option value="'+window.dputils.escapeHtml(key)+'">'+el[1]+'</option>';
         });
         this.$linkerText.html(htmlstr);
         this.$linkerText.trigger('liszt:updated');
@@ -330,6 +331,6 @@
         if (this.$toggleEdit) {
             TextViewer.unhide(this.$toggleEdit, 0);
         }
-    }
+    };
 
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

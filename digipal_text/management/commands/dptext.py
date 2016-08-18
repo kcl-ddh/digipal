@@ -152,8 +152,8 @@ Commands:
             import json
 
             elementss = []
-            elementss.append([json.dumps(aid) for aid in viewer.get_text_elements_from_content_bugged(content)])
-            elementss.append([json.dumps(aid) for aid in viewer.get_text_elements_from_content(content)])
+            #elementss.append([json.dumps(aid[0]) for aid in viewer.get_text_elements_from_content_bugged(content)])
+            elementss.append([json.dumps(aid[0]) for aid in viewer.get_text_elements_from_content(content)])
 
             if len(elementss[0]) != len(elementss[1]):
                 print '\tWARNING: Different number of elements!'

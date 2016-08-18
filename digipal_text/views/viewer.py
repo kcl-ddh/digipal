@@ -586,11 +586,9 @@ def get_annotations_from_image(image):
     '''Returns a dict with a list of all TextAnnotation for this image'''
     ret = {'annotations': []}
 
-    # TODO: we also grab the editorial annotations (b/c not linke to a graph)
-    # So we need a way to dinstiguish editorial vs text annotations
-    # Possibly with a type field in the database.
-    # Some Text Annotation have been drawn but not assign to a Text Element
-    # and therfore not yet in textAnnotation table.
+    # Annotation.type='text' is for textual annotation.
+    # Important to distinguish from Editorial annotations.
+    # Note that textual annotation may not yet be linked to a Text Unit.
 
     from digipal.models import Annotation
     for annotation in Annotation.objects.filter(image=image, type='text').prefetch_related('textannotations'):
@@ -708,6 +706,13 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
     return ret
 
 def get_text_elements_from_content(content):
+    ''' Returns all the marked-up elements in a unit of text
+    as a list of pairs (elementid, label). e.g. of a pair:
+    [ [["", "clause"], ["type", "address"]], 'address (clause)' ]
+    Elements are returns in the order they occur in the unit of text.
+    Each elementid is unique in the list.
+    Each label is unique in the list.
+    '''
     ret = []
     if content:
         xml = utils.get_xml_from_unicode(content, ishtml=True, add_root=True)
@@ -716,11 +721,45 @@ def get_text_elements_from_content(content):
 
             elementid = get_elementid_from_xml_element(element)
             if elementid:
+                order = ret.count(elementid)
+                if order > 0:
+                    # add (u'@o', u'2') if it is the 2nd occurence of this elementid
+                    elementid.append((u'@o', u'%s' % (order + 1)))
                 ret.append(elementid)
+
+    ret = [[elementid, get_label_from_elementid(elementid)] for elementid in ret]
+
+    return ret
+
+def get_label_from_elementid(elementid, full=False):
+    '''
+        elementid = [["", "clause"], ["type", "address"]],
+        => return 'address (clause)'
+        elementid = [["", "person"], ["type", "name"], ["@text", "willelmus-cumin"], ["@o", "2"]]
+        => return 'willelmus-cumin (name) [2]'
+    '''
+    order = '1'
+
+    elementid = elementid[:]
+    pair = elementid.pop()
+
+    if pair[0] == '@o':
+        order = pair[1]
+        pair = elementid.pop()
+
+    ret = pair[1]
+
+    pair = elementid.pop()
+    ret = '%s (%s)' % (ret, pair[1])
+
+    if order != '1':
+        ret += ' [%s]' % order
 
     return ret
 
 def get_unitid_from_xml_element(element):
+    # Shouldn't be used anymore
+    raise Exception('Deprecated function')
     ''' <span data-dpt=clause data-dpt-type=address>
         => 'clause|address'
     '''

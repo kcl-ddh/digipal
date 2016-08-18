@@ -165,7 +165,6 @@ class TextUnit(object):
 
         # returns None if request user doesn't have permission
         if request and ret and ret.image.is_private_for_user(request):
-            print 'NO PERM %s' % ret
             ret = None
 
         return ret

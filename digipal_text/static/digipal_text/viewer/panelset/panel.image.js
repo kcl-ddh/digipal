@@ -183,11 +183,13 @@
         var elements = data.text_elements;
 
         var htmlstr = '<option value="">Unspecified</option>';
-        elements.map(function(el) {
-            // e.g. el = [ [["", "person"], ["type", "name"], ["@text", "willelmus-cumin"]] , 'willelmus-cumin (name)' ]
-            var key = JSON.stringify(el[0]);
-            htmlstr += '<option value="'+window.dputils.escapeHtml(key)+'">'+el[1]+'</option>';
-        });
+        if (elements) {
+            elements.map(function(el) {
+                // e.g. el = [ [["", "person"], ["type", "name"], ["@text", "willelmus-cumin"]] , 'willelmus-cumin (name)' ]
+                var key = JSON.stringify(el[0]);
+                htmlstr += '<option value="'+window.dputils.escapeHtml(key)+'">'+el[1]+'</option>';
+            });
+        }
         this.$linkerText.html(htmlstr);
         this.refreshLinkerText();
     };
@@ -342,7 +344,9 @@
     PanelImage.prototype.applyPresentationOptions = function() {
         var classes = this.getListFromPresentationOptions();
 
-        this.annotator.setStyleTheme((classes.indexOf('highlight') > -1) ? '' : 'hidden');
+        if (this.annotator) {
+            this.annotator.setStyleTheme((classes.indexOf('highlight') > -1) ? '' : 'hidden');
+        }
     };
 
     PanelImage.prototype.updateEditingModeIcon = function() {

@@ -56,6 +56,22 @@
 
         this.callApi = function(title, url, onSuccess, requestData, synced) {
             var me = this;
+
+            // pre-process requestData
+            if (requestData) {
+                if (requestData.sub_location && requestData.sub_location.length) {
+                    requestData.sub_location = JSON.stringify(requestData.sub_location);
+                } else {
+                    delete requestData.sub_location;
+                }
+                if (requestData.load_locations) {
+                    requestData.load_locations = 1;
+                } else {
+                    delete requestData.load_locations;
+                }
+            }
+
+            // request event handlers
             var onComplete = function(jqXHR, textStatus) {
                 if (textStatus !== 'success') {
                     me.setMessage('Error while '+title+' (status: '+textStatus+')', 'error');
@@ -73,7 +89,38 @@
                 me.setMessage(data.message, data.status);
             };
             this.setMessage(title+'...', 'info');
-            var ret = TextViewer.callApi(url, onSuccessWrapper, onComplete, requestData, synced);
+
+            var ret = null;
+            if (!this.callApiFake(url, onSuccessWrapper)) {
+                ret = TextViewer.callApi(url, onSuccessWrapper, onComplete, requestData, synced);
+            }
+
+            return ret;
+        };
+
+        this.callApiFake = function(url, onSuccessWrapper) {
+            // prevents unnecessary server request for 'sync' location
+            var ret = false;
+
+            var parts = this.panelSet.getPanelAddressParts(url);
+            var fake_load = 0;
+            if (parts) {
+                // {contentType: "transcription", locationType: "sync", location: "location"}
+                if (parts.locationType == 'sync') {
+                    var locations = {};
+                    locations[parts.locationType] = parts.location;
+                    var data = {
+                        location_type: parts.locationType,
+                        location: parts.location,
+                        locations: locations,
+                        content: 'Syncing...',
+                        message: 'Syncing...'
+                    };
+                    onSuccessWrapper(data);
+                    ret = true;
+                }
+            }
+
             return ret;
         };
 
@@ -185,9 +232,11 @@
             // a) we are synced with emitting location type
             if ((this.getLocationType() === 'sync' && (parts.location.toLowerCase() == contentType.toLowerCase())) ||
                 // OR b) bidir sync: we are a location widget and the emitting panel is synced with us
-                //(0 && this.getContentType().toLowerCase() === 'location' && locationType === 'sync' && location[parts.offset] == this.getContentType().toLowerCase()) ||
+                (0 && this.getContentType().toLowerCase() === 'location' && locationType === 'sync') ||
                 // OR c) cross web-page sync: both this panel and the emitting one are location widgets
                 (contentType.toLowerCase() === 'location' && contentType.toLowerCase() === this.getContentType().toLowerCase())) {
+
+                console.log(''+this.panelType+' SYNC with ('+contentType+', '+locationType+', '+location[parts.offset]+', '+subLocation+')');
 
                 this.loadContent(!(this.locations), this.getContentAddress(locationType, location[parts.offset]), subLocation);
             }
@@ -208,7 +257,12 @@
         /* LOADING CONTENT */
 
         this.loadContent = function(loadLocations, address, subLocation) {
+            // Important, the argument is ignored, we load if we don't have locations
+            loadLocations = !(this.locations);
+
             subLocation = subLocation || [];
+
+            console.log(''+this.panelType+' : loadContent('+address+', '+subLocation+')');
 
             if (!address && (this.getLocationType() == 'sync')) {
                 this.panelSet.syncPanel(this);
@@ -218,6 +272,7 @@
             address = address || this.getContentAddress();
 
             if (this.loadedAddress != address || !this.moveToSubLocation(subLocation)) {
+                console.log('LOAD CONTENT');
                 this.setValid(false);
                 // make sure no saving happens from now on
                 // until the content is loaded

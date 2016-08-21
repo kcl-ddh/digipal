@@ -1,4 +1,3 @@
-//////////////////////////////////////////////////////////////////////
 //
 // PanelLocation
 // A 'master' location widget, it has no content, just locationType,
@@ -26,7 +25,7 @@
     PanelLocation.prototype.loadContentCustom = function(loadLocations, address, subLocation) {
         // Load all the possible locations with the API
         // Special case: we only load the first time to get all the locations.
-        // Next times (see lese branch), we don't need to load any content.
+        // Next times (see else branch), we don't need to load any content.
         if (loadLocations) {
             var me = this;
             this.callApi(

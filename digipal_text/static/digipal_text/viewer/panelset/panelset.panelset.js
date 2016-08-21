@@ -246,10 +246,10 @@
 
             $(window).resize(function() {
                 me._resize();
-                });
+            });
             $(window).scroll(function() {
                 me._resize(true);
-                });
+            });
 
             window.addEventListener('storage', function(event) {
                 // Syncing location following a change made in another browser window

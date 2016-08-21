@@ -17,24 +17,22 @@
         this.loadContentCustom = function(loadLocations, address, subLocation) {
             // load the content with the API
             var me = this;
+
+            var payload = {
+                'layout': 'width',
+                'width': me.$content.width(),
+                'height': me.$content.height(),
+                'load_locations': loadLocations,
+                'sub_location': subLocation,
+            };
+
             this.callApi(
                 'loading image',
                 address,
                 function(data) {
-//                    me.$content.html(data.content).find('img').load(function() {
-//                        me.onContentLoaded(data);
-//                    });
-                    //me.$content.text(data.content);
-
                     me.onContentLoaded(data);
                 },
-                {
-                    'layout': 'width',
-                    'width': me.$content.width(),
-                    'height': me.$content.height(),
-                    'load_locations': loadLocations ? 1 : 0,
-                    'sub_location': JSON.stringify(subLocation),
-                }
+                payload
             );
         };
 

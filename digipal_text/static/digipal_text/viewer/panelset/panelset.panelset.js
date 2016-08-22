@@ -50,13 +50,17 @@
         };
 
         this.syncWith = function(panelUUID, contentType, locationType, location, subLocation) {
-            // sync other panels with <panel>
-            for (var i in this.panels) {
-                this.panels[i].syncLocationWith(panelUUID, contentType, locationType, location, subLocation);
+            if (locationType !== 'sync') {
+                //console.log('syncWith ' + contentType);
+                // sync other panels with <panel>
+                for (var i in this.panels) {
+                    this.panels[i].syncLocationWith(panelUUID, contentType, locationType, location, subLocation);
+                }
             }
         };
 
         this.syncPanel = function(panel) {
+            //console.log('syncPanel ' + panel.contentType);
             // sync the given panel (with others)
             for (var i in this.panels) {
                 // TODO: this won't work when panels[i] is also synced.

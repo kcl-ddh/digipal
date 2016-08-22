@@ -188,13 +188,6 @@
                 });
             }
 
-            if (this.$presentationOptions) {
-                this.$presentationOptions.on('change', 'input[type=checkbox]', function() {
-                    me.applyPresentationOptions();
-                    me.panelSet.onPanelStateChanged(me);
-                });
-            }
-
             if (this.$downloadButton) {
                 TextViewer.unhide(this.$downloadButton, this.isDownloadable());
                 this.$downloadButton.on('click', function() {
@@ -236,7 +229,7 @@
                 // OR c) cross web-page sync: both this panel and the emitting one are location widgets
                 (contentType.toLowerCase() === 'location' && contentType.toLowerCase() === this.getContentType().toLowerCase())) {
 
-                console.log(''+this.panelType+' SYNC with ('+contentType+', '+locationType+', '+location[parts.offset]+', '+subLocation+')');
+                //console.log(''+this.contentType+' SYNC with ('+contentType+', '+locationType+', '+location[parts.offset]+', '+subLocation+')');
 
                 this.loadContent(!(this.locations), this.getContentAddress(locationType, location[parts.offset]), subLocation);
             }
@@ -262,7 +255,7 @@
 
             subLocation = subLocation || [];
 
-            console.log(''+this.panelType+' : loadContent('+address+', '+subLocation+')');
+            //console.log(''+this.contentType+' : loadContent('+address+', '+subLocation+')');
 
             if (!address && (this.getLocationType() == 'sync')) {
                 this.panelSet.syncPanel(this);
@@ -272,12 +265,15 @@
             address = address || this.getContentAddress();
 
             if (this.loadedAddress != address || !this.moveToSubLocation(subLocation)) {
-                console.log('LOAD CONTENT');
+                //console.log('LOAD CONTENT');
                 this.setValid(false);
                 // make sure no saving happens from now on
                 // until the content is loaded
-                this.loadedAddress = null;
-                this.loadContentCustom(loadLocations, address, subLocation);
+                if (this.loadingAddress !== address) {
+                    this.loadedAddress = null;
+                    this.loadingAddress = address;
+                    this.loadContentCustom(loadLocations, address, subLocation);
+                }
             }
         };
 
@@ -349,12 +345,18 @@
             TextViewer.unhide(this.$statusSelect, !!contentStatus);
         };
 
+        this.arePresentationOptionsDefined = function() {
+            var $pres = this.$presentationOptions;
+            return ($pres && $pres.length && $pres.data().hasOwnProperty('dropdownCheckbox'));
+        };
+
         this.setPresentationOptions = function(presentationOptions) {
             var $pres = this.$presentationOptions;
             if (presentationOptions) {
                 //var myData = [{id: 1, label: "Test" }];
                 var options = presentationOptions.map(function(v, i) {return {id: v[0], label: v[1]};});
-                if (!$pres.data().hasOwnProperty('dropdownCheckbox')) {
+                if (!this.arePresentationOptionsDefined()) {
+                    var me = this;
                     $pres.dropdownCheckbox({
                         data: options,
                         title: 'Display',
@@ -365,6 +367,10 @@
                         $pres.find('.dropdown-checkbox-content').toggle($event.type === 'mouseenter');
                     });
 
+                    $pres.on('change', 'input[type=checkbox]', function() {
+                        me.applyPresentationOptions();
+                        me.panelSet.onPanelStateChanged(me);
+                    });
                 }
             }
             // hide (chosen) select if no status supplied
@@ -447,6 +453,8 @@
     };
 
     Panel.prototype.onContentLoaded = function(data) {
+        //console.log(''+this.contentType+': onContentLoaded - BEGIN');
+
         this.scrollToTopOfContent();
 
         //this.setMessage('Content loaded.', 'success');
@@ -481,6 +489,10 @@
 
         // asks PanelSet to update URL
         this.panelSet.onPanelStateChanged(this);
+        //console.log(''+this.contentType+': onContentLoaded - END');
+
+        // allows other addresses to be loaded
+        this.loadingAddress = null;
     };
 
     Panel.prototype.onResize = function () {
@@ -549,17 +561,19 @@
     Panel.prototype.enablePresentationOptions = function(options) {
         if (options) {
             var $pres = this.$presentationOptions;
-            $pres.find('li').each(function() {
-                var $li = $(this);
-                if (options.indexOf($li.data('id')) > -1) {
-                    $li.find('input').trigger('click');
-                }
-            });
+            if (this.arePresentationOptionsDefined()) {
+                $pres.find('li').each(function() {
+                    var $li = $(this);
+                    if (options.indexOf($li.data('id')) > -1) {
+                        $li.find('input').trigger('click');
+                    }
+                });
+            }
         }
     };
 
     Panel.prototype.applyPresentationOptions = function() {
-        if (this.$presentationOptions && this.$presentationOptions.length) {
+        if (this.arePresentationOptionsDefined()) {
             var classes = this.$presentationOptions.dropdownCheckbox("unchecked").map(function(v) { return v.id; }).join(' ');
             this.$content.removeClass(classes);
             classes = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
@@ -581,7 +595,7 @@
 
     Panel.prototype.getListFromPresentationOptions = function() {
         ret = [];
-        if (this.$presentationOptions && this.$presentationOptions.length) {
+        if (this.arePresentationOptionsDefined()) {
             ret = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; });
         }
         return ret;

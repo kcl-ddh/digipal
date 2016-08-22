@@ -117,11 +117,13 @@
 
         this.clipImageToTop = function() {
             var map = this.map;
-            var view = map.getView();
-            var imageFullHeight = view.getProjection().getExtent()[3];
-            var viewerFullHeight = map.getSize()[1] * view.getResolution();
-            if (viewerFullHeight < imageFullHeight) {
-                view.setCenter([view.getCenter()[0], - (viewerFullHeight / 2)]);
+            if (map) {
+                var view = map.getView();
+                var imageFullHeight = view.getProjection().getExtent()[3];
+                var viewerFullHeight = map.getSize()[1] * view.getResolution();
+                if (viewerFullHeight < imageFullHeight) {
+                    view.setCenter([view.getCenter()[0], - (viewerFullHeight / 2)]);
+                }
             }
         };
 
@@ -330,11 +332,13 @@
         if (name === 'olv') {
             var parts = value.split(',');
             var map = this.map;
-            var view = map.getView();
-            view.setResolution(parseFloat(parts[0]));
-            view.setCenter([parseFloat(parts[1]), parseFloat(parts[2])]);
-            if (parts.length > 3) {
-                view.setRotation(parseFloat(parts[3]) * Math.PI / 180);
+            if (map) {
+                var view = map.getView();
+                view.setResolution(parseFloat(parts[0]));
+                view.setCenter([parseFloat(parts[1]), parseFloat(parts[2])]);
+                if (parts.length > 3) {
+                    view.setRotation(parseFloat(parts[3]) * Math.PI / 180);
+                }
             }
         }
     };

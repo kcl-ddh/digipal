@@ -346,9 +346,15 @@ class AnnotatorOL3 {
         if (feature) features.push(feature);
     }
 
-    zoomToFeature(feature?: ol.Feature): void {
+    zoomToFeature(feature?: ol.Feature, onlyIfOutOfFrame = false): void {
         if (feature) {
-            this.map.getView().fit(feature.getGeometry().getExtent(), this.map.getSize());
+            var featureExtent = feature.getGeometry().getExtent();
+            // TODO: ideally we might want to make minimal changes to zoom level
+            // and framing to enclose the feature.
+            // Currently we just make the best fit.
+            if (!onlyIfOutOfFrame || !ol.extent.containsExtent(this.map.getView().calculateExtent(this.map.getSize()), featureExtent)) {
+                this.map.getView().fit(featureExtent, this.map.getSize());
+            }
         }
     }
 

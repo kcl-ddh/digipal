@@ -17,8 +17,11 @@
         var $buttons = this.$root.find('.location-buttons');
         $buttons.html($('#text-viewer-panel .location-buttons').html());
 
+        // unhide location drop down otherwise the widget is entirely
+        // hidden and the panelset frame has the wrong initial size
+        TextViewer.unhide($buttons.find('select[name=location]'), 1);
+
         // enable the prev/next
-        //TextViewer.unhide($buttons.find('.dphidden'), true);
         $buttons.find('.btn-page-nav').addClass('enabled');
     };
 

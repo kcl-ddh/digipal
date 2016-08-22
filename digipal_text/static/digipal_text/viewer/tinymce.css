@@ -63,12 +63,18 @@ div.mce-content-body.preview {
     font-family: "Arial Black",Gadget,sans-serif;
     font-size: 60%;
     font-weight: bold;
-    margin-top: -0.7em;
+    margin-top: -1.4em;
     position: absolute;
     background-color1: white;
     border-left1: 1px solid blue;
     border-right1: 1px solid blue;
     padding: 0 2px;
+    background-color:
+}
+
+span[data-dpt] span[data-dpt]:before {
+    margin-top: -0.5em;
+    margin-left: 0.5em;
 }
 
 /*
@@ -456,3 +462,4 @@ span[data-dpt] > span[data-dpt] {
 .preview.highlight-expansions.mce-content-body i {
     border-bottom: 1px dashed grey;
 }
+

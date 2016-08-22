@@ -260,6 +260,7 @@
         }
 
         this.annotator.selectFeature(feature);
+        this.annotator.zoomToFeature(feature, true);
 
         // send the changes to the server
         //this.onAnnotationChanged();

@@ -575,7 +575,10 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
             ret['height'] = image.height
 
             # add all the elements found on that page in the transcription
-            ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), location_type, location)
+            #ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), location_type, location)
+            ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), 'locus', get_locus_from_location(location_type, location))
+
+            #print ret['text_elements']
 
             # add all the non-graph annotations
             ret.update(get_annotations_from_image(image))

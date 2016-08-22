@@ -15,6 +15,8 @@
     var Located = TextViewer.Located = function($root) {
         var me = this;
 
+        this.locationsAreUnloaded = true;
+
         this.resetSubLocation();
 
         this.$locationTypes = $root.find('.dropdown-location-type');
@@ -56,12 +58,18 @@
         // to be overridden
     };
 
+    Located.prototype.getLoadedAddress = function() {
+        return this.loadedAddress;
+    };
+
+    Located.prototype.getLoadedAddressParts = function() {
+        //OUT: {contentType: location, locationType: locus, location: 290r}
+        return this.panelSet.getPanelAddressParts(this.loadedAddress);
+    };
+
     // Returns the selected Location Type from the drop down
     Located.prototype.getLocationType = function() {
-        var ret = 'default';
-        //if (this.$locationTypes.closest('.dphidden,.dpunhidden').hasClass('dpunhidden')) {
-            ret = this.$locationTypes.dpbsdropdown('getOption');
-        //}
+        var ret = this.$locationTypes.dpbsdropdown('getOption') || 'default';
         return ret;
     };
 
@@ -138,7 +146,7 @@
         }
     };
 
-    Located.prototype.updateLocations = function(locations) {
+    Located.prototype.updateLocations = function(locations, fake) {
         // Update the location drop downs from a list of locations
         // received from the server.
 
@@ -175,6 +183,7 @@
                 // save the locations
                 this.locations = locations;
             }
+            this.locationsAreUnloaded = fake;
         }
     };
 
@@ -202,13 +211,13 @@
 
         // hide the drop down if no option
         TextViewer.unhide(this.$locationSelect, htmlstr ? true : false);
-        
+
         // don't auto-hide locations if not synced
         this.$root.find('.location-buttons').toggleClass('dpauto-hide', (locationType === 'sync'));
-        
+
         // hide prev/next buttons if only one location available
         TextViewer.unhide(this.$root.find('.btn-page-nav.enabled'), (locationsCount > 1));
-        
+
         // disable drop down appearance if only one option
         TextViewer.getCtrl(this.$locationSelect).toggleClass('disabled', (locationsCount < 2));
 

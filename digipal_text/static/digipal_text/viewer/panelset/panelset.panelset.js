@@ -42,19 +42,22 @@
 
         this.syncWithPanel = function(panel) {
             // sync other panels with <panel>
-            this.onPanelContentLoaded(panel, panel.getLocationType(), panel.getLocation());
+            var parts = panel.getLoadedAddressParts();
+            //this.onPanelContentLoaded(panel, panel.getLocationType(), panel.getLocation());
+            this.onPanelContentLoaded(panel, parts.locationType, parts.location);
         };
 
         this.onPanelContentLoaded = function(panel, locationType, location) {
-            this.syncWith(panel.uuid, panel.getContentType(), locationType, panel.getSurroundingLocations(locationType, location), panel.getSubLocationUnresolved());
+            this.syncWith(panel.uuid, panel.getContentType(), locationType, panel.getSurroundingLocations(locationType, location), panel.getSubLocationUnresolved(), panel);
         };
 
-        this.syncWith = function(panelUUID, contentType, locationType, location, subLocation) {
+        this.syncWith = function(panelUUID, contentType, locationType, surroundingLocations, subLocation, panel) {
+            // panel is optional
             if (locationType !== 'sync') {
                 //console.log('syncWith ' + contentType);
                 // sync other panels with <panel>
                 for (var i in this.panels) {
-                    this.panels[i].syncLocationWith(panelUUID, contentType, locationType, location, subLocation);
+                    this.panels[i].syncLocationWith(panelUUID, contentType, locationType, surroundingLocations, subLocation, panel);
                 }
             }
         };
@@ -68,7 +71,10 @@
                 // but info only in loadedAddress
                 // Or we use a getLoadedLocationType() returning the real LT
                 // but surrounding locations won't work.
-                panel.syncLocationWith(this.panels[i].uuid, this.panels[i].getContentType(), this.panels[i].getLocationType(), this.panels[i].getSurroundingLocations(), this.panels[i].getSubLocationUnresolved());
+                var parts = this.panels[i].getLoadedAddressParts();
+                if (parts) {
+                    panel.syncLocationWith(this.panels[i].uuid, this.panels[i].getContentType(), parts.locationType, parts.location, this.panels[i].getSubLocationUnresolved(), this.panels[i]);
+                }
             }
         };
 
@@ -227,6 +233,7 @@
         this.getPanelAddressParts = function(address) {
             // IN: '/digipal/manuscripts/1/texts/location/locus/290r/'
             //OUT: {contentType: location, locationType: locus, location: 290r}
+            if (!address) return null;
             var ret = {contentType: '', locationType: 'locus', location: '1r'};
 
             var baseAddress = this.getBaseAddress();

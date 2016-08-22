@@ -81,7 +81,7 @@
                 data.status = data.status || 'success';
                 data.message = data.message || 'done ('+title+').';
                 if (data.locations) {
-                    me.updateLocations(data.locations);
+                    me.updateLocations(data.locations, data.is_fake);
                 }
                 if (data.status === 'success') {
                     onSuccess(data, textStatus, jqXHR);
@@ -99,11 +99,14 @@
         };
 
         this.callApiFake = function(url, onSuccessWrapper) {
+            return false;
             // prevents unnecessary server request for 'sync' location
+            // Disabled as it causes issues with display settings from URL
+            // being ignored and locations drop down being empty.
+            // TODO: Need more work.
             var ret = false;
 
             var parts = this.panelSet.getPanelAddressParts(url);
-            var fake_load = 0;
             if (parts) {
                 // {contentType: "transcription", locationType: "sync", location: "location"}
                 if (parts.locationType == 'sync') {
@@ -114,7 +117,8 @@
                         location: parts.location,
                         locations: locations,
                         content: 'Syncing...',
-                        message: 'Syncing...'
+                        message: 'Syncing...',
+                        is_fake: 1
                     };
                     onSuccessWrapper(data);
                     ret = true;
@@ -211,27 +215,34 @@
             }
         };
 
-        this.syncLocationWith = function(panelUUID, contentType, locationType, location, subLocation) {
-            // <location> is a string ('2r') or a dict {0: '2r', 1: '2v', -1: '1v'}
+        this.syncLocationWith = function(panelUUID, contentType, locationType, surroundingLocations, subLocation, panel) {
+            // panel is optional
+            // <surroundingLocations> is a string ('2r') or a dict {0: '2r', 1: '2v', -1: '1v'}
             if (panelUUID === this.uuid) return;
 
             // if string convert to dict, but with same loc for +-1
-            if (location.substring) location = {0: location};
-            if (!location.hasOwnProperty('1')) location[1] = location[0];
-            if (!location.hasOwnProperty('-1')) location[-1] = location[0];
+            if (surroundingLocations.substring) surroundingLocations = {0: surroundingLocations};
+            if (!surroundingLocations.hasOwnProperty('1')) surroundingLocations[1] = surroundingLocations[0];
+            if (!surroundingLocations.hasOwnProperty('-1')) surroundingLocations[-1] = surroundingLocations[0];
+
+            var addressParts = this.getLoadedAddressParts();
 
             var parts = this.getLocationParts();
             // Load new address only if:
             // a) we are synced with emitting location type
             if ((this.getLocationType() === 'sync' && (parts.location.toLowerCase() == contentType.toLowerCase())) ||
-                // OR b) bidir sync: we are a location widget and the emitting panel is synced with us
-                (0 && this.getContentType().toLowerCase() === 'location' && locationType === 'sync') ||
+                // OR b) bidir sync: we are a location widget and the emitting panel is synced with us, the location is the same and we have a sublocation
+                (1 && addressParts && panel && this.getContentType().toLowerCase() === 'location' &&
+                    panel.getLocationType() === 'sync' && panel.getLocation() === 'location' &&
+                    subLocation && subLocation.length > 0 &&
+                    locationType == addressParts.locationType && surroundingLocations[parts.offset] == addressParts.location
+                ) ||
                 // OR c) cross web-page sync: both this panel and the emitting one are location widgets
                 (contentType.toLowerCase() === 'location' && contentType.toLowerCase() === this.getContentType().toLowerCase())) {
 
-                //console.log(''+this.contentType+' SYNC with ('+contentType+', '+locationType+', '+location[parts.offset]+', '+subLocation+')');
+                //console.log(''+this.contentType+' SYNC with ('+contentType+', '+locationType+', '+surroundingLocations[parts.offset]+', '+subLocation+')');
 
-                this.loadContent(!(this.locations), this.getContentAddress(locationType, location[parts.offset]), subLocation);
+                this.loadContent(!(this.locations), this.getContentAddress(locationType, surroundingLocations[parts.offset]), subLocation);
             }
         };
 
@@ -251,7 +262,7 @@
 
         this.loadContent = function(loadLocations, address, subLocation) {
             // Important, the argument is ignored, we load if we don't have locations
-            loadLocations = !(this.locations);
+            loadLocations = this.locationsAreUnloaded;
 
             subLocation = subLocation || [];
 
@@ -265,14 +276,16 @@
             address = address || this.getContentAddress();
 
             if (this.loadedAddress != address || !this.moveToSubLocation(subLocation)) {
-                //console.log('LOAD CONTENT');
-                this.setValid(false);
                 // make sure no saving happens from now on
                 // until the content is loaded
                 if (this.loadingAddress !== address) {
+                    //console.log('LOAD CONTENT');
+                    this.setValid(false);
                     this.loadedAddress = null;
                     this.loadingAddress = address;
                     this.loadContentCustom(loadLocations, address, subLocation);
+                } else {
+                    //console.log('STOPPED CONCURRENT LOAD '+address);
                 }
             }
         };

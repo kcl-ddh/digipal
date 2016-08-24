@@ -194,7 +194,29 @@
         this.refreshLinkerText();
     };
 
+    PanelImage.prototype.getLabelFromElementid = function(elementid) {
+        var parts = elementid || [];
+        var ret = '';
+        for (var i = 0; i < parts.length; i++) {
+            if (i) ret += ' > ';
+            ret += parts[i][1];
+        }
+        return ret;
+    };
+
     PanelImage.prototype.annotatorEventHandler = function(e) {
+        if (e.action === 'hover') {
+            var feature = e.features && e.features.length ? e.features[0] : null;
+            var elementid = null;
+            if (feature) {
+                elementid = feature.get('elementid');
+            }
+
+            this.setMessage(''+this.getLabelFromElementid(elementid), 'info');
+
+            return;
+        }
+
         var me = this;
 
         // update the selection count

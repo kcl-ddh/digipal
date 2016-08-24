@@ -96,7 +96,6 @@ class Select extends ol.interaction.Select {
             this.highlightHoveredFeature(mapBrowserEvent);
 
             if (processEvent && overlay) {
-                console.log('Caught call');
                 var statesArray = mapBrowserEvent.map['frameState_'].layerStatesArray;
                 for (var i = 0; i < statesArray.length; i++) {
                     if (statesArray[i].layer === overlay) {
@@ -128,7 +127,6 @@ class Select extends ol.interaction.Select {
         var bestSize = null;
         var coordinates = map.getCoordinateFromPixel(pixel);
         this.vectorLayer.getSource()['forEachFeatureAtCoordinateDirect'](coordinates, function(feature) {
-            console.log(feature);
             var extent = feature.getGeometry().getExtent();
             var size = Math.abs(extent[2]-extent[0])*Math.abs(extent[3]-extent[1]);
             if (!bestSize || bestSize > size) {
@@ -162,6 +160,7 @@ class Select extends ol.interaction.Select {
         if (feature) {
             this.layerHover.getSource()['addFeature'](feature);
         }
+        window['goog'].events.dispatchEvent(this, {type: 'hover', feature: feature});
     }
 
      /**
@@ -505,12 +504,15 @@ class AnnotatorOL3 {
     /**
      * Register an event listener for the OL features
      *
-     * listener: function({annotator: this, action: 'select'|'unselect'|'changed'|'deleted'})
+     * listener: function({annotator: this, action: 'select'|'unselect'|'changed'|'deleted'|'hovered'})
      */
     addListener(listener): void {
         var features = this.getSelectedFeatures();
         features.on('add', () => {var e = {annotator: this, action: 'select'}; listener(e);});
         features.on('remove', () => {var e = {annotator: this, action: 'unselect'}; listener(e);});
+
+        window['goog'].events.listen(this.interactions.select, 'hover', (event) => {var e = {annotator: this, action: 'hover', features: [event['feature']]}; listener(e);}, true, listener);
+
         //features.on('deleted', (event) => {var e = {annotator: this, action: 'deleted', features: event['features']}; listener(e);});
         this.source['on']('changefeature', (event) => {var e = {annotator: this, action: 'changed', features: [event['feature']]}; listener(e);});
         this.source['on']('removefeature', (event) => {var e = {annotator: this, action: 'deleted', features: [event['feature']]}; listener(e);});

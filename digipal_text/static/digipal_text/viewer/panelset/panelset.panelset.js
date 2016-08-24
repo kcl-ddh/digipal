@@ -240,7 +240,7 @@
             if (address.substring(0, baseAddress.length) !== baseAddress) return ret;
             address = address.substring(baseAddress.length);
             // 'translation/locus/271r/'
-            var parts = address.split('/');
+            var parts = address.split('/').map(function(p) { return decodeURIComponent(p);});
             if (parts.length == 4) {
                 ret.contentType = parts[0];
                 ret.locationType = parts[1];

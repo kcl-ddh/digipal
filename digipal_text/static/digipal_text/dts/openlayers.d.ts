@@ -506,7 +506,7 @@ declare module olx {
         interface DrawGeometryFunctionType {
             (coordinates: ol.Coordinate|Array<ol.Coordinate>|Array<Array<ol.Coordinate>>, geometry: ol.geom.SimpleGeometry): ol.geom.SimpleGeometry;
         }
-        
+
         interface SelectFilterFunction {
             (feature: ol.Feature, layer: ol.layer.Layer): boolean
         }
@@ -523,7 +523,7 @@ declare module olx {
             zoomDelta?: number;
             zoomDuration?: number;
         }
-          
+
         interface DrawOptions {
             clickTolerance?: number;
             features?: ol.Collection<ol.Feature>;
@@ -539,11 +539,11 @@ declare module olx {
             freehandCondition?: ol.events.ConditionType;
             wrapX?: boolean;
         }
-        
+
         interface InteractionOptions {
             handleEvent: any;
         }
-          
+
         interface SelectOptions {
             addCondition?: ol.events.ConditionType;
             condition?: ol.events.ConditionType;
@@ -555,7 +555,7 @@ declare module olx {
             filter?: olx.interaction.SelectFilterFunction;
             wrapX?: boolean;
         }
-          
+
     }
 
     module layer {
@@ -648,6 +648,18 @@ declare module olx {
              * The layer source (or null if not yet set).
              */
             source?: ol.source.Source;
+        }
+
+        interface LayerState {
+            layer: ol.layer.Layer;
+            opacity: number;
+            sourceState: ol.source.State;
+            visible: boolean;
+            managed: boolean;
+            extent?: ol.Extent;
+            zIndex: number;
+            maxResolution: number;
+            minResolution: number;
         }
 
         interface TileOptions extends LayerOptions {
@@ -960,7 +972,7 @@ declare module olx {
              */
             maxZoom?: number;
         }
-        
+
         type FitOptions = FitGeometryOptions;
     }
 
@@ -1198,7 +1210,7 @@ declare module ol {
          */
         coordinate: ol.Coordinate;
     }
-    
+
     /**
      * A vector object for geographic features with a geometry and other attribute properties, similar to the features in vector file formats like GeoJSON.
      */
@@ -1365,6 +1377,17 @@ declare module ol {
          * @param style Overlay style
          */
         setStyle(style: ol.style.StyleFunction): void;
+
+        /**
+         * Set the visibility of the layer (true or false).
+         * @param visible The visibility of the layer.
+         */
+        setVisible(visible: boolean): void;
+
+        /**
+         * @return {ol.layer.LayerState} Layer state.
+         */
+        getLayerState(): olx.layer.LayerState;
     }
 
     /**
@@ -2199,7 +2222,7 @@ declare module ol {
          * @param size Box pixel size.
          */
         fitExtent(extent: ol.Extent, size: ol.Size): void;
-        
+
         /**
          * Fit the given geometry into the view based on the given map size and border.
          * @param geometry Geometry.
@@ -2479,6 +2502,9 @@ declare module ol {
 
         module condition {
             function click(event: ol.MapBrowserEvent): boolean;
+            function never(event: ol.MapBrowserEvent): boolean;
+            function always(event: ol.MapBrowserEvent): boolean;
+            function pointerMove(event: ol.MapBrowserEvent): boolean;
         }
     }
 
@@ -2813,11 +2839,11 @@ declare module ol {
     }
 
     module geom {
-        
+
         // Type definitions
         interface GeometryLayout extends String { }
         interface GeometryType extends String { }
-        
+
         /**
          * Abstract base class; only used for creating subclasses; do not instantiate
          * in apps, as cannot be rendered.
@@ -2946,7 +2972,7 @@ declare module ol {
              * @returns Area (on projected plane).
              */
             getArea(): number;
-            
+
             /**
              * Return the coordinates of the linear ring.
              * @returns Coordinates.
@@ -3190,37 +3216,37 @@ declare module ol {
              */
             setCoordinates(coordinates: Array<ol.Coordinate>, layout?: ol.geom.GeometryLayout): void;
         }
-        
+
         /**
          * Multi-polygon geometry.
          */
         class MultiPolygon extends ol.geom.SimpleGeometry {
-            
+
             /**
              * constructor
              * @param coordinates Coordinates.
              * @param layout Layout.
              */
             constructor(coordinates: Array<Array<Array<ol.Coordinate>>>, layout?: ol.geom.GeometryLayout);
-            
+
             /**
              * Append the passed polygon to this multipolygon.
              * @param polygon Polygon.
              */
             appendPolygon(polygon: ol.geom.Polygon): void;
-            
+
             /**
              * Make a complete copy of the geometry.
              * @returns Clone.
              */
             clone(): ol.geom.MultiPolygon;
-            
+
             /**
              * Return the area of the multipolygon on projected plane.
              * @returns Area (on projected plane).
              */
             getArea(): number;
-            
+
             /**
              * Get the coordinate array for this geometry.  This array has the structure
              * of a GeoJSON coordinate array for multi-polygons.
@@ -3234,32 +3260,32 @@ declare module ol {
              * @returns Coordinates.
              */
             getCoordinates(right?: boolean): Array<Array<Array<ol.Coordinate>>>;
-            
+
             /**
              * Return the interior points as {@link ol.geom.MultiPoint multipoint}.
              * @returns Interior points.
              */
             getInteriorPoints(): ol.geom.MultiPoint;
-            
+
             /**
              * Return the polygon at the specified index.
              * @param index Index.
              * @returns  Polygon.
              */
             getPolygon(index: number): ol.geom.Polygon;
-            
+
             /**
              * Return the polygons of this multipolygon.
              * @returns Polygons.
              */
             getPolygons(): Array<ol.geom.Polygon>;
-            
+
             /**
              * Get the type of this geometry.
              * @returns Geometry type
              */
             getType(): ol.geom.GeometryType;
-            
+
             /**
              * Test if the geometry and the passed extent intersect.
              * @param extent Extent
@@ -3462,7 +3488,7 @@ declare module ol {
     }
 
     module interaction {
-        
+
         class DoubleClickZoom {
         }
 
@@ -3489,7 +3515,7 @@ declare module ol {
 
         class Draw extends Pointer {
             constructor(options?: olx.interaction.DrawOptions);
-            
+
             /**
             * Stop drawing and add the sketch feature to the target layer.
             * The {@link ol.interaction.DrawEventType.DRAWEND} event is dispatched before
@@ -3504,7 +3530,7 @@ declare module ol {
 
         class Interaction extends Object {
             constructor(options?: olx.interaction.InteractionOptions);
-            
+
             /**
              * Activate or deactivate the interaction.
              * @param active
@@ -3535,11 +3561,15 @@ declare module ol {
 
         class Select extends Interaction {
             constructor(options?: olx.interaction.SelectOptions);
-            
+
+            featureOverlay_: FeatureOverlay;
+
             /**
              * Get the selected features
              */
             getFeatures(): ol.Collection<ol.Feature>;
+
+            handleEvent(event: ol.MapBrowserEvent): boolean;
         }
 
         class Snap {
@@ -4080,12 +4110,12 @@ declare module ol {
 
         class Vector {
             constructor(opts: olx.source.VectorOptions)
-            
+
             /**
             * Get the extent of the features currently in the source.
             */
             getExtent(): ol.Extent;
-            
+
             getFeaturesInExtent(extent: ol.Extent): ol.Feature[];
 
             /**
@@ -4095,7 +4125,7 @@ declare module ol {
             * @param {ol.Feature} feature Feature to remove.
             */
             removeFeature(feature: ol.Feature): void;
-            
+
             addFeatures(features: Array<ol.Feature>): void;
         }
 

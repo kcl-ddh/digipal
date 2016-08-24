@@ -39,7 +39,132 @@ class Draw extends ol.interaction.Draw {
 
 class Select extends ol.interaction.Select {
 
-    /**
+    handleEventDefault = null;
+    // the vector layer that contains all the annotations
+    vectorLayer: ol.layer.Vector = null;
+
+    //featureHovered: ol.Feature = null;
+    layerHover: ol.layer.Vector = null;
+
+    constructor(options?: olx.interaction.SelectOptions, vectorLayer?: ol.layer.Vector, map?: ol.Map) {
+//        options.filter = (feature: ol.Feature, layer: ol.layer.Layer) => {
+//            console.log('--------');
+//            console.log(feature);
+//            console.log(layer);
+//            return !!layer;
+//        };
+        super(options);
+
+        var sourceHover = new ol.source.Vector({});
+        var styleHover = new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255, 255, 255, 0.07)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: '#808000',
+                width: 2
+            })
+        });
+        this.layerHover = new ol.layer.Vector({source: sourceHover});
+        this.layerHover.setStyle(styleHover);
+        map.addLayer(this.layerHover);
+        this.layerHover['setZIndex'](10);
+
+        this.handleEventDefault = this.handleEvent;
+        this.vectorLayer = vectorLayer;
+        this.handleEvent = (mapBrowserEvent: ol.MapBrowserEvent) => {
+            /*
+                HACK
+
+                Problem: OL3 selection algorithm doesn't allow selection of a
+                feature nested within another selected feature. Because
+                the selected feature is on the Select overlay which takes
+                precedence. Custom layer and feature filters are bypassed
+                for overlays.
+
+                Solution: we temporarily configure the overlay to be ignored
+                by the default algorithms.
+
+                Failed solutions: unselecting before the default handler doesn't
+                work. Not entirely sure why, perhaps b/c replay drawing history
+                to detect hit. (this.getFeatures().clear())
+            */
+            var overlay = this.featureOverlay_;
+            var processEvent = this['condition_'](mapBrowserEvent);
+            var layerState = null;
+
+            this.highlightHoveredFeature(mapBrowserEvent);
+
+            if (processEvent && overlay) {
+                console.log('Caught call');
+                var statesArray = mapBrowserEvent.map['frameState_'].layerStatesArray;
+                for (var i = 0; i < statesArray.length; i++) {
+                    if (statesArray[i].layer === overlay) {
+                        layerState = statesArray[i];
+                        // layer state change so it can be filtered
+                        layerState.managed = true;
+                        // layer state change so it can be filtered OUT
+                        layerState.layer.setVisible(false);
+                        break;
+                    }
+                }
+            }
+
+            // default call
+            var ret = this.handleEventDefault(mapBrowserEvent);
+
+            // restore the overlay state
+            if (layerState) {
+                layerState.managed = false;
+                layerState.layer.setVisible(true);
+            }
+
+            return ret;
+        };
+    }
+
+    findSmallestFeatureAtPixel(pixel: ol.Pixel, map: ol.Map): ol.Feature {
+        var ret = null;
+        var bestSize = null;
+        var coordinates = map.getCoordinateFromPixel(pixel);
+        this.vectorLayer.getSource()['forEachFeatureAtCoordinateDirect'](coordinates, function(feature) {
+            console.log(feature);
+            var extent = feature.getGeometry().getExtent();
+            var size = Math.abs(extent[2]-extent[0])*Math.abs(extent[3]-extent[1]);
+            if (!bestSize || bestSize > size) {
+                bestSize = size;
+                ret = feature;
+            }
+        });
+        return ret;
+    }
+
+    highlightHoveredFeature(mapBrowserEvent: ol.MapBrowserEvent): void {
+        /*
+            Highlight hovered feature.
+            If more than one, highlight the smallest one.
+
+            NOTE that this has a side effect of solving a major issue with the
+            default Select algorithm. That is, multiple features are below the
+            cursor on click, the one drawned last has priority. So a nested
+            feature may be unselectable.
+
+            Because we add the hovered feature in a dedicated, top, Vector layer,
+            which the Select algo can pick from, we ensure that it has priority
+            over any other feature.
+        */
+        var feature = this.findSmallestFeatureAtPixel(mapBrowserEvent.pixel, mapBrowserEvent.map);
+
+        this.layerHover.getSource()['getFeatures']().map((afeature) => {
+            this.layerHover.getSource()['removeFeature'](afeature);
+        });
+
+        if (feature) {
+            this.layerHover.getSource()['addFeature'](feature);
+        }
+    }
+
+     /**
      * Remove selected features from the Vector layer
      * Clear the selection
      */
@@ -214,10 +339,11 @@ class AnnotatorOL3 {
     initSelect(): void {
         var interaction = new Select({
             condition: ol.events.condition.click,
+            //condition: ol.events.condition.pointerMove,
             style: (feature, resolution) => {
                 return [this.getStyles('select')];
             }
-        });
+        }, this.layer, this.map);
 
         interaction.on('select', (e) => {
             // After drawing ends a 'click' event is generated

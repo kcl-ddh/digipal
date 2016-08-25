@@ -511,13 +511,14 @@
         // panelState =
         // transcription/locus/1r/;ds=abbrv
         // transcription/default/
-        var metaparts = panelState.split(';');
-        var parts = metaparts[0].split('/');
-        var contentType = parts[0];
-        var stateDict = (metaparts.length > 1) ? metaparts[1]: null;
+        var metaparts = (panelState || '').split(';');
+        var address = metaparts.shift();
+        var parts = address.split('/');
+        var contentType = (parts.length > 0) ? parts[0] : '';
+        var stateDict = metaparts.join(';');
 
         //Panel.create(Panel.getPanelClassFromContentType(contentType), '.ui-layout-'+key);
-        return Panel.create(contentType, '.ui-layout-'+key, false, {contentAddress: metaparts[0], stateDict: stateDict});
+        return Panel.create(contentType, '.ui-layout-'+key, false, {contentAddress: address, stateDict: stateDict});
     };
 
     // Returns the Panel class that manages contentType

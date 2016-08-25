@@ -514,7 +514,6 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
         sub_location = get_sub_location_from_request(request)
         new_address = get_address_from_sub_location(sub_location)
         if new_address:
-            # print new_address
             location_type, location = new_address
     # ##
 
@@ -576,6 +575,8 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
 
             # add all the elements found on that page in the transcription
             # ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), location_type, location)
+#             print 'get_locus_from_location(%s, %s)' % (location_type, location)
+#             print get_locus_from_location(location_type, location)
             ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), 'locus', get_locus_from_location(location_type, location))
 
             # print ret['text_elements']
@@ -703,6 +704,9 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
 
     # extract all the elements
     if text_info.get('status', '').lower() != 'error':
+#         print '-' * 80
+#         print location_type, location
+#         print text_info.get('location_type'), text_info.get('location')
         content = text_info.get('content', '')
         ret = get_text_elements_from_content(content)
 
@@ -828,7 +832,7 @@ def find_image(request, item_partid, location_type, location, get_visible_images
     return image
 
 def get_locus_from_location(location_type, location):
-    ret = None
+    ret = location
 
     # e.g. location = 54b2 (entry number)
     # => convert to 54v

@@ -215,37 +215,6 @@
             }
         };
 
-        this.syncLocationWith = function(panelUUID, contentType, locationType, surroundingLocations, subLocation, panel) {
-            // panel is optional
-            // <surroundingLocations> is a string ('2r') or a dict {0: '2r', 1: '2v', -1: '1v'}
-            if (panelUUID === this.uuid) return;
-
-            // if string convert to dict, but with same loc for +-1
-            if (surroundingLocations.substring) surroundingLocations = {0: surroundingLocations};
-            if (!surroundingLocations.hasOwnProperty('1')) surroundingLocations[1] = surroundingLocations[0];
-            if (!surroundingLocations.hasOwnProperty('-1')) surroundingLocations[-1] = surroundingLocations[0];
-
-            var addressParts = this.getLoadedAddressParts();
-
-            var parts = this.getLocationParts();
-            // Load new address only if:
-            // a) we are synced with emitting location type
-            if ((this.getLocationType() === 'sync' && (parts.location.toLowerCase() == contentType.toLowerCase())) ||
-                // OR b) bidir sync: we are a location widget and the emitting panel is synced with us, the location is the same and we have a sublocation
-                (1 && addressParts && panel && this.getContentType().toLowerCase() === 'location' &&
-                    panel.getLocationType() === 'sync' && panel.getLocation() === 'location' &&
-                    subLocation && subLocation.length > 0 &&
-                    locationType == addressParts.locationType && surroundingLocations[parts.offset] == addressParts.location
-                ) ||
-                // OR c) cross web-page sync: both this panel and the emitting one are location widgets
-                (contentType.toLowerCase() === 'location' && contentType.toLowerCase() === this.getContentType().toLowerCase())) {
-
-                //console.log(''+this.contentType+' SYNC with ('+contentType+', '+locationType+', '+surroundingLocations[parts.offset]+', '+subLocation+')');
-
-                this.loadContent(!(this.locations), this.getContentAddress(locationType, surroundingLocations[parts.offset]), subLocation);
-            }
-        };
-
         /*
          * Loading and saving
          *

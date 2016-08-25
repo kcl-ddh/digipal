@@ -9,6 +9,9 @@
 // An address is a string representation of a complete position,
 // e.g. locus/2r/, or translation/locus/2r/
 //
+// TODO: many dependencies with Panel class that need to disappear.
+// e.g. rely on Panel methods and properties.
+//
 //////////////////////////////////////////////////////////////////////
 (function(TextViewer, $, undefined) {
 
@@ -294,6 +297,51 @@
         var ret = true;
         this.setSubLocation(subLocation);
         return true;
+    };
+
+    Located.prototype.syncLocationWith = function(panelUUID, contentType, locationType, surroundingLocations, subLocation, panel) {
+        // panel is optional
+        // <surroundingLocations> is a string ('2r') or a dict {0: '2r', 1: '2v', -1: '1v'}
+        if (panelUUID === this.uuid) return;
+
+        // if string convert to dict, but with same loc for +-1
+        if (surroundingLocations.substring) surroundingLocations = {0: surroundingLocations};
+        if (!surroundingLocations.hasOwnProperty('1')) surroundingLocations[1] = surroundingLocations[0];
+        if (!surroundingLocations.hasOwnProperty('-1')) surroundingLocations[-1] = surroundingLocations[0];
+
+        var addressParts = this.getLoadedAddressParts();
+
+        var parts = this.getLocationParts();
+
+        var syncAddress = null;
+
+        // Load new address only if:
+        // a) we are synced with emitting location type
+        if ((this.getLocationType() === 'sync' && (parts.location.toLowerCase() == contentType.toLowerCase())) ||
+            // OR b) cross web-page sync: both this panel and the emitting one are location widgets
+            (contentType.toLowerCase() === 'location' && contentType.toLowerCase() === this.getContentType().toLowerCase())) {
+
+            syncAddress = this.getContentAddress(locationType, surroundingLocations[parts.offset]);
+            //console.log(''+this.contentType+' SYNC with ('+contentType+', '+locationType+', '+surroundingLocations[parts.offset]+', '+subLocation+')');
+        }
+
+        // OR c) bidir sync: we are a master location panel and the emitting panel is synced with us
+        // the location is the same and we have a particular sublocation
+        if (!syncAddress &&
+            (1 && addressParts && panel && this.getContentType().toLowerCase() === 'location' &&
+                panel.getLocationType() === 'sync' && panel.getLocation() === 'location' &&
+                subLocation && subLocation.length > 0 // &&
+                //locationType == addressParts.locationType && surroundingLocations[parts.offset] == addressParts.location
+            )
+        ) {
+            // We don't change the (LT, L), only sublocation.
+            // e.g. synced panel = /transcription/whole/ ; master location = /location/locus/face/
+            syncAddress = this.getLoadedAddress();
+        }
+
+        if (syncAddress) {
+            this.loadContent(!(this.locations), syncAddress, subLocation);
+        }
     };
 
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

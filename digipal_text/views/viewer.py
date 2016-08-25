@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#from digipal_text.models import *
+# from digipal_text.models import *
 from digipal_text.models import TextContentXMLStatus, TextContent, TextContentXML
 import re
 from django.shortcuts import render
@@ -13,7 +13,7 @@ import json
 import logging
 from digipal.utils import sorted_natural
 from digipal.templatetags.hand_filters import chrono
-dplog = logging.getLogger( 'digipal_debugger')
+dplog = logging.getLogger('digipal_debugger')
 
 MAX_FRAGMENT_SIZE = 60000
 
@@ -88,7 +88,7 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
 
     # Look up the content_type in the function name
     # e.g. content_type = image => text_api_view_image
-    function = globals().get('text_api_view_' + content_type,  None)
+    function = globals().get('text_api_view_' + content_type, None)
 
     if function:
         response = function(request, item_partid, content_type, location_type, location, max_size=max_size)
@@ -151,7 +151,7 @@ def get_or_create_text_content_records(item_part, content_type_record):
     created = False
     error = {}
     attempts = 3
-    #from django.core.exceptions import MultipleObjectsReturned
+    # from django.core.exceptions import MultipleObjectsReturned
     from django.db import IntegrityError
     from threading import current_thread
     for i in range(0, attempts):
@@ -165,7 +165,7 @@ def get_or_create_text_content_records(item_part, content_type_record):
             # race condition
             from time import sleep, time
             import random
-            #print time(), current_thread().getName(), i, '%s' % e
+            # print time(), current_thread().getName(), i, '%s' % e
             sleep(random.random())
             continue
         except Exception, e:
@@ -235,7 +235,7 @@ def get_all_master_locations(context):
             ret[m[0]].add(m[1])
 
     # sort locations
-    for k,v in ret.iteritems():
+    for k, v in ret.iteritems():
         if not v:
             del ret[k]
             continue
@@ -255,12 +255,12 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     if not user and request:
         user = request.user
 
-    #print 'content type %s' % content_type_record
+    # print 'content type %s' % content_type_record
     # 1. Fetch or Create the necessary DB records to hold this text
     from digipal.models import ItemPart
     item_part = ItemPart.objects.filter(id=item_partid).first()
     if item_part:
-        #print 'item_part %s' % item_part
+        # print 'item_part %s' % item_part
         text_content_xml, created, error = get_or_create_text_content_records(item_part, content_type_record)
         if error:
             return error
@@ -292,7 +292,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
         for ltype in ['entry', 'locus']:
             ret['locations'][ltype] = []
             if text_content_xml.content:
-                for entry in re.findall(ur'(?:<span data-dpt="location" data-dpt-loctype="'+ltype+'">)([^<]+)', text_content_xml.content):
+                for entry in re.findall(ur'(?:<span data-dpt="location" data-dpt-loctype="' + ltype + '">)([^<]+)', text_content_xml.content):
                     ret['locations'][ltype].append(entry)
             if not ret['locations'][ltype]: del ret['locations'][ltype]
 
@@ -321,7 +321,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
             len_previous_record_content = len(record_content)
             # TODO: UNCOMMENT!!!!!!!!!!!!!!!!!!!!!!!!!!
             if not dry_run:
-                record_content = record_content[0:extent[0]]+new_fragment+record_content[extent[1]:]
+                record_content = record_content[0:extent[0]] + new_fragment + record_content[extent[1]:]
 
             # we make a copy if the new content removes 10% of the content
             # this might be due to a bug in the UI
@@ -389,7 +389,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     ret['location_type'] = location_type
     ret['location'] = location
 
-    #print ret['message']
+    # print ret['message']
 
     return ret
 
@@ -405,7 +405,7 @@ def resolve_default_location(location_type, location, response):
             break
     return location_type, location
 
-#def get_units(content, location_type, locations):
+# def get_units(content, location_type, locations):
 
 def get_units(content, location_type, locations, content_xmlid=None):
     # locations = ['1a1', '1a4']
@@ -444,15 +444,15 @@ def get_all_units(content, location_type):
     while True:
         extent = get_fragment_extent(content, location_type, None, extent[1])
         if not extent: break
-        #ret.append({'unitid': extent[2], 'content': content[extent[0]:extent[1]]})
+        # ret.append({'unitid': extent[2], 'content': content[extent[0]:extent[1]]})
         ret = {'unitid': extent[2], 'content': content[extent[0]:extent[1]]}
-        #print len(ret['content'])
+        # print len(ret['content'])
         yield ret
 
 def get_fragment_extent(content, location_type, location=None, from_pos=0):
     ret = None
 
-    #print location_type, location
+    # print location_type, location
 
     content = content or ''
 
@@ -465,7 +465,7 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
         # ... <p> </p> <p>...<span data-dpt="location" data-dpt-loctype="locus">1r</span>...</p> <p> </p> ... <p> <span data-dpt="location" data-dpt-loctype="locus">1r</span>
         content_location = ''
         if location is not None:
-            content_location = location+'<'
+            content_location = location + '<'
         location_pattern = '<span data-dpt="location" data-dpt-loctype="%s">%s' % (location_type, content_location)
         span0 = content.find(location_pattern, from_pos)
         if location is None:
@@ -486,10 +486,10 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
                         # old version, includes a bit of the next location
                         p1 = content.find('</p>', span1)
                         if p1 > -1:
-                            ret = [p0, p1+4, location]
+                            ret = [p0, p1 + 4, location]
                     else:
                         # new version: stops at the last <p> before the next location
-                        #p1 = content.rfind('</p>', p0, span1)
+                        # p1 = content.rfind('</p>', p0, span1)
                         p1 = content.rfind('<p>', p0, span1)
                         if p1 > -1:
                             ret = [p0, p1, location]
@@ -506,7 +506,7 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
 
     from digipal.models import Image
 
-    ###
+    # ##
     # The sub_location can override or contradict (location_type, location)
     # e.g. text: whole -> image: synced with text
     #      user clicks on entry in the text => we need to fetch that part
@@ -514,9 +514,9 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
         sub_location = get_sub_location_from_request(request)
         new_address = get_address_from_sub_location(sub_location)
         if new_address:
-            #print new_address
+            # print new_address
             location_type, location = new_address
-    ###
+    # ##
 
     request.visible_images = None
 
@@ -564,21 +564,21 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
         # we return the location of the returned fragment
         # this may not be the same as the requested location
         # e.g. if the requested location is 'default' we resolve it
-        #ret['location_type'] = location_type
+        # ret['location_type'] = location_type
         ret['location_type'] = 'locus'
         ret['location'] = image.locus if image else location
 
         if image:
-            #ret['content'] = iip_img(image, **options)
+            # ret['content'] = iip_img(image, **options)
             ret['zoomify_url'] = image.zoomify()
             ret['width'] = image.width
             ret['height'] = image.height
 
             # add all the elements found on that page in the transcription
-            #ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), location_type, location)
+            # ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), location_type, location)
             ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), 'locus', get_locus_from_location(location_type, location))
 
-            #print ret['text_elements']
+            # print ret['text_elements']
 
             # add all the non-graph annotations
             ret.update(get_annotations_from_image(image))
@@ -614,7 +614,7 @@ def update_text_image_link(request, image, ret):
         set_message(ret, 'Insufficient rights to edit annotations', 'error')
         return ret
 
-    #print 'TEXT IMAGE LINK: image #%s' % image.id
+    # print 'TEXT IMAGE LINK: image #%s' % image.id
     links = request.REQUEST.get('links', None)
     if links:
         ''' links = [
@@ -626,7 +626,7 @@ def update_text_image_link(request, image, ret):
                     ]
         '''
         for link in json.loads(links):
-            #print link
+            # print link
             attrs, geojson = link[0], link[1]
             clientid = (geojson.get('properties', {}) or {}).pop('clientid', '')
             serverid = geojson.pop('id', None)
@@ -646,7 +646,7 @@ def update_text_image_link(request, image, ret):
             # 2. delete or create annotation
             if action == 'deleted':
                 if annotation:
-                    #print 'delete annotation'
+                    # print 'delete annotation'
                     annotation.delete()
                     annotation = None
             else:
@@ -654,12 +654,12 @@ def update_text_image_link(request, image, ret):
                 if not annotation:
                     if serverid:
                         raise Exception('Cannot find annotation by server id %s' % serverid)
-                    #print 'create annotation'
+                    # print 'create annotation'
                     author = request.user
                     annotation = Annotation(clientid=clientid, image=image, author=author, type='text')
 
                 # update annotation and link
-                #print 'update annotation'
+                # print 'update annotation'
                 annotation.set_geo_json_from_dict(geojson)
                 annotation.save()
                 if not serverid:
@@ -667,19 +667,19 @@ def update_text_image_link(request, image, ret):
 
                 # update the text-annotation
                 from digipal_text.models import TextAnnotation
-                #text_annotation = TextAnnotation(annotation=annotation, element=json.dumps(attrs))
+                # text_annotation = TextAnnotation(annotation=annotation, element=json.dumps(attrs))
                 # TODO: assume a single element per annotation for the moment
                 text_annotation = TextAnnotation.objects.filter(annotation=annotation).first()
                 if not attrs:
                     # delete it
                     if text_annotation:
-                        #print 'delete link'
+                        # print 'delete link'
                         text_annotation.delete()
                 else:
                     if not text_annotation:
-                        #print 'create link'
+                        # print 'create link'
                         text_annotation = TextAnnotation(annotation=annotation)
-                    #print 'update link'
+                    # print 'update link'
                     text_annotation.elementid = json.dumps(attrs)
                     text_annotation.save()
 
@@ -728,7 +728,7 @@ def get_text_elements_from_content(content):
             if elementid:
                 ret.append([elementid, get_label_from_elementid(elementid)])
 
-    #print '\n'.join([repr(r) for r in ret])
+    # print '\n'.join([repr(r) for r in ret])
 
     return ret
 
@@ -781,7 +781,7 @@ def get_elementid_from_xml_element(element, idcount, as_string=False):
     element_text = utils.get_xml_element_text(element)
 
     # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
-    parts = [(unicode(re.sub('data-dpt-?', '', k)), unicode(v)) for k,v in element.attrib.iteritems() if k.startswith('data-dpt') and k not in ['data-dpt-cat']]
+    parts = [(unicode(re.sub('data-dpt-?', '', k)), unicode(v)) for k, v in element.attrib.iteritems() if k.startswith('data-dpt') and k not in ['data-dpt-cat']]
 
     # white list to filter the elements
     if parts[0][1] in ('clause', 'location', 'person'):
@@ -840,7 +840,7 @@ def get_locus_from_location(location_type, location):
         number = parts.group(1)
         side = 'r'
         if parts.group(2) and parts.group(2) == 'b': side = 'v'
-        ret = number+side
+        ret = number + side
 
     return ret
 
@@ -874,10 +874,10 @@ def text_api_view_search(request, item_partid, content_type, location_type, loca
                 hit_count += 1
                 entries += '<li><a data-location-type="entry" href="%s">%s</a><br/>%s</li>' % (hit['entryid'], hit['entryid'], hit['snippets'])
 
-            #import re
-            #match = re.search()
-            #tcx.content
-            #print tcx
+            # import re
+            # match = re.search()
+            # tcx.content
+            # print tcx
 
     # e.g. if the requested location is 'default' we resolve it
     from django.utils.html import escape
@@ -902,7 +902,7 @@ def get_entries_from_query(query):
     import os
     index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', 'textunits'))
 
-    #from whoosh.qparser import QueryParser
+    # from whoosh.qparser import QueryParser
 
     search_phrase = query
 
@@ -922,7 +922,7 @@ def get_entries_from_query(query):
 
     with index.searcher() as s:
         # run the query
-        #facets = self.get_whoosh_facets()
+        # facets = self.get_whoosh_facets()
 
         hits = s.search(q, limit=1000000, sortedby='entryid_sortable')
         hits.fragmenter.charlimit = None
@@ -930,7 +930,7 @@ def get_entries_from_query(query):
         # get highlights from the hits
         for hit in hits:
             ret.append({'entryid': hit['entryid'], 'snippets': hit.highlights('content', top=10)})
-        #print '%s hits.' % len(hits)
+        # print '%s hits.' % len(hits)
 
     return ret
 

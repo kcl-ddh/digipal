@@ -3,7 +3,7 @@ from django.contrib.admin import SimpleListFilter
 from django.db.models import Count
 from django.conf import settings
 import django_admin_customisations
-from digipal.models import Image, HistoricalItem, Hand
+from digipal.models import Image, HistoricalItem, Hand, Annotation
 import re
 
 #########################
@@ -19,11 +19,11 @@ class RelatedObjectNumberFilter(SimpleListFilter):
     '''
     title = ('Number of Related Objects')
     parameter_name = ('n')
-    
+
     related_table = 'digipal_image'
     foreign_key = 'item_part_id'
     this_table = 'digipal_itempart'
-    
+
     this_key = 'id'
 
     def lookups(self, request, model_admin):
@@ -77,7 +77,7 @@ class ImageAnnotationNumber(SimpleListFilter):
             return queryset.annotate(num_annot = Count('annotation__image__item_part')).exclude(num_annot__lt = 5)
         if self.value() == '2':
             return queryset.annotate(num_annot = Count('annotation__image__item_part')).filter(num_annot__lt = 5)
-            
+
 
 class ImageLocus(SimpleListFilter):
     title = 'Locus'
@@ -144,7 +144,7 @@ class ImageFilterDuplicateShelfmark(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() in ['1', '-1']:
             all_duplicates_ids = Image.get_duplicates_from_ids().keys()
-        
+
         if self.value() == '1':
             return queryset.filter(id__in = all_duplicates_ids).distinct()
         if self.value() == '-1':
@@ -165,7 +165,7 @@ class ImageFilterDuplicateFilename(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() in ['-1', '1']:
             duplicate_iipimages = Image.objects.all().values_list('iipimage').annotate(dcount=Count('iipimage')).filter(dcount__gt=1).values_list('iipimage', flat=True)
-        
+
         if self.value() == '1':
             return queryset.filter(iipimage__in = duplicate_iipimages).distinct()
         if self.value() == '-1':
@@ -190,7 +190,7 @@ class ImageWithFeature(SimpleListFilter):
             return queryset.filter(annotation__graph__graph_components__features__id__gt = 0).distinct()
         if self.value() == 'no':
             return queryset.exclude(annotation__graph__graph_components__features__id__gt = 0)
-           
+
 class ImageWithHand(SimpleListFilter):
     title = ('Associated Hand')
 
@@ -207,7 +207,7 @@ class ImageWithHand(SimpleListFilter):
             return queryset.filter(hands__id__gt=0).distinct()
         if self.value() == 'no':
             return queryset.exclude(hands__id__gt=0).distinct()
-           
+
 
 class DescriptionFilter(SimpleListFilter):
     title = ('To Fix or Check')
@@ -240,7 +240,7 @@ class HistoricalCatalogueNumberFilter(RelatedObjectNumberFilter):
     related_table = 'digipal_cataloguenumber'
     foreign_key = 'historical_item_id'
     this_table = 'digipal_historicalitem'
-    
+
 class HistoricalItemDescriptionFilter(SimpleListFilter):
     title = ('To Fix or Check')
 
@@ -288,7 +288,7 @@ class ItemPartHIFilter(RelatedObjectNumberFilter):
     related_table = 'digipal_itempartitem'
     foreign_key = 'item_part_id'
     this_table = 'digipal_itempart'
-    
+
 class ItemPartMembersNumberFilter(RelatedObjectNumberFilter):
     title = ('Number of parts')
 
@@ -297,7 +297,7 @@ class ItemPartMembersNumberFilter(RelatedObjectNumberFilter):
     related_table = 'digipal_itempart'
     foreign_key = 'group_id'
     this_table = 'digipal_itempart'
-    
+
 class ItemPartImageNumberFilter(RelatedObjectNumberFilter):
     title = ('Number of Images')
 
@@ -306,7 +306,7 @@ class ItemPartImageNumberFilter(RelatedObjectNumberFilter):
     related_table = 'digipal_image'
     foreign_key = 'item_part_id'
     this_table = 'digipal_itempart'
-    
+
 class CurrentItemPartNumberFilter(RelatedObjectNumberFilter):
     title = ('Number of Parts')
 
@@ -418,19 +418,19 @@ class HandImageNumberFilter(RelatedObjectNumberFilter):
     related_table = 'digipal_hand_images'
     foreign_key = 'hand_id'
     this_table = 'digipal_hand'
-    
+
 
 
 class StewartRecordFilterLegacy(admin.SimpleListFilter):
     title = 'Legacy'
     parameter_name = 'legacy'
-    
+
     def lookups(self, request, model_admin):
         return (
                     ('1', 'has legacy id'),
                     ('0', 'no legacy id'),
                 )
-    
+
     def queryset(self, request, queryset):
         from django.db.models import Q
         q = Q(stokes_db__isnull=True) | Q(stokes_db__exact='')
@@ -442,13 +442,13 @@ class StewartRecordFilterLegacy(admin.SimpleListFilter):
 class StewartRecordFilterMerged(admin.SimpleListFilter):
     title = 'Already Merged'
     parameter_name = 'merged'
-    
+
     def lookups(self, request, model_admin):
         return (
                     ('1', 'yes'),
                     ('0', 'no'),
                 )
-    
+
     def queryset(self, request, queryset):
         from django.db.models import Q
         q = Q(import_messages__isnull=True) | Q(import_messages__exact='')
@@ -460,13 +460,13 @@ class StewartRecordFilterMerged(admin.SimpleListFilter):
 class RequestLogFilterEmpty(admin.SimpleListFilter):
     title = 'Result size'
     parameter_name = 'result_size'
-    
+
     def lookups(self, request, model_admin):
         return (
                     ('0', 'empty'),
                     ('1', 'not empty'),
                 )
-    
+
     def queryset(self, request, queryset):
         if self.value() == '1':
             return queryset.filter(result_count__gt=0).distinct()
@@ -476,13 +476,13 @@ class RequestLogFilterEmpty(admin.SimpleListFilter):
 class HandFilterSurrogates(admin.SimpleListFilter):
     title = 'Surrogates'
     parameter_name = 'surrogates'
-    
+
     def lookups(self, request, model_admin):
         return (
                     ('1', 'with surrogates'),
                     ('0', 'without surrogates'),
                 )
-    
+
     def queryset(self, request, queryset):
         from django.db.models import Q
         q = Q(surrogates__isnull=True) | Q(surrogates__exact='')
@@ -491,3 +491,61 @@ class HandFilterSurrogates(admin.SimpleListFilter):
         if self.value() == '1':
             return queryset.exclude(q)
 
+class AnnotationFilterLinkedToText(admin.SimpleListFilter):
+    title = 'Linked to text'
+    parameter_name = 'linkedtext'
+
+    def lookups(self, request, model_admin):
+        return (
+                    ('0', 'unlinked'),
+                    ('1', 'linked'),
+                )
+
+    def queryset(self, request, queryset):
+        if self.value():
+            queryset = queryset.annotate(ta=Count('textannotations'))
+            if self.value() == '0':
+                return queryset.filter(ta__lt=1).distinct()
+            if self.value() == '1':
+                return queryset.exclude(ta__lt=1).distinct()
+
+
+class AnnotationFilterDuplicateClientid(admin.SimpleListFilter):
+    title = 'Duplicate clientid'
+    parameter_name = 'dupclid'
+
+    def lookups(self, request, model_admin):
+        return (
+                    ('0', 'unique'),
+                    ('1', 'duplicate'),
+                )
+
+    def queryset(self, request, queryset):
+        if self.value():
+            '''
+            select clientid
+            from digipal_annotation an
+            where length(clientid) > 0
+            group by clientid
+            having count(*) > 1
+            ;
+            '''
+
+            dupe_geo = Annotation.objects.filter(
+                clientid__isnull=False
+            ).values_list(
+                'clientid', flat=True
+            ).annotate(
+                count_geo=Count('id')
+            ).order_by(
+                'clientid'
+            ).filter(
+                count_geo__gt=1
+            ).distinct()
+
+            dupe_geo = list(dupe_geo)
+
+            if self.value() == '1':
+                return queryset.filter(clientid__in=dupe_geo).distinct()
+            if self.value() == '0':
+                return queryset.exclude(clientid__in=dupe_geo).distinct()

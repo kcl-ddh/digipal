@@ -188,11 +188,11 @@ class AnnotationAdmin(DigiPalModelAdmin):
                 ('Internal data', {'fields': ('geo_json', 'holes', 'vector_id', 'cutout')}),
                 )
 
-    list_display = ['id', 'get_graph_desc', 'thumbnail_with_link', 'image', 'author', 'created', 'modified', 'status']
+    list_display = ['id', 'get_graph_desc', 'thumbnail_with_link', 'image', 'author', 'created', 'modified', 'status', 'clientid']
     list_display_links = ['id', 'get_graph_desc', 'image', 'author', 'created', 'modified', 'status']
     search_fields = ['id', 'graph__id', 'vector_id', 'image__display_label',
             'graph__idiograph__allograph__character__name']
-    list_filter = ['author__username', 'graph__idiograph__allograph__character__name', 'status']
+    list_filter = ['author__username', 'graph__idiograph__allograph__character__name', 'status', 'type', admin_filters.AnnotationFilterDuplicateClientid, admin_filters.AnnotationFilterLinkedToText]
 
     def get_graph_desc(self, obj):
         ret = u''

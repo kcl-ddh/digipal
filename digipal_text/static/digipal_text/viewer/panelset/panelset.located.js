@@ -234,11 +234,18 @@
         //                 window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
         //             };
         // Try to reload bc the location has changed.
+        // Allows synced panels to sync on page load.
+        // Allows user change of LT to trigger reload b/c (LT,L) is different
         // Note that no request is sent if address hasn't changed.
+        // Also note that this will reset the sublocation!
+        //
         // This will create infinite event recursion on startup:
         // this.loadContent();
         // this.loadContent(false, this.getContentAddress(locationType));
-        window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
+        //
+        if ((locationType === 'sync') || (this.loadedAddress)) {
+            window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
+        }
     };
 
     // SubLocation: a reference within the content

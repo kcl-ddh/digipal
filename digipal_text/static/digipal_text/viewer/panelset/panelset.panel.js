@@ -458,7 +458,7 @@
         this.applyPresentationOptions();
 
         // send signal to other panels so they can sync themselves
-        this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
+        //this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
 
         //
         if (this.loadOptions && this.loadOptions.stateDict) {
@@ -472,6 +472,9 @@
         // asks PanelSet to update URL
         this.panelSet.onPanelStateChanged(this);
         //console.log(''+this.contentType+': onContentLoaded - END');
+
+        // send signal to other panels so they can sync themselves
+        this.panelSet.onPanelContentLoaded(this, data.location_type, data.location);
 
         // allows other addresses to be loaded
         this.loadingAddress = null;

@@ -150,10 +150,10 @@ class TextUnit(object):
     def id(self):
         return ur'%s:%s' % (self.content_xml.id, self.unitid)
 
-    def get_absolute_url(self, qs=None, metas=None):
+    def get_absolute_url(self, qs=None, metas=None, location_type=None, location=None):
         # TODO: fix it, broken for EXON b/c url now contains more specific info and # fragment
         #return '%s/entry/%s/' % (self.content_xml.get_absolute_url(), self.unitid)
-        return '%s' % self.content_xml.get_absolute_url(qs=qs, metas=metas)
+        return '%s' % self.content_xml.get_absolute_url(qs=qs, metas=metas, location_type=location_type, location=location)
 
     def get_thumb(self, request=None):
         '''Returns the Annotation object for this TextUnit.
@@ -230,7 +230,7 @@ class TextContent(models.Model):
                 if location:
                     ret += '/%s' % location
             #ret += '/'
-            if metas:
+            if 0 and metas:
                 from digipal.utils import urlencode
                 ret += (';' + urlencode(metas, True)).replace('=', ':')
             #ret += '&east=%s/sync/%s/' % (set(types).difference(set([self.type.slug])).pop(), self.type.slug)
@@ -242,6 +242,9 @@ class TextContent(models.Model):
             ret += 'above=location/%s' % location_type
             if location:
                 ret += '/%s' % location
+            if metas:
+                from digipal.utils import urlencode
+                ret += (';' + urlencode(metas, True)).replace('=', ':')
         if qs:
             ret += '?' if ('?' not in ret) else '&'
             if qs[0] in ['&', '?']:

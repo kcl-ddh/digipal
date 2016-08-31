@@ -1444,6 +1444,21 @@ class ItemPart(models.Model):
     def get_non_private_image_count(self):
         return Image.filter_permissions(self.images.all(), [MediaPermission.PERM_PUBLIC, MediaPermission.PERM_THUMB_ONLY]).count()
 
+    def get_authenticity_labels(self):
+        ret = []
+        is_suspect = False
+        for auth in self.authenticities.all():
+            cat = auth.category
+            if 'suspect' in cat.slug: is_suspect = True
+            ret.append(cat.name)
+        if is_suspect:
+            ret.append('Suspect')
+        
+        if not ret:
+            ret = ['Unspecified']
+        
+        return ret
+    
     def get_image_count(self):
         return self.images.all().count()
     get_image_count.short_description = 'Images'

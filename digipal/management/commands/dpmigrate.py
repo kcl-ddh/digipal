@@ -261,7 +261,7 @@ Commands:
             if ip.authenticities.count() == 0:
                 print ip.id
                 ip = ItemPartAuthenticity(item_part=ip, source=source, category=genuine)
-                ip.save()
+            ip.save()
         
     @transaction.atomic
     def convert_exon_folio_numbers(self):

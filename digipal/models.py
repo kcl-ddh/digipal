@@ -1444,14 +1444,23 @@ class ItemPart(models.Model):
     def get_non_private_image_count(self):
         return Image.filter_permissions(self.images.all(), [MediaPermission.PERM_PUBLIC, MediaPermission.PERM_THUMB_ONLY]).count()
 
+    def get_shelfmark_with_auth(self):
+        ret = self.current_item.shelfmark
+        if self.is_suspect():
+            ret += ' <b>(suspect)</b>'
+        return ret
+    
+    def is_suspect(self, authenticities=None):
+        authenticities = authenticities or self.authenticities.all()
+        return any([auth.is_suspect() for auth in authenticities])
+    
     def get_authenticity_labels(self):
         ret = []
-        is_suspect = False
-        for auth in self.authenticities.all():
+        authenticities = self.authenticities.all()
+        for auth in authenticities:
             cat = auth.category
-            if 'suspect' in cat.slug: is_suspect = True
             ret.append(cat.name)
-        if is_suspect:
+        if self.is_suspect(authenticities):
             ret.append('Suspect')
         
         if not ret:
@@ -1602,6 +1611,9 @@ class ItemPartAuthenticity(models.Model):
         
     def __unicode__(self):
         return '%s (%s)' % (self.category, self.source.label)
+    
+    def is_suspect(self):
+        return 'suspect' in self.category.slug
 
 class AuthenticityCategory(NameModel):
     pass

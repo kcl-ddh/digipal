@@ -51,6 +51,7 @@
                 {% else %}
                     {{ image.locus }}
                 {% endif %}
+                {% if image.item_part.is_suspect %}(Suspect){% endif %}
             </span>
         </a>
     </div>

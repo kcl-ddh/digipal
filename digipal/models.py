@@ -117,7 +117,7 @@ class MediaPermission(models.Model):
     )
 
     label = models.CharField(max_length=64, blank=False, null=False,
-        help_text='''An short label describing the type of permission. For internal use only.''')
+        help_text='''A short label describing the type of permission. For internal use only.''')
 
     permission = models.IntegerField(null=False, default=PERM_PRIVATE, choices=PERM_CHOICES)
 
@@ -1574,14 +1574,30 @@ class ItemPartItem(models.Model):
 
         return ret
 
+class ItemPartAuthenticity(models.Model):
+    item_part = models.ForeignKey('ItemPart', related_name="authenticities", blank=False, null=False)
+    category = models.ForeignKey('AuthenticityCategory', related_name="itempart_authenticity", blank=False, null=False)
+    source = models.ForeignKey('Source', related_name="itempart_authenticity", blank=True, null=True)
+    note = models.TextField(blank=True, null=True, default=None)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        unique_together = ['item_part', 'category', 'source']
+        
+    def __unicode__(self):
+        return '%s (%s)' % (self.category, self.source.label)
+
+class AuthenticityCategory(NameModel):
+    pass
+
 class TextItemPart(models.Model):
     item_part = models.ForeignKey('ItemPart', related_name="text_instances", blank=False, null=False)
     text = models.ForeignKey('Text', related_name="text_instances", blank=False, null=False)
     locus = models.CharField(max_length=20, blank=True, null=True)
     date = models.CharField(max_length=128, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
-            editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 
     class Meta:
         unique_together = ['item_part', 'text']

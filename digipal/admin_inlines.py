@@ -17,7 +17,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
         StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
-        CarouselItem, ApiTransform
+        CarouselItem, ApiTransform, ItemPartAuthenticity
 from django.conf import settings
 from mezzanine.core.admin import StackedDynamicInlineAdmin
 import re
@@ -225,6 +225,20 @@ class ImageInline(DigiPalInline):
     
     # removed keywords as it generates too many queries (one per form in the formset) 
     exclude = ['image', 'caption', 'display_label', 'folio_side', 'folio_number', 'width', 'height', 'size', 'keywords']
+
+class ItemPartAuthenticityInline(DigiPalInlineDynamic):
+    model = ItemPartAuthenticity
+    extra = 3
+    
+    verbose_name = 'Authenticity note'
+    verbose_name_plural = 'Authenticity notes'
+    
+#    readonly_fields = ['display_label']
+#     fieldsets = (
+#                 (None, {'fields': ('name', 'type',)}),
+#                 ('Locus of this part in the group', {'fields': ('group_locus', )}),
+#                 ('This part is currently found in ...', {'fields': ('current_item', 'locus')}),
+#                 ) 
 
 class ItemSubPartInline(DigiPalInlineDynamic):
     model = ItemPart

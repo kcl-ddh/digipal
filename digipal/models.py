@@ -2548,11 +2548,11 @@ class Graph(models.Model):
         return ret
 
     def get_description_as_array_str(self):
-        ret = []
+        ret = SortedDict()
         for c in self.graph_components.all().order_by('component__name'):
             for f in c.features.all().order_by('name'):
-                ret.append(u'%s: %s' % (c.component.name, f.name))
-        return ret
+                ret[u'%s: %s' % (c.component.name, f.name)] = 1
+        return ret.keys()
 
     def get_description_as_str(self):
         return u', '.join(self.get_description_as_array_str())
@@ -2565,13 +2565,14 @@ class Graph(models.Model):
         return u' '.join(ret)
 
     def get_component_feature_labels(self):
-        ret = []
-
-        for c in self.graph_components.all():
-            for f in c.features.all():
-                ret.append(u'%s: %s' % (c.component.name, f.name))
-
-        return ret
+        return self.get_description_as_array_str()
+#         ret = []
+#
+#         for c in self.graph_components.all():
+#             for f in c.features.all():
+#                 ret.append(u'%s: %s' % (c.component.name, f.name))
+#
+#         return ret
 
 class GraphComponent(models.Model):
     graph = models.ForeignKey(Graph, related_name='graph_components')

@@ -1,6 +1,7 @@
 import re
 from digipal import utils
 from digipal.utils import inc_counter, sorted_natural
+from digipal.utils import get_range_from_date, MAX_DATE_RANGE
 
 def draw_overview(faceted_search, context, request):
     view = Overview(faceted_search, context, request)
@@ -346,6 +347,21 @@ class Overview(object):
                         values.append(faceted_search.get_record_field(record, field))
 
                     x = values[0]
+
+                    # convert x to numerical value
+                    if self.fields[0]['type'] == 'date':
+                        x = get_range_from_date(x)
+                    elif self.fields[0]['key'] == 'locus':
+                        # 12v => 25
+                        x = self.get_int_from_locus(x)
+                    else:
+                        # ()TODO: other type than date for x
+                        x = 0
+
+                    # turn all x into range
+                    if not isinstance(x, list):
+                        x = [x, x]
+
                     ys = values[1]
 
                     label = faceted_search.get_record_label_html(record, self.request)
@@ -394,29 +410,16 @@ class Overview(object):
 
         self.init_bands()
 
-        from digipal.utils import get_range_from_date, MAX_DATE_RANGE
-
         # process all records
         #for record in self.get_all_conflated_ids():
         cat_hit = [0] * len(self.queries.get_queries())
-        for point in self.points.values():
+        points_order = sorted(self.points.keys(), key=lambda cid: self.points[cid][0][0])
+        #for point in self.points.values():
+        for cid in points_order:
+            point = self.points[cid]
             found = any(point[2])
             x = point[0]
             ys = point[1]
-
-            # convert x to numerical value
-            if self.fields[0]['type'] == 'date':
-                x = get_range_from_date(x)
-            elif self.fields[0]['key'] == 'locus':
-                # 12v => 25
-                x = self.get_int_from_locus(x)
-            else:
-                # ()TODO: other type than date for x
-                x = 0
-
-            # turn all x into range
-            if not isinstance(x, list):
-                x = [x, x]
 
             # update the min / max x
             if x[0] is not None and x[0] not in MAX_DATE_RANGE and (self.mins[0] is None or self.mins[0] > x[0]):

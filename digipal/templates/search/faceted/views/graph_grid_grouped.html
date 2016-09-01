@@ -1,0 +1,41 @@
+{% load html_escape %}
+
+{% load html_escape%}
+
+<table class="table table-condensed table-striped table-bordered table-hover">
+    {% for graph in result %}
+
+        {% if graph.annotation.image.item_part != graph.previous.annotation.image.item_part %}
+            {% if graph.previous %}
+                    </td>
+                </tr>
+            {% endif %}
+            <tr>
+                {% with ip=graph.annotation.image.item_part %}
+                    <td>
+                        {{ ip.current_item.repository.human_readable }}
+                    </td>
+                    <td>
+                        {{ ip.get_shelfmark_with_auth }}
+                    </td>
+                    <td>
+                        {{ ip.historical_item.get_date_sort }}
+                    </td>
+                    <td>
+                        {{ ip.historical_item.historical_item_type.name }}
+                    </td>
+                {% endwith %}
+            </tr>
+            <tr>
+                <td colspan="50">
+        {% endif %}
+
+        {% annotation_img graph.annotation lazy=1 a_title=graph.get_long_label a_data_placement="bottom" a_data_toggle="tooltip" a_data_container="body" wrap=graph link=graph %}
+
+    {% endfor %}
+    </tr>
+</table>
+
+<p><em>Graphs from the same manuscript page are listed in no particular order</em></p>
+
+

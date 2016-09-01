@@ -320,6 +320,7 @@ FACETED_SEARCH.update({
                     'views': [
                               get_fragment('view_default'),
                               {'icon': 'th', 'label': 'Grid View', 'key': 'grid', 'type': 'grid', 'template': 'graph_grid', 'page_sizes': [50, 100, 200]},
+                              {'icon': 'list-alt', 'label': 'Grouped Grid View', 'key': 'ggrid', 'type': 'ggrid', 'template': 'graph_grid_grouped', 'page_sizes': [50, 100, 200]},
                               ],
                 },
             ]

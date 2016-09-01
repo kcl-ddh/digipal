@@ -1072,6 +1072,10 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
 
     # add the results to the template
     context['result'] = list(records)
+    previous_record = None
+    for record in records:
+        record.previous = previous_record
+        previous_record = record
 
     hand_filters.chrono('current page')
     context['current_page'] = ct.get_current_page()

@@ -19,17 +19,17 @@
     <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if item_part.historical_item.description_set.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ item_part.get_absolute_url }}descriptions/"  data-address-bar="1" data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
     {% if cansee.image %}
-	    <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
-	        <a href="{{ item_part.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a></li>
+        <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
+            <a href="{{ item_part.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a></li>
     {% endif %}
     {% if cansee.hand %}
-	    <li class="{% if tabid = "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
-	        <a href="{{ item_part.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
+        <li class="{% if tabid = "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
+            <a href="{{ item_part.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
     {% endif %}
     {% if cansee.textcontentxml %}
-	    <li class="{% if tabid = "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
-	        <a href="{{ item_part.get_absolute_url }}texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ text_content_xmls.count }})</a></li>
-	{% endif %}
+        <li class="{% if tabid = "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
+            <a href="{{ item_part.get_absolute_url }}texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ text_content_xmls.count }})</a></li>
+    {% endif %}
 {% endblock %}
 
 {% block details %}
@@ -40,7 +40,7 @@
                     {% if desc %}
                         <h3>Description <span class="small">(from {{ desc.source.get_display_reference }})</span></h3>
                         {% filter tag_phrase_terms:terms %}
-                            {{ desc.description|richfield }}
+                            {{ desc.get_description_or_summary|richfield }}
                         {% endfilter %}
                     {% endif %}
                 {% endwith %}
@@ -48,7 +48,7 @@
                 {% block data_current_item %}
                     {% for ci in item_part.get_current_items %}
                         <h3>Current location</h3>
-        
+
                         <dl class="dl-horizontal bs">
                             <dt>Repository</dt>
                             <dd>{{ ci.repository.name }}</dd>
@@ -81,19 +81,19 @@
                         </p>
                     {% endif %}
                 {% endblock %}
-                
+
                 {% block data_custom %}
                 {% endblock %}
 
                 {% block data_other %}
                     <h3>Other information</h3>
-                    
+
                     <dl class="dl-horizontal bs">
                         {% if item_part.historical_item.name %}
                             <dt>Name</dt>
                             <dd>{{ item_part.historical_item.name }} </dd>
                         {% endif %}
-                        
+
                         {% if item_part.historical_item.catalogue_number %}
                             <dt>Catalogue Numbers</dt>
                             {% for catnum in item_part.historical_item.catalogue_numbers.all %}
@@ -108,16 +108,16 @@
                                 </dd>
                             {% endfor %}
                         {% endif %}
-                        
+
                         <dt>Format</dt>
                         <dd>{{ item_part.historical_item.historical_item_format|default:'Unspecified' }}</dd>
                         {% comment %}TODO: use item_part.historical_itemS {% endcomment %}
-                        
+
                         <dt>Date</dt><dd>{{ item_part.historical_item.date|default:'Unspecified' }}</dd>
-                        
+
                         {% if item_part.historical_item.itemorigin_set.all.count %}
                             <dt>Origin</dt>
-    
+
                             {% for data in item_part.historical_item.itemorigin_set.all.distinct %}
                                 <dd>
                                     {{ data.content_object }}
@@ -143,7 +143,7 @@
                                 {% endfor %}
                             </h3>
                             {% filter tag_phrase_terms:terms %}
-                                {{ desc.description|richfield }}
+                                {{ desc.get_description_or_summary|richfield }}
                             {% endfilter %}
                         {% endfor %}
                     {% endfor %}
@@ -172,9 +172,9 @@
                     {% include "digipal/empty_tab.html" with type="hand" %}
                 {% endif %}
             </div>
-            
+
             {% include "pages/tab_texts.html" %}
-            
+
         </div>
 
     </div>

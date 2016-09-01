@@ -941,6 +941,10 @@ class Description(models.Model):
                 ret = u'%sdescriptions/' % ip.get_absolute_url()
         return ret
 
+    def get_description_or_summary(self):
+        ret = (self.description or '').strip() or self.summary
+        return ret
+
     def get_description_plain_text(self):
         '''Returns the description in plain text, no html tag or any encoding, just utf-8'''
         from utils import get_plain_text_from_html
@@ -1792,7 +1796,7 @@ class Image(models.Model):
         if self.item_part and self.item_part.historical_item:
             ret = self.item_part.historical_item.get_display_description()
             if ret:
-                ret = ret.description
+                ret = ret.get_description_or_summary()
         return ret
 
     @classmethod

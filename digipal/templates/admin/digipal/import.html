@@ -1,0 +1,88 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}In Context{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">Editions</a> &rsaquo;
+     <a href="../">Image</a> &rsaquo;
+     Bulk Edit
+</div>
+{% endblock %}
+
+
+{% block extrahead %}
+
+    {{ block.super }}
+
+    <style type="text/css">
+    #container input.sbm-change {float: left;}
+    #context-div ul {margin-left: 2em;}
+    #context-div ul li {
+        list-style-type: disc;
+    }
+    #context-div li.collapsed ul {
+        display: none;
+    }
+    .import-box {
+        width: 100%;
+        height: 15em;
+    }
+    .import-log {
+        width: 100%;
+        height: 15em;
+    }
+    .pane {
+        margin: 1em;
+    }
+    </style>
+
+    <script>
+        $(function(){
+            $('#context-div').on('click', 'a.expandable', function() {
+                $(this).parent().toggleClass('collapsed');
+                $(this).html('['+($(this).parent().hasClass('collapsed') ? ' + ' : ' - ')+']');
+                return false;
+            });
+        });
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+
+    <div id="context-div">
+
+        <h1>Import data</h1>
+
+        <p>
+            {{ message }}
+        </p>
+
+        <form method="POST">
+            <select name="import_type">
+                {% for import_type in import_types %}
+                    <option value="{{ import_type.key }}" {% if import_type.selected %}selected="selected"{% endif %}>
+                        {{ import_type.label }}
+                    </option>
+                {% endfor %}
+            </select>
+            <textarea class="import-box" name="input_text">{{ input_text }}</textarea>
+            <p>
+                <input type="submit" name="import" value="Import" />
+            </p>
+        </form>
+
+        {% if import_log %}
+            <div class="result-pane pane">
+                <h2>Import Log</h2>
+                <textarea class="import-log" name="import_log">{{ import_log }}</textarea>
+            </div>
+        {% endif %}
+
+    </div>
+
+{% endblock %}

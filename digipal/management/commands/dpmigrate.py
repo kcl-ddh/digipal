@@ -75,6 +75,10 @@ Commands:
   cmp_recs [--db DB_ALIAS] [--src SRC_DB_ALIAS] [--table TABLE_FILTER]
                         Compare records between two DBs
                         e.g. pm dpmigrate cmp_recs --src=stg --table=ALL | grep ">"
+
+  ipauth
+                        Initialise the IP authenticity data
+                        Create authenticity categories and set everything to original
 """
 
     args = 'hand'
@@ -146,6 +150,10 @@ Commands:
             from compressor import conf
             path = os.path.join(conf.settings.COMPRESS_ROOT, conf.settings.COMPRESS_OUTPUT_DIR.strip('/'))
             print path
+
+        if command == 'ipauth':
+            known_command = True
+            self.ip_auth()
 
         if command == 'convert_exon_folio_numbers':
             known_command = True
@@ -239,6 +247,22 @@ Commands:
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
 
+    def ip_auth(self):
+        # create the categories
+        from digipal.models import AuthenticityCategory, ItemPart, ItemPartAuthenticity, Source
+        genuine = None
+        source = Source.get_source_from_keyword(u'moa', none_if_not_found=True)
+        for name in ['Genuine', 'Suspect: Palaeography', 'Suspect: Diplomatic']:
+            auth, created = AuthenticityCategory.objects.get_or_create(name=name, slug=slugify(unicode(name)))
+            genuine = genuine or auth 
+
+        # set genuine to all the item parts
+        for ip in ItemPart.objects.filter():
+            if ip.authenticities.count() == 0:
+                print ip.id
+                ip = ItemPartAuthenticity(item_part=ip, source=source, category=genuine)
+            ip.save()
+        
     @transaction.atomic
     def convert_exon_folio_numbers(self):
         lines = dputils.read_all_lines_from_csv(self.options['src'])

@@ -117,7 +117,7 @@ class MediaPermission(models.Model):
     )
 
     label = models.CharField(max_length=64, blank=False, null=False,
-        help_text='''An short label describing the type of permission. For internal use only.''')
+        help_text='''A short label describing the type of permission. For internal use only.''')
 
     permission = models.IntegerField(null=False, default=PERM_PRIVATE, choices=PERM_CHOICES)
 
@@ -1448,6 +1448,30 @@ class ItemPart(models.Model):
     def get_non_private_image_count(self):
         return Image.filter_permissions(self.images.all(), [MediaPermission.PERM_PUBLIC, MediaPermission.PERM_THUMB_ONLY]).count()
 
+    def get_shelfmark_with_auth(self):
+        ret = self.current_item.shelfmark
+        if self.is_suspect():
+            ret += ' <b>(suspect)</b>'
+        return ret
+    
+    def is_suspect(self, authenticities=None):
+        authenticities = authenticities or self.authenticities.all()
+        return any([auth.is_suspect() for auth in authenticities])
+    
+    def get_authenticity_labels(self):
+        ret = []
+        authenticities = self.authenticities.all()
+        for auth in authenticities:
+            cat = auth.category
+            ret.append(cat.name)
+        if self.is_suspect(authenticities):
+            ret.append('Suspect')
+        
+        if not ret:
+            ret = ['Unspecified']
+        
+        return ret
+    
     def get_image_count(self):
         return self.images.all().count()
     get_image_count.short_description = 'Images'
@@ -1578,14 +1602,33 @@ class ItemPartItem(models.Model):
 
         return ret
 
+class ItemPartAuthenticity(models.Model):
+    item_part = models.ForeignKey('ItemPart', related_name="authenticities", blank=False, null=False)
+    category = models.ForeignKey('AuthenticityCategory', related_name="itempart_authenticity", blank=False, null=False)
+    source = models.ForeignKey('Source', related_name="itempart_authenticity", blank=True, null=True)
+    note = models.TextField(blank=True, null=True, default=None)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        unique_together = ['item_part', 'category', 'source']
+        
+    def __unicode__(self):
+        return '%s (%s)' % (self.category, self.source.label)
+    
+    def is_suspect(self):
+        return 'suspect' in self.category.slug
+
+class AuthenticityCategory(NameModel):
+    pass
+
 class TextItemPart(models.Model):
     item_part = models.ForeignKey('ItemPart', related_name="text_instances", blank=False, null=False)
     text = models.ForeignKey('Text', related_name="text_instances", blank=False, null=False)
     locus = models.CharField(max_length=20, blank=True, null=True)
     date = models.CharField(max_length=128, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
-            editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 
     class Meta:
         unique_together = ['item_part', 'text']

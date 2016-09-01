@@ -10,6 +10,7 @@
         {{ item_part.historical_item.historical_item_type|title }}:
     {% endif%}
     {{ item_part.display_label }}
+    {% if item_part.is_suspect %}(Suspect){% endif %}
     {% include "digipal/admin_edit.html" with instance=item_part %}
 {% endblock %}
 
@@ -125,6 +126,16 @@
                                     {% if data.evidence %}, {{ data.evidence }}{% endif %}
                                 </dd>
                             {% endfor %}
+                        {% endif %}
+                        
+                        {% if item_part.authenticities.count %}
+                            <dt>Authenticity</dt>
+                            <dd>
+                                {% for auth in item_part.authenticities.all %}
+                                    {% if not forloop.first %}, {% endif %}
+                                    {{ auth.category.name }}
+                                {% endfor %}
+                            </dd>
                         {% endif %}
                     </dl>
                 {% endblock %}

@@ -21,7 +21,7 @@ from digipal.models import Allograph, AllographComponent, Alphabet, Annotation, 
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
         StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
-        CarouselItem, ApiTransform
+        CarouselItem, ApiTransform, AuthenticityCategory
 from django.conf import settings
 import reversion
 import django_admin_customisations
@@ -536,7 +536,7 @@ class ItemPartAdmin(DigiPalModelAdmin):
             'historical_items__display_label', 'current_item__display_label',
             'subdivisions__display_label', 'group__display_label',
             'type__name', 'keywords_string', 'notes']
-    list_filter = ('type', admin_filters.ItemPartHIFilter, admin_filters.ItemPartImageNumberFilter, admin_filters.ItemPartMembersNumberFilter, admin_filters.ItemPartHasGroupGroupFilter)
+    list_filter = ('type', 'authenticities__category', admin_filters.ItemPartHIFilter, admin_filters.ItemPartImageNumberFilter, admin_filters.ItemPartMembersNumberFilter, admin_filters.ItemPartHasGroupGroupFilter)
 
     readonly_fields = ('display_label', 'historical_label')
     fieldsets = (
@@ -548,7 +548,7 @@ class ItemPartAdmin(DigiPalModelAdmin):
                 #('Owners', {'fields': ('owners',)}),
                 )
     filter_horizontal = ['owners']
-    inlines = [admin_inlines.ItemPartItemInlineFromItemPart, admin_inlines.ItemSubPartInline, admin_inlines.HandInline, admin_inlines.ImageInline, admin_inlines.ItemPartOwnerInline, admin_inlines.PartLayoutInline, admin_inlines.TextItemPartInline]
+    inlines = [admin_inlines.ItemPartItemInlineFromItemPart, admin_inlines.ItemSubPartInline, admin_inlines.ItemPartAuthenticityInline, admin_inlines.HandInline, admin_inlines.ImageInline, admin_inlines.ItemPartOwnerInline, admin_inlines.PartLayoutInline, admin_inlines.TextItemPartInline]
 
 #     def get_inline_instances(self, request, *args, **kwargs):
 #         ret = super(ItemPartAdmin, self).get_inline_instances(request, *args, **kwargs)
@@ -1040,6 +1040,18 @@ class ApiTransformAdmin(DigiPalModelAdmin):
                 (None, {'fields': ('title', 'template', 'description', 'sample_request', 'mimetype', 'webpage')}),
                 )
 
+class AuthenticityCategoryAdmin(DigiPalModelAdmin):
+    model = AuthenticityCategory
+
+    list_display = ['id', 'name', 'slug', 'modified', 'created']
+    list_display_links = list_display
+    search_fields = ['id', 'name', 'slug']
+    ordering = ['name']
+
+#     fieldsets = (
+#                 (None, {'fields': ('title', 'template', 'description', 'sample_request', 'mimetype', 'webpage')}),
+#                 )
+
 admin.site.register(Allograph, AllographAdmin)
 admin.site.register(Alphabet, AlphabetAdmin)
 admin.site.register(Annotation, AnnotationAdmin)
@@ -1101,6 +1113,7 @@ admin.site.register(StewartRecord, StewartRecordAdmin)
 admin.site.register(RequestLog, RequestLogAdmin)
 admin.site.register(ApiTransform, ApiTransformAdmin)
 admin.site.register(Text, TextAdmin)
+admin.site.register(AuthenticityCategory, AuthenticityCategoryAdmin)
 
 # Let's add the Keywords to the admin interface
 try:

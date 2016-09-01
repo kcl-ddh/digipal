@@ -21,13 +21,12 @@
                     <td>{{ query.get_count }}</td>
                     <td>{{ query.get_summary }}</td>
                     <td>
-                        {% if 0 and query.index > 0 %}<a href="" class="btn btn-default btn-sm">Select</a>{% endif %}
-                        {% if query.index == 1 %}<a href="{{ queries.get_copy_link }}" class="btn btn-default btn-sm">Save copy</a>{% endif %}
-                        {% if query.index > 1 and forloop.last %}<a href="{{ query.get_remove_link }}" class="btn btn-default btn-sm">Remove</a>{% endif %}
-
                         <a href="{% filter add_query_params:request.META.QUERY_STRING %}?q{{ query.index }}_hidden={% if query.is_hidden %}0{% else %}1{% endif %}{% endfilter %}" class="btn btn-default btn-sm">
                             {% if query.is_hidden %}Show{% else %}Hide{% endif %}
                         </a>
+                        {% if 0 and query.index > 0 %}<a href="" class="btn btn-default btn-sm">Select</a>{% endif %}
+                        {% if query.index == 1 %}<a href="{{ queries.get_copy_link }}" class="btn btn-default btn-sm">Save copy</a>{% endif %}
+                        {% if query.index > 1 and forloop.last %}<a href="{{ query.get_remove_link }}" class="btn btn-default btn-sm">Remove</a>{% endif %}
                     </td>
                 </tr>
             {% endfor %}

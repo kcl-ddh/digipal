@@ -252,7 +252,7 @@ Commands:
         from digipal.models import AuthenticityCategory, ItemPart, ItemPartAuthenticity, Source
         genuine = None
         source = Source.get_source_from_keyword(u'moa', none_if_not_found=True)
-        for name in ['Genuine', 'Suspect: Palaeography', 'Suspect: Diplomatic']:
+        for name in ['Contemporary', 'Anachronistic: Palaeography', 'Anachronistic: Diplomatic']:
             auth, created = AuthenticityCategory.objects.get_or_create(name=name, slug=slugify(unicode(name)))
             genuine = genuine or auth 
 

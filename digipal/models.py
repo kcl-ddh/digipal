@@ -1451,7 +1451,7 @@ class ItemPart(models.Model):
     def get_shelfmark_with_auth(self):
         ret = self.current_item.shelfmark
         if self.is_suspect():
-            ret += ' <b>(suspect)</b>'
+            ret += ' <b>(anachronistic)</b>'
         return ret
     
     def is_suspect(self, authenticities=None):
@@ -1465,7 +1465,7 @@ class ItemPart(models.Model):
             cat = auth.category
             ret.append(cat.name)
         if self.is_suspect(authenticities):
-            ret.append('Suspect')
+            ret.append('Anachronistic')
         
         if not ret:
             ret = ['Unspecified']
@@ -1617,7 +1617,7 @@ class ItemPartAuthenticity(models.Model):
         return '%s (%s)' % (self.category, self.source.label)
     
     def is_suspect(self):
-        return 'suspect' in self.category.slug
+        return 'anachronistic' in self.category.slug
 
 class AuthenticityCategory(NameModel):
     pass

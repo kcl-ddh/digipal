@@ -684,10 +684,13 @@ different height depending when they are selected and push the other values down
     font-weight: normal;
 }
 
-.auto-open:hover > ul.dropdown-menu {
+.btn-primary .auto-open-wide:hover > ul.dropdown-menu {
     @media (min-width: @grid-float-breakpoint) {
         display: block;
     }
+}
+.auto-open:hover > ul.dropdown-menu {
+    display: block;
 }
 
 .auto-open a {

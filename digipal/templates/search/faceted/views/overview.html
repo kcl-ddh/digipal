@@ -281,22 +281,41 @@ function dpvis() {
             var base = coord(0, ys[ys.length - 1][1]);
             var bcolors = [colors[0], get_color_from_layers(colors.map(function(v,i){ return i; }))];
 
-            function draw_bar(color, x, size) {
+//             function draw_bar(color, x, size) {
+//                 if (size < 1) return;
+//                 ctx.fillStyle = color;
+//                 var cs = coord(x, ys[ys.length - 1][1] + size / 2.0);
+//                 ctx.fillRect(cs[0], base[1], kx_min + 1, cs[1] - base[1]);
+//             }
+
+//             $.each(histogram, function(x, layers) {
+//                 var sizes = [0, 0];
+//                 var acolors = [];
+//                 $.each(layers, function(layer, count) {
+//                     sizes[(layer == 0) ? 0 : 1] += count;
+//                     if (layer > 0 && count > 0) acolors.push(layer);
+//                 });
+//                 for (i in sizes) {
+//                     draw_bar((i == 0) ? colors[0] : get_color_from_layers(acolors), x, sizes[i]);
+//                 }
+//             });
+
+            function draw_bar(color, x, y0, size) {
                 if (size < 1) return;
                 ctx.fillStyle = color;
-                var cs = coord(x, ys[ys.length - 1][1] + size / 2.0);
-                ctx.fillRect(cs[0], base[1], kx_min + 1, cs[1] - base[1]);
+                var cs1 = coord(x, ys[ys.length - 1][1] + y0 / 2.0);
+                var cs2 = coord(x, ys[ys.length - 1][1] + (y0 + size) / 2.0);
+                ctx.fillRect(cs1[0], cs1[1], kx_min + 1, cs2[1] - cs1[1]);
             }
 
-            $.each(histogram, function(x, layers) {
-                var sizes = [0, 0];
+            $.each(histogram, function(x, layercombs) {
+                var y0 = 0;
                 var acolors = [];
-                $.each(layers, function(layer, count) {
-                    sizes[(layer == 0) ? 0 : 1] += count;
-                    if (layer > 0 && count > 0) acolors.push(layer);
-                });
-                for (i in sizes) {
-                    draw_bar((i == 0) ? colors[0] : get_color_from_layers(acolors), x, sizes[i]);
+                for (var i = 0; i < layercombs.length; i++) {
+                    acolors = layercombs[i][0].split(',').map(function(v) {return parseInt(v)});
+                    var size = layercombs[i][1];
+                    draw_bar(get_color_from_layers(acolors), x, y0, size);
+                    y0 += layercombs[i][1];
                 }
             });
         }

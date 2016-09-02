@@ -428,10 +428,16 @@ class Overview(object):
                 self.maxs[0] = x[1]
 
             # update histogram
-            for xi in range(x[0], x[1]+1):
-                hist = self.histogram[xi] = self.histogram.get(xi, {})
-                for layer in point[2]:
-                    self.histogram_height = max(inc_counter(hist, layer), self.histogram_height)
+            if 0:
+                for xi in range(x[0], x[1]+1):
+                    hist = self.histogram[xi] = self.histogram.get(xi, {})
+                    for layer in point[2]:
+                        self.histogram_height = max(inc_counter(hist, layer), self.histogram_height)
+            else:
+                for xi in range(x[0], x[1]+1):
+                    hist = self.histogram[xi] = self.histogram.get(xi, {})
+                    layers_key = ','.join(['%s' % li for li in sorted(point[2])])
+                    inc_counter(hist, layers_key)
 
             # convert y to numerical value
             if not isinstance(ys, list):
@@ -594,6 +600,9 @@ class Overview(object):
                 point[0][1] -= self.mins[0]
         # reframe the histograms
         self.histogram = {x - self.mins[0]: hist for x, hist in self.histogram.iteritems()}
+        self.histogram_height = max([sum([c for c in hist.values()]) for hist in self.histogram.values()])
+        for x in self.histogram.keys():
+            self.histogram[x] = sorted([[comb, c] for comb, c in self.histogram[x].iteritems()], key=lambda p: len(p[0]) * 10 - int(p[0][0]), reverse=True)
         drawing['histogram'] = self.histogram
 
         #last_y = max([point[1] for point in points])

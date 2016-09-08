@@ -20,7 +20,7 @@ function update_collection_counter() {
     if (collections && !$.isEmptyObject(JSON.parse(collections))) {
     } else {
         collections = {
-            'Collection': {
+            'My Collection': {
                 'id': "1"
             }
         };

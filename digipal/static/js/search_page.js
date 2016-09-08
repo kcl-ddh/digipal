@@ -298,6 +298,13 @@ function init_search_page(options) {
                 .success(function(data) {
                     var $data = $(data);
                     var $fragment = $('#search-ajax-fragment');
+                    
+                    // get rid of opened tooltip to avoid ghosts
+                    if ($.fn.tooltip) {
+                        $fragment.find('[data-toggle="tooltip"]').tooltip('destroy');
+                    }
+                    
+                    // insert the new HTML content
                     $fragment.html($data.html());
 
                     dputils.update_address_bar(url, false, true);

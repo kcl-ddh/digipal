@@ -475,6 +475,9 @@ class FacetedModel(object):
         # value mapping
         # TODO: make it work with multi-valued fields (ret is an array)
         mapping = afield.get('mapping')
+        if_list = isinstance(ret, list)
+        if if_list and len(ret) == 0:
+            ret = u''
         if mapping and not isinstance(ret, list):
             ret = mapping.get(ret, ret)
 

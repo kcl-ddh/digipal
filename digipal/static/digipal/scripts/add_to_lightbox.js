@@ -12,6 +12,7 @@ var collection_types = {
     'textunit':         {'group': 'textunits', 'label': 'Text Annotation', 'idindex': 1},
     'image':            {'group': 'images', 'label': 'Page', 'idindex': 1},
 };
+var collection_default_name = 'My Collection';
 
 function update_collection_counter() {
     // basket_elements = collections in the localStorage
@@ -19,11 +20,8 @@ function update_collection_counter() {
     var collections = localStorage.getItem('collections');
     if (collections && !$.isEmptyObject(JSON.parse(collections))) {
     } else {
-        collections = {
-            'My Collection': {
-                'id': "1"
-            }
-        };
+        collections = {};
+        collections[collection_default_name] = {id: '1'};
         collections = JSON.stringify(collections);
         localStorage.setItem('collections', collections);
         localStorage.setItem('selectedCollection', '1');
@@ -59,6 +57,7 @@ function update_collection_counter() {
 
     // basket_element = primary nav element for the link to the collection page
     // Sets basket_ement.id = 'collection_link'
+    // CONDITION: the hyperlink has 'collection' in its href
     var basket_element = $('#collection_link');
     var menu_links = $('.navLink[href]');
     for (var ind = 0; ind < menu_links.length; ind++) {

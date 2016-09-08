@@ -1,5 +1,5 @@
 (function() {
-    var csrftoken = getCookie('csrftoken');
+    var csrftoken = window.getCookie('csrftoken');
     $.ajaxSetup({
         headers: {
             "X-CSRFToken": csrftoken
@@ -48,7 +48,7 @@
     };
 
     function update_counter() {
-        $.each(collection_types, function(type, info) {
+        $.each(window.collection_types, function(type, info) {
             var check_all = $('#check_'+info.group+'_all');
 
             var count = $('.checkbox_image[data-type='+ type +']:checked').length;
@@ -100,7 +100,7 @@
                 location.href = "../";
             }
 
-            $.each(collection_types, function(k, type_info) {
+            $.each(window.collection_types, function(k, type_info) {
                 var tname = type_info.group;
                 if (typeof collection[tname] !== 'undefined' && collection[tname].length) {
                     data[tname] = [];
@@ -600,7 +600,7 @@
         $.each(_collections, function(index, value) {
             if (value.id == selectedCollection) {
                 _basket = value;
-                _basket['name'] = index;
+                _basket.name = index;
                 _basket.id = value.id;
             }
         });

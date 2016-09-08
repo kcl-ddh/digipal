@@ -14,28 +14,28 @@ var collection_types = {
 };
 
 function update_collection_counter() {
-    var basket_elements;
-    var collections;
-    if (localStorage.getItem('collections') && !$.isEmptyObject(JSON.parse(localStorage.getItem('collections')))) {
-        collections = localStorage.getItem('collections');
-        basket_elements = JSON.parse(collections);
+    // basket_elements = collections in the localStorage
+    // Create it if not there yet
+    var collections = localStorage.getItem('collections');
+    if (collections && !$.isEmptyObject(JSON.parse(collections))) {
     } else {
         collections = {
             'Collection': {
                 'id': "1"
             }
         };
-        basket_elements = collections;
-        localStorage.setItem('collections', JSON.stringify(collections));
+        collections = JSON.stringify(collections);
+        localStorage.setItem('collections', collections);
         localStorage.setItem('selectedCollection', '1');
     }
+    var basket_elements = JSON.parse(collections);
 
-    var menu_links = $('.navLink');
-    var basket_element;
+    // current_collection_id = current_collection.id = ID of selected collection
     var current_collection = {
         "id": localStorage.getItem('selectedCollection')
     };
 
+    // take the ID of any collection if not found (and set it in LS)
     if (!current_collection.id) {
         $.each(basket_elements, function(index, value) {
             current_collection.id = value.id;
@@ -44,44 +44,48 @@ function update_collection_counter() {
     }
 
     var current_collection_id = current_collection.id;
+
+    // Find a collection in the LS with ID = current_collection_id
+    // then set current_collection.name & .id
     var children = 0;
     for (var col in basket_elements) {
         children++;
+        current_collection.name = col;
         if (basket_elements[col].id == current_collection_id) {
-            current_collection['name'] = col;
             break;
-        } else {
-            current_collection['name'] = col;
-            current_collection['id'] = basket_elements[col].id;
         }
+        current_collection.id = basket_elements[col].id;
     }
 
+    // basket_element = primary nav element for the link to the collection page
+    // Sets basket_ement.id = 'collection_link'
+    var basket_element = $('#collection_link');
+    var menu_links = $('.navLink[href]');
     for (var ind = 0; ind < menu_links.length; ind++) {
-        if ($.trim(menu_links[ind].innerHTML) == 'Collection') {
+        //if ($.trim(menu_links[ind].innerHTML) == 'Collection') {
+        if (menu_links[ind].href.search(/\bcollection\b/) > -1) {
             basket_element = $(menu_links[ind]);
             basket_element.attr('id', 'collection_link');
+            break;
         }
     }
 
-    if (!basket_element) {
-        basket_element = $('#collection_link');
-    }
-
-    var i = 0;
+    // Update the label and link of the collection link in the primary nav
+    var items_count = 0;
 
     $.each(collection_types, function(k, v) {
-        i += (basket_elements[current_collection['name']][v.group] || []).length;
+        items_count += (basket_elements[current_collection.name][v.group] || []).length;
     });
 
-    var link_label = current_collection['name'];
+    var link_label = current_collection.name;
 
     if (link_label.length > 20) {
         link_label = link_label.substr(0, 17) + '...';
     }
 
-    basket_element.html(link_label + " (" + i + " <i class = 'fa fa-picture-o'></i> )");
-    basket_element.attr('href', '/digipal/collection/' + current_collection['name'].replace(/\s+/gi, ''));
-    basket_element.attr('title', current_collection['name']);
+    basket_element.html(link_label + " (" + items_count + " <i class = 'fa fa-picture-o'></i> )");
+    basket_element.attr('href', '/digipal/collection/' + current_collection.name.replace(/\s+/gi, ''));
+    basket_element.attr('title', current_collection.name);
 }
 
 function add_to_lightbox(button, type, annotations, multiple) {
@@ -154,7 +158,7 @@ function add_to_lightbox(button, type, annotations, multiple) {
     } else {
         var graph = annotations;
 
-        type_info = collection_types[type];
+        var type_info = collection_types[type];
         if (!type_info) {
             notify('Invalid collection item type (' + type + ')', 'danger');
             return false;

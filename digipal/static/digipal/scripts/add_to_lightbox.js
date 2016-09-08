@@ -21,7 +21,7 @@ function update_collection_counter() {
         basket_elements = JSON.parse(collections);
     } else {
         collections = {
-            'Collection': {
+            'My Collection': {
                 'id': "1"
             }
         };
@@ -57,7 +57,7 @@ function update_collection_counter() {
     }
 
     for (var ind = 0; ind < menu_links.length; ind++) {
-        if ($.trim(menu_links[ind].innerHTML) == 'Collection') {
+        if ($.trim(menu_links[ind].innerHTML) == 'My Collection') {
             basket_element = $(menu_links[ind]);
             basket_element.attr('id', 'collection_link');
         }

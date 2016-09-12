@@ -28,3 +28,6 @@ importlib==1.0.3
 lxml==3.4.0
 # if it fails, try 'sudo apt-get install libpq-dev', then run again
 psycopg2==2.5.4
+# We force this version. To replace buggy template in the one installed
+# with Mezzanine 3.1.5
+grappelli-safe==0.3.13

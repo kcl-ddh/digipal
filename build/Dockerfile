@@ -40,6 +40,7 @@ USER root
 ########################
 # PROGRAMMING LANGUAGE
 RUN apt-get -y install python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev
+RUN pip install --upgrade pip
 
 ########################
 # DIGIPAL FRAMEWORK
@@ -82,7 +83,7 @@ RUN apt-get -y install lighttpd
 # download and build image server
 # see https://github.com/ruven/iipsrv
 # install dependencies
-RUN apt-get -y install autoconf libtool libjpeg-dev libtiff-dev
+RUN apt-get -y install autoconf libtool libjpeg-dev libtiff-dev pkg-config
 #
 WORKDIR /root
 RUN git clone https://github.com/ruven/iipsrv.git
@@ -131,4 +132,4 @@ RUN echo "/etc/init.d/lighttpd start" >> startup.sh
 RUN echo "/etc/init.d/ssh start" >> startup.sh
 RUN echo "/bin/bash" >> startup.sh
 
-CMD ["/bin/bash", "startup.sh"] 
+CMD ["/bin/bash", "startup.sh"]

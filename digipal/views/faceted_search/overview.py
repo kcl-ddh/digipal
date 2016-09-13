@@ -523,7 +523,7 @@ class Overview(object):
         #self.bands = {self.bands[i]: i*self.band_width for i in range(0, len(self.bands))}
         self.bands = {}
         for i in range(0, len(bands)):
-            self.bands[i] = i*self.band_width
+            self.bands[bands[i]] = i*self.band_width
 
     def compact_bands(self):
         '''
@@ -602,7 +602,12 @@ class Overview(object):
                 point[0][0] -= self.mins[0]
                 point[0][1] -= self.mins[0]
         # reframe the histograms
-        self.histogram = {x - self.mins[0]: hist for x, hist in self.histogram.iteritems()}
+        #self.histogram = {x - self.mins[0]: hist for x, hist in self.histogram.iteritems()}
+        histogram = self.histogram
+        self.histogram = {}
+        for x, hist in histogram.iteritems():
+            self.histogram[x - self.mins[0]] = hist
+
         self.histogram_height = max([sum([c for c in hist.values()]) for hist in self.histogram.values()])
         for x in self.histogram.keys():
             self.histogram[x] = sorted([[comb, c] for comb, c in self.histogram[x].iteritems()], key=lambda p: len(p[0]) * 10 - int(p[0][0]), reverse=True)

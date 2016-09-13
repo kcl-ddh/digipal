@@ -149,8 +149,9 @@ def update_query_string(url, updates, url_wins=False):
 
     # remove temporary parameters __
     #query_dict = {k: v for k, v in query_dict.iteritems() if not k.startswith('__')}
+    qd = query_dict
     query_dict = {}
-    for k, v in query_dict.iteritems():
+    for k, v in qd.iteritems():
         if not k.startswith('__'):
             query_dict[k] = v
 

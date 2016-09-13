@@ -691,8 +691,8 @@ API_PERMISSIONS = [['crud', 'ALL']]
 
 # Models Exposure
 # List of models we want to show to everyone and to staff respectively
-MODELS_PUBLIC = ['itempart', 'image', 'graph', 'hand', 'scribe'] # 'textcontentxml'
-MODELS_PRIVATE = ['itempart', 'image', 'graph', 'hand', 'scribe'] # 'textcontentxml'
+MODELS_PUBLIC = ['itempart', 'image', 'graph', 'hand', 'scribe', 'textcontentxml']
+MODELS_PRIVATE = ['itempart', 'image', 'graph', 'hand', 'scribe', 'textcontentxml']
 
 # which text type is used as primary a reference for markup-up - image links
 TEXT_IMAGE_MASTER_CONTENT_TYPE = 'transcription'

@@ -1,0 +1,27 @@
+. Upload new upgraded image of DP on Dockerhub
+    . main issues:
+        . indexing using backend interface
+    . initial content:
+        . One image, MS, etc.
+        . footer
+        . banner
+        . intro
+        . blog, news
+        . enable lightbox
+    . better architecture:
+        . only one port for all web services: image server and web
+        . externalise the data?
+            . images
+            . database
+            . settings
+            . cutomisations?
+. Provide upgrade instructions from version 1 to new version
+    . docker upgrade
+    . DP upgrade
+        . save everything and reload it?
+            . settings + DB + Images
+    .
+. Test installation with Kitematic
+    . On Windows
+    . On Mac
+    . On Linux?

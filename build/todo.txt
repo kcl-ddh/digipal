@@ -1,6 +1,6 @@
 . Upload new upgraded image of DP on Dockerhub
     . main issues:
-        . indexing using backend interface
+        *. indexing using backend interface
     . initial content:
         . One image, MS, etc.
         . footer
@@ -9,13 +9,13 @@
         . blog, news
         . enable lightbox
     . better architecture:
-        . only one port for all web services: image server and web
+        *. only one port for all web services: image server and web
         . externalise the data?
             . images
             . database
             . settings
             . cutomisations?
-. Provide upgrade instructions from version 1 to new version
+*. Provide upgrade instructions from version 1 to new version
     . docker upgrade
     . DP upgrade
         . save everything and reload it?
@@ -25,3 +25,17 @@
     . On Windows
     . On Mac
     . On Linux?
+
+    . Nested installation: Ubuntu > Windows 10 > X doesn't work because of the
+        (virtualised) hardware doesn't allow it. Some say that it is not yet
+        possible with 64bits guest.
+
+
+Permissions:
+
+    root@dad99f8cff7a:/home# chown -R www-data:www-data digipal
+    root@dad99f8cff7a:/home# chmod -R ug+r digipal
+    root@dad99f8cff7a:/home# chmod -R ug+w digipal
+    root@dad99f8cff7a:/home# chmod -R o-rw digipal
+
+    apt-get install nginx uwsgi

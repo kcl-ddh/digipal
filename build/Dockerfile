@@ -18,6 +18,28 @@ ENV DP_WS_PORT 8080
 RUN apt-get update
 
 ########################
+# LESSC
+
+RUN apt-get install -y nodejs npm; npm install -g less; ln -s /usr/bin/nodejs /usr/bin/node
+
+########################
+# IMAGE PROCESSING
+
+# download and build image server
+# see https://github.com/ruven/iipsrv
+# install dependencies
+RUN apt-get -y install autoconf libtool libjpeg-dev libtiff-dev pkg-config
+
+WORKDIR /root
+RUN git clone https://github.com/ruven/iipsrv.git
+WORKDIR /root/iipsrv
+#RUN ./autogen.sh && ./configure && make && cp src/iipsrv.fcgi /etc/lighttpd/
+RUN ./autogen.sh && ./configure && make
+
+# image conversion tool
+RUN apt-get -y install imagemagick
+
+########################
 # DATABASE
 # see http://docs.docker.com/examples/postgresql_service/
 RUN apt-get -y install postgresql
@@ -33,12 +55,12 @@ RUN /etc/init.d/postgresql start &&\
         sed -i 's/local\s*all\s*all\s*peer/local    all    all    md5/' $(psql -c "SHOW hba_file;" | grep conf | xargs) &&\
         echo "host all  all    0.0.0.0/0  md5" >> $(psql -c "SHOW hba_file;" | grep conf | xargs)
 
-EXPOSE 5432
+#EXPOSE 5432
 
 USER root
 
 ########################
-# PROGRAMMING LANGUAGE
+# PYTHON + PIP
 RUN apt-get -y install python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev
 RUN pip install --upgrade pip
 
@@ -72,57 +94,48 @@ RUN /etc/init.d/postgresql start &&\
 EXPOSE 8080
 
 ########################
-# IMAGE PROCESSING
-
-# image conversion tool
-RUN apt-get -y install imagemagick
+# WEB SERVER
 
 # install web server for image server
 RUN apt-get -y install lighttpd
 
-# download and build image server
-# see https://github.com/ruven/iipsrv
-# install dependencies
-RUN apt-get -y install autoconf libtool libjpeg-dev libtiff-dev pkg-config
-#
-WORKDIR /root
-RUN git clone https://github.com/ruven/iipsrv.git
-WORKDIR /root/iipsrv
-RUN ./autogen.sh && ./configure && make && cp src/iipsrv.fcgi /etc/lighttpd/
-
 # configure web+image server
 RUN cp /home/digipal/build/lighttpd-iipsrv.conf /etc/lighttpd/lighttpd.conf
 
-WORKDIR /home/digipal
+# give files to www-data
+WORKDIR /home/
+RUN chown -R www-data:www-data digipal
+RUN chmod -R ug+rw digipal
+RUN chmod -R o-rw digipal
 
 # Port for image server
 EXPOSE 8081
 
 ########################
-# LESSC
-
-RUN apt-get install -y nodejs npm; npm install -g less; ln -s /usr/bin/nodejs /usr/bin/node
-
-########################
 # SSH
+# RUN apt-get -y install openssh-server
+#
+# # Allow ssh as root with password 'root'
+# RUN mkdir /var/run/sshd
+# RUN echo 'root:root' | chpasswd
+# RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+#
+# # SSH login fix. Otherwise user is kicked off after login
+# RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+#
+# ENV NOTVISIBLE "in users profile"
+# RUN echo "export VISIBLE=now" >> /etc/profile
+#
+# EXPOSE 22
+#
 
-RUN apt-get -y install openssh-server
-
-# Allow ssh as root with password 'root'
-RUN mkdir /var/run/sshd
-RUN echo 'root:root' | chpasswd
-RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-
-# SSH login fix. Otherwise user is kicked off after login
-RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-
-ENV NOTVISIBLE "in users profile"
-RUN echo "export VISIBLE=now" >> /etc/profile
-
-EXPOSE 22
+# TODO: comment out, only while working on the Dockerfile
+RUN apt-get -y install vim
 
 ########################
 # START-UP
+
+WORKDIR /home/digipal
 
 # Run the DB server, Web servers then a bash session
 RUN echo "" > startup.sh
@@ -132,4 +145,4 @@ RUN echo "/etc/init.d/lighttpd start" >> startup.sh
 RUN echo "/etc/init.d/ssh start" >> startup.sh
 RUN echo "/bin/bash" >> startup.sh
 
-CMD ["/bin/bash", "startup.sh"]
+CMD ["/bin/bash", "/home/digipal/startup.sh"]

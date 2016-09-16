@@ -38,4 +38,9 @@ Permissions:
     root@dad99f8cff7a:/home# chmod -R ug+w digipal
     root@dad99f8cff7a:/home# chmod -R o-rw digipal
 
-    apt-get install nginx uwsgi
+    apt-get install nginx uwsgi-plugin-python
+
+    #uwsgi --http-socket :8080 --uid=www-data --gid=www-data --plugin /usr/lib/uwsgi/plugins/python_plugin.so --wsgi-file digipal/wsgi.py
+    uwsgi --ini /home/digipal/digipal/wsgi.template.ini
+
+    ln /home/digipal/build/nginx.conf /etc/nginx/sites-enabled/digipal.conf

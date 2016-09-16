@@ -88,7 +88,8 @@ RUN /etc/init.d/postgresql start &&\
         python manage.py migrate &&\
         python manage.py loaddata build/data_init.json build/data_char.json build/data_menu.json build/data_test.json &&\
         python manage.py dpsearch index &&\
-        python manage.py dpsearch index_facets
+        python manage.py dpsearch index_facets &&\
+        python manage.py collectstatic --noinput
 
 # Port for web server
 EXPOSE 8080
@@ -140,9 +141,11 @@ WORKDIR /home/digipal
 # Run the DB server, Web servers then a bash session
 RUN echo "" > startup.sh
 RUN echo "/etc/init.d/postgresql start" >> startup.sh
-RUN echo "nohup python manage.py runserver 0.0.0.0:$DP_WS_PORT &" >> startup.sh
-RUN echo "/etc/init.d/lighttpd start" >> startup.sh
-RUN echo "/etc/init.d/ssh start" >> startup.sh
+#RUN echo "nohup python manage.py runserver 0.0.0.0:$DP_WS_PORT &" >> startup.sh
+RUN echo "uwsgi --ini /home/digipal/digipal/wsgi.template.ini" >> startup.sh
+RUN echo "/etc/init.d/nginx start" >> startup.sh
+#RUN echo "/etc/init.d/lighttpd start" >> startup.sh
+#RUN echo "/etc/init.d/ssh start" >> startup.sh
 RUN echo "/bin/bash" >> startup.sh
 
 CMD ["/bin/bash", "/home/digipal/startup.sh"]

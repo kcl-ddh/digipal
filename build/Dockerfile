@@ -34,6 +34,7 @@ WORKDIR /root
 RUN git clone https://github.com/ruven/iipsrv.git
 WORKDIR /root/iipsrv
 #RUN ./autogen.sh && ./configure && make && cp src/iipsrv.fcgi /etc/lighttpd/
+# Deployed in /root/iipsrv/src/iipsrv.fcgi
 RUN ./autogen.sh && ./configure && make
 
 # image conversion tool
@@ -97,11 +98,14 @@ EXPOSE 8080
 ########################
 # WEB SERVER
 
-# install web server for image server
-RUN apt-get -y install lighttpd
+// # install web server for image server
+// RUN apt-get -y install lighttpd
+//
+// # configure web+image server
+// RUN cp /home/digipal/build/lighttpd-iipsrv.conf /etc/lighttpd/lighttpd.conf
 
-# configure web+image server
-RUN cp /home/digipal/build/lighttpd-iipsrv.conf /etc/lighttpd/lighttpd.conf
+RUN apt-get -y install nginx uwsgi-plugin-python
+RUN rm /etc/nginx/sites-enabled/default && ln -s /home/digipal/build/nginx.conf /etc/nginx/sites-enabled/digipal.conf
 
 # give files to www-data
 WORKDIR /home/
@@ -110,7 +114,7 @@ RUN chmod -R ug+rw digipal
 RUN chmod -R o-rw digipal
 
 # Port for image server
-EXPOSE 8081
+#EXPOSE 8081
 
 ########################
 # SSH

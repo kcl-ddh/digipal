@@ -194,6 +194,7 @@ def iip_img_a(image, *args, **kwargs):
         width and height are optional. See IIP Image for the way they
         are treated.
     '''
+
     return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPEG">%s</a>' % (escape(image.iipimage.full_base_url.replace('\\', '/')), iip_img(image, *args, **kwargs)))
 
 @register.simple_tag

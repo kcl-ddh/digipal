@@ -1,6 +1,16 @@
 . Upload new upgraded image of DP on Dockerhub
     . main issues:
         *. indexing using backend interface
+    . better architecture:
+        *. only one port for all web services: image server and web
+            [done] nginx for django
+            . nginx for iipserver
+            [done] nginx for static and media
+        . externalise the data?
+            . images
+            . database
+            . settings
+            . cutomisations?
     . initial content:
         . One image, MS, etc.
         . footer
@@ -8,19 +18,13 @@
         . intro
         . blog, news
         . enable lightbox
-    . better architecture:
-        *. only one port for all web services: image server and web
-        . externalise the data?
-            . images
-            . database
-            . settings
-            . cutomisations?
 *. Provide upgrade instructions from version 1 to new version
     . docker upgrade
-    . DP upgrade
+    * . DP upgrade
         . save everything and reload it?
             . settings + DB + Images
     .
+. Re-enable the backend editing of the settings
 . Test installation with Kitematic
     . On Windows
     . On Mac
@@ -44,3 +48,49 @@ Permissions:
     uwsgi --ini /home/digipal/digipal/wsgi.template.ini
 
     ln /home/digipal/build/nginx.conf /etc/nginx/sites-enabled/digipal.conf
+
+
+LOGFILE="/tmp/iipsrv.log"
+VERBOSITY="10"
+MAX_IMAGE_CACHE_SIZE="20"
+JPEG_QUALITY="75"
+MAX_CVT="800"
+FILESYSTEM_PREFIX="/home/digipal/images/"
+
+export LOGFILE
+export VERBOSITY
+export MAX_IMAGE_CACHE_SIZE
+export JPEG_QUALITY
+export MAX_CVT
+export FILESYSTEM_PREFIX
+
+
+
+local_settings.py:
+    IMAGE_SERVER_HOST = 'digipal-stg.cch.kcl.ac.uk'
+    IMAGE_SERVER_ZOOMIFY = 'https://%s%s?zoomify=%s/'
+    IMAGE_SERVER_PATH = '/iip/iipsrv.fcgi'
+    IMAGE_SERVER_URL  = 'https://%s%s' % (IMAGE_SERVER_HOST, IMAGE_SERVER_PATH)
+
+iipimage/storage.py:105
+    .base_url = ...
+        full_base_url()
+            url()
+
+C
+    S:P1/iip
+    ->
+        S
+            iip...
+    S:P1
+    ->
+        S
+            nginx-django
+            -> () req img dim to ? (! won't work on)
+        <-
+
+
+- Removed setting of self.cutout in annotation.save()
+- annotation.get_cutout_url calls get_cutout_url_info
+
+

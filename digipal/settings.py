@@ -413,6 +413,11 @@ IMAGE_SERVER_RGN = 'http://%s%s?FIF=%s&%s&RGN=%0.6f,%0.6f,%0.6f,%0.6f&CVT=JPEG'
 IMAGE_SERVER_EXT = 'jp2'
 # Set this to 1.0 if you are using IIPSrv >= 1.0
 IMAGE_SERVER_VERSION = 0.9
+# When True, all images on the website will have a relative URL
+# IMAGE_SERVER_HOST is therfore ignored.
+# Added this for the Docker instance where all requests (images and others)
+# go through the same web server.
+IMAGE_URLS_RELATIVE = False
 
 # DJANGO-IIPIMAGE
 

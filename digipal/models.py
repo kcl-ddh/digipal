@@ -1453,11 +1453,11 @@ class ItemPart(models.Model):
         if self.is_suspect():
             ret += ' <b>(anachronistic)</b>'
         return ret
-    
+
     def is_suspect(self, authenticities=None):
         authenticities = authenticities or self.authenticities.all()
         return any([auth.is_suspect() for auth in authenticities])
-    
+
     def get_authenticity_labels(self):
         ret = []
         authenticities = self.authenticities.all()
@@ -1466,12 +1466,12 @@ class ItemPart(models.Model):
             ret.append(cat.name)
         if self.is_suspect(authenticities):
             ret.append('Anachronistic')
-        
+
         if not ret:
             ret = ['Unspecified']
-        
+
         return ret
-    
+
     def get_image_count(self):
         return self.images.all().count()
     get_image_count.short_description = 'Images'
@@ -1612,10 +1612,10 @@ class ItemPartAuthenticity(models.Model):
 
     class Meta:
         unique_together = ['item_part', 'category', 'source']
-        
+
     def __unicode__(self):
         return '%s (%s)' % (self.category, self.source.label)
-    
+
     def is_suspect(self):
         return 'anachronistic' in self.category.slug
 
@@ -2010,6 +2010,19 @@ class Image(models.Model):
 
         return ret
 
+    def zoomify(self):
+        """Returns the URL to view the image from the image server as zoomify
+        tiles."""
+        zoomify = None
+
+        if self.path():
+            zoomify = settings.IMAGE_SERVER_ZOOMIFY % \
+                    (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
+                            self.path())
+            zoomify = self.get_relative_or_absolute_url(zoomify)
+
+        return zoomify
+
     def full(self):
         """Returns the URL for the full size image.
            Something like http://iip-lcl:3080/iip/iipsrv.fcgi?FIF=jp2/cccc/391/602.jp2&amp;RST=*&amp;QLT=100&amp;CVT=JPG
@@ -2022,7 +2035,35 @@ class Image(models.Model):
                     (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
                             self.path())
 
+            path = self.get_relative_or_absolute_url(path)
+
         return path
+
+    @classmethod
+    def get_relative_or_absolute_url(cls, url):
+        ret = url
+        if settings.IMAGE_URLS_RELATIVE:
+            ret = re.sub(ur'(?i)(^https?://[^/]+)', '', ret)
+        return ret
+
+    def thumbnail_with_link(self, height=None, width=None):
+        """Returns HTML to display the page image as a thumbnail with a link to
+        view the image."""
+        ret = mark_safe(u'<a href="%s">%s</a>' % \
+                (self.full(), self.thumbnail(height, width)))
+        return ret
+    thumbnail_with_link.short_description = 'Thumbnail'
+    thumbnail_with_link.allow_tags = True
+
+    def thumbnail(self, height=None, width=None, uncropped=False):
+        """Returns HTML to display the page image as a thumbnail."""
+        ret = ''
+        if self.iipimage:
+            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url(height, width, uncropped))))
+        return ret
+
+    thumbnail.short_description = 'Thumbnail'
+    thumbnail.allow_tags = True
 
     def thumbnail_url(self, height=None, width=None, uncropped=False):
         """Returns URL of the image thumbnail.
@@ -2045,14 +2086,10 @@ class Image(models.Model):
                 ]
                 ret = ret.replace('&CVT=', '&RGN=%s&CVT=' % (','.join(['%0.5f' % p for p in region]),))
 
+        ret = self.get_relative_or_absolute_url(ret)
+
         return ret
 
-    def thumbnail(self, height=None, width=None, uncropped=False):
-        """Returns HTML to display the page image as a thumbnail."""
-        ret = ''
-        if self.iipimage:
-            ret = mark_safe(u'<img src="%s" />' % (cgi.escape(self.thumbnail_url(height, width, uncropped))))
-        return ret
 
     def get_region_dimensions(self, region_url):
         ''' returns the dimension (width, height) of an IIPImage server
@@ -2077,19 +2114,6 @@ class Image(models.Model):
             ret = [int(parts[2]*dims[0]) * factor, int(parts[3]*dims[1]) * factor]
         return ret
 
-    thumbnail.short_description = 'Thumbnail'
-    thumbnail.allow_tags = True
-
-    def thumbnail_with_link(self, height=None, width=None):
-        """Returns HTML to display the page image as a thumbnail with a link to
-        view the image."""
-        ret = mark_safe(u'<a href="%s">%s</a>' % \
-                (self.full(), self.thumbnail(height, width)))
-        return ret
-
-    thumbnail_with_link.short_description = 'Thumbnail'
-    thumbnail_with_link.allow_tags = True
-
     @classmethod
     def sort_query_set_by_locus(self, query_set, ignore_item_part=False):
         ''' Returns a query set based on the given one but with
@@ -2100,18 +2124,6 @@ class Image(models.Model):
         sort_fields = ['fn', 'folio_side']
         if not ignore_item_part: sort_fields.insert(0, 'item_part__display_label')
         return query_set.extra(select={'fn': ur'''CASE WHEN digipal_image.folio_number~E'^\\d+$' THEN digipal_image.folio_number::integer ELSE 0 END'''}, ).order_by(*sort_fields)
-
-    def zoomify(self):
-        """Returns the URL to view the image from the image server as zoomify
-        tiles."""
-        zoomify = None
-
-        if self.path():
-            zoomify = settings.IMAGE_SERVER_ZOOMIFY % \
-                    (settings.IMAGE_SERVER_HOST, settings.IMAGE_SERVER_PATH,
-                            self.path())
-
-        return zoomify
 
     def get_duplicates(self):
         '''Returns a list of Images with the same locus and shelfmark.'''
@@ -2682,7 +2694,8 @@ class Annotation(models.Model):
     image = models.ForeignKey(Image, null=True, blank=False)
     # WARNING: this value is derived from geo_json on save()
     # No need to change it directly
-    cutout = models.CharField(max_length=256)
+    # GN: 23/9/16: shouldn't use it at all anymore
+    cutout = models.CharField(max_length=256, null=True, blank=True, default=None)
     # This is the rotation in degree applied to the cut-out to show it in the right orientation.
     # Note that it does not affect the shape of the annotation box, only the rendering of the cut out.
     rotation = models.FloatField(blank=False, null=False, default=0.0)
@@ -2916,7 +2929,11 @@ class Annotation(models.Model):
 
         # GN: why do we need this call BEFORE changing the cutout?
         # That's two DB save operation each time!
-        super(Annotation, self).save(*args, **kwargs)
+        #return super(Annotation, self).save(*args, **kwargs)
+
+        return super(Annotation, self).save(*args, **kwargs)
+
+        # TODO: remove dead code below
 
         # TODO: suspicious call to eval. Should call json.loads() instead - GN
         # Causes issue with things like 'null' coming from JS
@@ -3050,6 +3067,8 @@ class Annotation(models.Model):
             ret['dims'][0] / dims[0],
             ret['dims'][1] / dims[1])
 
+        ret['url'] = Image.get_relative_or_absolute_url(ret['url'])
+
         for d in [0, 1]:
             ret['dims'][d] *= factor
             ret['frame_dims'][d] *= factor
@@ -3063,6 +3082,10 @@ class Annotation(models.Model):
             Call this function instead of self.cutout, see JIRA 149.
             If esc is True, special chars are turned into entities (e.g. & -> &amp;)
         '''
+        return self.get_cutout_url_info(esc=esc, rotated=False)['url']
+
+        # TODO: remove dead code:
+
         # graft the query string of self.cutout to self.image.thumbnail_url
         # See JIRA 149: Annotation cutouts should be stored as coordinates only not as a full URL
         #return mark_safe(u'<img alt="%s" src="%s" />' % (self.image, cgi.escape(self.cutout)))

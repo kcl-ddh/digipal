@@ -140,16 +140,4 @@ RUN apt-get -y install vim
 ########################
 # START-UP
 
-WORKDIR /home/digipal
-
-# Run the DB server, Web servers then a bash session
-RUN echo "" > startup.sh
-RUN echo "/etc/init.d/postgresql start" >> startup.sh
-#RUN echo "nohup python manage.py runserver 0.0.0.0:$DP_WS_PORT &" >> startup.sh
-RUN echo "uwsgi --ini /home/digipal/digipal/wsgi.template.ini" >> startup.sh
-RUN echo "/etc/init.d/nginx start" >> startup.sh
-#RUN echo "/etc/init.d/lighttpd start" >> startup.sh
-#RUN echo "/etc/init.d/ssh start" >> startup.sh
-RUN echo "/bin/bash" >> startup.sh
-
-CMD ["/bin/bash", "/home/digipal/startup.sh"]
+CMD ["/bin/bash", "/home/digipal/build/startup.sh"]

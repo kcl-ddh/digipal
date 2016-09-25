@@ -1,10 +1,11 @@
 . Upload new upgraded image of DP on Dockerhub
+    WIP. reorganise the Dockerfile
     . main issues:
         *. indexing using backend interface
     . better architecture:
-        *. only one port for all web services: image server and web
+        [done]. only one port for all web services: image server and web
             [done] nginx for django
-            . nginx for iipserver
+            [done] nginx for iipserver
             [done] nginx for static and media
         . externalise the data?
             . images
@@ -94,3 +95,5 @@ C
 - annotation.get_cutout_url calls get_cutout_url_info
 
 
+Dockerhub:
+    versioning? upgrade new image as v 2.0 but old one remains accessible?

@@ -81,7 +81,7 @@ RUN echo "11" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
 RUN pip install -r build/requirements.txt
 
 # Configure it
-RUN cp digipal/local_settings.template.py digipal/local_settings.py
+RUN ln -s digipal/local_settings.template.py digipal/local_settings.py
 
 # Create tables, admin and site records, indexes
 RUN /etc/init.d/postgresql start &&\
@@ -91,9 +91,6 @@ RUN /etc/init.d/postgresql start &&\
         python manage.py dpsearch index &&\
         python manage.py dpsearch index_facets &&\
         python manage.py collectstatic --noinput
-
-# Port for web server
-EXPOSE 8080
 
 ########################
 # WEB SERVER
@@ -113,8 +110,8 @@ RUN chown -R www-data:www-data digipal
 RUN chmod -R ug+rw digipal
 RUN chmod -R o-rw digipal
 
-# Port for image server
-#EXPOSE 8081
+# Port for web server
+EXPOSE 8080
 
 ########################
 # SSH

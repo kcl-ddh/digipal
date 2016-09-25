@@ -15,7 +15,8 @@ FROM ubuntu:latest
 
 ENV DP_WS_PORT 8080
 
-RUN apt-get update
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
+RUN apt-get install -y autoconf pkg-config libtool git
 
 ########################
 # LESSC
@@ -28,7 +29,7 @@ RUN apt-get install -y nodejs npm; npm install -g less; ln -s /usr/bin/nodejs /u
 # download and build image server
 # see https://github.com/ruven/iipsrv
 # install dependencies
-RUN apt-get -y install autoconf libtool libjpeg-dev libtiff-dev pkg-config
+RUN apt-get -y install libjpeg-dev libtiff-dev
 
 WORKDIR /root
 RUN git clone https://github.com/ruven/iipsrv.git
@@ -68,9 +69,6 @@ RUN pip install --upgrade pip
 ########################
 # DIGIPAL FRAMEWORK
 
-# GIT
-RUN apt-get -y install git
-
 # Fetch Digipal
 RUN mkdir /home/digipal
 
@@ -78,10 +76,10 @@ WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
 RUN echo "11" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
-RUN pip install -r build/requirements.txt
+RUN echo "1" & pip install -r build/requirements.txt
 
 # Configure it
-RUN ln -s digipal/local_settings.template.py digipal/local_settings.py
+RUN ln -s local_settings.template.py digipal/local_settings.py
 
 # Create tables, admin and site records, indexes
 RUN /etc/init.d/postgresql start &&\
@@ -95,11 +93,11 @@ RUN /etc/init.d/postgresql start &&\
 ########################
 # WEB SERVER
 
-// # install web server for image server
-// RUN apt-get -y install lighttpd
-//
-// # configure web+image server
-// RUN cp /home/digipal/build/lighttpd-iipsrv.conf /etc/lighttpd/lighttpd.conf
+# # install web server for image server
+# RUN apt-get -y install lighttpd
+#
+# # configure web+image server
+# RUN cp /home/digipal/build/lighttpd-iipsrv.conf /etc/lighttpd/lighttpd.conf
 
 RUN apt-get -y install nginx uwsgi-plugin-python
 RUN rm /etc/nginx/sites-enabled/default && ln -s /home/digipal/build/nginx.conf /etc/nginx/sites-enabled/digipal.conf

@@ -39,3 +39,4 @@ pytz==2014.7
 six==1.8.0
 requests==2.4.3
 requests-oauthlib==0.4.2
+html5lib==0.999

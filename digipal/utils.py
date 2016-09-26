@@ -979,6 +979,7 @@ def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=N
                     if c and re.search(ur'^\d', c):
                         c = u'n%s' % c
                     columns.append(c)
+                continue
 
             # 'same as' values
             if same_as_above and line_last:

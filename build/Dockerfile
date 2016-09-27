@@ -17,7 +17,8 @@ ENV DP_WS_PORT 80
 
 # Install Linux Packages in one go (best practice)
 # Convention: one line per category (e.g. lessc, image server, database, ...)
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils \
+#RUN apt-get update -y && apt-get install -y --no-install-recommends apt-utils \
+RUN apt-get update -y && apt-get install -y \
     autoconf pkg-config libtool git \
     nodejs npm \
     libjpeg-dev libtiff-dev imagemagick \
@@ -75,7 +76,7 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "111" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
+RUN echo "2" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
 RUN echo "1" && pip install -r build/requirements.txt
 
 # Configure it
@@ -110,4 +111,4 @@ EXPOSE 80
 # START-UP
 
 #CMD ["/bin/bash", "/home/digipal/build/startup.sh"]
-CMD ["/usr/bin/supervisord -c /home/digipal/build/supervisord.conf"]
+CMD ["/usr/bin/supervisord", "-c", "/home/digipal/build/supervisord.conf"]

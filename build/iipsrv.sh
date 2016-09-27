@@ -1,5 +1,7 @@
 #!/bin/sh
-# Start The Image Server as a daemon
+# DEPRECATED - USE SUPERVISORD instead
+# Start The Image Server as a foreground process
+# (use --background for daemon)
 # See https://github.com/ruven/iipsrv#configuration
 #
 LOGFILE="/tmp/iipsrv.log"
@@ -20,5 +22,5 @@ export FILESYSTEM_PREFIX
 # RUn as www-data... NOT WORKING!
 #start-stop-daemon --start --background --make-pidfile --pidfile /var/run/iipsrv.pid  --chuid www-data --user www-data -v --umask 0 --exec /root/iipsrv/src/iipsrv.fcgi -- --bind 127.0.0.1:9000 --backlog 1024
 # Run as root
-start-stop-daemon --start --make-pidfile --pidfile /var/run/iipsrv.pid --background --user www-data --group www-data --exec /root/iipsrv/src/iipsrv.fcgi -- --bind 127.0.0.1:9000 --backlog 1024
-
+# start-stop-daemon --start  --background --make-pidfile --pidfile /var/run/iipsrv.pid --user www-data --group www-data --exec /root/iipsrv/src/iipsrv.fcgi -- --bind 127.0.0.1:9000 --backlog 1024
+/root/iipsrv/src/iipsrv.fcgi --bind 127.0.0.1:9000 --backlog 1024

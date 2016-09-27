@@ -1,50 +1,53 @@
 # To build DigiPal Framework Image with Docker:
 #
-# docker build -t digipal/framework build
+# docker build -t gnoelddh/digipal build
 #
 # Then run the container like this:
 #
-# docker run -t -i -p 8080:8080 -p 8081:8081 -p 2222:22 digipal/framework
+# docker run -ti -p 80:80 gnoelddh/digipal
 #
-# Now you can browse to http://localhost:8080/ from your host machine
+# Now you can browse to http://localhost/ from your host machine
 # Note that this version is for local use only, not for production.
 # You can use it to try out DigiPal or to start your own research.
 #
 
 FROM ubuntu:latest
 
-ENV DP_WS_PORT 8080
+ENV DP_WS_PORT 80
 
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
-RUN apt-get install -y autoconf pkg-config libtool git
+# Install Linux Packages in one go (best practice)
+# Convention: one line per category (e.g. lessc, image server, database, ...)
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils \
+    autoconf pkg-config libtool git \
+    nodejs npm \
+    libjpeg-dev libtiff-dev imagemagick \
+    postgresql \
+    python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev \
+    nginx uwsgi-plugin-python \
+    supervisor \
+&& rm -rf /var/lib/apt/lists/*
 
 ########################
 # LESSC
 
-RUN apt-get install -y nodejs npm; npm install -g less; ln -s /usr/bin/nodejs /usr/bin/node
+RUN npm install -g less; ln -s /usr/bin/nodejs /usr/bin/node
 
 ########################
 # IMAGE PROCESSING
 
 # download and build image server
 # see https://github.com/ruven/iipsrv
-# install dependencies
-RUN apt-get -y install libjpeg-dev libtiff-dev
+# install dependencies (see above)
 
 WORKDIR /root
 RUN git clone https://github.com/ruven/iipsrv.git
 WORKDIR /root/iipsrv
-#RUN ./autogen.sh && ./configure && make && cp src/iipsrv.fcgi /etc/lighttpd/
 # Deployed in /root/iipsrv/src/iipsrv.fcgi
 RUN ./autogen.sh && ./configure && make
-
-# image conversion tool
-RUN apt-get -y install imagemagick
 
 ########################
 # DATABASE
 # see http://docs.docker.com/examples/postgresql_service/
-RUN apt-get -y install postgresql
 
 USER postgres
 
@@ -57,13 +60,10 @@ RUN /etc/init.d/postgresql start &&\
         sed -i 's/local\s*all\s*all\s*peer/local    all    all    md5/' $(psql -c "SHOW hba_file;" | grep conf | xargs) &&\
         echo "host all  all    0.0.0.0/0  md5" >> $(psql -c "SHOW hba_file;" | grep conf | xargs)
 
-#EXPOSE 5432
-
 USER root
 
 ########################
 # PYTHON + PIP
-RUN apt-get -y install python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev
 RUN pip install --upgrade pip
 
 ########################
@@ -75,8 +75,8 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "11" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
-RUN echo "1" & pip install -r build/requirements.txt
+RUN echo "111" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
+RUN echo "1" && pip install -r build/requirements.txt
 
 # Configure it
 RUN ln -s local_settings.template.py digipal/local_settings.py
@@ -93,46 +93,21 @@ RUN /etc/init.d/postgresql start &&\
 ########################
 # WEB SERVER
 
-# # install web server for image server
-# RUN apt-get -y install lighttpd
-#
-# # configure web+image server
-# RUN cp /home/digipal/build/lighttpd-iipsrv.conf /etc/lighttpd/lighttpd.conf
-
-RUN apt-get -y install nginx uwsgi-plugin-python
 RUN rm /etc/nginx/sites-enabled/default && ln -s /home/digipal/build/nginx.conf /etc/nginx/sites-enabled/digipal.conf
 
 # give files to www-data
 WORKDIR /home/
-RUN chown -R www-data:www-data digipal
-RUN chmod -R ug+rw digipal
-RUN chmod -R o-rw digipal
-
-# Port for web server
-EXPOSE 8080
+RUN chown -R www-data:www-data digipal && chmod -R ug+rw digipal && chmod -R o-rw digipal
 
 ########################
-# SSH
-# RUN apt-get -y install openssh-server
-#
-# # Allow ssh as root with password 'root'
-# RUN mkdir /var/run/sshd
-# RUN echo 'root:root' | chpasswd
-# RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-#
-# # SSH login fix. Otherwise user is kicked off after login
-# RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-#
-# ENV NOTVISIBLE "in users profile"
-# RUN echo "export VISIBLE=now" >> /etc/profile
-#
-# EXPOSE 22
-#
+# SUPERVISOR
+RUN mkdir -p /var/log/supervisor
 
-# TODO: comment out, only while working on the Dockerfile
-RUN apt-get -y install vim
+# Port for web server
+EXPOSE 80
 
 ########################
 # START-UP
 
-CMD ["/bin/bash", "/home/digipal/build/startup.sh"]
+#CMD ["/bin/bash", "/home/digipal/build/startup.sh"]
+CMD ["/usr/bin/supervisord -c /home/digipal/build/supervisord.conf"]

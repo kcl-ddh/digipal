@@ -263,6 +263,13 @@
             });
 
             window.addEventListener('storage', function(event) {
+                // TODO: re-enable this once sync is fixed and UI has a way to
+                // let user actively choose cross window sync
+                // Bug = EXON TOC, open one location in a new tab
+                // then another location a new tab, now both tabs are syncing
+                // for ever.
+                return;
+
                 // Syncing location following a change made in another browser window
                 if (event.key !== 'textViewer') return;
                 var data = JSON.parse(event.newValue);

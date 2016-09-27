@@ -1195,9 +1195,9 @@ Commands:
 
         vr = [hundreds[label] for label in vr]
         #vr = range(0, len(vr))
-        vr2 = [u'Yeovil: Tintinhull', u'North Petherton', u'Cannington', u'South Petherton', u'Sheriffs Brompton', u'Cheddar', u'Cutcombe', u'Carhampton', u'Bedminster', u'Minehead', u'Williton', u'Bulstone', u'Andersfield', u'Kingsbury', u'Wiveliscombe', u'Wellington', u'Winterstoke', u'Abdick', u'Chew', u'Frome: Frome', u'Brompton Regis', u'Dulverton', u'Lydeard', u'Bempstone', u'Wells', u'Bruton: Bruton', u'Cleeve', u'Loxley', u'Winsford', u'Creech', u'North Curry', u'Crewkerne', u'Congresbury', u'Somerton', u'Coker', u'Pitminster', u'Taunton', u'Milverton', u'Bruton: Wincanton', u'Bath', u'Yeovil: Lyatts', u'Martock', u'Hartcliffe', u'Yeovil: Houndsborough', u'Bruton: Blachethorna', u'Huntspill', u'Whitestone', u'Reynaldsway', u'Frome: Kilmersdon', u'Monkton', u'Portbury', u'Keynsham', u'Milborne/Horethorne', u'Chewton', u'South Brent', u'Frome: Wellow', u'Frome: Frome/Downhead', u'Yeovil: Stone']
+        ##vr2 = [u'Yeovil: Tintinhull', u'North Petherton', u'Cannington', u'South Petherton', u'Sheriffs Brompton', u'Cheddar', u'Cutcombe', u'Carhampton', u'Bedminster', u'Minehead', u'Williton', u'Bulstone', u'Andersfield', u'Kingsbury', u'Wiveliscombe', u'Wellington', u'Winterstoke', u'Abdick', u'Chew', u'Frome: Frome', u'Brompton Regis', u'Dulverton', u'Lydeard', u'Bempstone', u'Wells', u'Bruton: Bruton', u'Cleeve', u'Loxley', u'Winsford', u'Creech', u'North Curry', u'Crewkerne', u'Congresbury', u'Somerton', u'Coker', u'Pitminster', u'Taunton', u'Milverton', u'Bruton: Wincanton', u'Bath', u'Yeovil: Lyatts', u'Martock', u'Hartcliffe', u'Yeovil: Houndsborough', u'Bruton: Blachethorna', u'Huntspill', u'Whitestone', u'Reynaldsway', u'Frome: Kilmersdon', u'Monkton', u'Portbury', u'Keynsham', u'Milborne/Horethorne', u'Chewton', u'South Brent', u'Frome: Wellow', u'Frome: Frome/Downhead', u'Yeovil: Stone']
         seed = [vr]
-        seed.append([hundreds[label] for label in vr2])
+        ##seed.append([hundreds[label] for label in vr2])
 
         #seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 26, 22, 4, 15, 34, 10, 5, 24, 23, 25, 19, 0, 33, 27, 20, 11, 29, 14, 30, 28, 6, 9, 16, 1, 3])
         #seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 22, 4, 15, 10, 5, 24, 34, 23, 25, 19, 0, 27, 33, 20, 11, 3, 14, 29, 30, 6, 9, 28, 16, 1, 26])
@@ -1338,12 +1338,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 self.REQUEST = request
 
         context = get_hundreds_view_context(MyRequest({'oc': ''}))
-
+        
         info = {}
         for shire_data in context['shires']:
             if shire_data['name'].lower() == shire:
                 info = shire_data
                 break
+            
 
         print 'optimise... %s' % shire
 

@@ -958,7 +958,7 @@ def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=N
     with open(csv_path, 'rb') as csvfile:
         csvreader = csv.reader(csvfile)
 
-        columns = None
+        columns = []
 
         line_last = None
 
@@ -974,7 +974,11 @@ def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=N
 
             # heading line
             if not columns:
-                columns = [re.sub(ur'[^a-z0-9]', '', c.lower()) for c in line]
+                for c in line:
+                    c = re.sub(ur'[^a-z0-9]', '', c.lower())
+                    if c and re.search(ur'^\d', c):
+                        c = u'n%s' % c
+                    columns.append(c)
                 continue
 
             # 'same as' values

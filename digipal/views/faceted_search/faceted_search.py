@@ -800,6 +800,8 @@ class FacetedModel(object):
 #                     self.ids = []
 #                     if str(record.id) in ids and (search_phrase or field_queries):
 #                         record.found = True
+            print 'h1'
+            
             if 1:
             #else:
                 hand_filters.chrono('bulk:')
@@ -812,6 +814,7 @@ class FacetedModel(object):
 
                 ret = []
                 if records:
+                    print 'h2'
                     # 'item_part__historical_items'
                     #ret = [records[int(id)] for id in ids if int(id) in records]
                     if len(ids):
@@ -821,11 +824,26 @@ class FacetedModel(object):
                     ret = [records[id_type(id)] for id in ids if id_type(id) in records]
 
                     # highlight
-                    if 0 and ret and hasattr(ret[0], 'content') and search_phrase:
-                        from whoosh.highlight.Highlighter import highlight_hit
-                        from whoosh.highlight import highlight
+                    if 1 and ret and hasattr(ret[0], 'content') and search_phrase:
+                        from whoosh import highlight
+                        from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer, CharsetFilter, RegexTokenizer
+                        from whoosh.support.charset import accent_map
+                        analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map)
+                        fragmenter = highlight.ContextFragmenter(maxchars=100, surround=30)
+                        formatter = highlight.HtmlFormatter()
+                        terms = search_phrase.split(' ')
                         for r in ret:
-                            r.snippet = highlight(r.content, terms=search_phrase.split(' '), top=3)
+                            content = self.get_plain_text_from_xml(r.content)
+                            excerpts = highlight.highlight(content, terms=terms, analyzer=analyzer, fragmenter=fragmenter, formatter=formatter, top=3)
+                            print repr(excerpts)
+
+                        #fragmenter = highlight.ContextFragmenter(maxchars=100, surround=30)
+                        #highlighter = Highlighter(fragmenter=fragmenter)
+                        #highlighter.
+#                         from whoosh.highlight.Highlighter import highlight_hit
+#                         from whoosh.highlight import highlight
+#                         for r in ret:
+#                             r.snippet = highlight(r.content, terms=search_phrase.split(' '), top=3)
 
                 self.overview_records = ret
 

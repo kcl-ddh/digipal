@@ -4,7 +4,7 @@ from copy import deepcopy
 FACETED_SEARCH = {
     'fragments': {
         'overview':     {'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'page_sizes': [-1]},
-        'view_default': {'icon': 'th-list', 'label': 'List View', 'key': 'list'},
+        'view_default': {'icon': 'list', 'label': 'List View', 'key': 'list'},
 
         'field_mapping_empty': {None: 'unspecified', '': 'unspecified'},
     },
@@ -208,7 +208,7 @@ FACETED_SEARCH.update({
                                {'key': 'text_type', 'label': 'Text Type', 'path': 'text_content.type.name', 'search': True, 'viewable': True, 'type': 'code', 'count': True},
                                {'key': 'hi_date', 'label': 'MS Date', 'path': 'text_content.item_part.historical_item.get_date_sort', 'type': 'date', 'filter': True, 'viewable': True, 'search': True, 'id': 'hi_date', 'min': 500, 'max': 1300},
 
-                               {'key': 'text_content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
+                               {'key': 'content', 'label': 'Content', 'path': 'content', 'search': True, 'viewable': True, 'type': 'xml'},
 
                                {'key': 'PRIVATE', 'label': 'Private', 'path': 'is_private', 'type': 'boolean', 'search': True},
 
@@ -222,6 +222,10 @@ FACETED_SEARCH.update({
 #                     #'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'locus', 'hi_date'],
                     'sorted_fields': ['repo_city', 'repo_place', 'shelfmark', 'text_type'],
                     'column_order': ['url', 'repo_city', 'repo_place', 'shelfmark', 'text_type', 'hi_date'],
+                    'views': [
+                              get_fragment('view_default'),
+                              {'icon': 'th-list', 'label': 'Snippet View', 'key': 'snippet', 'template': 'list', 'params': {'snippets': 1}, 'type': 'snippets'},
+                              ],
                 },
 
                 {

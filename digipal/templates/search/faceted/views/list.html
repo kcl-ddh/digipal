@@ -46,6 +46,13 @@ Arguments:
                     {% endfor %}
                 </tr>
             {% endfor %}
+            {% if snippets and record.snippets %}
+                <tr>
+                    <td class="text" colspan="50">
+                        {{ record.snippets|safe }}
+                    </td>
+                </tr>
+            {% endif %}
         {% endfor %}
     {% endfilter %}
 </table>

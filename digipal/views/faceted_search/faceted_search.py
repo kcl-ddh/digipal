@@ -825,10 +825,11 @@ class FacetedModel(object):
                     view = self.get_selected_view()
                     if view and view.get('type', '') == 'snippets' and ret and hasattr(ret[0], 'content') and search_phrase:
                         print 'extract snippets'
-                        terms = search_phrase.split(' ')
+                        #terms = search_phrase.split(' ')
+                        terms = self.get_tokens_from_search_phrase(search_phrase)
                         for record in ret:
                             record.snippets = self.get_snippets_from_record(record, terms)
-                            print repr(record.snippets)
+                            #print repr(record.snippets)
 
                 self.overview_records = ret
 
@@ -836,24 +837,38 @@ class FacetedModel(object):
 
         return ret
     
-    def get_snippets_from_record(self, record, terms):
-        from whoosh import highlight
-        snippets_tools = getattr(self, 'snippets_tools', None)
-        if snippets_tools is None:
+    def get_snippets_tools(self):
+        if getattr(self, 'snippets_tools', None) is None:
             # TODO: get that from the existing field type function used for Whoosh schema creation
             from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer, CharsetFilter, RegexTokenizer
             from whoosh.support.charset import accent_map
+            from whoosh import highlight
             self.snippets_tools = {
                 'analyzer': StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map),
+                #'analyzer': StandardAnalyzer(minsize=2) | CharsetFilter(accent_map),
                 'fragmenter': highlight.ContextFragmenter(maxchars=200, surround=40),
-                'formatter': highlight.HtmlFormatter(between='</li><li>')
+                'formatter': highlight.HtmlFormatter(between=ur'</li><li>'),
+                'template': lambda excerpts: ur'<ul><li>%s</li></ul>' % excerpts
             }
+        return self.snippets_tools
+
+    def get_tokens_from_search_phrase(self, phrase):
+        tools = self.get_snippets_tools()
+        
+        # TODO: pre-process special contructs from the search phrase (e.g. content:word* AND)
+        ret = [token.text for token in tools['analyzer'](phrase)]
+        
+        return ret
+
+    def get_snippets_from_record(self, record, terms):
+        print terms
+        from whoosh import highlight
+        tools = self.get_snippets_tools()
         content = self.get_plain_text_from_xml(record.content)
-        excerpts = highlight.highlight(content, terms=terms, analyzer=self.snippets_tools['analyzer'], 
-                                       fragmenter=self.snippets_tools['fragmenter'], 
-                                       formatter=self.snippets_tools['formatter'], top=3)
+        excerpts = highlight.highlight(content, terms=terms, analyzer=tools['analyzer'], 
+            fragmenter=tools['fragmenter'], formatter=tools['formatter'], top=3)
         if excerpts:
-            excerpts = ur'<ul><li>%s</li></ul>' % excerpts
+            excerpts = tools['template'](excerpts)
         
         return excerpts
 

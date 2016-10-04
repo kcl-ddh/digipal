@@ -1,3 +1,37 @@
+. Export to TEI (MOA
+    . generate a list of all possible markup with example and source
+         1 [a href="#_ftn1" name="_ftnref1"] TCX #5 (IP #510)
+         1 [br /] TCX #108 (IP #248)
+        14 [em] TCX #351 (IP #127)
+       174 [p] TCX #84 (IP #238)
+       143 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="address"] TCX #84 (IP #238)
+         3 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="arenga"] TCX #128 (IP #263)
+        10 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="boundaries"] TCX #305 (IP #17)
+       147 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="disposition"] TCX #84 (IP #238)
+        35 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="holding"] TCX #84 (IP #238)
+         3 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="injunction"] TCX #363 (IP #339)
+        63 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="intitulatio"] TCX #84 (IP #238)
+         1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="malediction"] TCX #98 (IP #242)
+        11 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="narration"] TCX #351 (IP #127)
+        69 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="notification"] TCX #84 (IP #238)
+         1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="prohibition"] TCX #361 (IP #710)
+        83 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="salutation"] TCX #84 (IP #238)
+        20 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="sealing"] TCX #61 (IP #602)
+         1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="title"] TCX #276 (IP #5)
+         1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="undefined"] TCX #350 (IP #192)
+        13 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="warrandice"] TCX #305 (IP #17)
+       143 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="witnesses"] TCX #84 (IP #238)
+      1143 [span data-dpt="ex" data-dpt-cat="chars"] TCX #84 (IP #238)
+      1768 [span data-dpt="lb" data-dpt-cat="sep"] TCX #84 (IP #238)
+         5 [span data-dpt="location" data-dpt-loctype="locus"] TCX #84 (IP #238)
+        32 [span data-dpt="person" data-dpt-cat="chars" data-dpt-type="name"] TCX #61 (IP #602)
+        40 [span data-dpt="person" data-dpt-cat="chars" data-dpt-type="title"] TCX #61 (IP #602)
+        89 [span data-dpt="supplied" data-dpt-cat="chars"] TCX #10 (IP #598)
+    . for each one find a way to express it in TEI
+    . then test them all
+
+
+
 . word list
     . still special chars in the expanded text
     . <span data-dpt="abbr">collegert̃</span><span data-dpt="exp">colleger<i>un</i>t</span> <span data-dpt="abbr">geldũ</span><span data-dpt="exp">geldu<i>m</i></span>

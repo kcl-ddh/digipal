@@ -3,6 +3,7 @@ from django.conf import settings
 import re
 from optparse import make_option
 from digipal.utils import re_sub_fct, get_int
+from digipal_text.models import TextContentXML
 
 # Apply project specific patches
 try:
@@ -125,6 +126,10 @@ Commands:
             known_command = True
             self.command_fixids()
 
+        if command == 'stats':
+            known_command = True
+            self.command_stats()
+
 #         if self.is_dry_run():
 #             self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
 
@@ -137,7 +142,7 @@ Commands:
         from digipal_text.models import TextContentXML, TextAnnotation
         from digipal_text.views import viewer
         for tcx in TextContentXML.objects.filter(text_content__type__slug='transcription').order_by('id'):
-            #if tcx.text_content.item_part_id != 598: continue
+            # if tcx.text_content.item_part_id != 598: continue
 
             '''
             Before
@@ -152,7 +157,7 @@ Commands:
             import json
 
             elementss = []
-            #elementss.append([json.dumps(aid[0]) for aid in viewer.get_text_elements_from_content_bugged(content)])
+            # elementss.append([json.dumps(aid[0]) for aid in viewer.get_text_elements_from_content_bugged(content)])
             elementss.append([json.dumps(aid[0]) for aid in viewer.get_text_elements_from_content(content)])
 
             if len(elementss[0]) != len(elementss[1]):
@@ -161,7 +166,7 @@ Commands:
             for i in range(len(elementss[0])):
                 if elementss[0][i] != elementss[1][i]:
                     pass
-                    #print u'\t%s <> %s' % (elementss[0][i], elementss[1][i])
+                    # print u'\t%s <> %s' % (elementss[0][i], elementss[1][i])
 
             # get elements from TI annotation
             tas = TextAnnotation.objects.filter(annotation__image__item_part_id=tcx.text_content.item_part_id)
@@ -215,17 +220,17 @@ Commands:
         if ret is None:
             ret = u''
 
-        #ret = regex.sub(ur'(?musi)<span data-dpt="abbr">.*?</span>(<span data-dpt="exp">)', ur'\1', ret)
+        # ret = regex.sub(ur'(?musi)<span data-dpt="abbr">.*?</span>(<span data-dpt="exp">)', ur'\1', ret)
 
-        #ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="su[pb]">(.*?)</span>', ur'\1', ret)
-        #ret = regex.sub(ur'(?musi)<i>(.*?)</i>', ur'\1', ret)
+        # ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="su[pb]">(.*?)</span>', ur'\1', ret)
+        # ret = regex.sub(ur'(?musi)<i>(.*?)</i>', ur'\1', ret)
 
-        #print repr(ret)
+        # print repr(ret)
 
 #         for it in regex.findall('<span data-dpt="hi" data-dpt-rend="su[pb]">.*?</span>', ret):
 #             print repr(it)
 
-        #for it in regex.findall(ur'(?musi)qu[i1][i1]', ret):
+        # for it in regex.findall(ur'(?musi)qu[i1][i1]', ret):
         #    print repr(it)
         if 0:
             ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sup">([^<]+)</span>', ur'<sup>\1</sup>', ret)
@@ -235,11 +240,27 @@ Commands:
             ret = regex.sub(ur'(?musi)<span data-dpt="abbr">(.*?)</span>', ur'<abbr>\1</abbr>', ret)
             ret = regex.sub(ur'(?musi)<span data-dpt="exp">(.*?)</span>', ur'<exp>\1</exp>', ret)
 
-        #print repr(ret)
+        # print repr(ret)
         file_name = 'tcx%s.xml' % text_content_xml.id
         from digipal.utils import write_file
         write_file(file_name, ret)
         print 'Written file %s ' % file_name
+
+    def command_stats(self):
+        if len(self.args) < 2:
+            raise CommandError('Convert requires 1 arguments')
+
+        from digipal.management.commands.utils import get_stats_from_xml_string
+
+        stats = {}
+        for tcx in TextContentXML.objects.filter(text_content__type__slug=self.args[1]):
+            xml_string = tcx.content
+            if xml_string:
+                get_stats_from_xml_string(xml_string, 'TCX #%s (IP #%s)' % (tcx.id, tcx.text_content.item_part_id), stats)
+            #break
+
+        for tag in sorted(stats.keys()):
+            print '%10d [%s] %s' % (stats[tag]['count'], tag, stats[tag]['text'])
 
 
     def command_upload(self):
@@ -289,7 +310,7 @@ Commands:
         content = re.sub(ur'(?musi)^.*?>(.*)<.*?$', ur'\1', content)
 
         # IV convert the xml tags and attribute to HTML-TEI
-        #content = self.get_xhtml_from_xml(content)
+        # content = self.get_xhtml_from_xml(content)
 
         # save the content into the TextContentXML record
         tcx.content = content
@@ -339,7 +360,7 @@ Commands:
                 ret += ' ' + attrs
             ret += match.group(4)
 
-            #print '', ret
+            # print '', ret
 
             self.conversion_cache[match.group(0)] = ret
 
@@ -357,8 +378,8 @@ Commands:
             return default
 
     def command_unit(self):
-        #from digipal_text.models import TextUnit
-        #rs = TextUnit.objects
+        # from digipal_text.models import TextUnit
+        # rs = TextUnit.objects
         from digipal_text.models import TextContentXML
         from digipal_text.views.viewer import get_fragment_extent, get_all_units
         rid = self.get_arg(1)
@@ -380,7 +401,7 @@ Commands:
                         print repr(unit['content'])
 
             print '%s units' % len(units)
-            #fragment = get_fragment_extent(ctx.content, self.args[2], self.args[3])
+            # fragment = get_fragment_extent(ctx.content, self.args[2], self.args[3])
 
     def get_friendly_datetime(self, dtime):
         return re.sub(ur'\..*', '', unicode(dtime))
@@ -406,9 +427,9 @@ Commands:
 
                 content_xml.convert()
 
-                #versions.append(content_xml.content)
+                # versions.append(content_xml.content)
 
-                #print repr(content_xml.content)
+                # print repr(content_xml.content)
 
                 # 1a
                 # 1b
@@ -518,10 +539,10 @@ Commands:
                 lo = parts.group(1)
                 lon = lo
                 if parts.group(2) == 'b':
-                    lon = u'%sr' % (int(lo)+1, )
+                    lon = u'%sr' % (int(lo) + 1,)
                     lo += 'v'
                 else:
-                    lon = lo+'v'
+                    lon = lo + 'v'
                     lo += 'r'
 
                 print '%s ("%s")' % (lo, locus)

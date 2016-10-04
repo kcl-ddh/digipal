@@ -491,7 +491,7 @@ def get_xml_element_text(element):
 
     return ''.join(element.itertext())
 
-def get_xslt_transform(source, template, error=None):
+def get_xslt_transform(source, template, error=None, remove_empty_xmlns=False):
     dom = get_xml_from_unicode(source)
     xslt = get_xml_from_unicode(template)
     transform = ET.XSLT(xslt)

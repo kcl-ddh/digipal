@@ -8,6 +8,7 @@ from django.db import transaction
 from digipal import utils
 from django.utils.datastructures import SortedDict
 from django.conf import settings
+from digipal import utils as dputils
 import json
 
 import logging
@@ -74,7 +75,7 @@ def get_address_from_sub_location(sub_location):
 
 def text_api_view(request, item_partid, content_type, location_type=u'default', location=''):
 
-    format = request.REQUEST.get('format', 'html')
+    format = request.REQUEST.get('format', 'html').strip().lower()
     if request.is_ajax(): format = 'json'
 
     from digipal.utils import is_model_visible
@@ -122,7 +123,7 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     ret = None
 
     if format == 'json':
-        ret = HttpResponse(json.dumps(response), mimetype='application/json')
+        ret = HttpResponse(json.dumps(response), content_type='application/json')
 
     if format == 'html':
         context = {'response': response}
@@ -130,8 +131,38 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
         context['content_type_key'] = content_type
         ret = render(request, 'digipal_text/text_view.html', context)
 
+    if format == 'tei':
+        tei = get_tei_from_text_response(response)
+        ret = HttpResponse(tei, content_type='text/plain; charset=utf-8')
+
     if not ret:
         raise Exception('Unknown output format: "%s"' % format)
+
+    return ret
+
+def get_tei_from_text_response(response):
+    ret = response.get('content', '')
+
+    # decode entities (e.g. &rsquo;)
+    # TODO: make sure we keep core XML entities otherwise it may cause
+    # parsing errors down the line
+    from HTMLParser import HTMLParser
+    parser = HTMLParser()
+    ret = parser.unescape(ret)
+
+    # convert to XML object
+    #xml = dputils.get_xml_from_unicode(ret, ishtml=True, add_root=True)
+
+    #
+    print ret
+    from django.template.loader import render_to_string
+    template = render_to_string('digipal_text/tei_from_xhtml.xslt', {})
+    ret = dputils.get_xslt_transform('<root>%s</root>' % ret, template)
+
+    ret = dputils.get_unicode_from_xml(xmltree=ret).replace('xmlns=""', '')
+
+    # convert XML to string
+    #ret = dputils.get_unicode_from_xml(xml, remove_root=True)
 
     return ret
 
@@ -796,7 +827,6 @@ def get_elementid_from_xml_element(element, idcount, as_string=False):
         parts = None
 
     if parts:
-        from digipal import utils as dputils
         order = dputils.inc_counter(idcount, repr(parts))
         if order > 1:
             # add (u'@o', u'2') if it is the 2nd occurence of this elementid

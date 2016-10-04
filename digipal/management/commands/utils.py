@@ -2,6 +2,36 @@ from django.conf import settings
 from digipal import utils as dputils
 import urllib2
 
+def get_stats_from_xml_string(xml_string, text_label='', stats=None):
+#     print 'Count - Tag'
+#     print
+
+    els = {}
+    if stats is not None:
+        els = stats
+
+    import regex as re
+
+#     elements = re.findall(ur'<(\w+)', xml_string)
+#     for el in set(elements):
+#         print '%8d %s' % (elements.count(el), el)
+
+#     print
+#     print 'Unique tag-attributes'
+#     print
+    elements = re.findall(ur'<([^/!?>][^>]*)>', xml_string)
+    for el in elements:
+        el = el.strip()
+        if el not in els:
+            els[el] = {'text': text_label, 'count': 1}
+        else:
+            els[el]['count'] += 1
+
+    return els
+
+#     for el in sorted(els):
+#         print el
+
 def fix_sequences(db_alias, silent=False):
     ret = 0
 

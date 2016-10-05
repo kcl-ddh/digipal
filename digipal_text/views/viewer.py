@@ -132,15 +132,15 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
         ret = render(request, 'digipal_text/text_view.html', context)
 
     if format == 'tei':
-        tei = get_tei_from_text_response(response)
-        ret = HttpResponse(tei, content_type='text/plain; charset=utf-8')
+        tei = get_tei_from_text_response(response, item_partid, content_type)
+        ret = HttpResponse(tei, content_type='text/xml; charset=utf-8')
 
     if not ret:
         raise Exception('Unknown output format: "%s"' % format)
 
     return ret
 
-def get_tei_from_text_response(response):
+def get_tei_from_text_response(response, item_partid, content_type):
     ret = response.get('content', '')
 
     # decode entities (e.g. &rsquo;)
@@ -149,14 +149,36 @@ def get_tei_from_text_response(response):
     from HTMLParser import HTMLParser
     parser = HTMLParser()
     ret = parser.unescape(ret)
+    # convert & back to &amp; to keep XML well-formed
+    ret = ret.replace(u'&', u'&amp;')
 
     # convert to XML object
     #xml = dputils.get_xml_from_unicode(ret, ishtml=True, add_root=True)
+    #print repr(response)
+    from digipal.models import ItemPart
+    itempart = ItemPart.objects.filter(id=item_partid).first()
+
+    tcx = TextContentXML.objects.filter(text_content__type__slug='translation', text_content__item_part__id=item_partid).first()
 
     #
-    print ret
+    #print ret
     from django.template.loader import render_to_string
-    template = render_to_string('digipal_text/tei_from_xhtml.xslt', {})
+    context = {
+        'meta': {
+            'title': '%s of %s' % (content_type.title(), itempart),
+            'ms': {
+                'place': itempart.current_item.repository.place.name,
+                'repository': itempart.current_item.repository.name,
+                'shelfmark': itempart.current_item.shelfmark,
+            },
+            'edition': {
+                'date': tcx.modified
+            },
+            'project': settings.SITE_TITLE,
+            'authority': settings.SITE_TITLE,
+        },
+    }
+    template = render_to_string('digipal_text/tei_from_xhtml.xslt', context)
     ret = dputils.get_xslt_transform('<root>%s</root>' % ret, template)
 
     ret = dputils.get_unicode_from_xml(xmltree=ret).replace('xmlns=""', '')
@@ -375,7 +397,6 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
                 ret['message'] = 'Content backed up'
 
             # save the new content
-            # TODO: UNCOMMENT!!!!!!!!!!!!!!!!!!!!!!!!!!
             if not dry_run:
                 text_content_xml.save()
 

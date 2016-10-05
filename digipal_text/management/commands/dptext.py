@@ -46,6 +46,10 @@ Commands:
   fixids
             See MOA-247 + 260: convert the wrong markup ids
             to the correct ones. For all texts.
+
+  stats CONTENT_TYPE
+            Returns number of XML tags and attributes used in all the text of type
+            CONTENT_TYPE (e.g. translation)
 """
 
     args = 'reformat|importtags'

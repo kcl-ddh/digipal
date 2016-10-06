@@ -3,7 +3,7 @@
 
 /**
  * Extension of ol.interaction.Draw
- * with awareness of wether the drawing operation is started.
+ * with awareness of whether the drawing operation is started.
  */
 class Draw extends ol.interaction.Draw {
     started = false;
@@ -12,11 +12,11 @@ class Draw extends ol.interaction.Draw {
         super(options);
 
         // draw is a reference to ol.interaction.Draw
-        this.on('drawstart', function(evt){
+        this.on('drawstart', function(evt) {
             this.started = true;
         });
 
-        this.on('drawend', function(evt){
+        this.on('drawend', function(evt) {
             this.started = false;
         });
     }
@@ -47,12 +47,12 @@ class Select extends ol.interaction.Select {
     layerHover: ol.layer.Vector = null;
 
     constructor(options?: olx.interaction.SelectOptions, vectorLayer?: ol.layer.Vector, map?: ol.Map) {
-//        options.filter = (feature: ol.Feature, layer: ol.layer.Layer) => {
-//            console.log('--------');
-//            console.log(feature);
-//            console.log(layer);
-//            return !!layer;
-//        };
+        //        options.filter = (feature: ol.Feature, layer: ol.layer.Layer) => {
+        //            console.log('--------');
+        //            console.log(feature);
+        //            console.log(layer);
+        //            return !!layer;
+        //        };
         super(options);
 
         var sourceHover = new ol.source.Vector({});
@@ -65,7 +65,7 @@ class Select extends ol.interaction.Select {
                 width: 2
             })
         });
-        this.layerHover = new ol.layer.Vector({source: sourceHover});
+        this.layerHover = new ol.layer.Vector({ source: sourceHover });
         this.layerHover.setStyle(styleHover);
         map.addLayer(this.layerHover);
         this.layerHover['setZIndex'](10);
@@ -128,7 +128,7 @@ class Select extends ol.interaction.Select {
         var coordinates = map.getCoordinateFromPixel(pixel);
         this.vectorLayer.getSource()['forEachFeatureAtCoordinateDirect'](coordinates, function(feature) {
             var extent = feature.getGeometry().getExtent();
-            var size = Math.abs(extent[2]-extent[0])*Math.abs(extent[3]-extent[1]);
+            var size = Math.abs(extent[2] - extent[0]) * Math.abs(extent[3] - extent[1]);
             if (!bestSize || bestSize > size) {
                 bestSize = size;
                 ret = feature;
@@ -153,20 +153,17 @@ class Select extends ol.interaction.Select {
         */
         var feature = this.findSmallestFeatureAtPixel(mapBrowserEvent.pixel, mapBrowserEvent.map);
 
-        this.layerHover.getSource()['getFeatures']().map((afeature) => {
-            this.layerHover.getSource()['removeFeature'](afeature);
-        });
+        this.layerHover.getSource()['clear']();
 
-        if (feature) {
-            this.layerHover.getSource()['addFeature'](feature);
-        }
-        window['goog'].events.dispatchEvent(this, {type: 'hover', feature: feature});
+        if (feature) this.layerHover.getSource()['addFeature'](feature);
+
+        this['dispatchEvent']({ type: 'hover', feature: feature });
     }
 
-     /**
-     * Remove selected features from the Vector layer
-     * Clear the selection
-     */
+    /**
+    * Remove selected features from the Vector layer
+    * Clear the selection
+    */
     removeFeatures(source: ol.source.Vector): void {
         var features = this.getFeatures();
 
@@ -180,6 +177,7 @@ class Select extends ol.interaction.Select {
 }
 
 class AOL3Interactions {
+
     controler: ol.interaction.Interaction;
     draw: Draw;
     select: Select;
@@ -201,7 +199,7 @@ class AOL3Interactions {
      * @param {string} key: the key of the interaction to switch to
      */
     switch(key: string) {
-        var alternatives = {'select': 'draw', 'draw': 'select'};
+        var alternatives = { 'select': 'draw', 'draw': 'select' };
         var alt = alternatives[key];
         if (this.setActive(key, true) && alt) {
             this.setActive(alt, false);
@@ -223,7 +221,7 @@ class AnnotatorOL3 {
     //
     interactions: AOL3Interactions = new AOL3Interactions();
     // events
-    events = {startDrawing: null, stopDrawing: null};
+    //events = { startDrawing: null, stopDrawing: null };
     //
     lastDrawnFeature: ol.Feature;
     //
@@ -242,7 +240,7 @@ class AnnotatorOL3 {
 
     addAnnotationLayer(): void {
         // create layer
-        this.source = new ol.source.Vector({wrapX: false});
+        this.source = new ol.source.Vector({ wrapX: false });
 
         this.layer = new ol.layer.Vector({
             source: this.source,
@@ -263,43 +261,44 @@ class AnnotatorOL3 {
 
     initInteractionSelector(): void {
 
-        var options = {handleEvent: (e: ol.MapBrowserEvent): boolean => {
-            var ctrl = e.originalEvent['ctrlKey'] || e.originalEvent['metaKey'];
-            var type = e['type'];
-            //var key = e['browserEvent']['keyCode'];
-            var key = e.originalEvent['keyCode'] || 0;
+        var options = {
+            handleEvent: (e: ol.MapBrowserEvent): boolean => {
+                var ctrl = e.originalEvent['ctrlKey'] || e.originalEvent['metaKey'];
+                var type = e['type'];
+                var key = e.originalEvent['keyCode'] || 0;
 
-            if (!((type === 'pointermove') ||
-                (type === 'key' && ctrl))) {
-                //console.log('> ' + type + ' <------------------');
-                //console.log(e);
-            }
-
-            // CTRL + pointerdown
-            if (type === 'pointerdown') {
-                if (ctrl && !this.isDrawing()) {
-                    //console.log('CTRL-CLICK ACTIVATE DRAW');
-                    this.interactions.switch('draw');
+                if (!((type === 'pointermove') ||
+                    (type === 'key' && ctrl))) {
+                    //console.log('> ' + type + ' <------------------');
+                    //console.log(e);
                 }
-            }
 
-            if (type === 'key') {
-                if (this.isDrawing()) {
-                    // DEL / ESC
-                    if ((key === 46) || (key === 27)) {
-                        // abort drawing
-                        this.interactions.switch('select');
-                    }
-                } else {
-                    // DEL remove feature
-                    if (key === 46) {
-                        this.removeSelectedFeatures();
+                // CTRL + pointerdown
+                if (type === 'pointerdown') {
+                    if (ctrl && !this.isDrawing()) {
+                        //console.log('CTRL-CLICK ACTIVATE DRAW');
+                        this.interactions.switch('draw');
                     }
                 }
-            }
 
-            return true;
-        }};
+                if (type === 'key') {
+                    if (this.isDrawing()) {
+                        // DEL / ESC
+                        if ((key === 46) || (key === 27)) {
+                            // abort drawing
+                            this.interactions.switch('select');
+                        }
+                    } else {
+                        // DEL remove feature
+                        if (key === 46) {
+                            this.removeSelectedFeatures();
+                        }
+                    }
+                }
+
+                return true;
+            }
+        };
         var interaction = new ol.interaction.Interaction(options);
 
         this.interactions.setInteraction('controller', interaction, this.map);
@@ -313,10 +312,6 @@ class AnnotatorOL3 {
         var features_deleted = features.getArray().map((v) => v);
 
         this.interactions.select.removeFeatures(this.source);
-
-//        // fire deleted event
-//        var e = {type: 'deleted', features: features_deleted};
-//        features['dispatchEvent'](e);
     }
 
     isDrawing(): boolean {
@@ -357,21 +352,9 @@ class AnnotatorOL3 {
                 this.lastDrawnFeature = null;
             }
 
-            //console.log('SELECT '+e['type']);
-            var features = this.getSelectedFeatures();
-            if (features.getLength() > 0) {
-                this.showFeatureInfo(features.item(0));
-            } else {
-                //console.log('No feature selected');
-            }
-            //console.log(e);
         });
 
         this.interactions.setInteraction('select', interaction, this.map);
-    }
-
-    showFeatureInfo(feature: ol.Feature): void {
-        //console.log(feature.getId() + ': ' + feature.getGeometry().getExtent().join(','));
     }
 
     initDraw(): void {
@@ -462,7 +445,7 @@ class AnnotatorOL3 {
     }
 
     getGeoJSONFromFeature(feature?: ol.Feature): string {
-        return (new ol.format.GeoJSON()).writeFeature(feature, {featureProjection: this.getProjection()});
+        return (new ol.format.GeoJSON()).writeFeature(feature, { featureProjection: this.getProjection() });
     }
 
     selectFeature(feature?: ol.Feature): void {
@@ -488,16 +471,16 @@ class AnnotatorOL3 {
     }
 
     addAnnotations(annotations?: Array<any>): void {
-        var geojsonObject  = {
+        var geojsonObject = {
             'type': 'FeatureCollection',
             'crs': {
                 'type': 'name',
                 'properties': {
                 }
             },
-            'features': annotations.map((v) => {return v.geojson})
+            'features': annotations.map((v) => { return v.geojson })
         };
-        var features = (new ol.format.GeoJSON()).readFeatures(JSON.stringify(geojsonObject), {featureProjection: this.getProjection()});
+        var features = (new ol.format.GeoJSON()).readFeatures(JSON.stringify(geojsonObject), { featureProjection: this.getProjection() });
         this.source.addFeatures(features);
     }
 
@@ -508,20 +491,20 @@ class AnnotatorOL3 {
      */
     addListener(listener): void {
         var features = this.getSelectedFeatures();
-        features.on('add', () => {var e = {annotator: this, action: 'select'}; listener(e);});
-        features.on('remove', () => {var e = {annotator: this, action: 'unselect'}; listener(e);});
+        features.on('add', () => { var e = { annotator: this, action: 'select' }; listener(e); });
+        features.on('remove', () => { var e = { annotator: this, action: 'unselect' }; listener(e); });
 
-        window['goog'].events.listen(this.interactions.select, 'hover', (event) => {var e = {annotator: this, action: 'hover', features: [event['feature']]}; listener(e);}, true, listener);
+        this.interactions.select['on']('hover', (event) => { var e = { annotator: this, action: 'hover', features: [event['feature']] }; listener(e); });
 
         //features.on('deleted', (event) => {var e = {annotator: this, action: 'deleted', features: event['features']}; listener(e);});
-        this.source['on']('changefeature', (event) => {var e = {annotator: this, action: 'changed', features: [event['feature']]}; listener(e);});
-        this.source['on']('removefeature', (event) => {var e = {annotator: this, action: 'deleted', features: [event['feature']]}; listener(e);});
+        this.source['on']('changefeature', (event) => { var e = { annotator: this, action: 'changed', features: [event['feature']] }; listener(e); });
+        this.source['on']('removefeature', (event) => { var e = { annotator: this, action: 'deleted', features: [event['feature']] }; listener(e); });
 
-        var e = {annotator: this, action: 'init'};
+        var e = { annotator: this, action: 'init' };
         listener(e);
     }
 
-    getStyles(part?:string): ol.style.Style {
+    getStyles(part?: string): ol.style.Style {
         var ret: ol.style.Style = null;
 
         if (part === 'select') {
@@ -550,17 +533,17 @@ class AnnotatorOL3 {
         } else {
             ret = new ol.style.Style({
                 fill: new ol.style.Fill({
-                  color: 'rgba(255, 255, 255, 0.07)'
+                    color: 'rgba(255, 255, 255, 0.07)'
                 }),
                 stroke: new ol.style.Stroke({
-                  color: '#ffcc33',
-                  width: 2
+                    color: '#ffcc33',
+                    width: 2
                 }),
                 image: new ol.style.Circle({
-                  radius: 7,
-                  fill: new ol.style.Fill({
-                    color: '#ffcc33'
-                  })
+                    radius: 7,
+                    fill: new ol.style.Fill({
+                        color: '#ffcc33'
+                    })
                 })
             });
         }
@@ -573,11 +556,11 @@ class AnnotatorOL3 {
 var example_link_in_geojson = [
     [["", "clause"], ["type", "address"]], // deprecated
     {
-        "type":"Feature",
+        "type": "Feature",
         id: 101, // DB: Annotation.id
         "geometry": {
-            "type":"Polygon",
-            "coordinates":[[[270,-1632],[270,-984],[3006,-984],[3006,-1632],[270,-1632]]],
+            "type": "Polygon",
+            "coordinates": [[[270, -1632], [270, -984], [3006, -984], [3006, -1632], [270, -1632]]],
             "properties": {
                 elementid: [["", "clause"], ["type", "address"]], // DB: TextAnnotation.elementid
                 clientid: '3812738127319:1223', // DB: TextAnnotation.clientid

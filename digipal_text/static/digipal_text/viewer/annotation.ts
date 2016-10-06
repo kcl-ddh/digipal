@@ -76,9 +76,9 @@ class Select extends ol.interaction.Select {
         map.addLayer(this.layerHover);
         this.layerHover['setZIndex'](10);
 
-        this.handleEventDefault = this.handleEvent;
+        this.handleEventDefault = this['handleEvent'];
         this.vectorLayer = vectorLayer;
-        this.handleEvent = (mapBrowserEvent: ol.MapBrowserEvent) => {
+        this['handleEvent'] = (mapBrowserEvent: ol.MapBrowserEvent) => {
             /*
                 HACK
 
@@ -95,7 +95,7 @@ class Select extends ol.interaction.Select {
                 work. Not entirely sure why, perhaps b/c replay drawing history
                 to detect hit. (this.getFeatures().clear())
             */
-            var overlay = this.featureOverlay_;
+            var overlay = this['featureOverlay_'];
             var processEvent = this['condition_'](mapBrowserEvent);
             var layerState = null;
 
@@ -310,14 +310,14 @@ class AnnotatorOL3 {
                 }
 
                 // CTRL + pointerdown
-                if (type === 'pointerdown') {
+                if (type === ol.events['EventType'].POINTERDOWN) {
                     if (ctrl && !this.isDrawing()) {
                         //console.log('CTRL-CLICK ACTIVATE DRAW');
                         this.interactions.switch('draw');
                     }
                 }
 
-                if (type === 'key') {
+                if (type === ol.events['EventType'].KEYDOWN) {
                     if (this.isDrawing()) {
                         // DEL / ESC
                         if ((key === 46) || (key === 27)) {
@@ -481,7 +481,13 @@ class AnnotatorOL3 {
     }
 
     getGeoJSONFromFeature(feature?: ol.Feature): string {
-        return (new ol.format.GeoJSON()).writeFeature(feature, { featureProjection: this.getProjection() });
+        var options = {
+            //dataProjection: this.getProjection(),
+            // TODO: check if correct
+            dataProjection: null,
+            featureProjection: this.getProjection()
+        };
+        return (new ol.format.GeoJSON()).writeFeature(feature, options);
     }
 
     selectFeature(feature?: ol.Feature): void {
@@ -516,7 +522,13 @@ class AnnotatorOL3 {
             },
             'features': annotations.map((v) => { return v.geojson })
         };
-        var features = (new ol.format.GeoJSON()).readFeatures(JSON.stringify(geojsonObject), { featureProjection: this.getProjection() });
+        var options = {
+            //dataProjection: this.getProjection(),
+            // TODO: check if correct
+            dataProjection: null,
+            featureProjection: this.getProjection()
+        };
+        var features = (new ol.format.GeoJSON()).readFeatures(JSON.stringify(geojsonObject), options);
         this.source.addFeatures(features);
     }
 

@@ -37,6 +37,12 @@ class Draw extends ol.interaction.Draw {
 
 }
 
+/**
+ * Extension of ol.interaction.Select
+ * - with some helper functions
+ * - and a way to find the smallest feature under the cursor
+ * - also dispatch 'hover' event for such feature
+ */
 class Select extends ol.interaction.Select {
 
     handleEventDefault = null;
@@ -176,11 +182,19 @@ class Select extends ol.interaction.Select {
 
 }
 
+class Translate extends ol.interaction.Translate {
+    
+}
+
+/**
+ * An dynamic collection of interaction on a map
+ */
 class AOL3Interactions {
 
     controler: ol.interaction.Interaction;
     draw: Draw;
     select: Select;
+    translate: Translate;
 
     setInteraction(key: string, interaction: ol.interaction.Interaction, map: ol.Map) {
         if (this[key]) map.removeInteraction(interaction);
@@ -199,11 +213,28 @@ class AOL3Interactions {
      * @param {string} key: the key of the interaction to switch to
      */
     switch(key: string) {
-        var alternatives = { 'select': 'draw', 'draw': 'select' };
-        var alt = alternatives[key];
-        if (this.setActive(key, true) && alt) {
-            this.setActive(alt, false);
+        var groups = { 
+            'select': ['select', 'translate'], 
+            'draw': ['draw'] 
+        };
+        for (var member in this) {
+            if ((member != 'controller') && (this[member] instanceof ol.interaction.Interaction)) {
+                this.setActive(member, groups[key].indexOf(member) > -1);
+            } 
         }
+//        var alternatives = { 
+//            'select': ['draw'], 
+//            'draw': ['select', 'translate'] 
+//        };
+//        for (member in this) {
+//            if ((member != 'controller') && (this[member] instanceof ol.interaction.Interaction)) {
+//                this.setActive(member, member == key);
+//            } 
+//        }
+//        var alt = alternatives[key];
+//        if (this.setActive(key, true) && alt) {
+//            this.setActive(alt, false);
+//        }
     }
 
     isDrawing(): boolean {
@@ -259,6 +290,11 @@ class AnnotatorOL3 {
         this.initInteractionSelector();
     }
 
+    /*
+    * Add a new custom interaction that selects which interaction to enable
+    * based on the user action (mouse and keyboard) as well as the currently
+    * selected interaction.
+    */
     initInteractionSelector(): void {
 
         var options = {

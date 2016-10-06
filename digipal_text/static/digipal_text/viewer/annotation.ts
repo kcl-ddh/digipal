@@ -285,9 +285,17 @@ class AnnotatorOL3 {
         // Interactions are processed in reverse order:
         if (this.canEdit) this.initDraw();
         this.initSelect();
+        if (this.canEdit) this.initTranslation();
         // Selector BEFORE draw and select
         // so we can chose which one handle the current event
         this.initInteractionSelector();
+    }
+    
+    initTranslation(): void {
+        var options = { features: this.interactions.select.getFeatures() };
+        var translate = new Translate(options);
+
+        this.interactions.setInteraction('translation', translate, this.map);
     }
 
     /*

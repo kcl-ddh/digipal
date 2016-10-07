@@ -1,41 +1,13 @@
-. Export to TEI (MOA
-    DONE 1 Transcription
-    DONE 2 Translation
-    3 Customisation per content_type
-    4 Documentation
-    5 Check if valid TEI against DTD
-    . generate a list of all possible markup with example and source
-         ()1 [a href="#_ftn1" name="_ftnref1"] TCX #5 (IP #510)
-         ()1 [br /] TCX #108 (IP #248)
-        -14 [em] TCX #351 (IP #127)
-       -174 [p] TCX #84 (IP #238)
-       -143 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="address"] TCX #84 (IP #238)
-         -3 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="arenga"] TCX #128 (IP #263)
-        -10 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="boundaries"] TCX #305 (IP #17)
-       -147 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="disposition"] TCX #84 (IP #238)
-        -35 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="holding"] TCX #84 (IP #238)
-         -3 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="injunction"] TCX #363 (IP #339)
-        -63 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="intitulatio"] TCX #84 (IP #238)
-         -1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="malediction"] TCX #98 (IP #242)
-        -11 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="narration"] TCX #351 (IP #127)
-        -69 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="notification"] TCX #84 (IP #238)
-         -1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="prohibition"] TCX #361 (IP #710)
-        -83 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="salutation"] TCX #84 (IP #238)
-        -20 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="sealing"] TCX #61 (IP #602)
-         -1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="title"] TCX #276 (IP #5)
-         -1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="undefined"] TCX #350 (IP #192)
-        -13 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="warrandice"] TCX #305 (IP #17)
-       -143 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="witnesses"] TCX #84 (IP #238)
-      -1143 [span data-dpt="ex" data-dpt-cat="chars"] TCX #84 (IP #238)
-      -1768 [span data-dpt="lb" data-dpt-cat="sep"] TCX #84 (IP #238)
-         -5 [span data-dpt="location" data-dpt-loctype="locus"] TCX #84 (IP #238)
-        -32 [span data-dpt="person" data-dpt-cat="chars" data-dpt-type="name"] TCX #61 (IP #602)
-        -40 [span data-dpt="person" data-dpt-cat="chars" data-dpt-type="title"] TCX #61 (IP #602)
-        -89 [span data-dpt="supplied" data-dpt-cat="chars"] TCX #10 (IP #598)
-    . for each one find a way to express it in TEI
-    . then test them all
-
-
+. let the user resize and move the annotations on the Text Editor
+    [DONE] Had to upgrade OL3 to latest version (3.18.2) to make use of Translate interaction
+    . Impossible to select annotation nested inside the currently selected one (caused by OL3 upgrade)
+    [DONE] The drawing interaction is broken
+    . Add a Translation interaction
+        . Basic interaction
+        . Only one save: at the end of the translation, not many times while the shape is draged around
+    . Add a Modify interaction
+        . It has to preserve the rectangular shape and prevent the creation of new vertices.
+    . Add an editing mode to the image panel, similar to the editing mode on the text panel. This is to avoid accidental changes to the annotations.
 
 . word list
     . still special chars in the expanded text
@@ -46,11 +18,11 @@
         . why is it encoded like that
 
 
-. annotations with different coordinate systems
-    . change the OL3 coordinates to be compatible with OL2
-    . data migration script to convert existing OL3 annotation to new system
-    . hide text annotations from annotator
-    . hide graph annotations from text viewer
+[DONE]. annotations with different coordinate systems
+    [DONE] change the OL3 coordinates to be compatible with OL2
+    [DONE] data migration script to convert existing OL3 annotation to new system
+    [DONE] hide text annotations from annotator
+    [DONE] hide graph annotations from text viewer
 
     . e.g.
         . http://localhost:8080/digipal/page/3200/
@@ -162,36 +134,6 @@ http://localhost:8080/digipal/manuscripts/650/texts/view/?above=location/face/;s
 
 
 
-http://localhost:8080/digipal/search/facets/?repo_city=Edinburgh
-&q3_vcat=hi_type
-&q2_vz_gs=40
-&pgs=-1
-&vcat=hi_type
-&vz_bh=18
-&q3_vz_gs=40
-&q3_terms=scia%2A
-&q3_view=overview
-&q2_terms=scia%2A
-&q2___Redraw=Redraw
-&q2_wr=0
-&q3_result_type=texts
-&terms=scia%2A
-&q3___Redraw=Redraw
-&q2_view=overview
-&q2_vz_bh=18
-&q2_result_type=texts
-&vz_gs=40
-&wr=0
-&q2_vcat=hi_type
-&q3_wr=0
-&page=1
-&q2_pgs=-1
-&q3_pgs=-1
-&q3_vz_bh=18
-&result_type=texts
-&view=overview
-
-
 https://confluence.dighum.kcl.ac.uk/display/MOA/2016-02-17+PAS,+GN+and+SJB
 
 Add clause facets to text
@@ -254,12 +196,8 @@ be presented for initial feedback to the Glasgow team on Monday 6 June at 2pm.
     presented above the barcode, and in a rough chronological sequence. The
     thumbnail would highlight the bar in the charter when you hover over it.
 
-GN: make it more obvious how to arrange graph thumbnails by date in the grid view.
 GN: in the table view, add a ‘clause type’ column so that you can arrange results by clause type.
-GN: make default image search display ‘faces’ only.
-GN: create new ‘issuer’ categories (royal, episcopal, papal, other ecclesiastical, private).
 GN: add date and summary of each MS to the image page below the shelf mark.
-GN: experiment with different ways of presenting the bars in the bar code.
 
 --
 
@@ -281,58 +219,6 @@ Requests from the project team:
     When searching for graphs the links to document images highlights random letters, and not the ones searched for.
     How will combined searches for graphs be displayed? At the moment only one thumbnail per document is visible.
     Add reset button.
-
---
-6/4
-
-IAG (Joanna's notes)
-
-GN: separate transl/transc
-
-GN: Make italics (i.e. expansions) visible when displaying transcriptions in
-    table view.
-    RS: It is useful (for comparison with English charters) to be able to see
-    whether titles are written out in full or abbreviated (e.g. vic’,
-    vicec’, justic’). SB showed how this can be done by searching for, e.g.,
-    vic*. However, table view of transcriptions should show the italics
-    (i.e. expansions).
-
-GN: Explore whether thumbnails of ‘graphs’ can be presented by charter in the grid view.
-
-    Can the thumbnails of ‘graphs’ be presented by charter in the grid view? PS explained
-    that they are grouped by charter in ‘My Collection’.
-
-GN: Experiment with how best to present documents in the bar code (in particular,
-    to make the dated documents more prominent).
-
-    In the top part at the moment, the bars which represent documents give
-    prominence to those with less precise dates (compared to the precisely dated
-     charters which are given much less prominence). Could a filter be added to
-     give the option of only searching for documents which have a relatively
-     precise date (e.g. within a year)? These results could then be compared
-     with the undated documents. MH: Perhaps the large date ranges could be
-     presented as a line, rather than a block to gives less weight to them
-     (and also to save space)? SB: We could add ‘hatching’ to the undated
-     documents and full colour for those dated?
-
---
-
-IAG (PS) - https://confluence.dighum.kcl.ac.uk/display/MOA/Rough+Notes+from+IAG+meeting
-
-    ‘Overview view’ -> ‘Overview'
-    Problem of synthetic view
-        Weight by precision of dating?
-        Cluster by decade in synthetic view?
-        Allow user to set cluster periods?
-        Allow user to exclude those which can’t be dated to cluster?
-        Exclude all charters which aren’t closely dated
-    Check DEEDS to see how they visualise
-    Try not optimising layout, but ordering by (approximate) date
-
-    Graph results view: useful to add grouping there too, e.g. by MS
-        User annotations: user may want to use system structured component/features
-
---------
 
 
 TOC
@@ -988,129 +874,40 @@ Maybe
         duration of the request
         icon to show the message in full
 
-DONE
+~DONE. Export to TEI (MOA
+    DONE 1 Transcription
+    DONE 2 Translation
+    3 Customisation per content_type
+    4 Documentation
+    5 Check if valid TEI against DTD
+    . generate a list of all possible markup with example and source
+         ()1 [a href="#_ftn1" name="_ftnref1"] TCX #5 (IP #510)
+         ()1 [br /] TCX #108 (IP #248)
+        -14 [em] TCX #351 (IP #127)
+       -174 [p] TCX #84 (IP #238)
+       -143 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="address"] TCX #84 (IP #238)
+         -3 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="arenga"] TCX #128 (IP #263)
+        -10 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="boundaries"] TCX #305 (IP #17)
+       -147 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="disposition"] TCX #84 (IP #238)
+        -35 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="holding"] TCX #84 (IP #238)
+         -3 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="injunction"] TCX #363 (IP #339)
+        -63 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="intitulatio"] TCX #84 (IP #238)
+         -1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="malediction"] TCX #98 (IP #242)
+        -11 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="narration"] TCX #351 (IP #127)
+        -69 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="notification"] TCX #84 (IP #238)
+         -1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="prohibition"] TCX #361 (IP #710)
+        -83 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="salutation"] TCX #84 (IP #238)
+        -20 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="sealing"] TCX #61 (IP #602)
+         -1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="title"] TCX #276 (IP #5)
+         -1 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="undefined"] TCX #350 (IP #192)
+        -13 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="warrandice"] TCX #305 (IP #17)
+       -143 [span data-dpt="clause" data-dpt-cat="words" data-dpt-type="witnesses"] TCX #84 (IP #238)
+      -1143 [span data-dpt="ex" data-dpt-cat="chars"] TCX #84 (IP #238)
+      -1768 [span data-dpt="lb" data-dpt-cat="sep"] TCX #84 (IP #238)
+         -5 [span data-dpt="location" data-dpt-loctype="locus"] TCX #84 (IP #238)
+        -32 [span data-dpt="person" data-dpt-cat="chars" data-dpt-type="name"] TCX #61 (IP #602)
+        -40 [span data-dpt="person" data-dpt-cat="chars" data-dpt-type="title"] TCX #61 (IP #602)
+        -89 [span data-dpt="supplied" data-dpt-cat="chars"] TCX #10 (IP #598)
+    . for each one find a way to express it in TEI
+    . then test them all
 
-    [DONE] Show status bar at the bottom of each panel:
-        [DONE] html
-        [DONE] CSS
-        [DONE] dynamic resize
-        [DONE] function to show message
-        [DONE] show message
-        [DONE] time of the message
-        [DONE] truncate the message to make it fit in the available space
-    [DONE] WriteTextView
-    [DONE] show tinymce
-    [DONE] Junicode
-    [DONE] Basic TextWrite:
-        read text from database (create if not there)
-        display it
-    [DONE] show only one panel with transcription
-    [DONE] auto-save
-
-    [DONE] 1. ** Dynamically create the views based on the content types
-        [DONE] generic constructor of a panel
-        [DONE] update content type drop down
-        [DONE] react to changes in the drop down
-        [DONE] load the transcription or translation
-    [DONE] Basic Image panel
-        [DONE] load image
-        [DONE] fit to width
-        [DONE] scroll only the content
-        [DONE] load locations
-        [DONE] change location
-
-    [DONE] fix undo/redo!
-
-    [DONE] Keep surrounding spaces out of some of the markup (e.g. expansion)
-
-    [DONE] conversion of the format to html
-        ()
-        italics
-        |
-        <>
-        and back
-        Tironian mark
-
-    [DONE] mark-up
-        [DONE] expansion
-            [DONE]add button & mark up selection
-            [DONE] icon
-        [DONE] supplied
-        [DONE] deletion
-        [DONE] clauses
-            drop-down
-        [DONE] clear
-
-        [DONE] show the mark up
-            basic styling
-    [DONE] Document the editor in Confluence
-
-
-[a]
-(Char, Char, Char)
-[(Bool, Char)]
-([a], [a])
-
-
-
-u'<p>$Q.$3</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">1.Folio</span></p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">1.Qualityofparchment(thickness,appearance,colour,flexibility,translucence,condition,damage,repairs).</span></p><p><spandata-dpt="page_side"data-dpt-cat="chars">$Flesh</span>page.</p><p><spandata-dpt="page_colour"data-dpt-cat="chars">$&lsquo;Grimedsemi-translucent&rsquo;</span>&nbsp;$(Clarkson,p.5).</p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">2.Dimensions(pagesize)</span></p><p><spandata-dpt="page_dimensions"data-dpt-cat="chars">$257/261mmx163/170mm</span>.</p><p>$Heightshorteratinnermargin($253mm).</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">2.Foliations</span></p><p>$Toprightcorner,$277(ea.16thc.,darkbrownink)</p><p>$Topcentre,$14(lightbrownink,underlined)</p><p>$Topcentreleft,$288(pencil)</p><p>$Topcentreleft,$14(pencil)</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">3.Quirenumbers/signatures/catchwords</span></p><p>$Bottommargin,centre:$b(brownink,betweentwodots);</p><p>$Bottommargin,centreleft:$b(brownink);</p><p>$Bottommargin,centreright:$b(fadedpencil,betweenbrackets).</p><p>$ProbablyenteredbyBarnesinaround1812(seeKer1977,800).</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">4.Pricking(shape,number,location)</span></p><p>$Twentysingleperforations$downtheoutermargin,between3mmand9mmawayfromcurrenttrimmedborder.$Twosingleperforationsat$topandbottommargins(notclearlyvisible)alignedwithverticalrulingforbounders.Allperforationsare$y-shaped.</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">5.Ruling(method,number,relationshiptowriting,originallyblanklines,dimensionsofruledarea)</span></p><p>Ruledin$drypointon$thispage(nowslightlyfaded);$singlecolumnof$20ruledlines(alignedwithprickingmarks)inwhichthebottomtworeachacrosstheoutermargin;twovertical(single)bounderssetwrittenarea.</p><p>$</p><p>$Noblanklines.</p><p>Dimensionsofruledarea:<spandata-dpt="page_dimensions"data-dpt-cat="chars">$183/5mmx131/4mm</span>.Spacebetweenruledlinesmayvary$between$7mmand$11mm.</p><p>Writtenarea:<spandata-dpt="page_dimensions"data-dpt-cat="chars">$199mmx144mm</span>.</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">6.Scribalactivity[textualgenetics](whodidwhat,approximatelyinwhatorder)</span></p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">1.Maintext(sequenceofhands,sizes[orinstint],inkcolours,decorativegallows-marks,rubrics)</span></p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">2.Insertionsbytextscribes(sequenceofinsertions,marginalia)</span></p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">3.Correctionsbytextscribes(sequenceoferasures,subpunction,underlining)</span></p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">4.Insertionsbyotherapparentlycontemporaneousscribes</span></p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">5.Correctionsbyotherapparentlycontemporaneousscribes</span></p><p>$Line$8(&lsquo;<spandata-dpt="record"data-dpt-model="hand">$sigma</span>&rsquo;):$&nbsp;[probablyby&lsquo;<spandata-dpt="record"data-dpt-model="hand">$tau</span>&rsquo;]</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">6.Othernotableinterventions(doodles,pen-trials,etc)</span></p><p>$None.</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="2">7.Post-1200activity</span></p><p>$None.</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">7.Bifolium(Conjointwith;sewingholes;tacketholes).</span></p><p>$Conjointwithfo$15(quire$3).&nbsp;</p><p>$</p><p><spandata-dpt="heading"data-dpt-cat="words"data-dpt-level="1">8.Otherremarks.</span></p><p>$</p><p>&nbsp;</p>'
-
-u'<p><span data-dpt="location" data-dpt-loctype="locus">template</span></p>\n<p>$Q.$3</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">1. Folio</span></p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">1. Quality of parchment (thickness, appearance, colour, flexibility, translucence, condition, damage, repairs).</span></p>\n<p><span data-dpt="page_side" data-dpt-cat="chars">$Flesh</span> page.</p>\n<p><span data-dpt="page_colour" data-dpt-cat="chars">$&lsquo;Grimed semi-translucent&rsquo;</span>&nbsp;$(Clarkson, p. 5).</p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">2. Dimensions (page size)</span></p>\n<p><span data-dpt="page_dimensions" data-dpt-cat="chars">$257/261 mm x 163/170 mm</span>.</p>\n<p>$Height shorter at inner margin ($253mm).</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">2. Foliations</span></p>\n<p>$Top right corner, $277 (ea. 16th c., dark brown ink)</p>\n<p>$Top centre, $14 (light brown ink, underlined)</p>\n<p>$Top centre left, $288 (pencil)</p>\n<p>$Top centre left, $14 (pencil)</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">3. Quire numbers / signatures / catchwords</span></p>\n<p>$Bottom margin, centre: $b (brown ink, between two dots);</p>\n<p>$Bottom margin, centre left: $b (brown ink);</p>\n<p>$Bottom
- margin, centre right: $b (faded pencil, between brackets).</p>\n<p>$Probably entered by Barnes in around 1812 (see Ker 1977, 800).</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">4. Pricking (shape, number, location)</span></p>\n<p>$Twenty single perforations $down the outer margin, between 3mm and 9mm away from current trimmed border. $Two single perforations at $top and bottom margins (not clearly visible) aligned with vertical ruling for bounders. All perforations are $y-shaped.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">5. Ruling (method, number, relationship to writing, originally blank lines, dimensions of ruled area)</span></p>\n<p>Ruled in $dry point on $this page (now slightly faded); $single column of $20 ruled lines (aligned with pricking marks) in which the bottom two reach across the outer margin; two vertical (single) bounders set written area.</p>\n<p>$</p>\n<p>$No blank lines.</p>\n<p>Dimensions of ruled area: <span data-dpt="page_dimensions" data-dpt-cat="chars">$183/5 mm x 131/4 mm</span>. Space between ruled lines may vary $between $7 mm and $11 mm.</p>\n<p>Written area: <span data-dpt="page_dimensions" data-dpt-cat="chars">$199 mm x 144 mm</span>.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">6. Scribal activity [textual genetics] (who did what, approximately in what order)</span></p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">1. Main text (sequence of hands, sizes [or in stint], ink colours, decorative gallows-marks, rubrics)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">2. Insertions by text scribes (sequence of insertions, marginalia)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">3. Corrections by text scribes (sequence of erasures, subpunction, underlining)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">4. Insertions by other apparently contemporaneous scribes</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">5. Corrections by other apparently contemporaneous scribes</span></p>\n<p>$Line $8 (&lsquo;<span data-dpt="record" data-dpt-model="hand">$sigma</span>&rsquo;): $&nbsp;[probably by &lsquo;<span data-dpt="record" data-dpt-model="hand">$tau</span>&rsquo;]</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">6. Other notable interventions (doodles, pen-trials, etc)</span></p>\n<p>$None.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">7. Post-1200 activity</span></p>\n<p>$None.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">7. Bifolium (Conjoint with; sewing holes; tacket holes).</span></p>\n<p>$Conjoint with fo $15 (quire $3).&nbsp;</p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">8. Other remarks.</span></p>\n<p>$</p>\n<p>&nbsp;</p>'
-u
-'''<p></p>\n<p>$Q.$3</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">1. Folio</span></p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">1. Quality of parchment (thickness, appearance, colour, flexibility, translucence, condition, damage, repairs).</span></p>\n<p><span data-dpt="page_side" data-dpt-cat="chars">$Flesh</span> page.</p>\n<p><span data-dpt="page_colour" data-dpt-cat="chars">$&lsquo;Grimed semi-translucent&rsquo;</span>&nbsp;$(Clarkson, p. 5).</p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">2. Dimensions (page size)</span></p>\n<p><span data-dpt="page_dimensions" data-dpt-cat="chars">$257/261 mm x 163/170 mm</span>.</p>\n<p>$Height shorter at inner margin ($253mm).</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">2. Foliations</span></p>\n<p>$Top right corner, $277 (ea. 16th c., dark brown ink)</p>\n<p>$Top centre, $14 (light brown ink, underlined)</p>\n<p>$Top centre left, $288 (pencil)</p>\n<p>$Top centre left, $14 (pencil)</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">3. Quire numbers / signatures / catchwords</span></p>\n<p>$Bottom margin, centre: $b (brown ink, between two dots);</p>\n<p>$Bottom margin, centre left: $b (brown ink);</p>\n<p>$Bottom margin, centre right: $b (faded pencil, between brackets).</p>\n<p>$Probably entered by Barnes in around 1812 (see Ker 1977, 800).</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">4. Pricking (shape, number, location)</span></p>\n<p>$Twenty single perforations $down the outer margin, between 3mm and 9mm away from current trimmed border. $Two single perforations at $top and bottom margins (not clearly visible) aligned with vertical ruling for bounders. All perforations are $y-shaped.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">5. Ruling (method, number, relationship to writing, originally blank lines, dimensions of ruled area)</span></p>\n<p>Ruled in $dry point on $this page (now slightly faded); $single column of $20 ruled lines (aligned with pricking marks) in which the bottom two reach across the outer margin; two vertical (single) bounders set written area.</p>\n<p>$</p>\n<p>$No blank lines.</p>\n<p>Dimensions of ruled area: <span data-dpt="page_dimensions" data-dpt-cat="chars">$183/5 mm x 131/4 mm</span>. Space between ruled lines may vary $between $7 mm and $11 mm.</p>\n<p>Written area: <span data-dpt="page_dimensions" data-dpt-cat="chars">$199 mm x 144 mm</span>.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">6. Scribal activity [textual genetics] (who did what, approximately in what order)</span></p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">1. Main text (sequence of hands, sizes [or in stint], ink colours, decorative gallows-marks, rubrics)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">2. Insertions by text scribes (sequence of insertions, marginalia)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">3. Corrections by text scribes (sequence of erasures, subpunction, underlining)</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">4. Insertions by other apparently contemporaneous scribes</span></p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">5. Corrections by other apparently contemporaneous scribes</span></p>\n<p>$Line $8 (&lsquo;<span data-dpt="record" data-dpt-model="hand">$sigma</span>&rsquo;): $&nbsp;[probably by &lsquo;<span data-dpt="record" data-dpt-model="hand">$tau</span>&rsquo;]</p>\n<p><span data-dpt="heading"
- data-dpt-cat="words" data-dpt-level="2">6. Other notable interventions (doodles, pen-trials, etc)</span></p>\n<p>$None.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">7. Post-1200 activity</span></p>\n<p>$None.</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">7. Bifolium (Conjoint with; sewing holes; tacket holes).</span></p>\n<p>$Conjoint with fo $15 (quire $3).&nbsp;</p>\n<p>$</p>\n<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">8. Other remarks.</span></p>\n<p>$</p>\n<p>&nbsp;</p>'''
-
-
-
-
-
- <p><span data-dpt="location" data-dpt-loctype="locus">template</span></p>
-<p>Q.$3</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">1. Folio</span></p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">1. Quality of parchment (thickness, appearance, colour, flexibility, translucence, condition, damage, repairs).</span></p>
-<p><span data-dpt="page_side" data-dpt-cat="chars">$Flesh</span> page.</p>
-<p><span data-dpt="page_colour" data-dpt-cat="chars">$&lsquo;Grimed semi-translucent&rsquo;</span>&nbsp;$(Clarkson, p. 5).</p>
-<p>$</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">2. Dimensions (page size)</span></p>
-<p><span data-dpt="page_dimensions" data-dpt-cat="chars">$257/261 mm x 163/170 mm</span>.</p>
-<p>$Height shorter at inner margin ($253mm).</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">2. Foliations</span></p>
-<p>$Top right corner, $277 (ea. 16th c., dark brown ink)</p>
-<p>$Top centre, $14 (light brown ink, underlined)</p>
-<p>$Top centre left, $288 (pencil)</p>
-<p>$Top centre left, $14 (pencil)</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">3. Quire numbers / signatures / catchwords</span></p>
-<p>$Bottom margin, centre: $b (brown ink, between two dots);</p>
-<p>$Bottom margin, centre left: $b (brown ink);</p>
-<p>$Bottom margin, centre right: $b (faded pencil, between brackets).</p>
-<p>$Probably entered by Barnes in around 1812 (see Ker 1977, 800).</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">4. Pricking (shape, number, location)</span></p>
-<p>$Twenty single perforations $down the outer margin, between 3mm and 9mm away from current trimmed border. $Two single perforations at $top and bottom margins (not clearly visible) aligned with vertical ruling for bounders. All perforations are $y-shaped.</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">5. Ruling (method, number, relationship to writing, originally blank lines, dimensions of ruled area)</span></p>
-<p>Ruled in $dry point on $this page (now slightly faded); $single column of $20 ruled lines (aligned with pricking marks) in which the bottom two reach across the outer margin; two vertical (single) bounders set written area.</p>
-<p>$</p>
-<p>$No blank lines.</p>
-<p>Dimensions of ruled area: <span data-dpt="page_dimensions" data-dpt-cat="chars">$183/5 mm x 131/4 mm</span>. Space between ruled lines may vary $between $7 mm and $11 mm.</p>
-<p>Written area: <span data-dpt="page_dimensions" data-dpt-cat="chars">$199 mm x 144 mm</span>.</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">6. Scribal activity [textual genetics] (who did what, approximately in what order)</span></p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">1. Main text (sequence of hands, sizes [or in stint], ink colours, decorative gallows-marks, rubrics)</span></p>
-<p>$</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">2. Insertions by text scribes (sequence of insertions, marginalia)</span></p>
-<p>$</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">3. Corrections by text scribes (sequence of erasures, subpunction, underlining)</span></p>
-<p>$</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">4. Insertions by other apparently contemporaneous scribes</span></p>
-<p>$</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">5. Corrections by other apparently contemporaneous scribes</span></p>
-<p>$Line $8 (&lsquo;<span data-dpt="record" data-dpt-model="hand">$sigma</span>&rsquo;): $&nbsp;[probably by &lsquo;<span data-dpt="record" data-dpt-model="hand">$tau</span>&rsquo;]</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">6. Other notable interventions (doodles, pen-trials, etc)</span></p>
-<p>$None.</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="2">7. Post-1200 activity</span></p>
-<p>$None.</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">7. Bifolium (Conjoint with; sewing holes; tacket holes).</span></p>
-<p>$Conjoint with fo $15 (quire $3).&nbsp;</p>
-<p>$</p>
-<p><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">8. Other remarks.</span></p>
-<p>$</p>
-<p>&nbsp;</p>

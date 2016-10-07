@@ -1,6 +1,33 @@
 /// <reference path="../dts/jquery.d.ts"/>
 /// <reference path="../dts/openlayers.d.ts"/>
 
+function applyMixins(derivedCtor: any, baseCtors: any[]) {
+    baseCtors.forEach(baseCtor => {
+        Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
+            derivedCtor.prototype[name] = baseCtor.prototype[name];
+        });
+    });
+}
+
+//class InteractionMode {
+//    started = false;
+//
+//    setActive(active: boolean): void {
+//        super.setActive(active);
+//        if (!active) {
+//            this.started = false;
+//        }
+//    }
+//
+//    /**
+//     * Returns true if feature drawing has started
+//     */
+//    isStarted(): boolean {
+//        return this.started;
+//    }
+//
+//}
+
 /**
  * Extension of ol.interaction.Draw
  * with awareness of whether the drawing operation is started.
@@ -19,6 +46,10 @@ class Draw extends ol.interaction.Draw {
         this.on('drawend', function(evt) {
             this.started = false;
         });
+        
+//        this.on(ol['ObjectEventType'].PROPERTYCHANGE, function(evt) {
+//            console.log(evt);
+//        })
     }
 
     setActive(active: boolean): void {
@@ -183,7 +214,16 @@ class Select extends ol.interaction.Select {
 }
 
 class Translate extends ol.interaction.Translate {
-    
+    //started = false;
+
+//    setActive(active: boolean): void {
+//        console.log('TRANSLATE setActive('+(active?'true)':'false)'));
+//        super.setActive(active);
+//        if (!active) {
+//            this.started = false;
+//        }
+//    }
+
 }
 
 /**
@@ -222,19 +262,6 @@ class AOL3Interactions {
                 this.setActive(member, groups[key].indexOf(member) > -1);
             } 
         }
-//        var alternatives = { 
-//            'select': ['draw'], 
-//            'draw': ['select', 'translate'] 
-//        };
-//        for (member in this) {
-//            if ((member != 'controller') && (this[member] instanceof ol.interaction.Interaction)) {
-//                this.setActive(member, member == key);
-//            } 
-//        }
-//        var alt = alternatives[key];
-//        if (this.setActive(key, true) && alt) {
-//            this.setActive(alt, false);
-//        }
     }
 
     isDrawing(): boolean {
@@ -251,8 +278,6 @@ class AnnotatorOL3 {
     layer: ol.layer.Vector;
     //
     interactions: AOL3Interactions = new AOL3Interactions();
-    // events
-    //events = { startDrawing: null, stopDrawing: null };
     //
     lastDrawnFeature: ol.Feature;
     //
@@ -318,7 +343,7 @@ class AnnotatorOL3 {
                 }
 
                 // CTRL + pointerdown
-                if (type === ol.events['EventType'].POINTERDOWN) {
+                if (type === ol.MapBrowserEvent['EventType'].POINTERDOWN) {
                     if (ctrl && !this.isDrawing()) {
                         //console.log('CTRL-CLICK ACTIVATE DRAW');
                         this.interactions.switch('draw');

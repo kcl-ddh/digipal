@@ -1,5 +1,6 @@
 . let the user resize and move the annotations on the Text Editor
     [DONE] Had to upgrade OL3 to latest version (3.18.2) to make use of Translate interaction
+    . Image panel broken on my laptop
     . Impossible to select annotation nested inside the currently selected one (caused by OL3 upgrade)
     [DONE] The drawing interaction is broken
     . Add a Translation interaction

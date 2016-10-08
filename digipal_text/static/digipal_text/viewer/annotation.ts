@@ -9,55 +9,29 @@ function applyMixins(derivedCtor: any, baseCtors: any[]) {
     });
 }
 
-//class InteractionMode {
-//    started = false;
-//
-//    setActive(active: boolean): void {
-//        super.setActive(active);
+class InteractionMode {
+    started = false;
+
+    initModeDetection(interaction: ol.Observable): void {
+        // draw is a reference to ol.interaction.Draw
+        interaction.on('drawstart', function(evt) {
+            this.started = true;
+        });
+
+        interaction.on('drawend', function(evt) {
+            this.started = false;
+        });
+
+        interaction.on(ol['ObjectEventType'].PROPERTYCHANGE, function(evt) {
+            console.log(evt);
+        })
+    }
+
+//    setActiveMode(active: boolean): void {
 //        if (!active) {
 //            this.started = false;
 //        }
 //    }
-//
-//    /**
-//     * Returns true if feature drawing has started
-//     */
-//    isStarted(): boolean {
-//        return this.started;
-//    }
-//
-//}
-
-/**
- * Extension of ol.interaction.Draw
- * with awareness of whether the drawing operation is started.
- */
-class Draw extends ol.interaction.Draw {
-    started = false;
-
-    constructor(options?: olx.interaction.DrawOptions) {
-        super(options);
-
-        // draw is a reference to ol.interaction.Draw
-        this.on('drawstart', function(evt) {
-            this.started = true;
-        });
-
-        this.on('drawend', function(evt) {
-            this.started = false;
-        });
-        
-//        this.on(ol['ObjectEventType'].PROPERTYCHANGE, function(evt) {
-//            console.log(evt);
-//        })
-    }
-
-    setActive(active: boolean): void {
-        super.setActive(active);
-        if (!active) {
-            this.started = false;
-        }
-    }
 
     /**
      * Returns true if feature drawing has started
@@ -67,6 +41,31 @@ class Draw extends ol.interaction.Draw {
     }
 
 }
+
+/**
+ * Extension of ol.interaction.Draw
+ * with awareness of whether the drawing operation is started.
+ */
+class Draw extends ol.interaction.Draw implements InteractionMode {
+
+    constructor(options?: olx.interaction.DrawOptions) {
+        super(options);
+
+        this.initModeDetection(this);
+    }
+
+    setActive(active: boolean): void {
+        super.setActive(active);
+        if (!active) {
+            this.started = false;
+        }
+    }
+
+    isStarted: boolean() => boolean;
+
+}
+applyMixins(Draw, [InteractionMode]);
+
 
 /**
  * Extension of ol.interaction.Select
@@ -253,14 +252,14 @@ class AOL3Interactions {
      * @param {string} key: the key of the interaction to switch to
      */
     switch(key: string) {
-        var groups = { 
-            'select': ['select', 'translate'], 
-            'draw': ['draw'] 
+        var groups = {
+            'select': ['select', 'translate'],
+            'draw': ['draw']
         };
         for (var member in this) {
             if ((member != 'controller') && (this[member] instanceof ol.interaction.Interaction)) {
                 this.setActive(member, groups[key].indexOf(member) > -1);
-            } 
+            }
         }
     }
 
@@ -315,7 +314,7 @@ class AnnotatorOL3 {
         // so we can chose which one handle the current event
         this.initInteractionSelector();
     }
-    
+
     initTranslation(): void {
         var options = { features: this.interactions.select.getFeatures() };
         var translate = new Translate(options);

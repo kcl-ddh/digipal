@@ -109,6 +109,12 @@
     </xsl:template>
     {% endblock %}
 
+    {% block supplied %}
+    <xsl:template match="span[@data-dpt='supplied']">
+        <supplied><xsl:apply-templates/></supplied>
+    </xsl:template>
+    {% endblock %}
+
     {% block clause %}
     <xsl:template match="span[@data-dpt='clause']">
         <xsl:element name="seg">

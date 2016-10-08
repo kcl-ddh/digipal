@@ -205,9 +205,10 @@
     };
 
     PanelImage.prototype.annotatorEventHandler = function(e) {
+        var elementid = '';
         if (e.action === 'hover') {
             var feature = e.features && e.features.length ? e.features[0] : null;
-            var elementid = null;
+            elementid = null;
             if (feature) {
                 elementid = feature.get('elementid');
             }
@@ -231,7 +232,6 @@
         });
 
         // update the selected text element in the drop down
-        var elementid = '';
         selections.forEach(function (feature) {
             elementid = JSON.stringify(feature.get('elementid') || '[]');
         });

@@ -21,11 +21,15 @@ class InteractionMode {
 
         interaction.on(this.startedEvents[1], function(evt) {
             this.started = false;
+            if (evt['features']) {
+                evt.features.forEach((feature) => {
+                    feature.changed();
+                });
+            }
         });
 
         interaction.on(ol['ObjectEventType'].PROPERTYCHANGE, function(evt) {
             if (evt.key === 'active' && !evt.target['getActive']()) this.started = false;
-            //console.log(evt);
         })
     }
 
@@ -201,31 +205,16 @@ class Translate extends ol.interaction.Translate implements InteractionMode {
     startedEvents = ['translatestart', 'translateend'];
     isStarted: () => boolean;
     initModeDetection: (interaction: ol.Observable) => void;
-
-    constructor(options?: olx.interaction.TranslateOptions) {
-        super(options);
-
-        this.on(this.startedEvents[1], (evt) => {
-            // feature changes while translating are muted.
-            // so we send an artificial final change at the end that
-            // will go through.
-
-            // force it to false to make sure this event is not filtered out
-            this.started = false;
-
-            console.log(evt);
-            evt.features.forEach((feature) => {
-                console.log(feature);
-                feature.changed();
-            });
-        });
-    }
-
 }
 applyMixins(Translate, [InteractionMode]);
 
-class Modify extends ol.interaction.Modify {
+class Modify extends ol.interaction.Modify implements InteractionMode {
+    started = false;
+    startedEvents = ['modifystart', 'modifyend'];
+    isStarted: () => boolean;
+    initModeDetection: (interaction: ol.Observable) => void;
 }
+applyMixins(Modify, [InteractionMode]);
 
 /**
  * An dynamic collection of interaction on a map
@@ -233,16 +222,20 @@ class Modify extends ol.interaction.Modify {
 class AOL3Interactions {
 
     controler: ol.interaction.Interaction;
+    // TODO: remove those members and use interactions member instead
     draw: Draw;
     select: Select;
     translate: Translate;
     modify: Modify;
+    // Provide easy access to all defined interactions
+    interactions: {[id: string] : ol.interaction.Interaction} = {};
 
     setInteraction(key: string, interaction: ol.interaction.Interaction, map: ol.Map) {
         if (this[key]) map.removeInteraction(interaction);
         this[key] = interaction;
         var initModeDetection = interaction['initModeDetection'];
         if (initModeDetection) initModeDetection.call(interaction, interaction);
+        this.interactions[key] = interaction;
         map.addInteraction(interaction);
     }
 
@@ -270,6 +263,22 @@ class AOL3Interactions {
 
     isDrawing(): boolean {
         return (this.draw && this.draw.isStarted());
+    }
+    
+    /**
+     * Returns true if any of the interaction is started and not yet finished
+     * E.g. drawing, modifying or translating a feature.
+     */
+    isStarted(): boolean {
+        var ret = false;
+        for(var key in this.interactions) {
+            if (this.hasOwnProperty(key)) {
+                let interaction = this.interactions[key];
+                var isStarted = interaction['isStarted'];
+                if (isStarted && isStarted.call(interaction)) ret = true;
+            }
+        }        
+        return ret;
     }
 
 }
@@ -591,8 +600,7 @@ class AnnotatorOL3 {
 
         //features.on('deleted', (event) => {var e = {annotator: this, action: 'deleted', features: event['features']}; listener(e);});
         this.source['on']('changefeature', (event) => {
-            var translate = this['interactions'].translate;
-            if (!(translate && translate.isStarted())) {
+            if (!this.interactions.isStarted()) { 
                 var e = { annotator: this, action: 'changed', features: [event['feature']] };
                 listener(e);
             }

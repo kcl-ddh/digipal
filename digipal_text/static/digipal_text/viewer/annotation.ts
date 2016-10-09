@@ -11,27 +11,23 @@ function applyMixins(derivedCtor: any, baseCtors: any[]) {
 
 class InteractionMode {
     started = false;
+    startedEvents = ['drawstart', 'drawend'];
 
     initModeDetection(interaction: ol.Observable): void {
         // draw is a reference to ol.interaction.Draw
-        interaction.on('drawstart', function(evt) {
+        interaction.on(this.startedEvents[0], function(evt) {
             this.started = true;
         });
 
-        interaction.on('drawend', function(evt) {
+        interaction.on(this.startedEvents[1], function(evt) {
             this.started = false;
         });
 
         interaction.on(ol['ObjectEventType'].PROPERTYCHANGE, function(evt) {
-            console.log(evt);
+            if (evt.key === 'active' && !evt.target['getActive']()) this.started = false;
+            //console.log(evt);
         })
     }
-
-//    setActiveMode(active: boolean): void {
-//        if (!active) {
-//            this.started = false;
-//        }
-//    }
 
     /**
      * Returns true if feature drawing has started
@@ -47,22 +43,10 @@ class InteractionMode {
  * with awareness of whether the drawing operation is started.
  */
 class Draw extends ol.interaction.Draw implements InteractionMode {
-
-    constructor(options?: olx.interaction.DrawOptions) {
-        super(options);
-
-        this.initModeDetection(this);
-    }
-
-    setActive(active: boolean): void {
-        super.setActive(active);
-        if (!active) {
-            this.started = false;
-        }
-    }
-
-    isStarted: boolean() => boolean;
-
+    started = false;
+    startedEvents = ['drawstart', 'drawend'];
+    initModeDetection: (interaction: ol.Observable) => void;
+    isStarted: () => boolean;
 }
 applyMixins(Draw, [InteractionMode]);
 
@@ -212,17 +196,35 @@ class Select extends ol.interaction.Select {
 
 }
 
-class Translate extends ol.interaction.Translate {
-    //started = false;
+class Translate extends ol.interaction.Translate implements InteractionMode {
+    started = false;
+    startedEvents = ['translatestart', 'translateend'];
+    isStarted: () => boolean;
+    initModeDetection: (interaction: ol.Observable) => void;
 
-//    setActive(active: boolean): void {
-//        console.log('TRANSLATE setActive('+(active?'true)':'false)'));
-//        super.setActive(active);
-//        if (!active) {
-//            this.started = false;
-//        }
-//    }
+    constructor(options?: olx.interaction.TranslateOptions) {
+        super(options);
 
+        this.on(this.startedEvents[1], (evt) => {
+            // feature changes while translating are muted.
+            // so we send an artificial final change at the end that
+            // will go through.
+
+            // force it to false to make sure this event is not filtered out
+            this.started = false;
+
+            console.log(evt);
+            evt.features.forEach((feature) => {
+                console.log(feature);
+                feature.changed();
+            });
+        });
+    }
+
+}
+applyMixins(Translate, [InteractionMode]);
+
+class Modify extends ol.interaction.Modify {
 }
 
 /**
@@ -234,10 +236,13 @@ class AOL3Interactions {
     draw: Draw;
     select: Select;
     translate: Translate;
+    modify: Modify;
 
     setInteraction(key: string, interaction: ol.interaction.Interaction, map: ol.Map) {
         if (this[key]) map.removeInteraction(interaction);
         this[key] = interaction;
+        var initModeDetection = interaction['initModeDetection'];
+        if (initModeDetection) initModeDetection.call(interaction, interaction);
         map.addInteraction(interaction);
     }
 
@@ -253,7 +258,7 @@ class AOL3Interactions {
      */
     switch(key: string) {
         var groups = {
-            'select': ['select', 'translate'],
+            'select': ['select', 'translate', 'modify'],
             'draw': ['draw']
         };
         for (var member in this) {
@@ -309,17 +314,25 @@ class AnnotatorOL3 {
         // Interactions are processed in reverse order:
         if (this.canEdit) this.initDraw();
         this.initSelect();
-        if (this.canEdit) this.initTranslation();
+        if (this.canEdit) this.initTranslate();
+        if (this.canEdit) this.initModify();
         // Selector BEFORE draw and select
         // so we can chose which one handle the current event
         this.initInteractionSelector();
     }
 
-    initTranslation(): void {
+    initTranslate(): void {
         var options = { features: this.interactions.select.getFeatures() };
         var translate = new Translate(options);
 
-        this.interactions.setInteraction('translation', translate, this.map);
+        this.interactions.setInteraction('translate', translate, this.map);
+    }
+
+    initModify(): void {
+        var options = { features: this.interactions.select.getFeatures() };
+        var modify = new Modify(options);
+
+        this.interactions.setInteraction('modify', modify, this.map);
     }
 
     /*
@@ -377,7 +390,7 @@ class AnnotatorOL3 {
 
         var features = this.getSelectedFeatures();
         // clone the selection before it is cleared
-        var features_deleted = features.getArray().map((v) => v);
+        var featuresDeleted = features.getArray().map((v) => v);
 
         this.interactions.select.removeFeatures(this.source);
     }
@@ -577,7 +590,13 @@ class AnnotatorOL3 {
         this.interactions.select['on']('hover', (event) => { var e = { annotator: this, action: 'hover', features: [event['feature']] }; listener(e); });
 
         //features.on('deleted', (event) => {var e = {annotator: this, action: 'deleted', features: event['features']}; listener(e);});
-        this.source['on']('changefeature', (event) => { var e = { annotator: this, action: 'changed', features: [event['feature']] }; listener(e); });
+        this.source['on']('changefeature', (event) => {
+            var translate = this['interactions'].translate;
+            if (!(translate && translate.isStarted())) {
+                var e = { annotator: this, action: 'changed', features: [event['feature']] };
+                listener(e);
+            }
+        });
         this.source['on']('removefeature', (event) => { var e = { annotator: this, action: 'deleted', features: [event['feature']] }; listener(e); });
 
         var e = { annotator: this, action: 'init' };

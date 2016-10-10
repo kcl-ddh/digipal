@@ -213,15 +213,20 @@ class Modify extends ol.interaction.Modify implements InteractionMode {
     startedEvents = ['modifystart', 'modifyend'];
     isStarted: () => boolean;
     initModeDetection: (interaction: ol.Observable) => void;
+    pointerCoordinate = [];
 
     constructor(options?: olx.interaction.ModifyOptions, vectorLayer?: ol.layer.Vector, map?: ol.Map) {
         super(options);
+        
+        // We only want to move existing vertices so no highlight and modification
+        // of edges or creation of new vertices.
         this['handleEvent'] = (mapBrowserEvent: ol.MapBrowserEvent) => {
-            // We only want to move existing vertices so no highlight and modification
-            // of edges or creation of new vertices.
             
             if (!(mapBrowserEvent instanceof ol.MapBrowserPointerEvent)) return true;
-            if (!this.isPointerNearSelectedVertex(mapBrowserEvent.pixel)) {
+            
+            this.pointerCoordinate = mapBrowserEvent.coordinate;
+            
+            if (!this.isStarted() && !this.isPointerNearSelectedVertex(mapBrowserEvent.pixel)) {
                 // We call this to remove the highlighted vertex on the Modify overlay
                 // It is equivalent to (but less depended on private members):
                 //if (this['vertexFeature_']) {
@@ -231,8 +236,44 @@ class Modify extends ol.interaction.Modify implements InteractionMode {
                 this['handlePointerAtPixel_']([-10000, -10000], this.getMap());
                 return true
             };
+            
+            // default handlers
             return ol.interaction.Modify.handleEvent.call(this, mapBrowserEvent);
         };
+
+        // preserve the rectangular shape while modifying the feature
+        this['overlay_'].getSource().on('changefeature', (event) => {
+            if (this.isStarted()) {
+                var map = this.getMap();
+                
+                this['features_'].forEach((feature) => {
+                    var geo = feature.getGeometry();
+                    if (geo.getType() === 'Polygon' || geo.getType() === 'MultiPolygon') {
+                        // e.g. [482.52956397333946, -233.56917532670974, 810.2463886407656, -40.794572581164886]
+                        var xt2 = geo.getExtent();
+                        var xt = [
+                            this.pointerCoordinate[0], 
+                            this.pointerCoordinate[1],
+                            Math.abs(xt2[0] - this.pointerCoordinate[0]) > Math.abs(xt2[2] - this.pointerCoordinate[0]) ? xt2[0] : xt2[2],
+                            Math.abs(xt2[1] - this.pointerCoordinate[1]) > Math.abs(xt2[3] - this.pointerCoordinate[1]) ? xt2[1] : xt2[3],
+                        ];
+                        var coordinates = [[
+                            [xt[0], xt[1]],
+                            [xt[0], xt[3]],
+                            [xt[2], xt[3]],
+                            [xt[2], xt[1]],
+                            [xt[0], xt[1]] 
+                        ]];
+                        
+                        //console.log(event);
+                        //this['setGeometryCoordinates_'](geo, coordinates);
+                        geo.setCoordinates(coordinates, geo.getLayout());
+                    }
+                });
+            }
+            
+            
+        });
     }
     
     /**

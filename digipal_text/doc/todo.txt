@@ -8,7 +8,8 @@
         . Only one save: at the end of the translation, not many times while the shape is draged around
     [DONE]. Add a basic Modify interaction
     . Make the basic Modify interaction preserve the rectangular shape and prevent the creation of new vertices
-        . Prevent selection of edges
+        [DONE] Prevent highlight of point on edges
+        [DONE] Prevent selection of edges
             . Write custom options.condition with additional test for proximity to a vertex of the selected feature
             http://openlayers.org/en/latest/apidoc/ol.interaction.Modify.html
         . Moving vertex reshape the rectangle

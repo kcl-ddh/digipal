@@ -213,6 +213,51 @@ class Modify extends ol.interaction.Modify implements InteractionMode {
     startedEvents = ['modifystart', 'modifyend'];
     isStarted: () => boolean;
     initModeDetection: (interaction: ol.Observable) => void;
+
+    constructor(options?: olx.interaction.ModifyOptions, vectorLayer?: ol.layer.Vector, map?: ol.Map) {
+        super(options);
+        this['handleEvent'] = (mapBrowserEvent: ol.MapBrowserEvent) => {
+            // We only want to move existing vertices so no highlight and modification
+            // of edges or creation of new vertices.
+            
+            if (!(mapBrowserEvent instanceof ol.MapBrowserPointerEvent)) return true;
+            if (!this.isPointerNearSelectedVertex(mapBrowserEvent.pixel)) {
+                // We call this to remove the highlighted vertex on the Modify overlay
+                // It is equivalent to (but less depended on private members):
+                //if (this['vertexFeature_']) {
+                //    this['overlay_'].getSource().removeFeature(this['vertexFeature_']);
+                //    this['vertexFeature_'] = null;
+                //}
+                this['handlePointerAtPixel_']([-10000, -10000], this.getMap());
+                return true
+            };
+            return ol.interaction.Modify.handleEvent.call(this, mapBrowserEvent);
+        };
+    }
+    
+    /**
+     * Returns true if the pointer is near one of the vertices of a selected
+     * feature.
+     * 'near' means within this.pixelTolerance pixels.
+     */
+    isPointerNearSelectedVertex(pointerxy): boolean {
+        var ret = false;
+        var map = this.getMap();
+        
+        this['features_'].forEach((feature) => {
+            var geo = feature.getGeometry();
+            if (geo.getType() === 'Polygon' || geo.getType() === 'MultiPolygon') {
+                var fcs = geo.getFlatCoordinates();
+                for (var i = 0; i < fcs.length; i+=2) {
+                    var fcxy = map.getPixelFromCoordinate([fcs[i], fcs[i+1]]);
+                    var dist = Math.sqrt(ol.coordinate['squaredDistance'](fcxy, pointerxy));
+                    if (dist <= this['pixelTolerance_']) ret = true;
+                }
+            }
+        });
+        return ret;
+    }
+    
 }
 applyMixins(Modify, [InteractionMode]);
 

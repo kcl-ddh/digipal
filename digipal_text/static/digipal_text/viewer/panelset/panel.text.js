@@ -18,10 +18,8 @@
         TextViewer.Panel.call(this, $root, contentType, 'Text', options);
         var me = this;
 
-        this.getEditingMode = function() {
-            return false;
-        };
-
+        this.editingMode = false;
+        
         this.loadContentCustom = function(loadLocations, address, subLocation) {
             // load the content with the API
             var me = this;
@@ -84,39 +82,7 @@
 
         this.unreadyComponents.push('tinymce');
 
-        this.getEditingMode = function() {
-            return true;
-        };
-
-        // TODO: fix with 'proper' prototype inheritance
-        this._baseReady = this._ready;
-        this._ready = function() {
-            var ret = this._baseReady();
-            var me = this;
-
-            $(this.tinymce.editorContainer).on('psconvert', function() {
-                // mark up the content
-                // TODO: make sure the editor is read-only until we come back
-                me.saveContent({forceSave: true, autoMarkup: true});
-            });
-
-            $(this.tinymce.editorContainer).on('pssave', function() {
-                // mark up the content
-                // TODO: make sure the editor is read-only until we come back
-                me.saveContent({forceSave: true, saveCopy: true});
-            });
-
-            // make sure we save the content if tinymce looses focus or we close the tab/window
-            this.tinymce.on('blur', function() {
-                me.saveContent();
-            });
-
-            $(window).bind('beforeunload', function() {
-                me.saveContent({synced: true});
-            });
-
-            return ret;
-        };
+        this.editingMode = true;
 
         // TODO: fix with 'proper' prototype inheritance
         this.baseOnResize = this.onResize;
@@ -220,6 +186,35 @@
     };
 
     PanelTextWrite.prototype = Object.create(PanelText.prototype);
+
+    PanelTextWrite.prototype._ready = function() {
+        PanelText.prototype._ready.call(this);
+        
+        var me = this;
+
+        $(this.tinymce.editorContainer).on('psconvert', function() {
+            // mark up the content
+            // TODO: make sure the editor is read-only until we come back
+            me.saveContent({forceSave: true, autoMarkup: true});
+        });
+
+        $(this.tinymce.editorContainer).on('pssave', function() {
+            // mark up the content
+            // TODO: make sure the editor is read-only until we come back
+            me.saveContent({forceSave: true, saveCopy: true});
+        });
+
+        // make sure we save the content if tinymce looses focus or we close the tab/window
+        this.tinymce.on('blur', function() {
+            me.saveContent();
+        });
+
+        $(window).bind('beforeunload', function() {
+            me.saveContent({synced: true});
+        });
+
+        return ret;
+    };
 
     PanelTextWrite.prototype.onContentLoaded = function(data) {
         this.tinymce.setContent(data.content);

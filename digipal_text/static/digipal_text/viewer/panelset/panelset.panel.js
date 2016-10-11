@@ -1,4 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
 //
 // Panel: an ABSTRACT Panel managed by the PanelSet
 //
@@ -30,6 +29,11 @@
         this.contentType = contentType;
 
         this.panelSet = null;
+        
+        //  undefined: no edit mode at all
+        //  true: editing
+        //  false: not editing
+        this.editingMode = undefined;
 
         // The address of the last successfully loaded content.
         // e.g. /digipal/manuscripts/1/texts/translation/locus/2r/
@@ -158,63 +162,6 @@
             }
         };
 
-        this._ready = function() {
-            var me = this;
-
-            this.updateEditingModeIcon();
-
-            if (this.$contentTypes) {
-                this.$contentTypes.dpbsdropdown({
-                    onSelect: function($el, key, $a) {
-                        // the user has selected another view/content type -> we replace this panel
-                        //var options = {contentAddress: key+'/sync/location/'};
-                        var options = {contentAddress: key+'/'+me.getLocationType()+'/'+me.getLocation()+'/'};
-                        me.panelSet.registerPanel(new TextViewer['Panel'+$a.data('class')](me.$root, key, options));
-                    },
-                });
-                this.$contentTypes.dpbsdropdown('setOption', this.contentType, true);
-            }
-
-            this.loadContent(true, this.loadOptions.contentAddress ?  this.panelSet.getBaseAddress() + this.loadOptions.contentAddress : undefined);
-
-            this.onResize();
-
-            if (this.$statusSelect) {
-                this.$statusSelect.on('change', function() {
-                    // digipal/api/textcontentxml/?_text_content__item_part__id=1628&_text_content__type__slug=translation&status__id=7
-                    var ret = TextViewer.callApi('/digipal/api/textcontentxml/', null, null, {
-                        'method': 'PUT',
-                        '_text_content__item_part__id': me.itemPartid,
-                        '_text_content__type__slug': me.getContentType(),
-                        'status__id': $(this).val(),
-                        '@select': 'id'
-                    });
-                });
-            }
-
-            if (this.$downloadButton) {
-                TextViewer.unhide(this.$downloadButton, this.isDownloadable());
-                this.$downloadButton.on('click', function() {
-                    // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
-                    var url = me.getContentAddress('whole', '');
-                    url += '?ds=' + (me.getListFromPresentationOptions()).join(',');
-                    window.open(url, '_blank');
-                });
-            }
-
-            if (this.$linkerText) {
-                this.$linkerText.on('change', function() {
-                    me.onLinkerTextChanged();
-                });
-            }
-
-            if (this.$content) {
-                setInterval(function() {
-                    me.saveContent();
-                }, 2500);
-            }
-        };
-
         /*
          * Loading and saving
          *
@@ -332,34 +279,6 @@
             return ($pres && $pres.length && $pres.data().hasOwnProperty('dropdownCheckbox'));
         };
 
-        this.setPresentationOptions = function(presentationOptions) {
-            var $pres = this.$presentationOptions;
-            if (presentationOptions) {
-                //var myData = [{id: 1, label: "Test" }];
-                var options = presentationOptions.map(function(v, i) {return {id: v[0], label: v[1]};});
-                if (!this.arePresentationOptionsDefined()) {
-                    var me = this;
-                    $pres.dropdownCheckbox({
-                        data: options,
-                        title: 'Display',
-                        btnClass: 'btn btn-default btn-sm'
-                    });
-                    $pres.find('button').html('<span class="glyphicon glyphicon-eye-open"></span>&nbsp;<span class="caret"></span>');
-                    $pres.on('mouseenter mouseleave', function($event) {
-                        $pres.find('.dropdown-checkbox-content').toggle($event.type === 'mouseenter');
-                    });
-
-                    $pres.on('change', 'input[type=checkbox]', function() {
-                        me.applyPresentationOptions();
-                        me.panelSet.onPanelStateChanged(me);
-                    });
-                }
-            }
-            // hide (chosen) select if no status supplied
-            //$pres.closest('.dphidden').toggle(!!presentationOptions && (presentationOptions.length > 0));
-            TextViewer.unhide($pres, !!presentationOptions && (presentationOptions.length > 0));
-        };
-
         // Address / Locations
 
         this.setItemPartid = function(itemPartid) {
@@ -379,18 +298,69 @@
             return this.contentType;
         };
 
-        this.getEditingMode = function() {
-            // returns:
-            //  undefined: no edit mode at all
-            //  true: editing
-            //  false: not editing
-            return undefined;
-        };
-
     };
 
     Panel.prototype = Object.create(TextViewer.Located.prototype);
 
+    Panel.prototype._ready = function() {
+        var me = this;
+
+        // Remove editing rights is user not logged in
+        if (!this.panelSet.isUserStaff()) this.editingMode = undefined;
+        this.initEditingModeIcon();
+
+        if (this.$contentTypes) {
+            this.$contentTypes.dpbsdropdown({
+                onSelect: function($el, key, $a) {
+                    // the user has selected another view/content type -> we replace this panel
+                    //var options = {contentAddress: key+'/sync/location/'};
+                    var options = {contentAddress: key+'/'+me.getLocationType()+'/'+me.getLocation()+'/'};
+                    me.panelSet.registerPanel(new TextViewer['Panel'+$a.data('class')](me.$root, key, options));
+                },
+            });
+            this.$contentTypes.dpbsdropdown('setOption', this.contentType, true);
+        }
+
+        this.loadContent(true, this.loadOptions.contentAddress ?  this.panelSet.getBaseAddress() + this.loadOptions.contentAddress : undefined);
+
+        this.onResize();
+
+        if (this.$statusSelect) {
+            this.$statusSelect.on('change', function() {
+                // digipal/api/textcontentxml/?_text_content__item_part__id=1628&_text_content__type__slug=translation&status__id=7
+                var ret = TextViewer.callApi('/digipal/api/textcontentxml/', null, null, {
+                    'method': 'PUT',
+                    '_text_content__item_part__id': me.itemPartid,
+                    '_text_content__type__slug': me.getContentType(),
+                    'status__id': $(this).val(),
+                    '@select': 'id'
+                });
+            });
+        }
+
+        if (this.$downloadButton) {
+            TextViewer.unhide(this.$downloadButton, this.isDownloadable());
+            this.$downloadButton.on('click', function() {
+                // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
+                var url = me.getContentAddress('whole', '');
+                url += '?ds=' + (me.getListFromPresentationOptions()).join(',');
+                window.open(url, '_blank');
+            });
+        }
+
+        if (this.$linkerText) {
+            this.$linkerText.on('change', function() {
+                me.onLinkerTextChanged();
+            });
+        }
+
+        if (this.$content) {
+            setInterval(function() {
+                me.saveContent();
+            }, 2500);
+        }
+    };
+    
     Panel.prototype.createUserInterface = function() {
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
@@ -417,6 +387,33 @@
         this.$toggleEdit = this.$root.find('.toggle-edit');
 
         this.$downloadButton = this.$root.find('.action-download');
+    };
+
+    Panel.prototype.setPresentationOptions = function(presentationOptions) {
+        var $pres = this.$presentationOptions;
+        if (presentationOptions) {
+            //var myData = [{id: 1, label: "Test" }];
+            var options = presentationOptions.map(function(v, i) {return {id: v[0], label: v[1]};});
+            if (!this.arePresentationOptionsDefined()) {
+                var me = this;
+                $pres.dropdownCheckbox({
+                    data: options,
+                    title: 'Display',
+                    btnClass: 'btn btn-default btn-sm'
+                });
+                $pres.find('button').html('<span class="glyphicon glyphicon-eye-open"></span>&nbsp;<span class="caret"></span>');
+                $pres.on('mouseenter mouseleave', function($event) {
+                    $pres.find('.dropdown-checkbox-content').toggle($event.type === 'mouseenter');
+                });
+
+                $pres.on('change', 'input[type=checkbox]', function() {
+                    me.applyPresentationOptions();
+                    me.panelSet.onPanelStateChanged(me);
+                });
+            }
+        }
+        // hide (chosen) select if no status supplied
+        TextViewer.unhide($pres, !!presentationOptions && (presentationOptions.length > 0));
     };
 
     Panel.prototype.loadContentCustom = function(loadLocations, address, subLocation) {
@@ -551,7 +548,7 @@
                 $pres.find('li').each(function() {
                     var $li = $(this);
                     if (options.indexOf($li.data('id')) > -1) {
-                        $li.find('input').trigger('click');
+                        $li.find('input:not(:checked)').trigger('click');
                     }
                 });
             }
@@ -628,29 +625,57 @@
     Panel.prototype.onLocationChanged = function() {
         this.loadContent();
     };
+    
+    // EDITING MODE
 
-    Panel.prototype.updateEditingModeIcon = function() {
+    Panel.prototype.getEditingMode = function() {
+        return this.editingMode;
+    };
+
+    Panel.prototype.setEditingMode = function(mode) {
+        if (this.editingMode !== mode) {
+            this.editingMode = mode;
+            this.updateEditingModeIcon();
+            this.onChangedEditingMode(mode);
+        }
+    }
+
+    Panel.prototype.initEditingModeIcon = function() {
         if (this.$toggleEdit) {
-            var mode = this.getEditingMode();
-
-            //this.$toggleEdit.toggleClass('dphidden', !((mode === true) || (mode === false)));
-            TextViewer.unhide(this.$toggleEdit, ((mode === true) || (mode === false)));
-
-            this.$toggleEdit.toggleClass('active', (mode === true));
-
-            this.$toggleEdit.attr('title', (mode === true) ? 'Preview the text' : 'Edit the text');
-
             this.$toggleEdit.tooltip();
+            
+            this.updateEditingModeIcon();
 
             var me = this;
             this.$toggleEdit.on('click', function() {
-                var options = {
-                    contentAddress: me.getContentAddressRelative()
-                };
-                me.panelSet.registerPanel(new TextViewer['PanelText'+(mode ? '' : 'Write')](me.$root, me.getContentType(), options));
-                return false;
+                me.setEditingMode(!me.getEditingMode());
             });
         }
     };
 
+    Panel.prototype.updateEditingModeIcon = function() {
+        if (this.$toggleEdit) {
+            var mode = this.getEditingMode();
+            
+            TextViewer.unhide(this.$toggleEdit, ((mode === true) || (mode === false)));
+    
+            this.$toggleEdit.toggleClass('active', (mode === true));
+    
+            this.$toggleEdit.attr('data-original-title', (mode === true) ? 'Stop editing' : 'Start editing');
+        }
+    }
+
+    Panel.prototype.onChangedEditingMode = function(mode) {
+        // By default we replace this panel with another of the same type 
+        // but for the specific Editing Mode. E.g. PanelText -> PanelTextWrite
+        // the new panel is loaded with the same addres.
+        var options = {
+            contentAddress: this.getContentAddressRelative(),
+        };
+        var panel = Panel.create(this.contentType, this.$root, this.getEditingMode(), options);
+        this.panelSet.registerPanel(panel);
+        return false;
+    };
+
 }( window.TextViewer = window.TextViewer || {}, jQuery ));
+

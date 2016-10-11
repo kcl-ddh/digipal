@@ -9,10 +9,11 @@
 (function(TextViewer, $, undefined) {
 
     var PanelImage = TextViewer.PanelImage = function($root, contentType, options) {
-
-        var me = this;
-
         TextViewer.Panel.call(this, $root, contentType, 'Image', options);
+        
+        var me = this;
+        
+        this.editingMode = false;
 
         this.loadContentCustom = function(loadLocations, address, subLocation) {
             // load the content with the API
@@ -127,13 +128,6 @@
             }
         };
 
-        this.getEditingMode = function() {
-            // returns:
-            //  undefined: no edit mode at all
-            //  true: editing
-            //  false: not editing
-            return this.panelSet.isUserStaff();
-        };
     };
 
     PanelImage.prototype = Object.create(TextViewer.Panel.prototype);
@@ -374,10 +368,25 @@
         }
     };
 
-    PanelImage.prototype.updateEditingModeIcon = function() {
-        if (this.$toggleEdit) {
-            TextViewer.unhide(this.$toggleEdit, 0);
-        }
+    //////////////////////////////////////////////////////////////////////
+    //
+    // PanelImageWrite
+    //
+    // An Image panel with text-annotation editor.
+    //
+    //////////////////////////////////////////////////////////////////////
+    var PanelImageWrite = TextViewer.PanelImageWrite = function($root, contentType, options) {
+        TextViewer.PanelImage.call(this, $root, contentType, options);
+        
+        this.editingMode = true;
+    }
+    PanelImageWrite.prototype = Object.create(PanelImage.prototype);
+
+    PanelImageWrite.prototype.setPresentationOptions = function(presentationOptions) {
+        // we always want the annotations to be highlighted when we go into edit mode
+        var ret = PanelImage.prototype.setPresentationOptions.call(this, presentationOptions);
+        this.enablePresentationOptions(['highlight']);
+        return ret;
     };
 
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

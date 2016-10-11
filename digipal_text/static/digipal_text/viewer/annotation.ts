@@ -208,24 +208,49 @@ class Translate extends ol.interaction.Translate implements InteractionMode {
 }
 applyMixins(Translate, [InteractionMode]);
 
-class Modify extends ol.interaction.Modify implements InteractionMode {
+class Modify extends ol.interaction.Pointer implements InteractionMode {
     started = false;
     startedEvents = ['modifystart', 'modifyend'];
     isStarted: () => boolean;
     initModeDetection: (interaction: ol.Observable) => void;
     pointerCoordinate = [];
+    features_;
+    pixelTolerance_ = 10;
+
+//    isStarted() {
+//        return this['handlingDownUpSequence'];
+//    };
 
     constructor(options?: olx.interaction.ModifyOptions, vectorLayer?: ol.layer.Vector, map?: ol.Map) {
         super(options);
-        
-        // We only want to move existing vertices so no highlight and modification
-        // of edges or creation of new vertices.
+        this.features_ = options.features;
+        this.pixelTolerance_ = options.pixelTolerance !== undefined ?
+                options.pixelTolerance : 10;
+
+        this['handleDownEvent_'] = (mapBrowserEvent) => {
+            var ret = this.isPointerNearSelectedVertex(mapBrowserEvent.pixel);
+            if (ret) {
+                this.dispatchEvent(new ol.interaction.ModifyEvent('modifystart', this.features_, mapBrowserEvent));
+            }
+            return ret;
+        };
+
+        this['handleUpEvent_'] = (mapBrowserEvent) => {
+            var ret = false;
+            if (!ret) {
+                this.dispatchEvent(new ol.interaction.ModifyEvent('modifyend', this.features_, mapBrowserEvent));
+            }
+            return ret;
+        };
+
+        // We only want to move existing vertices so no highlight and
+        // modification of edges or creation of new vertices.
         this['handleEvent'] = (mapBrowserEvent: ol.MapBrowserEvent) => {
-            
+
             if (!(mapBrowserEvent instanceof ol.MapBrowserPointerEvent)) return true;
-            
+
             this.pointerCoordinate = mapBrowserEvent.coordinate;
-            
+
             if (!this.isStarted() && !this.isPointerNearSelectedVertex(mapBrowserEvent.pixel)) {
                 // We call this to remove the highlighted vertex on the Modify overlay
                 // It is equivalent to (but less depended on private members):
@@ -233,49 +258,51 @@ class Modify extends ol.interaction.Modify implements InteractionMode {
                 //    this['overlay_'].getSource().removeFeature(this['vertexFeature_']);
                 //    this['vertexFeature_'] = null;
                 //}
-                this['handlePointerAtPixel_']([-10000, -10000], this.getMap());
+                //this['handlePointerAtPixel_']([-10000, -10000], this.getMap());
                 return true
             };
-            
+
             // default handlers
-            return ol.interaction.Modify.handleEvent.call(this, mapBrowserEvent);
+            return ol.interaction.Pointer.handleEvent.call(this, mapBrowserEvent);
         };
 
-        // preserve the rectangular shape while modifying the feature
-        this['overlay_'].getSource().on('changefeature', (event) => {
-            if (this.isStarted()) {
-                var map = this.getMap();
-                
-                this['features_'].forEach((feature) => {
-                    var geo = feature.getGeometry();
-                    if (geo.getType() === 'Polygon' || geo.getType() === 'MultiPolygon') {
-                        // e.g. [482.52956397333946, -233.56917532670974, 810.2463886407656, -40.794572581164886]
-                        var xt2 = geo.getExtent();
-                        var xt = [
-                            this.pointerCoordinate[0], 
-                            this.pointerCoordinate[1],
-                            Math.abs(xt2[0] - this.pointerCoordinate[0]) > Math.abs(xt2[2] - this.pointerCoordinate[0]) ? xt2[0] : xt2[2],
-                            Math.abs(xt2[1] - this.pointerCoordinate[1]) > Math.abs(xt2[3] - this.pointerCoordinate[1]) ? xt2[1] : xt2[3],
-                        ];
-                        var coordinates = [[
-                            [xt[0], xt[1]],
-                            [xt[0], xt[3]],
-                            [xt[2], xt[3]],
-                            [xt[2], xt[1]],
-                            [xt[0], xt[1]] 
-                        ]];
-                        
-                        //console.log(event);
-                        //this['setGeometryCoordinates_'](geo, coordinates);
-                        geo.setCoordinates(coordinates, geo.getLayout());
-                    }
-                });
-            }
-            
-            
-        });
+        this['handleDragEvent_'] = (mapBrowserEvent: ol.MapBrowserEvent) => {
+            // preserve the rectangular shape while modifying the feature
+            //this['overlay_'].getSource().on('changefeature', (event) => {
+            var map = this.getMap();
+
+            this['features_'].forEach((feature) => {
+                var geo = feature.getGeometry();
+                if (geo.getType() === 'Polygon' || geo.getType() === 'MultiPolygon') {
+                    // e.g. [482.52956397333946, -233.56917532670974, 810.2463886407656, -40.794572581164886]
+                    var xt2 = geo.getExtent();
+                    var xt = [
+                        this.pointerCoordinate[0],
+                        this.pointerCoordinate[1],
+                        Math.abs(xt2[0] - this.pointerCoordinate[0]) > Math.abs(xt2[2] - this.pointerCoordinate[0]) ? xt2[0] : xt2[2],
+                        Math.abs(xt2[1] - this.pointerCoordinate[1]) > Math.abs(xt2[3] - this.pointerCoordinate[1]) ? xt2[1] : xt2[3],
+                    ];
+                    var coordinates = [[
+                        [xt[0], xt[1]],
+                        [xt[0], xt[3]],
+                        [xt[2], xt[3]],
+                        [xt[2], xt[1]],
+                        [xt[0], xt[1]]
+                    ]];
+
+                    var s = '';
+                    coordinates[0].map((p) => {
+                        s += '(' + p[0] + ',' + p[1] + '), ';
+                    });
+                    console.log(s);
+                    //this['setGeometryCoordinates_'](geo, coordinates);
+                    geo.setCoordinates(coordinates, geo.getLayout());
+                    //feature.changed();
+                }
+            });
+        }
     }
-    
+
     /**
      * Returns true if the pointer is near one of the vertices of a selected
      * feature.
@@ -284,7 +311,7 @@ class Modify extends ol.interaction.Modify implements InteractionMode {
     isPointerNearSelectedVertex(pointerxy): boolean {
         var ret = false;
         var map = this.getMap();
-        
+
         this['features_'].forEach((feature) => {
             var geo = feature.getGeometry();
             if (geo.getType() === 'Polygon' || geo.getType() === 'MultiPolygon') {
@@ -298,7 +325,7 @@ class Modify extends ol.interaction.Modify implements InteractionMode {
         });
         return ret;
     }
-    
+
 }
 applyMixins(Modify, [InteractionMode]);
 
@@ -350,7 +377,7 @@ class AOL3Interactions {
     isDrawing(): boolean {
         return (this.draw && this.draw.isStarted());
     }
-    
+
     /**
      * Returns true if any of the interaction is started and not yet finished
      * E.g. drawing, modifying or translating a feature.
@@ -363,7 +390,7 @@ class AOL3Interactions {
                 var isStarted = interaction['isStarted'];
                 if (isStarted && isStarted.call(interaction)) ret = true;
             }
-        }        
+        }
         return ret;
     }
 
@@ -686,7 +713,7 @@ class AnnotatorOL3 {
 
         //features.on('deleted', (event) => {var e = {annotator: this, action: 'deleted', features: event['features']}; listener(e);});
         this.source['on']('changefeature', (event) => {
-            if (!this.interactions.isStarted()) { 
+            if (!this.interactions.isStarted()) {
                 var e = { annotator: this, action: 'changed', features: [event['feature']] };
                 listener(e);
             }

@@ -1,21 +1,18 @@
 . let the user resize and move the annotations on the Text Editor
     [DONE] Had to upgrade OL3 to latest version (3.18.2) to make use of Translate interaction
     [DONE]. Image panel broken on my laptop
-    . Impossible to select annotation nested inside the currently selected one (caused by OL3 upgrade)
+    ** . Impossible to select annotation nested inside the currently selected one (caused by OL3 upgrade)
     [DONE] The drawing interaction is broken
     [DONE]. Add a Translation interaction
         . Basic interaction
         . Only one save: at the end of the translation, not many times while the shape is draged around
     [DONE]. Add a basic Modify interaction
-    . Make the basic Modify interaction preserve the rectangular shape and prevent the creation of new vertices
-        [DONE] Prevent highlight of point on edges
-        [DONE] Prevent selection of edges
-            . Write custom options.condition with additional test for proximity to a vertex of the selected feature
-            http://openlayers.org/en/latest/apidoc/ol.interaction.Modify.html
-        . Moving vertex reshape the rectangle
+    . Make the basic Modify interaction that preserves the rectangular shape
+        [DONE] Moving vertex reshape the rectangle
             . force a change to the feature geometry in a Modify translating event handler
             https://github.com/openlayers/ol3/issues/5095#event-601814603
-    . Add an editing mode to the image panel, similar to the editing mode on the text panel. This is to avoid accidental changes to the annotations.
+        [DONE] show resize cursor when near a vertex
+    ** . Add an editing mode to the image panel, similar to the editing mode on the text panel. This is to avoid accidental changes to the annotations.
 
 . word list
     . still special chars in the expanded text

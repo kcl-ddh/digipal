@@ -213,21 +213,20 @@ class Modify extends ol.interaction.Pointer implements InteractionMode {
     startedEvents = ['modifystart', 'modifyend'];
     isStarted: () => boolean;
     initModeDetection: (interaction: ol.Observable) => void;
+    
     pointerCoordinate = [];
     features_;
-    pixelTolerance_ = 10;
-
-//    isStarted() {
-//        return this['handlingDownUpSequence'];
-//    };
+    pixelTolerance_ = 15;
+    overlay_: ol.layer.Vector;
+    vertexFeature_: ol.Feature;
+    //nearestVertexCoordinates_: ;
 
     constructor(options?: olx.interaction.ModifyOptions, vectorLayer?: ol.layer.Vector, map?: ol.Map) {
         super(options);
         this.features_ = options.features;
-        this.pixelTolerance_ = options.pixelTolerance !== undefined ?
-                options.pixelTolerance : 10;
-
-        this['handleDownEvent_'] = (mapBrowserEvent) => {
+        this.pixelTolerance_ = options.pixelTolerance !== undefined ? options.pixelTolerance : 15;
+        
+        this['handleDownEvent_'] = (mapBrowserEvent): boolean => {
             var ret = this.isPointerNearSelectedVertex(mapBrowserEvent.pixel);
             if (ret) {
                 this.dispatchEvent(new ol.interaction.ModifyEvent('modifystart', this.features_, mapBrowserEvent));
@@ -245,30 +244,24 @@ class Modify extends ol.interaction.Pointer implements InteractionMode {
 
         // We only want to move existing vertices so no highlight and
         // modification of edges or creation of new vertices.
-        this['handleEvent'] = (mapBrowserEvent: ol.MapBrowserEvent) => {
+        this['handleEvent'] = (mapBrowserEvent: ol.MapBrowserEvent): boolean => {
 
             if (!(mapBrowserEvent instanceof ol.MapBrowserPointerEvent)) return true;
 
             this.pointerCoordinate = mapBrowserEvent.coordinate;
 
             if (!this.isStarted() && !this.isPointerNearSelectedVertex(mapBrowserEvent.pixel)) {
-                // We call this to remove the highlighted vertex on the Modify overlay
-                // It is equivalent to (but less depended on private members):
-                //if (this['vertexFeature_']) {
-                //    this['overlay_'].getSource().removeFeature(this['vertexFeature_']);
-                //    this['vertexFeature_'] = null;
-                //}
-                //this['handlePointerAtPixel_']([-10000, -10000], this.getMap());
                 return true
             };
 
             // default handlers
-            return ol.interaction.Pointer.handleEvent.call(this, mapBrowserEvent);
+            ol.interaction.Pointer.handleEvent.call(this, mapBrowserEvent);
+            
+            return false;
         };
 
         this['handleDragEvent_'] = (mapBrowserEvent: ol.MapBrowserEvent) => {
             // preserve the rectangular shape while modifying the feature
-            //this['overlay_'].getSource().on('changefeature', (event) => {
             var map = this.getMap();
 
             this['features_'].forEach((feature) => {
@@ -290,12 +283,10 @@ class Modify extends ol.interaction.Pointer implements InteractionMode {
                         [xt[0], xt[1]]
                     ]];
 
-                    var s = '';
-                    coordinates[0].map((p) => {
-                        s += '(' + p[0] + ',' + p[1] + '), ';
-                    });
-                    console.log(s);
-                    //this['setGeometryCoordinates_'](geo, coordinates);
+//                    var s = '';
+//                    coordinates[0].map((p) => {
+//                        s += '(' + p[0] + ',' + p[1] + '), ';
+//                    });
                     geo.setCoordinates(coordinates, geo.getLayout());
                     //feature.changed();
                 }
@@ -319,7 +310,13 @@ class Modify extends ol.interaction.Pointer implements InteractionMode {
                 for (var i = 0; i < fcs.length; i+=2) {
                     var fcxy = map.getPixelFromCoordinate([fcs[i], fcs[i+1]]);
                     var dist = Math.sqrt(ol.coordinate['squaredDistance'](fcxy, pointerxy));
-                    if (dist <= this['pixelTolerance_']) ret = true;
+                    if (dist <= this['pixelTolerance_']) {
+                        ret = true;
+                        
+                        // show the resize pointer to indicate that Modify mode works
+                        var elem = this.getMap().getTargetElement();
+                        elem['style'].cursor = 'move';
+                    }
                 }
             }
         });

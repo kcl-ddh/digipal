@@ -71,14 +71,12 @@ class Select extends ol.interaction.Select {
     layerHover: ol.layer.Vector = null;
 
     constructor(options?: olx.interaction.SelectOptions, vectorLayer?: ol.layer.Vector, map?: ol.Map) {
-        //        options.filter = (feature: ol.Feature, layer: ol.layer.Layer) => {
-        //            console.log('--------');
-        //            console.log(feature);
-        //            console.log(layer);
-        //            return !!layer;
-        //        };
         super(options);
 
+        this.vectorLayer = vectorLayer;
+
+        // Create a Hover Layer
+        // Used to highlight the feature above which the cursor is placed
         var sourceHover = new ol.source.Vector({});
         var styleHover = new ol.style.Style({
             fill: new ol.style.Fill({
@@ -94,12 +92,19 @@ class Select extends ol.interaction.Select {
         map.addLayer(this.layerHover);
         this.layerHover['setZIndex'](10);
 
+        // That's the important bit... which is excluding Select overlay from
+        // being chosen for selecting a feature on click.
+        this['layerFilter_'] = (layer) => {
+            return layer === this.layerHover;
+        };
+
+        // Tweak to the default Select handler:
+        // * highlight hovered feature
+        // * make sure the selection pick from the hovered layer
+        // (b/c default Select is unable to select nested features)
         this.handleEventDefault = this['handleEvent'];
-        this.vectorLayer = vectorLayer;
         this['handleEvent'] = (mapBrowserEvent: ol.MapBrowserEvent) => {
             /*
-                HACK
-
                 Problem: OL3 selection algorithm doesn't allow selection of a
                 feature nested within another selected feature. Because
                 the selected feature is on the Select overlay which takes
@@ -113,34 +118,11 @@ class Select extends ol.interaction.Select {
                 work. Not entirely sure why, perhaps b/c replay drawing history
                 to detect hit. (this.getFeatures().clear())
             */
-            var overlay = this['featureOverlay_'];
-            var processEvent = this['condition_'](mapBrowserEvent);
-            var layerState = null;
 
             this.highlightHoveredFeature(mapBrowserEvent);
 
-            if (processEvent && overlay) {
-                var statesArray = mapBrowserEvent.map['frameState_'].layerStatesArray;
-                for (var i = 0; i < statesArray.length; i++) {
-                    if (statesArray[i].layer === overlay) {
-                        layerState = statesArray[i];
-                        // layer state change so it can be filtered
-                        layerState.managed = true;
-                        // layer state change so it can be filtered OUT
-                        layerState.layer.setVisible(false);
-                        break;
-                    }
-                }
-            }
-
             // default call
             var ret = this.handleEventDefault(mapBrowserEvent);
-
-            // restore the overlay state
-            if (layerState) {
-                layerState.managed = false;
-                layerState.layer.setVisible(true);
-            }
 
             return ret;
         };
@@ -213,7 +195,7 @@ class Modify extends ol.interaction.Pointer implements InteractionMode {
     startedEvents = ['modifystart', 'modifyend'];
     isStarted: () => boolean;
     initModeDetection: (interaction: ol.Observable) => void;
-    
+
     pointerCoordinate = [];
     features_;
     pixelTolerance_ = 15;
@@ -225,7 +207,7 @@ class Modify extends ol.interaction.Pointer implements InteractionMode {
         super(options);
         this.features_ = options.features;
         this.pixelTolerance_ = options.pixelTolerance !== undefined ? options.pixelTolerance : 15;
-        
+
         this['handleDownEvent_'] = (mapBrowserEvent): boolean => {
             var ret = this.isPointerNearSelectedVertex(mapBrowserEvent.pixel);
             if (ret) {
@@ -256,7 +238,7 @@ class Modify extends ol.interaction.Pointer implements InteractionMode {
 
             // default handlers
             ol.interaction.Pointer.handleEvent.call(this, mapBrowserEvent);
-            
+
             return false;
         };
 
@@ -312,7 +294,7 @@ class Modify extends ol.interaction.Pointer implements InteractionMode {
                     var dist = Math.sqrt(ol.coordinate['squaredDistance'](fcxy, pointerxy));
                     if (dist <= this['pixelTolerance_']) {
                         ret = true;
-                        
+
                         // show the resize pointer to indicate that Modify mode works
                         var elem = this.getMap().getTargetElement();
                         elem['style'].cursor = 'move';

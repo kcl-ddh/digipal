@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load html_escape mezzanine_tags  %}
+
+{% block meta_title %}Patterns detection{% endblock %}
+{% block meta_title_site %}
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.css"/>
+{% endblock %}
+
+{% block main %}
+    <form>
+        <div class="panel patterns">
+            {% for pattern in patterns %}
+                <div class="pattern">
+                    <input type="hidden" name="id" value="{{ pattern.id }}" />
+                    #{{ pattern.order }}
+                    Key: <input type="text" name="key" value="{{ pattern.key }}"/>
+                    Title: <input type="text" name="title" value="{{ pattern.title }}" />
+                    <br/>
+                    Pattern: <input style="width:auto" type="text" name="pattern" value="{{ pattern.pattern }}" />
+                </div>
+            {% endfor %}
+        </div>
+
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    {# TODO: include min on production #}
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/dpbootstrap.js"></script>
+    {% compress js %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+        <script src="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.min.js"></script>
+    {% endcompress %}
+
+    <script>
+        jQuery(document).ready(function($) {
+        });
+    </script>
+{% endblock %}

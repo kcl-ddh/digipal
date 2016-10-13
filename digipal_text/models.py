@@ -16,6 +16,7 @@ from django.contrib.auth.models import User
 #dplog = logging.getLogger('digipal_debugger')
 from digipal.utils import dplog
 from django.utils.datastructures import SortedDict
+from django.utils.text import slugify
 
 class ClassProperty(property):
     def __get__(self, cls, owner):
@@ -425,6 +426,29 @@ class EntryHand(models.Model):
             ret = 'correct'
         return ret
 
+class TextPattern(models.Model):
+    title = models.CharField(max_length=100, unique=True, blank=False, null=False)
+    key = models.SlugField(max_length=100, unique=True, blank=False, null=False)
+    pattern = models.CharField(max_length=1000, blank=True, null=True)
+    order = models.IntegerField(blank=False, null=False, default=0, db_index=True)
+    description = models.TextField(blank=True, null=True)
+
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        unique_together = ['key']
+        ordering = ['order', 'key']
+
+    def __unicode__(self):
+        return u'%s' % (self.title)
+
+    def save(self, *args, **kwargs):
+        if not self.key.strip():
+            self.key = self.title
+        self.key = slugify(unicode(self.key))
+
+        super(TextPattern, self).save(*args, **kwargs)
 
 from digipal.models import set_additional_models_methods
 set_additional_models_methods()

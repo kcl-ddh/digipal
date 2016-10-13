@@ -1,20 +1,13 @@
-. let the user resize and move the annotations on the Text Editor
-    [DONE] Had to upgrade OL3 to latest version (3.18.2) to make use of Translate interaction
-    [DONE]. Image panel broken on my laptop
-    !!!!!!!!!!!!!!
-    ****** . Impossible to select annotation nested inside the currently selected one (caused by OL3 upgrade)
-    !!!!!!!!!!!!!!
-    [DONE] The drawing interaction is broken
-    [DONE]. Add a Translation interaction
-        . Basic interaction
-        . Only one save: at the end of the translation, not many times while the shape is draged around
-    [DONE]. Add a basic Modify interaction
-    [DONE] Make the basic Modify interaction that preserves the rectangular shape
-        [DONE] Moving vertex reshape the rectangle
-            . force a change to the feature geometry in a Modify translating event handler
-            https://github.com/openlayers/ol3/issues/5095#event-601814603
-        [DONE] show resize cursor when near a vertex
-    [DONE] Add an editing mode to the image panel, similar to the editing mode on the text panel. This is to avoid accidental changes to the annotations.
+. Pattern detection
+    . UI
+        . Show rules
+        . Show the units
+    . Server
+        . Define the rule model
+    . Xtras:
+        . API
+        . Dockerise (separate instance for API and Client)
+        . Riot
 
 . word list
     . still special chars in the expanded text
@@ -23,7 +16,6 @@
     . barro-|nes is encoded barro-<span MS>|</span>nes
         . how is that indexed?
         . why is it encoded like that
-
 
 [DONE]. annotations with different coordinate systems
     [DONE] change the OL3 coordinates to be compatible with OL2
@@ -918,3 +910,18 @@ Maybe
     . for each one find a way to express it in TEI
     . then test them all
 
+[DONE]. let the user resize and move the annotations on the Text Editor
+    [DONE] Had to upgrade OL3 to latest version (3.18.2) to make use of Translate interaction
+    [DONE]. Image panel broken on my laptop
+    [DONE]. Impossible to select annotation nested inside the currently selected one (caused by OL3 upgrade)
+    [DONE] The drawing interaction is broken
+    [DONE]. Add a Translation interaction
+        . Basic interaction
+        . Only one save: at the end of the translation, not many times while the shape is draged around
+    [DONE]. Add a basic Modify interaction
+    [DONE] Make the basic Modify interaction that preserves the rectangular shape
+        [DONE] Moving vertex reshape the rectangle
+            . force a change to the feature geometry in a Modify translating event handler
+            https://github.com/openlayers/ol3/issues/5095#event-601814603
+        [DONE] show resize cursor when near a vertex
+    [DONE] Add an editing mode to the image panel, similar to the editing mode on the text panel. This is to avoid accidental changes to the annotations.

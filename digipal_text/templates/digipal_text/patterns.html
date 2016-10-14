@@ -8,20 +8,79 @@
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.css"/>
+    <style>
+        div.form-group-full-width {
+            display:table;
+            width: 100%;
+        }
+        div.form-group-full-width label {
+            display:table-cell;
+            width: 1px;
+            padding-right: 0.5em;
+        }
+        div.form-group-full-width .form-control {
+            display:table-cell;
+            width: 100%;
+        }
+        div.pattern {
+            border-bottom: 1px solid lightgrey;
+            padding-bottom: 0.2em;
+            margin-bottom: 0.2em;
+        }
+    </style>
 {% endblock %}
 
 {% block main %}
-    <form>
+    <form method="POST" class="form-inline">
+        {% csrf_token %}
+
         <div class="panel patterns">
-            {% for pattern in patterns %}
+            {% for pattern in patterns.values %}
                 <div class="pattern">
-                    <input type="hidden" name="id" value="{{ pattern.id }}" />
-                    #{{ pattern.order }}
-                    Key: <input type="text" name="key" value="{{ pattern.key }}"/>
-                    Title: <input type="text" name="title" value="{{ pattern.title }}" />
+                    <input type="hidden" name="p_{{ pattern.id }}_order" value="{{ pattern.order }}" />
+                    <div class="form-group">
+                        #{{ pattern.order }}
+                        <label for="p_{{ pattern.id }}_key">Key</label>
+                        <input class="form-control" type="text" name="p_{{ pattern.id }}_key" id="p_{{ pattern.id }}_key" value="{{ pattern.key }}" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label for="p_{{ pattern.id }}_title">Title</label>
+                        <input class="form-control" type="text" name="p_{{ pattern.id }}_title" id="p_{{ pattern.id }}_title" value="{{ pattern.title }}" autocomplete="off" />
+                    </div>
+                    {% if pattern.id %}
+                        <a class="pull-right btn btn-sm btn-danger delete-pattern" href="#">X</a>
+                    {% endif %}
                     <br/>
-                    Pattern: <input style="width:auto" type="text" name="pattern" value="{{ pattern.pattern }}" />
+                    <div class="form-group form-group-full-width" style="display:table">
+                        <label for="p_{{ pattern.id }}_pattern">Pattern</label>
+                        <input class="form-control pattern-input" type="text" name="p_{{ pattern.id }}_pattern" id="p_{{ pattern.id }}_pattern" value="{{ pattern.pattern }}" autocomplete="off" />
+                    </div>
                 </div>
+            {% endfor %}
+
+            <div class="actions">
+                <div class="form-group ">
+                    <label for="units_range">Text range</label>
+                    <input class="form-control" type="text" name="units_range" id="units_range" value="{{ units_range }}" autocomplete="off" />
+                </div>
+
+                <div class="form-group ">
+                    <label for="units_limit">Show first</label>
+                    <input class="form-control" type="text" name="units_limit" id="units_limit" value="{{ units_limit }}" autocomplete="off" />
+                </div>
+                <input type="hidden" name="action" value="update" />
+                <input class="form-control btn btn-primary" type="submit" name="update" value="Update" />
+            </div>
+        </div>
+
+        <div class="units">
+            <span class="pull-right small legend">{{ response_time }} s.</span>
+            {% for unit in units %}
+                #{{ unit.unitid }}
+                <br/>
+                {{ unit.get_plain_content }}
+                <br/><br/>
+                <hr/>
             {% endfor %}
         </div>
 
@@ -39,6 +98,12 @@
 
     <script>
         jQuery(document).ready(function($) {
+            $('.delete-pattern').on('click', function() {
+                $btn = $(this);
+                $btn.parent().find('.pattern-input').val('');
+                $btn.parent().hide();
+                return false;
+            });
         });
     </script>
 {% endblock %}

@@ -1,10 +1,19 @@
 . Pattern detection
     . UI
-        . Show rules
-        . Show the units
+        [DONE] Show patterns
+        . Edit patterns
+        . reorder patterns
+        . add drop down with condition about the pattern: ignore|show|present|absent
+        [DONE] Show the units
+        . show the formulas
+        . highlight formulas in text? (pb if overlap!)
+        . show stats
     . Server
-        . Define the rule model
+        [DONE] Define the rule model
+        [DONE] select only transcription and specific range
+        . segmentation
     . Xtras:
+        . Ajax load to speed up iterations
         . API
         . Dockerise (separate instance for API and Client)
         . Riot

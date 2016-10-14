@@ -170,6 +170,10 @@ class TextUnit(object):
 
         return ret
 
+    def get_plain_content(self):
+        from digipal import utils as dputils
+        return dputils.get_plain_text_from_xmltext(self.content)
+
     def get_label(self):
         return 'Text unit %s' % self.unitid
 
@@ -448,7 +452,15 @@ class TextPattern(models.Model):
             self.key = self.title
         self.key = slugify(unicode(self.key))
 
+        if not self.created:
+            from datetime import datetime
+            self.created = datetime.now()
+
         super(TextPattern, self).save(*args, **kwargs)
+
+    @classmethod
+    def get_empty_pattern(cls):
+        return cls(title='New pattern', key='new-pattern', pattern='', order=10000)
 
 from digipal.models import set_additional_models_methods
 set_additional_models_methods()

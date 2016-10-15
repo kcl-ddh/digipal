@@ -1,3 +1,5 @@
+<person> (habet|habuit) <number> mansionem
+
 . Pattern detection
     . UI
         [DONE] Show patterns
@@ -14,9 +16,11 @@
         [DONE] basic segmentation
         . pattern and segm. error management
         [DONE] apply pattern conditions
+        . cache the entry extra data instead of querying the DB for each record  
     . General
         . add pattern types
     . Xtras:
+    
         . Ajax load to speed up iterations
         . API
         . Dockerise (separate instance for API and Client)

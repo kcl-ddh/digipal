@@ -33,7 +33,8 @@ def patterns_view(request):
     # arguments
     args = request.REQUEST
     context['units_limit'] = get_int_from_request_var(request, 'units_limit', 10)
-    context['units_range'] = args.get('units_range', '') or '25a1-62b2,83a1-493b3'
+    #context['units_range'] = args.get('units_range', '') or '25a1-62b2,83a1-493b3'
+    context['units_range'] = args.get('units_range', '')
 
     context['wide_page'] = True
 
@@ -42,33 +43,42 @@ def patterns_view(request):
 
     # Get the text units
     context['units'] = []
-    stats = {'response_time': 0}
+    stats = {'response_time': 0, 'range_size': 0}
 
-    cnt = 0
     for unit in Entry.objects.all():
         cx = unit.content_xml
         
         # only transcription
         if cx.id != 4: continue
 
-        # only slected range
-        if not is_unit_in_range(unit, context['units_range']): continue
+        # only fief
+        types = unit.get_entry_type()
+        print unit.unitid, types
+        if not types or 'F' not in types: continue
 
-        cnt += 1
+        # only selected range
+        if not is_unit_in_range(unit, context['units_range']): continue
+        
+        stats['range_size'] += 1
+
         # segment the unit
         segment_unit(unit, context)
 
         if unit.match_conditions:
             context['units'].append(unit)
 
-    # stats    
+    # stats
     stats['result_size'] = len(context['units'])
+    stats['result_size_pc'] = int(100.0 * stats['result_size'] / stats['range_size']) if stats['range_size'] else 'N/A'
+    
+    # limit size of returned result 
     if context['units_limit'] > 0:
         context['units'] = context['units'][0:context['units_limit']]
 
     stats['response_time'] = (datetime.now() - t0).total_seconds()
     context['stats'] = stats
 
+    # render template
     template = 'digipal_text/patterns.html'
     if request.is_ajax():
         template = 'digipal_text/patterns_fragment.html'
@@ -180,6 +190,10 @@ def update_patterns_from_request(request, context):
 
 def is_unit_in_range(unit, ranges):
     ret = False
+    
+    ranges = ranges.strip()
+    
+    if not ranges: return True
 
     unit_keys = dputils.natural_sort_key(unit.unitid)
 

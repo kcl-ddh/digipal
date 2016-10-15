@@ -34,7 +34,7 @@ def patterns_view(request):
     # arguments
     args = request.REQUEST
     context['units_limit'] = get_int_from_request_var(request, 'units_limit', 10)
-    context['units_range'] = args.get('units_range', '') or '25a1-62b2'
+    context['units_range'] = args.get('units_range', '') or '25a1-62b2,83a1-493b3'
 
     context['wide_page'] = True
 
@@ -43,6 +43,7 @@ def patterns_view(request):
 
     # Get the text units
     context['units'] = []
+    stats = {'response_time': 0}
 
     cnt = 0
     for unit in Entry.objects.all():
@@ -53,14 +54,22 @@ def patterns_view(request):
         if not is_unit_in_range(unit, context['units_range']): continue
 
         # only first X units
-        if context['units_limit'] > 0 and cnt >= context['units_limit']: break
+        #if context['units_limit'] > 0 and cnt >= context['units_limit']: break
 
         cnt += 1
         context['units'].append(unit)
+    
+    stats['result_size'] = len(context['units'])
+    if context['units_limit'] > 0:
+        context['units'] = context['units'][0:context['units_limit']]
 
-    context['response_time'] = (datetime.now() - t0).total_seconds()
+    stats['response_time'] = (datetime.now() - t0).total_seconds()
+    context['stats'] = stats
 
-    ret = render(request, 'digipal_text/patterns.html', context)
+    template = 'digipal_text/patterns.html'
+    if request.is_ajax():
+        template = 'digipal_text/patterns_fragment.html'
+    ret = render(request, template, context)
 
     return ret
 

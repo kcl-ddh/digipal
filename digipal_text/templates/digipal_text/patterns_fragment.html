@@ -1,0 +1,67 @@
+{% load html_escape mezzanine_tags  %}
+
+<div id="search-ajax-fragment">
+    <form method="POST" class="form-inline patterns_fragment">
+        {% csrf_token %}
+    
+        <div class="panel patterns">
+            <span id="search-top"></span>
+            {% for pattern in patterns.values %}
+                <div class="pattern">
+                    <input type="hidden" name="p_{{ pattern.id }}_order" value="{{ pattern.order }}" />
+                    <div class="form-group">
+                        {% if pattern.id %}
+                            #{{ pattern.order }}
+                        {% else %}
+                            New Pattern: 
+                        {% endif %}
+                        <label for="p_{{ pattern.id }}_key">Key</label>
+                        <input class="form-control input-sm" type="text" name="p_{{ pattern.id }}_key" id="p_{{ pattern.id }}_key" value="{{ pattern.key }}" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label for="p_{{ pattern.id }}_title">Title</label>
+                        <input class="form-control input-sm pattern-title" type="text" name="p_{{ pattern.id }}_title" id="p_{{ pattern.id }}_title" value="{{ pattern.title }}" autocomplete="off" />
+                    </div>
+                    {% if pattern.id %}
+                        <a class="pull-right btn btn-xs btn-danger delete-pattern" href="#" data-target="managed">X</a>
+                    {% endif %}
+                    <br/>
+                    <div class="form-group form-group-full-width" style="display:table">
+                        <label for="p_{{ pattern.id }}_pattern">Pattern</label>
+                        <input class="form-control pattern-input input-sm" type="text" name="p_{{ pattern.id }}_pattern" id="p_{{ pattern.id }}_pattern" value="{{ pattern.pattern }}" autocomplete="off" />
+                    </div>
+                </div>
+            {% endfor %}
+    
+            <div class="actions">
+                <div class="form-group ">
+                    <label for="units_range">Text range</label>
+                    <input class="form-control input-sm" type="text" name="units_range" id="units_range" value="{{ units_range }}" autocomplete="off" />
+                </div>
+    
+                <div class="form-group ">
+                    <label for="units_limit">Show first</label>
+                    <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" value="{{ units_limit }}" autocomplete="off" />
+                </div>
+                <input type="hidden" name="action" value="update" />
+                <button class="form-control btn btn-primary" type="submit" name="update">Update</button>
+            </div>
+        </div>
+    
+        <div class="stats panel">
+            {{stats.result_size}} units in selected range.
+            <span class="pull-right small legend">{{ stats.response_time }} s.</span>
+        </div>
+    
+        <div class="units">
+            {% for unit in units %}
+                #{{ unit.unitid }}
+                <br/>
+                {{ unit.get_plain_content }}
+                <br/><br/>
+                <hr/>
+            {% endfor %}
+        </div>
+    
+    </form>
+</div>

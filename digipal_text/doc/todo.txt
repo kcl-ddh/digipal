@@ -1,17 +1,19 @@
 . Pattern detection
     . UI
         [DONE] Show patterns
-        . Edit patterns
+        [DONE] Edit patterns
         . reorder patterns
-        . add drop down with condition about the pattern: ignore|show|present|absent
+        [DONE] add drop down with condition about the pattern: |ignore|include|exclude
         [DONE] Show the units
-        . show the formulas
+        [DONE] show the formulas
         . highlight formulas in text? (pb if overlap!)
         . show stats
     . Server
         [DONE] Define the rule model
         [DONE] select only transcription and specific range
-        . segmentation
+        [DONE] basic segmentation
+        . pattern and segm. error management
+        [DONE] apply pattern conditions
     . General
         . add pattern types
     . Xtras:
@@ -20,7 +22,7 @@
         . Dockerise (separate instance for API and Client)
         . Vue.js
     . Pattern syntax
-        . capture, sub-pattern, ||, 
+        . capture (expression:parameter), sub-pattern <key>, OR (a|b|c), maybe () 
         . {} habet {number} mansionem
 
 . word list

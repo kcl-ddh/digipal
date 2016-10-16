@@ -53,7 +53,7 @@ def patterns_view(request):
 
         # only fief
         types = unit.get_entry_type()
-        print unit.unitid, types
+        #print unit.unitid, types
         if not types or 'F' not in types: continue
 
         # only selected range
@@ -90,6 +90,8 @@ def segment_unit(unit, context):
     patterns = context['patterns']
     unit.patterns = []
     
+    content_plain = get_unit_plain_content(unit)
+    
     unit.match_conditions = True
     
     for pattern_key, pattern in patterns.iteritems():
@@ -102,11 +104,17 @@ def segment_unit(unit, context):
         # apply regex to unit
         if rgx:
             found = False
-            for match in rgx.finditer(unit.get_plain_content()):
-                found = True
-                unit.patterns.append([pattern_key, match.group(0)])
+            if 1:
+                for match in rgx.finditer(content_plain):
+                    found = True
+                    unit.patterns.append([pattern_key, match.group(0)])
             if (pattern.condition == 'include' and not found) or (pattern.condition == 'exclude' and found):
-                unit.match_conditions = False 
+                unit.match_conditions = False
+                
+def get_unit_plain_content(unit):
+    ret = ''
+    ret = unit.get_plain_content()
+    return ret 
         
 def get_regex_from_pattern(patterns, pattern_key):
     ret = None
@@ -143,8 +151,8 @@ def update_patterns_from_request(request, context):
                 value = request.REQUEST.get('p_%s_%s' % (pattern.id , field), '')
                 if field == 'key' and value:
                     value = slugify(value)
-                if value != getattr(pattern, field, ''):
-                    #print '\t %s = %s' % (field, repr(value))
+                if unicode(value) != unicode(getattr(pattern, field, '')):
+                    #print '\t %s = %s (<> %s)' % (field, repr(value), repr(getattr(pattern, field, '')))
                     setattr(pattern, field, value)
                     if field != 'condition':
                         modified = True

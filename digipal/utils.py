@@ -1347,10 +1347,13 @@ def get_plain_text_from_xmltext(xml_str):
     '''Returns a plain text version of the XML <value>.
         For INDEXING PURPOSE.
         Strip tags, remove some abbreviations, ...
+        Strip locations
     '''
     # remove abbreviations
     import regex
-    ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', xml_str)
+    ret = xml_str
+    ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', ret)
+    ret = regex.sub(ur'<span data-dpt="location".*?</span>', ur'', ret)
 
     import HTMLParser
     html_parser = HTMLParser.HTMLParser()

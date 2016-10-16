@@ -19,6 +19,10 @@
         . cache the entry extra data instead of querying the DB for each record  
     . General
         . add pattern types
+    . Bugs
+        [DONE] why does cache.get return None? Because default cache is dummy and forgetful.
+        . why does Entry.objects.all() go through each unit twice?!
+        . why does plain_contents[unit.unitid] return the wrong entry?
     . Xtras:
     
         . Ajax load to speed up iterations

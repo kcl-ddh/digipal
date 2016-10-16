@@ -18,98 +18,97 @@ def patterns_view(request):
     return ana.process_request(request)
 
 class PatternAnalyser(object):
-    
+
     def process_request(self, request):
         self.request = request
-        
+
         from datetime import datetime
-    
+
         t0 = datetime.now()
-    
+
         # TODO: derive the info from the faceted_search settings.py or from a new
         # settings variable.
-    
+
         context = {}
-        
+
         context['conditions'] = [
             {'key': '', 'label': 'May have'},
             {'key': 'include', 'label': 'Must have'},
             {'key': 'exclude', 'label': 'Must not have'},
             {'key': 'ignore', 'label': 'Ignore'},
         ]
-    
+
         # arguments
         args = request.REQUEST
         context['units_limit'] = get_int_from_request_var(request, 'units_limit', 10)
         #context['units_range'] = args.get('units_range', '') or '25a1-62b2,83a1-493b3'
         context['units_range'] = args.get('units_range', '')
-    
+
         context['wide_page'] = True
-    
+
         # Update the patterns from the request
         self.update_patterns_from_request(request, context)
-    
+
         # Get the text units
         context['units'] = []
         stats = {'response_time': 0, 'range_size': 0}
-    
-        for unit in Entry.objects.all():
-            cx = unit.content_xml
-            
+
+        for unit in Entry.objects.filter(content_xml__id=4).iterator():
+            #cx = unit.content_xml
+
             # only transcription
-            if cx.id != 4: continue
-    
+            #if cx.id != 4: continue
+
             # only fief
             types = unit.get_entry_type()
             #print unit.unitid, types
             if not types or 'F' not in types: continue
-    
+
             # only selected range
             if not self.is_unit_in_range(unit, context['units_range']): continue
-            
+
             stats['range_size'] += 1
-    
+
             # segment the unit
             self.segment_unit(unit, context)
-    
+
             if unit.match_conditions:
                 context['units'].append(unit)
-    
+
         # stats
         stats['result_size'] = len(context['units'])
         stats['result_size_pc'] = int(100.0 * stats['result_size'] / stats['range_size']) if stats['range_size'] else 'N/A'
-        
-        # limit size of returned result 
+
+        # limit size of returned result
         if context['units_limit'] > 0:
             context['units'] = context['units'][0:context['units_limit']]
-    
+
         stats['response_time'] = (datetime.now() - t0).total_seconds()
         context['stats'] = stats
-    
+
         # render template
         template = 'digipal_text/patterns.html'
         if request.is_ajax():
             template = 'digipal_text/patterns_fragment.html'
         ret = render(request, template, context)
-        
+
         return ret
-        
 
     def segment_unit(self, unit, context):
         patterns = context['patterns']
         unit.patterns = []
-        
+
         content_plain = self.get_plain_content_from_unit(unit)
-        
+
         unit.match_conditions = True
-        
+
         for pattern_key, pattern in patterns.iteritems():
             if not pattern.id: continue
             if pattern.condition == 'ignore': continue
-            
+
             # get regex from pattern
             rgx = self.get_regex_from_pattern(patterns, pattern_key)
-            
+
             # apply regex to unit
             if rgx:
                 found = False
@@ -119,57 +118,48 @@ class PatternAnalyser(object):
                         unit.patterns.append([pattern_key, match.group(0)])
                 if (pattern.condition == 'include' and not found) or (pattern.condition == 'exclude' and found):
                     unit.match_conditions = False
-                    
+
     def get_plain_content_from_unit(self, aunit):
         from django.core.cache import cache
-        
+
         # get the plain contents from this object
         #print 'h1'
         plain_contents = getattr(self, 'plain_contents', None)
-        
+
         if not plain_contents:
-            print 'h2'
             # get the plain contents from the cache
             try:
-                print 'h3'
                 from django.core.cache import get_cache
                 cache = get_cache('digipal_text_patterns')
                 plain_contents = cache.get('plain_contents')
-                plain_contents = None
-                print 'h4'
+                #plain_contents = None
             except InvalidCacheBackendError, e:
-                print 'h4.2'
                 pass
             if not plain_contents:
-                print 'h5'
-                # rebuild the cache (takes a few seconds)
+                print 'REBUILD PLAIN CONTENT CACHE'
                 plain_contents = {}
-                for unit in Entry.objects.all():
+                for unit in Entry.objects.filter(content_xml__id=4).iterator():
                     plain_contents[unit.unitid] = unit.get_plain_content()
                     if unit.unitid in ['25a2', '25a2']:
                         print unit.unitid, repr(plain_contents[unit.unitid][0: 20])
-                #print repr(plain_contents)
                 cache.set('plain_contents', plain_contents, None)
-            print 'h6'
             setattr(self, 'plain_contents', plain_contents)
-        
-        #print 'h7'
+
         ret = plain_contents.get(aunit.unitid, None)
-        if 1 or ret is None:
-            #print 'h8'
+        if ret is None:
             plain_content = aunit.get_plain_content()
-            if plain_content != ret:
-                print repr(ret)
-                print repr(plain_content)
-                exit()
+#             if plain_content != ret:
+#                 print aunit.unitid
+#                 print repr(ret)
+#                 print repr(plain_content)
             ret = plain_content
-        
-        return ret 
-            
+
+        return ret
+
     def get_regex_from_pattern(self, patterns, pattern_key):
         ret = None
         pattern = patterns.get(pattern_key, None)
-        
+
         if pattern:
             ret = getattr(pattern, 'rgx', None)
             if ret is None:
@@ -180,20 +170,20 @@ class PatternAnalyser(object):
                     ret = ret.replace(ur'<number>', ur'\.?[ivxlcm]+\.?')
                     print ret
                     ret = pattern.rgx = re.Regex(ret)
-        
+
         return ret
-    
+
     def update_patterns_from_request(self, request, context):
         # get patterns from DB as as sorted dictionary
         # {key: TextPattern}
         action = request.REQUEST.get('action', '')
-    
+
         patterns = []
         fields = ['title', 'pattern', 'key', 'order', 'condition']
         for pattern in (list(TextPattern.objects.all()) + [TextPattern.get_empty_pattern()]):
             #print 'pattern #%s' % pattern.id
             pattern.condition = ''
-    
+
             # modify the pattern from the request
             if action == 'update':
                 modified = False
@@ -206,7 +196,7 @@ class PatternAnalyser(object):
                         setattr(pattern, field, value)
                         if field != 'condition':
                             modified = True
-    
+
                 pattern.pattern = pattern.pattern.strip()
                 if pattern.pattern:
                     if modified:
@@ -225,11 +215,11 @@ class PatternAnalyser(object):
                         #print '\t DELETE'
                         pattern.delete()
                     pattern = None
-    
+
             # add the pattern to our list
             if pattern:
                 patterns.append(pattern)
-    
+
         # make sorted dict
         context['patterns'] = SortedDict()
         new_order = 0
@@ -240,21 +230,21 @@ class PatternAnalyser(object):
             new_order += 1
             pattern.order = new_order
             context['patterns'][pattern.key] = pattern
-    
+
         # add new dummy pattern so user can extend the list on the front-end
         pattern = TextPattern.get_empty_pattern()
         if pattern.key not in context['patterns']:
             context['patterns'][pattern.key] = pattern
-    
+
     def is_unit_in_range(self, unit, ranges):
         ret = False
-        
+
         ranges = ranges.strip()
-        
+
         if not ranges: return True
-    
+
         unit_keys = dputils.natural_sort_key(unit.unitid)
-    
+
         for range in ranges.split(','):
             parts  = range.split('-')
             if len(parts) == 2:
@@ -262,5 +252,5 @@ class PatternAnalyser(object):
             else:
                 ret = unit.unitid == parts[0]
             if ret: break
-    
+
         return ret

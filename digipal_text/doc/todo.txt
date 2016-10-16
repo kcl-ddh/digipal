@@ -1,5 +1,16 @@
 <person> (habet|habuit) <number> mansionem
 
+Duplicate transcription entries!
+226a5
+230b4
+242a2
+263b3
+264b4
+345a3
+445a2
+453b3
+
+
 . Pattern detection
     . UI
         [DONE] Show patterns
@@ -16,7 +27,7 @@
         [DONE] basic segmentation
         . pattern and segm. error management
         [DONE] apply pattern conditions
-        . cache the entry extra data instead of querying the DB for each record  
+        . cache the entry extra data instead of querying the DB for each record
     . General
         . add pattern types
     . Bugs
@@ -24,13 +35,13 @@
         . why does Entry.objects.all() go through each unit twice?!
         . why does plain_contents[unit.unitid] return the wrong entry?
     . Xtras:
-    
+
         . Ajax load to speed up iterations
         . API
         . Dockerise (separate instance for API and Client)
         . Vue.js
     . Pattern syntax
-        . capture (expression:parameter), sub-pattern <key>, OR (a|b|c), maybe () 
+        . capture (expression:parameter), sub-pattern <key>, OR (a|b|c), maybe ()
         . {} habet {number} mansionem
 
 . word list

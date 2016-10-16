@@ -45,6 +45,7 @@ class TextUnits(object):
         # We need to implement lazy loading instead
         self.options = {'select_related': [], 'prefetch_related': []}
         # this is our result cache, not always used (e.g. .iterator() bypasses it)
+        self.filters = {}
         self.recs = None
         self.all()
 
@@ -131,9 +132,29 @@ class TextUnits(object):
         self.options['ais'] = None
         return self
 
+    def get_content_xmls(self):
+        # returns content_xml objects the units can be drawn from
+        # can apply filters passed to the filter() method
+        # e.g. .filter(content_xml__id=4)
+        ret = TextContentXML.objects.all()
+        filters = {}
+        for path, value in self.filters.iteritems():
+            if path.startswith('content_xml'):
+                filters[re.sub(ur'content_xml_*', '', path)] = value
+        if filters:
+            ret = ret.filter(**filters)
+        return ret
+
     def filter(self, *args, **kwargs):
+        # kwarg = {'content_xml__id': 4}
         if args or kwargs:
-            raise Exception('filter() is not yet supported')
+            if args:
+                raise Exception('filter(args) is not yet supported')
+            unrecognised_paths = [path for path in kwargs.keys() if not path.startswith('content_xml')]
+            if unrecognised_paths:
+                raise Exception('filter() is not yet supported for following filters: %s' % ', '.join(unrecognised_paths))
+            else:
+                self.filters.update(kwargs)
         return self
 
     def order_by(self, *args, **kwargs):

@@ -1,5 +1,9 @@
 <person> (habet|habuit) <number> mansionem
 
+Guides:
+use 7 not et
+use u not v
+
 Duplicate transcription entries!
 226a5
 230b4

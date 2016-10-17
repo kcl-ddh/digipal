@@ -99,6 +99,14 @@ class PatternAnalyser(object):
         unit.patterns = []
 
         content_plain = self.get_plain_content_from_unit(unit)
+        # remove . because in some entries they are all over the place
+        content_plain = content_plain.replace('[---]', '')
+        content_plain = content_plain.replace('v', 'u')
+        content_plain = content_plain.replace('7', 'et')
+        content_plain = content_plain.replace('.', ' ').replace(',', ' ').replace(':', ' ').replace('[', ' ').replace(']', ' ')
+        content_plain = content_plain.replace(u'\u00A7', '')
+        content_plain = re.sub('\s+', ' ', content_plain)
+        content_plain = content_plain.strip()
 
         unit.match_conditions = True
 
@@ -154,6 +162,8 @@ class PatternAnalyser(object):
 #                 print repr(plain_content)
             ret = plain_content
 
+        aunit.plain_content = ret
+
         return ret
 
     def get_regex_from_pattern(self, patterns, pattern_key):
@@ -165,9 +175,18 @@ class PatternAnalyser(object):
             if ret is None:
                 ret = pattern.pattern
                 if ret:
+                    #  e.g. x (<number>)? y
+                    ret = re.sub(ur' \(([^)]+)\)\? ', ur' (\1 )?', ret)
                     # <person> habet <number> mansionem
                     ret = ret.replace(ur'<person>', ur'\w+')
-                    ret = ret.replace(ur'<number>', ur'\.?[ivxlcm]+\.?')
+                    ret = ret.replace(ur'<name>', ur'\w+( et [A-Z]\w*)*')
+                    # aliam = another
+                    ret = ret.replace(ur'<number>', ur'\b(aliam|unam|[iuxlcm]+)\b')
+                    ret = ret.replace(ur'7', ur'et')
+                    if ret[0] not in [ur'\b', '^']:
+                        ret = ur'\b' + ret
+                    if not ret.endswith(ur'\b'):
+                        ret = ret + ur'\b'
                     print ret
                     ret = pattern.rgx = re.Regex(ret)
 

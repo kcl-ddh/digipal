@@ -43,6 +43,9 @@
                         <label for="p_{{ pattern.id }}_pattern">Pattern</label>
                         <input class="form-control pattern-input input-sm" type="text" name="p_{{ pattern.id }}_pattern" id="p_{{ pattern.id }}_pattern" value="{{ pattern.pattern }}" autocomplete="off" />
                     </div>
+                    {% if pattern.error %}
+                    <div class="error-message">Syntax error: {{ pattern.error }}</div>
+                    {% endif %}
                 </div>
             {% endfor %}
 

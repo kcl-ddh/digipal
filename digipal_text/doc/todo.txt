@@ -47,17 +47,16 @@ Duplicate transcription entries!
         [DONE] Define the rule model
         [DONE] select only transcription and specific range
         [DONE] basic segmentation
-        . pattern and segm. error management
+        [DONE] pattern error management
         [DONE] apply pattern conditions
         . cache the entry extra data instead of querying the DB for each record
     . General
         . add pattern types
     . Bugs
         [DONE] why does cache.get return None? Because default cache is dummy and forgetful.
-        . why does Entry.objects.all() go through each unit twice?!
-        . why does plain_contents[unit.unitid] return the wrong entry?
+        [DONE] . why does Entry.objects.all() go through each unit twice?! Translation and Transcription units!
+        [DONE] . why does plain_contents[unit.unitid] return the wrong entry? See above
     . Xtras:
-
         . Ajax load to speed up iterations
         . API
         . Dockerise (separate instance for API and Client)

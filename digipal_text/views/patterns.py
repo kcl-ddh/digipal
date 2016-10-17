@@ -208,7 +208,12 @@ class PatternAnalyser(object):
                     if not ret.endswith(ur'\b'):
                         ret = ret + ur'\b'
                     print ret
-                    ret = pattern.rgx = re.Regex(ret)
+                    try:
+                        ret = pattern.rgx = re.Regex(ret)
+                    except Exception, e:
+                        print repr(e)
+                        pattern.error = unicode(e)
+                        ret = pattern.rgx = re.Regex('INVALID PATTERN')
 
         return ret
 

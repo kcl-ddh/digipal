@@ -1,3 +1,20 @@
+BNF
+    Upgrade 
+    Time estimates
+    Send email
+MOA
+    Publish to STG
+    Ask for review -> Confluence
+    Publish to Live
+EXON
+    Word List
+        Correct entries
+        Export to Excel
+        Send to Eleonora
+    Patterns
+        finish all patterns for first two entries
+        send email with explanation and offer to meet 
+
 <person> (habet|habuit) <number> mansionem
 
 Guides:

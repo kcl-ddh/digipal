@@ -76,7 +76,7 @@
                 {{ unit.plain_content|safe }}
                 <br/><br/>
                 {% for pattern in unit.patterns %}
-                    {{ pattern.0 }}: {{ pattern.1 }}
+                    <span class="pattern-label {% if not pattern.1 %}missing-pattern{% endif %}">{{ pattern.0 }}</span>: {{ pattern.1 }}
                     <br/>
                 {% endfor %}
                 <hr/>

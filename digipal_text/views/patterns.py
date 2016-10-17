@@ -153,6 +153,8 @@ class PatternAnalyser(object):
                     unit.match_conditions = False
                 if found:
                     pattern.hits += 1
+                else:
+                    unit.patterns.append([pattern_key, ''])
                     
 
     def get_plain_content_from_unit(self, aunit):

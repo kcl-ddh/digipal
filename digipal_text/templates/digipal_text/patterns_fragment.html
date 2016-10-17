@@ -3,9 +3,9 @@
 <div id="search-ajax-fragment">
     <form method="POST" class="form-inline patterns_fragment">
         {% csrf_token %}
-    
+
         <div class="panel patterns">
-            <span id="search-top"></span>
+            <span id="search-top2"></span>
             {% for pattern in patterns.values %}
                 <div class="pattern">
                     <input type="hidden" name="p_{{ pattern.id }}_order" value="{{ pattern.order }}" />
@@ -13,7 +13,7 @@
                         {% if pattern.id %}
                             #{{ pattern.order }}
                         {% else %}
-                            New Pattern: 
+                            New Pattern:
                         {% endif %}
                         <label for="p_{{ pattern.id }}_key">Key</label>
                         <input class="form-control input-sm" type="text" name="p_{{ pattern.id }}_key" id="p_{{ pattern.id }}_key" value="{{ pattern.key }}" autocomplete="off" />
@@ -30,8 +30,13 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <span class="small legend" title="number of units NOT matching this pattern" data-toggle="tooltip">
+                        {% if pattern.id and pattern.condition != 'ignore' %}
+                            {{ pattern.unhits }}
+                        {% endif %}
+                    </span>
                     {% if pattern.id %}
-                        <a class="pull-right btn btn-xs btn-danger delete-pattern" href="#" data-target="managed">X</a>
+                        <a class="pull-right btn btn-xs btn-danger delete-pattern" href="#" data-target="managed" title="Remove this pattern" data-toggle="tooltip">X</a>
                     {% endif %}
                     <br/>
                     <div class="form-group form-group-full-width" style="display:table">
@@ -40,13 +45,13 @@
                     </div>
                 </div>
             {% endfor %}
-    
+
             <div class="actions">
                 <div class="form-group ">
                     <label for="units_range">Text range</label>
                     <input class="form-control input-sm" type="text" name="units_range" id="units_range" value="{{ units_range }}" autocomplete="off" />
                 </div>
-    
+
                 <div class="form-group ">
                     <label for="units_limit">Show first</label>
                     <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" value="{{ units_limit }}" autocomplete="off" />
@@ -55,17 +60,17 @@
                 <button class="form-control btn btn-primary" type="submit" name="update">Update</button>
             </div>
         </div>
-    
+
         <div class="stats panel">
             {{stats.result_size}} units found among {{stats.range_size}} in the selected range ({{ stats.result_size_pc }}%).
             <span class="pull-right small legend">{{ stats.response_time }} s.</span>
         </div>
-    
+
         <div class="units">
             {% for unit in units %}
                 #{{ unit.unitid }}
                 <br/>
-                {{ unit.get_plain_content }}
+                {{ unit.plain_content|safe }}
                 <br/><br/>
                 {% for pattern in unit.patterns %}
                     {{ pattern.0 }}: {{ pattern.1 }}
@@ -74,6 +79,6 @@
                 <hr/>
             {% endfor %}
         </div>
-    
+
     </form>
 </div>

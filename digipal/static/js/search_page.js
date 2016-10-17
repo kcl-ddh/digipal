@@ -320,9 +320,12 @@ function init_search_page(options) {
                     if (document.title != new_title) {
                         document.title = $('#search_page_title').val();
                         // scroll to top of the search div
-                        $('html, body').animate({
-                            scrollTop: $('#search-top').offset().top
-                        }, 500);
+                        var $search_top = $('#search-top');
+                        if ($search_top.length) {
+                            $('html, body').animate({
+                                scrollTop: $search_top.offset().top
+                            }, 500);
+                        }
                     }
 
                     // make sure visible thumbnails are loaded

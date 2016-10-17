@@ -91,6 +91,8 @@ class PatternAnalyser(object):
         # stats
         stats['result_size'] = len(context['units'])
         stats['result_size_pc'] = int(100.0 * stats['result_size'] / stats['range_size']) if stats['range_size'] else 'N/A'
+        for pattern in context['patterns'].values():
+            pattern.unhits = stats['range_size'] - pattern.hits
 
         # limit size of returned result
         if context['units_limit'] > 0:
@@ -113,9 +115,18 @@ class PatternAnalyser(object):
     def segment_unit(self, unit, context):
         patterns = context['patterns']
         unit.patterns = []
+
         unit.match_conditions = True
-        
+
         content_plain = self.get_plain_content_from_unit(unit)
+        # remove . because in some entries they are all over the place
+        content_plain = content_plain.replace('[---]', '')
+        content_plain = content_plain.replace('v', 'u')
+        content_plain = content_plain.replace('7', 'et')
+        content_plain = content_plain.replace('.', ' ').replace(',', ' ').replace(':', ' ').replace('[', ' ').replace(']', ' ')
+        content_plain = content_plain.replace(u'\u00A7', '')
+        content_plain = re.sub('\s+', ' ', content_plain)
+        content_plain = content_plain.strip()
 
         for pattern_key, pattern in patterns.iteritems():
             if not pattern.id: continue
@@ -133,6 +144,8 @@ class PatternAnalyser(object):
                         unit.patterns.append([pattern_key, match.group(0)])
                 if (pattern.condition == 'include' and not found) or (pattern.condition == 'exclude' and found):
                     unit.match_conditions = False
+                if found:
+                    pattern.hits += 1
 
     def get_plain_content_from_unit(self, aunit):
         from django.core.cache import cache
@@ -169,6 +182,8 @@ class PatternAnalyser(object):
 #                 print repr(plain_content)
             ret = plain_content
 
+        aunit.plain_content = ret
+
         return ret
 
     def get_regex_from_pattern(self, patterns, pattern_key):
@@ -180,9 +195,18 @@ class PatternAnalyser(object):
             if ret is None:
                 ret = pattern.pattern
                 if ret:
+                    #  e.g. x (<number>)? y
+                    ret = re.sub(ur' \(([^)]+)\)\? ', ur' (\1 )?', ret)
                     # <person> habet <number> mansionem
                     ret = ret.replace(ur'<person>', ur'\w+')
-                    ret = ret.replace(ur'<number>', ur'\.?[ivxlcm]+\.?')
+                    ret = ret.replace(ur'<name>', ur'\w+( et [A-Z]\w*)*')
+                    # aliam = another
+                    ret = ret.replace(ur'<number>', ur'\b(aliam|unam|[iuxlcm]+)\b')
+                    ret = ret.replace(ur'7', ur'et')
+                    if ret[0] not in [ur'\b', '^']:
+                        ret = ur'\b' + ret
+                    if not ret.endswith(ur'\b'):
+                        ret = ret + ur'\b'
                     print ret
                     ret = pattern.rgx = re.Regex(ret)
 
@@ -250,6 +274,9 @@ class PatternAnalyser(object):
         pattern = TextPattern.get_empty_pattern()
         if pattern.key not in context['patterns']:
             context['patterns'][pattern.key] = pattern
+            
+        for pattern in context['patterns'].values():
+            pattern.hits = 0
 
     def is_unit_in_range(self, unit, ranges):
         ret = False

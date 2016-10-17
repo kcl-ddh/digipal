@@ -17,6 +17,10 @@ EXON
 
 <person> (habet|habuit) <number> mansionem
 
+Guides:
+use et not 7
+use u not v
+
 Duplicate transcription entries!
 226a5
 230b4
@@ -37,7 +41,8 @@ Duplicate transcription entries!
         [DONE] Show the units
         [DONE] show the formulas
         . highlight formulas in text? (pb if overlap!)
-        . show stats
+        [DONE]. stats: show % for each pattern
+        . improve UI when there are many patterns
     . Server
         [DONE] Define the rule model
         [DONE] select only transcription and specific range

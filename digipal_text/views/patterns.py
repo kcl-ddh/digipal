@@ -10,7 +10,6 @@ from digipal.utils import get_int_from_request_var
 from django.db.utils import IntegrityError
 from django.utils.text import slugify
 from django.core.cache.backends.base import InvalidCacheBackendError
-from exon.customisations.digipal_text.models import Entry
 dplog = logging.getLogger('digipal_debugger')
 
 def patterns_view(request):
@@ -18,6 +17,11 @@ def patterns_view(request):
     return ana.process_request(request)
 
 class PatternAnalyser(object):
+    
+    def get_unit_model(self):
+        from exon.customisations.digipal_text.models import Entry
+        ret = Entry
+        return ret
 
     def process_request(self, request):
         self.request = request
@@ -53,7 +57,7 @@ class PatternAnalyser(object):
         context['units'] = []
         stats = {'response_time': 0, 'range_size': 0}
 
-        for unit in Entry.objects.filter(content_xml__id=4).iterator():
+        for unit in self.get_unit_model().objects.filter(content_xml__id=4).iterator():
             #cx = unit.content_xml
 
             # only transcription
@@ -138,7 +142,7 @@ class PatternAnalyser(object):
             if not plain_contents:
                 print 'REBUILD PLAIN CONTENT CACHE'
                 plain_contents = {}
-                for unit in Entry.objects.filter(content_xml__id=4).iterator():
+                for unit in self.get_unit_model().objects.filter(content_xml__id=4).iterator():
                     plain_contents[unit.unitid] = unit.get_plain_content()
                     if unit.unitid in ['25a2', '25a2']:
                         print unit.unitid, repr(plain_contents[unit.unitid][0: 20])

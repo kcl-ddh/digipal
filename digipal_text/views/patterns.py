@@ -211,15 +211,31 @@ class PatternAnalyser(object):
             if ret is None:
                 ret = pattern.pattern
                 if ret:
-                    #  e.g. x (<number>)? y
-                    ret = re.sub(ur' (\([^)]+\))\? ', ur' (\1 )?', ret)
-                    # <person> habet <number> mansionem
-                    ret = ret.replace(ur'<person>', ur'\w+')
+                    # eg.  iii hidas et ii carrucas
+                    # iiii hidis et i uirgata
+                    # u hidis 
+                    # pro dimidia hida Hanc
+                    # Ibi habet abbas ii hidas et dimidiam in dominio et ii carrucas et uillani dimidiam hidam
+                    # hides:different units hid*: hida, uirgat*, ferdi*/ferlin*
+                    # ? 47b1: et ui agris  
+                    # 41a2: iiii hidis et uirga et dimidia
+                    ret = ret.replace(ur'<hide>', ur'<number> <hide-unit>( et <number>( <hide-unit>)?)*')
+                    ret = ret.replace(ur'<hide-unit>', ur'(hid%|uirg%|urig%|fer.i%|agr%)')
+                    ret = ret.replace(ur'<number>', ur'\b(duabus|aliam|dimid|dimidi%|unam|[iuxlcm]+)\b')
+                    ret = ret.replace(ur'<person>', ur'\w\w%')
                     ret = ret.replace(ur'<name>', ur'\w+( et [A-Z]\w*)*')
+                    
+                    #  e.g. x (<number>)? y
+                    while True:
+                        ret2 = ret
+                        ret = re.sub(ur' (\([^)]+\))\? ', ur'( \1)? ', ret2)
+                        if ret == ret2: break
+                    # <person> habet <number> mansionem
+                    ret = ret.replace(ur'%', ur'\w*')
                     # aliam = another
                     # unam = one
                     # dimidia = half
-                    ret = ret.replace(ur'<number>', ur'\b(aliam|dimidia|unam|[iuxlcm]+)\b')
+                    # duabus = two
                     ret = ret.replace(ur'7', ur'et')
                     if ret[0] not in [ur'\b', '^']:
                         ret = ur'\b' + ret

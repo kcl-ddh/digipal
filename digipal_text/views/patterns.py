@@ -127,6 +127,9 @@ class PatternAnalyser(object):
         content_plain = content_plain.replace(u'\u00A7', '')
         content_plain = re.sub('\s+', ' ', content_plain)
         content_plain = content_plain.strip()
+        unit.plain_content = content_plain
+
+        first_match_only = True
 
         for pattern_key, pattern in patterns.iteritems():
             if not pattern.id: continue
@@ -139,50 +142,58 @@ class PatternAnalyser(object):
             if rgx:
                 found = False
                 if 1:
-                    for match in rgx.finditer(content_plain):
+                    for match in rgx.finditer(unit.plain_content):
                         found = True
                         unit.patterns.append([pattern_key, match.group(0)])
+                        # mark it up
+                        unit.plain_content = unit.plain_content[0:match.end()] + '</span>' + unit.plain_content[match.end():]
+                        unit.plain_content = unit.plain_content[0:match.start()] + '<span class="m">' + unit.plain_content[match.start():]
+                        if first_match_only: break
                 if (pattern.condition == 'include' and not found) or (pattern.condition == 'exclude' and found):
                     unit.match_conditions = False
                 if found:
                     pattern.hits += 1
+                    
 
     def get_plain_content_from_unit(self, aunit):
         from django.core.cache import cache
 
         # get the plain contents from this object
         #print 'h1'
-        plain_contents = getattr(self, 'plain_contents', None)
-
-        if not plain_contents:
-            # get the plain contents from the cache
-            try:
-                from django.core.cache import get_cache
-                cache = get_cache('digipal_text_patterns')
-                plain_contents = cache.get('plain_contents')
-                #plain_contents = None
-            except InvalidCacheBackendError, e:
-                pass
-            if not plain_contents:
-                print 'REBUILD PLAIN CONTENT CACHE'
-                plain_contents = {}
-                for unit in self.get_unit_model().objects.filter(content_xml__id=4).iterator():
-                    plain_contents[unit.unitid] = unit.get_plain_content()
-                    if unit.unitid in ['25a2', '25a2']:
-                        print unit.unitid, repr(plain_contents[unit.unitid][0: 20])
-                cache.set('plain_contents', plain_contents, None)
-            setattr(self, 'plain_contents', plain_contents)
-
-        ret = plain_contents.get(aunit.unitid, None)
+        
+        ret = getattr(aunit, 'plain_content', None)
         if ret is None:
-            plain_content = aunit.get_plain_content()
-#             if plain_content != ret:
-#                 print aunit.unitid
-#                 print repr(ret)
-#                 print repr(plain_content)
-            ret = plain_content
-
-        aunit.plain_content = ret
+            plain_contents = getattr(self, 'plain_contents', None)
+    
+            if not plain_contents:
+                # get the plain contents from the cache
+                try:
+                    from django.core.cache import get_cache
+                    cache = get_cache('digipal_text_patterns')
+                    plain_contents = cache.get('plain_contents')
+                    #plain_contents = None
+                except InvalidCacheBackendError, e:
+                    pass
+                if not plain_contents:
+                    print 'REBUILD PLAIN CONTENT CACHE'
+                    plain_contents = {}
+                    for unit in self.get_unit_model().objects.filter(content_xml__id=4).iterator():
+                        plain_contents[unit.unitid] = unit.get_plain_content()
+                        if unit.unitid in ['25a2', '25a2']:
+                            print unit.unitid, repr(plain_contents[unit.unitid][0: 20])
+                    cache.set('plain_contents', plain_contents, None)
+                setattr(self, 'plain_contents', plain_contents)
+    
+            ret = plain_contents.get(aunit.unitid, None)
+            if ret is None:
+                plain_content = aunit.get_plain_content()
+                if 0 and plain_content != ret:
+                    print aunit.unitid
+                    print repr(ret)
+                    print repr(plain_content)
+                ret = plain_content
+    
+            aunit.plain_content = ret
 
         return ret
 

@@ -3,8 +3,8 @@ BNF
     Time estimates
     Send email
 MOA
-    Publish to STG
-    Ask for review -> Confluence
+    [DONE] Publish to STG
+    [DONE] Ask for review -> Confluence
     Publish to Live
 EXON
     Word List

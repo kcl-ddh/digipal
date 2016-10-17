@@ -10,11 +10,15 @@ from digipal.utils import get_int_from_request_var
 from django.db.utils import IntegrityError
 from django.utils.text import slugify
 from django.core.cache.backends.base import InvalidCacheBackendError
+from digipal.templatetags import hand_filters, html_escape
 dplog = logging.getLogger('digipal_debugger')
 
 def patterns_view(request):
+    hand_filters.chrono('PROCESS REQUEST:')
     ana = PatternAnalyser()
-    return ana.process_request(request)
+    ret = ana.process_request(request)
+    hand_filters.chrono(':PROCESS REQUEST')
+    return ret
 
 class PatternAnalyser(object):
     
@@ -51,9 +55,12 @@ class PatternAnalyser(object):
         context['wide_page'] = True
 
         # Update the patterns from the request
+        hand_filters.chrono('patterns:')
         self.update_patterns_from_request(request, context)
+        hand_filters.chrono(':patterns')
 
         # Get the text units
+        hand_filters.chrono('units:')
         context['units'] = []
         stats = {'response_time': 0, 'range_size': 0}
 
@@ -79,6 +86,8 @@ class PatternAnalyser(object):
             if unit.match_conditions:
                 context['units'].append(unit)
 
+        hand_filters.chrono(':units')
+
         # stats
         stats['result_size'] = len(context['units'])
         stats['result_size_pc'] = int(100.0 * stats['result_size'] / stats['range_size']) if stats['range_size'] else 'N/A'
@@ -94,17 +103,19 @@ class PatternAnalyser(object):
         template = 'digipal_text/patterns.html'
         if request.is_ajax():
             template = 'digipal_text/patterns_fragment.html'
+
+        hand_filters.chrono('template:')
         ret = render(request, template, context)
+        hand_filters.chrono(':template')
 
         return ret
 
     def segment_unit(self, unit, context):
         patterns = context['patterns']
         unit.patterns = []
-
-        content_plain = self.get_plain_content_from_unit(unit)
-
         unit.match_conditions = True
+        
+        content_plain = self.get_plain_content_from_unit(unit)
 
         for pattern_key, pattern in patterns.iteritems():
             if not pattern.id: continue

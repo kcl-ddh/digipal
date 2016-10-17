@@ -279,7 +279,8 @@ function init_search_page(options) {
 
             var page_url = dputils.get_page_url($(location).attr('href'));
             // ! we use this.href instead of $element.attr('href') as the first one returns the absolute URL
-            var url = this.hasAttribute('href') ? this.href : page_url + '?' + $element.parents('form').serialize();
+            $form = $element.parents('form');
+            var url = this.hasAttribute('href') ? this.href : page_url + '?' + $form.serialize();
             var $focus_selector = $element.data('focus');
 
             // check if the href is for this page
@@ -294,7 +295,8 @@ function init_search_page(options) {
             // Without this if you move away from the page and then click back
             // it will show only the last Ajax response instead of the full HTML page.
             var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
-            $.get(url_ajax)
+            var is_post = ($form.attr('method') === 'POST');
+            $[is_post ? 'post' : 'get'](url_ajax)
                 .success(function(data) {
                     var $data = $(data);
                     var $fragment = $('#search-ajax-fragment');
@@ -307,7 +309,7 @@ function init_search_page(options) {
                     // insert the new HTML content
                     $fragment.html($data.html());
 
-                    dputils.update_address_bar(url, false, true);
+                    if (!is_post) dputils.update_address_bar(url, false, true);
 
                     $fragment.stop().animate({
                         'background-color': 'white',
@@ -343,6 +345,8 @@ function init_search_page(options) {
                     if (window.collection_star) {
                         window.collection_star.init();
                     }
+                    
+                    $(window).trigger('dploaded');
                 })
                 .fail(function(data) {
                     $("#search-ajax-fragment").stop().css({

@@ -480,8 +480,11 @@ class TextPattern(models.Model):
         super(TextPattern, self).save(*args, **kwargs)
 
     @classmethod
-    def get_empty_pattern(cls):
-        return cls(title='New pattern', key='new-pattern', pattern='', order=10000)
+    def get_empty_pattern(cls, aid=None):
+        options = {'title': 'New pattern', 'key': 'new-pattern', 'pattern': '', 'order': 10000}
+        if aid: options['id'] = aid
+        ret = cls(**options)
+        return ret
 
 from digipal.models import set_additional_models_methods
 set_additional_models_methods()

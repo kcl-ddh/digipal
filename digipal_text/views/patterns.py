@@ -13,6 +13,9 @@ from django.core.cache.backends.base import InvalidCacheBackendError
 from digipal.templatetags import hand_filters, html_escape
 dplog = logging.getLogger('digipal_debugger')
 
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
 def patterns_view(request):
     hand_filters.chrono('PROCESS REQUEST:')
     ana = PatternAnalyser()
@@ -209,12 +212,14 @@ class PatternAnalyser(object):
                 ret = pattern.pattern
                 if ret:
                     #  e.g. x (<number>)? y
-                    ret = re.sub(ur' \(([^)]+)\)\? ', ur' (\1 )?', ret)
+                    ret = re.sub(ur' (\([^)]+\))\? ', ur' (\1 )?', ret)
                     # <person> habet <number> mansionem
                     ret = ret.replace(ur'<person>', ur'\w+')
                     ret = ret.replace(ur'<name>', ur'\w+( et [A-Z]\w*)*')
                     # aliam = another
-                    ret = ret.replace(ur'<number>', ur'\b(aliam|unam|[iuxlcm]+)\b')
+                    # unam = one
+                    # dimidia = half
+                    ret = ret.replace(ur'<number>', ur'\b(aliam|dimidia|unam|[iuxlcm]+)\b')
                     ret = ret.replace(ur'7', ur'et')
                     if ret[0] not in [ur'\b', '^']:
                         ret = ur'\b' + ret
@@ -222,6 +227,7 @@ class PatternAnalyser(object):
                         ret = ret + ur'\b'
                     print ret
                     try:
+                        pattern.pattern_converted = ret
                         ret = pattern.rgx = re.Regex(ret)
                     except Exception, e:
                         print repr(e)
@@ -234,20 +240,38 @@ class PatternAnalyser(object):
         # get patterns from DB as as sorted dictionary
         # {key: TextPattern}
         action = request.REQUEST.get('action', '')
+        
+        print '-' * 80
+        print 'UPDATE_PATTERNS_FROM_REQUEST'
 
         patterns = []
         fields = ['title', 'pattern', 'key', 'order', 'condition']
-        for pattern in (list(TextPattern.objects.all()) + [TextPattern.get_empty_pattern()]):
+        
+        pattern_list = list(TextPattern.objects.all())
+
+        patternids = [p.id for p in pattern_list]
+        for k,v in request.REQUEST.iteritems():
+            pid = re.findall(ur'p_(\d+)_pattern', k)
+            if pid and int(pid[0]) not in patternids:
+                print pid[0]
+                pattern_list.append(TextPattern.get_empty_pattern(aid=pid[0]))
+        
+        pattern_list.append(TextPattern.get_empty_pattern())
+        
+        for pattern in pattern_list:
             #print 'pattern #%s' % pattern.id
             pattern.condition = ''
 
             # modify the pattern from the request
             if action == 'update':
                 modified = False
+                pattern_in_request = False
                 for field in fields:
                     value = request.REQUEST.get('p_%s_%s' % (pattern.id , field), '')
                     if field == 'key' and value:
                         value = slugify(value)
+                    if field:
+                        pattern_in_request = True
                     if unicode(value) != unicode(getattr(pattern, field, '')):
                         #print '\t %s = %s (<> %s)' % (field, repr(value), repr(getattr(pattern, field, '')))
                         setattr(pattern, field, value)
@@ -268,7 +292,7 @@ class PatternAnalyser(object):
                         except:
                             raise
                 else:
-                    if pattern.id:
+                    if pattern.id and pattern_in_request:
                         #print '\t DELETE'
                         pattern.delete()
                     pattern = None

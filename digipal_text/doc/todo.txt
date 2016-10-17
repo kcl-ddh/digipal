@@ -1,3 +1,7 @@
+qua Eduuardus rex fuit uiuus et mortuus
+qua rex Eduuardus fuit uiuus et mortuus
+TRE Holder: do we separate them off?
+
 BNF
     Upgrade 
     Time estimates

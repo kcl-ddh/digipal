@@ -2,7 +2,7 @@
 
 <div id="search-ajax-fragment">
     <form method="POST" class="form-inline patterns_fragment">
-        {% csrf_token %}
+        {# % csrf_token % #}
 
         <div class="panel patterns">
             <span id="search-top2"></span>
@@ -46,6 +46,7 @@
                     {% if pattern.error %}
                     <div class="error-message">Syntax error: {{ pattern.error }}</div>
                     {% endif %}
+                    <span data-patternkey="{{pattern.key}}" data-patternconverted="{{pattern.pattern_converted}}"></span>
                 </div>
             {% endfor %}
 
@@ -71,15 +72,18 @@
 
         <div class="units">
             {% for unit in units %}
-                #{{ unit.unitid }}
-                <br/>
-                {{ unit.plain_content|safe }}
-                <br/><br/>
-                {% for pattern in unit.patterns %}
-                    <span class="pattern-label {% if not pattern.1 %}missing-pattern{% endif %}">{{ pattern.0 }}</span>: {{ pattern.1 }}
-                    <br/>
-                {% endfor %}
-                <hr/>
+                <div class="unit">
+                    #{{ unit.unitid }}
+                    <div class="unit-content">
+                        {{ unit.plain_content|safe }}
+                    </div>
+                    <br/><br/>
+                    {% for pattern in unit.patterns %}
+                        <span data-patternkey="{{pattern.0}}" class="pattern-label {% if not pattern.1 %}missing-pattern{% endif %}">{{ pattern.0 }}</span>: {{ pattern.1 }}
+                        <br/>
+                    {% endfor %}
+                    <hr/>
+                </div>
             {% endfor %}
         </div>
 

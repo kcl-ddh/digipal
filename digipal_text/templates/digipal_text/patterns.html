@@ -46,11 +46,31 @@
             border: 1px solid green;
             margin-left: 0.2em;
         }
+        #pattern_tester {
+            position: fixed;
+            background-color: white;
+            width: 80%;
+            border: 1px solid grey;
+            top: 2em;
+            left: 2em;
+            z-index: 10000;
+            padding: 0.5em;
+            display: none;
+        }
+        #pattern_tester input {
+            width: 90%;
+        }
     </style>
 {% endblock %}
 
 {% block main %}
     {% include "digipal_text/patterns_fragment.html" %}
+    <div id="pattern_tester">
+        <input type="hidden" name="input" value="" />
+        Pattern: <input type="text" name="pattern" value="pattern" /> <br/>
+        Match: <input type="text" name="match" value="match" />
+        <a class="close-btn" href="#">Close</a>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
@@ -64,13 +84,41 @@
 
     <script>
         jQuery(document).ready(function($) {
-            $('.patterns').on('click', '.delete-pattern', function() {
+            $('body').on('click', '.delete-pattern', function() {
                 $btn = $(this);
                 $btn.parent().find('.pattern-input').val('');
                 $btn.parent().hide();
                 return false;
             });
             window.init_search_page();
+            
+            $('#pattern_tester .close-btn').on('click', function() { 
+                $(this).parent().hide();
+                return false;
+            });
+            $('#pattern_tester input[name=pattern]').on('change keyup', function() {
+                var $tester = $(this).parent();
+                var rgx = new RegExp($(this).val());
+                var match = rgx.exec($tester.find('input[name=input]').val());
+                $tester.find('input[name=match]').val(match && match[0] ? match[0] : '');
+            });
+            
+            $('body').on('click', 'span.pattern-label', function(evt) {
+                // move pattern tester next to pattern label
+                var $pattern_label = $(this);
+                var $tester = $('#pattern_tester');
+                $tester.show();
+                // fill in the real regexp
+                var pattern_converted = $('span[data-patternkey='+$pattern_label.attr('data-patternkey')+']').attr('data-patternconverted');
+                $tester.find('input[name=pattern]').val(pattern_converted);
+                var input = $pattern_label.parent().find('.unit-content').html().trim();
+                $tester.find('input[name=input]').val(input.replace(/<[^>]+>/g, ''));
+            });
+
+            $(window).on('dploaded', function() {
+                console.log('LOADED');
+                return false;
+            });
         });
     </script>
 {% endblock %}

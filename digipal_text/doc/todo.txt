@@ -1,9 +1,13 @@
-Quality TEXT: e.g. 
+
+
+Problems:
+    Quality TEXT: e.g. et dimidia et dimidia, htenuit, [---]
+Question:
+    Where should the categorisation into variants occur? the patterns or subsequently with database query about the pattern content? 
+    Related question: how strict are the patterns and what is the logic for having multiple patterns that cover similar type of formulas 
 
 qua Eduuardus rex fuit uiuus et mortuus
 qua rex Eduuardus fuit uiuus et mortuus
-
-
 reddidit gildum pro hida et dimidia 
 
 #232b3
@@ -81,6 +85,16 @@ Duplicate transcription entries!
     . Pattern syntax
         . capture (expression:parameter), sub-pattern <key>, OR (a|b|c), maybe ()
         . {} habet {number} mansionem
+
+. Pattern discovery:
+    Aim: we have a very formulaic corupus and want to semi-automatically discover frequent patterns and their occurences
+    Methodology:
+        . normalise spelling and word variants in the text to have broader patterns
+        . replace pattern variables with label: numbers, dates, names (places, person)
+            . using regexp for numbers, capitals for names
+            . but capital is not reliable so may have to categorise based on most frequent spelling
+        . Create coocurrence matrix, Markov model of degree 1 or 2
+        . then what???
 
 . word list
     . still special chars in the expanded text
@@ -1001,3 +1015,4 @@ Maybe
 
     
 http://localhost/digipal/patterns/?p_1_order=1&p_1_key=trw-holder&p_1_title=TRW+holder&p_1_condition=ignore&p_1_pattern=%5E.*%3F+(habet%7Chabuit%7Ctenet%7Ctenuit)+(%3Cnumber%3E)%3F+(mansionem%7Cmanerium)&p_3_order=2&p_3_key=tre-holder2&p_3_title=TRE+Holder2&p_3_condition=ignore&p_3_pattern=quam+(tenuit%7Ctenetuit%7Ctenuerunt)+(mater)%3F+%3Cperson%3E+(tegni+pariter%7Cpariter%7Ccomes%7Ccomitis)%3F+ea+die+qua+rex+(Eduuardus%7CEdwardus)+fuit+uiuus+et+mortuus&p_2_order=3&p_2_key=manor-name&p_2_title=Manor+name&p_2_condition=ignore&p_2_pattern=(q%7Cque%7Cquae%7Cqui%7Cquo%7Cquod%7Cqu%C3%A6)+(uocat%7Cuocatur)+%3Cname%3E&p_4_order=4&p_4_key=tre-holder&p_4_title=TRE+Holder&p_4_condition=ignore&p_4_pattern=(quam%7Chas)+(tenuit%7Ctenetuit%7Ctenuerunt)+.*%3F+(Eduuardus%7CEdwardus)+.*%3F+(mortuus%7Cdominum)&p_5_order=5&p_5_key=hidage&p_5_title=Hidage&p_5_condition=&p_5_pattern=reddi%25+(geldum%7Cgildum%7Cghildum%7Cgeuldum%7Cgueldum)+(tempore)%3F+(regis+Ea%3Fduuardi)%3F+pro+%3Chide%3E&p_None_order=10000&p_None_key=new-pattern&p_None_title=New+pattern&p_None_condition=&p_None_pattern=&units_range=&units_limit=800&action=update&jx=1
+

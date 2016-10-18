@@ -223,7 +223,7 @@ class PatternAnalyser(object):
                     ret = ret.replace(ur'<hide-unit>', ur'(hid%|uirg%|urig%|fer.i%|agr%)')
                     ret = ret.replace(ur'<number>', ur'\b(duabus|aliam|dimid|dimidi%|unam|[iuxlcm]+)\b')
                     ret = ret.replace(ur'<person>', ur'\w\w%')
-                    ret = ret.replace(ur'<name>', ur'\w+( et [A-Z]\w*)*')
+                    ret = ret.replace(ur'<name>', ur'\w+(( et)? [A-Z]\w*)*')
                     
                     #  e.g. x (<number>)? y
                     while True:

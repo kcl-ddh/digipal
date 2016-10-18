@@ -79,7 +79,12 @@
                     </div>
                     <br/><br/>
                     {% for pattern in unit.patterns %}
-                        <span data-patternkey="{{pattern.0}}" class="pattern-label {% if not pattern.1 %}missing-pattern{% endif %}">{{ pattern.0 }}</span>: {{ pattern.1 }}
+                        <span data-patternkey="{{pattern.0}}" class="pattern-label {% if not pattern.1 %}missing-pattern{% endif %}">{{ pattern.0 }}</span>:
+                        {% if pattern.1 %}
+                            {{ pattern.1 }}
+                        {% else %}
+                            <span style="color: orange">{{ patterns|dictget:pattern.0|dictget:'pattern' }}</span>
+                        {% endif %}
                         <br/>
                     {% endfor %}
                     <hr/>

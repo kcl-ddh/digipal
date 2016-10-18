@@ -55,22 +55,28 @@ Duplicate transcription entries!
     . UI
         [DONE] Show patterns
         [DONE] Edit patterns
-        . reorder patterns
         [DONE] add drop down with condition about the pattern: |ignore|include|exclude
-        [DONE] Show the units
+        [DONE] show the units
         [DONE] show the formulas
-        . highlight formulas in text? (pb if overlap!)
+        [DONE] highlight formulas in text? (pb if overlap!)
         [DONE]. stats: show % for each pattern
-        . improve UI when there are many patterns
+        . Compact Pattern List:
+            [DONE] expand only one selected pattern in the list
+            . show condition in the collapsed view
+            . edit condition in the collapsed view
+            . change all conditions in one go
+        . reorder patterns
     . Server
         [DONE] Define the rule model
         [DONE] select only transcription and specific range
         [DONE] basic segmentation
         [DONE] pattern error management
         [DONE] apply pattern conditions
-        . cache the entry extra data instead of querying the DB for each record
+        [DONE] cache the entry extra data instead of querying the DB for each record
+        . expose facility patterns
         . detect matches which are too long
-        . numbers: et dimidia: #232b3 "reddidit gildum pro i ferlino et dimidia"
+        [DONE] numbers: et dimidia: #232b3 "reddidit gildum pro i ferlino et dimidia"
+        . save patterns as a single json object: easier to update
     . General
         . add pattern types
     . Bugs
@@ -78,7 +84,7 @@ Duplicate transcription entries!
         [DONE] . why does Entry.objects.all() go through each unit twice?! Translation and Transcription units!
         [DONE] . why does plain_contents[unit.unitid] return the wrong entry? See above
     . Xtras:
-        . Ajax load to speed up iterations
+        [DONE] Ajax load to speed up iterations
         . API
         . Dockerise (separate instance for API and Client)
         . Vue.js

@@ -5,9 +5,18 @@
         {# % csrf_token % #}
 
         <div class="panel patterns">
+            <ul class="patterns-list">
+                {% for pattern in patterns.values %}
+                    <li data-patternid="{{pattern.id}}">
+                        <a data-target="managed" href="#">{{ pattern.key }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <br/>
+
             <span id="search-top2"></span>
             {% for pattern in patterns.values %}
-                <div class="pattern">
+                <div class="pattern" data-patternid="{{pattern.id}}">
                     <input type="hidden" name="p_{{ pattern.id }}_order" value="{{ pattern.order }}" />
                     <div class="form-group">
                         {% if pattern.id %}

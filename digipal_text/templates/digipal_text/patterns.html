@@ -24,7 +24,11 @@
             width: 100%;
         }
         div.pattern {
+            display: none;
+            border-top: 2px solid lightgrey;
             border-bottom: 2px solid lightgrey;
+            padding-top: 0.2em;
+            margin-top: 0.2em;
             padding-bottom: 0.2em;
             margin-bottom: 0.2em;
         }
@@ -60,6 +64,16 @@
         #pattern_tester input {
             width: 90%;
         }
+        ul.patterns-list {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            margin-bottom: 0.5em;
+        }
+        ul.patterns-list li {
+            float: left;
+            margin: 0 0.4em 0 0;
+        }
     </style>
 {% endblock %}
 
@@ -90,7 +104,21 @@
                 $btn.parent().hide();
                 return false;
             });
+            
             window.init_search_page();
+            
+            function showPatternForm(patternid) {
+                // hide all patterns
+                $('div.pattern').hide();
+                // show selected pattern
+                $('div.pattern[data-patternid='+patternid+']').show();
+                localStorage.selected_patternid = patternid;
+            }
+
+            $('body').on('click', 'li[data-patternid] a', function(evt) {
+                showPatternForm($(this).parent().attr('data-patternid'));
+                return false;
+            });
             
             $('#pattern_tester .close-btn').on('click', function() { 
                 $(this).parent().hide();
@@ -115,10 +143,13 @@
                 $tester.find('input[name=input]').val(input.replace(/<[^>]+>/g, ''));
             });
 
+            // called each time the ajax content is refreshed
             $(window).on('dploaded', function() {
-                console.log('LOADED');
+                // show selected pattern
+                showPatternForm(localStorage.selected_patternid);
                 return false;
             });
+            $(window).trigger('dploaded');
         });
     </script>
 {% endblock %}

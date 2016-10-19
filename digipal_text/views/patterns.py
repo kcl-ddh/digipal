@@ -24,7 +24,7 @@ def patterns_view(request):
     return ret
 
 class PatternAnalyser(object):
-    
+
     def get_unit_model(self):
         from exon.customisations.digipal_text.models import Entry
         ret = Entry
@@ -158,18 +158,18 @@ class PatternAnalyser(object):
                     pattern.hits += 1
                 else:
                     unit.patterns.append([pattern_key, ''])
-                    
+
 
     def get_plain_content_from_unit(self, aunit):
         from django.core.cache import cache
 
         # get the plain contents from this object
         #print 'h1'
-        
+
         ret = getattr(aunit, 'plain_content', None)
         if ret is None:
             plain_contents = getattr(self, 'plain_contents', None)
-    
+
             if not plain_contents:
                 # get the plain contents from the cache
                 try:
@@ -188,7 +188,7 @@ class PatternAnalyser(object):
                             print unit.unitid, repr(plain_contents[unit.unitid][0: 20])
                     cache.set('plain_contents', plain_contents, None)
                 setattr(self, 'plain_contents', plain_contents)
-    
+
             ret = plain_contents.get(aunit.unitid, None)
             if ret is None:
                 plain_content = aunit.get_plain_content()
@@ -197,7 +197,7 @@ class PatternAnalyser(object):
                     print repr(ret)
                     print repr(plain_content)
                 ret = plain_content
-    
+
             aunit.plain_content = ret
 
         return ret
@@ -213,18 +213,18 @@ class PatternAnalyser(object):
                 if ret:
                     # eg.  iii hidas et ii carrucas
                     # iiii hidis et i uirgata
-                    # u hidis 
+                    # u hidis
                     # pro dimidia hida Hanc
                     # Ibi habet abbas ii hidas et dimidiam in dominio et ii carrucas et uillani dimidiam hidam
                     # hides:different units hid*: hida, uirgat*, ferdi*/ferlin*
-                    # ? 47b1: et ui agris  
+                    # ? 47b1: et ui agris
                     # 41a2: iiii hidis et uirga et dimidia
                     ret = ret.replace(ur'<hide>', ur'<number> <hide-unit>( et <number>( <hide-unit>)?)*')
                     ret = ret.replace(ur'<hide-unit>', ur'(hid%|uirg%|urig%|fer.i%|agr%)')
                     ret = ret.replace(ur'<number>', ur'\b(duabus|aliam|dimid|dimidi%|unam|[iuxlcm]+)\b')
                     ret = ret.replace(ur'<person>', ur'\w\w%')
                     ret = ret.replace(ur'<name>', ur'\w+(( et)? [A-Z]\w*)*')
-                    
+
                     #  e.g. x (<number>)? y
                     while True:
                         ret2 = ret
@@ -254,13 +254,13 @@ class PatternAnalyser(object):
         # get patterns from DB as as sorted dictionary
         # {key: TextPattern}
         action = request.REQUEST.get('action', '')
-        
+
         print '-' * 80
         print 'UPDATE_PATTERNS_FROM_REQUEST'
 
         patterns = []
         fields = ['title', 'pattern', 'key', 'order', 'condition']
-        
+
         pattern_list = list(TextPattern.objects.all())
 
         patternids = [p.id for p in pattern_list]
@@ -269,9 +269,9 @@ class PatternAnalyser(object):
             if pid and int(pid[0]) not in patternids:
                 print pid[0]
                 pattern_list.append(TextPattern.get_empty_pattern(aid=pid[0]))
-        
+
         pattern_list.append(TextPattern.get_empty_pattern())
-        
+
         for pattern in pattern_list:
             #print 'pattern #%s' % pattern.id
             pattern.condition = ''
@@ -287,7 +287,7 @@ class PatternAnalyser(object):
                     if field:
                         pattern_in_request = True
                     if unicode(value) != unicode(getattr(pattern, field, '')):
-                        #print '\t %s = %s (<> %s)' % (field, repr(value), repr(getattr(pattern, field, '')))
+                        print '\t %s.%s = %s (<> %s)' % (pattern.key, field, repr(value), repr(getattr(pattern, field, '')))
                         setattr(pattern, field, value)
                         if field != 'condition':
                             modified = True
@@ -317,10 +317,13 @@ class PatternAnalyser(object):
 
         # make sorted dict
         context['patterns'] = SortedDict()
+
+        #print patterns
+        patterns = sorted(patterns, key=lambda p: int(p.order or 0))
+        print [p.key for p in patterns]
+        #print patterns
+
         new_order = 0
-        #print patterns
-        patterns = sorted(patterns, key=lambda p: p.order)
-        #print patterns
         for pattern in patterns:
             new_order += 1
             pattern.order = new_order
@@ -330,7 +333,7 @@ class PatternAnalyser(object):
         pattern = TextPattern.get_empty_pattern()
         if pattern.key not in context['patterns']:
             context['patterns'][pattern.key] = pattern
-            
+
         for pattern in context['patterns'].values():
             pattern.hits = 0
 

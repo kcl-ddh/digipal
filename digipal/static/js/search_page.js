@@ -300,12 +300,12 @@ function init_search_page(options) {
                 .success(function(data) {
                     var $data = $(data);
                     var $fragment = $('#search-ajax-fragment');
-                    
+
                     // get rid of opened tooltip to avoid ghosts
                     if ($.fn.tooltip) {
                         $fragment.find('[data-toggle="tooltip"]').tooltip('destroy');
                     }
-                    
+
                     // insert the new HTML content
                     $fragment.html($data.html());
 
@@ -337,6 +337,9 @@ function init_search_page(options) {
                     if ($.fn.tooltip) {
                         $fragment.find('[data-toggle="tooltip"]').tooltip();
                     }
+                    if ($.fn.sortable) {
+                        $fragment.find('.sortable').sortable();
+                    }
                     if ($focus_selector) {
                         var v = $($focus_selector).val();
                         $($focus_selector).val('').val(v).focus();
@@ -345,7 +348,7 @@ function init_search_page(options) {
                     if (window.collection_star) {
                         window.collection_star.init();
                     }
-                    
+
                     $(window).trigger('dploaded');
                 })
                 .fail(function(data) {

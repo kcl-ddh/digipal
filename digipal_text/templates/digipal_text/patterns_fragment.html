@@ -5,10 +5,12 @@
         {# % csrf_token % #}
 
         <div class="panel patterns">
-            <ul class="patterns-list">
+            <ul class="patterns-list sortable">
                 {% for pattern in patterns.values %}
                     <li data-patternid="{{pattern.id}}">
-                        <a data-target="managed" href="#">{{ pattern.key }}</a>
+                        <a data-target="managed" href="#">
+                            {%if pattern.condition == 'include' %}+{% endif%}{%if pattern.condition == 'exclude' %}-{% endif%}{%if pattern.condition == 'ignore' %}({% endif%}{{ pattern.key }}{%if pattern.condition == 'ignore' %}){% endif%}
+                        </a>
                     </li>
                 {% endfor %}
             </ul>

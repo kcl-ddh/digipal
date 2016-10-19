@@ -74,6 +74,9 @@
             float: left;
             margin: 0 0.4em 0 0;
         }
+        ul.patterns-list li.picked {
+            background-color: yellow;
+        }
     </style>
 {% endblock %}
 
@@ -104,23 +107,26 @@
                 $btn.parent().hide();
                 return false;
             });
-            
+
             window.init_search_page();
-            
+
             function showPatternForm(patternid) {
                 // hide all patterns
                 $('div.pattern').hide();
                 // show selected pattern
                 $('div.pattern[data-patternid='+patternid+']').show();
                 localStorage.selected_patternid = patternid;
+                //
+                $('li[data-patternid]').removeClass('picked');
+                $('li[data-patternid='+patternid+']').addClass('picked');
             }
 
             $('body').on('click', 'li[data-patternid] a', function(evt) {
                 showPatternForm($(this).parent().attr('data-patternid'));
                 return false;
             });
-            
-            $('#pattern_tester .close-btn').on('click', function() { 
+
+            $('#pattern_tester .close-btn').on('click', function() {
                 $(this).parent().hide();
                 return false;
             });
@@ -130,7 +136,7 @@
                 var match = rgx.exec($tester.find('input[name=input]').val());
                 $tester.find('input[name=match]').val(match && match[0] ? match[0] : '');
             });
-            
+
             $('body').on('click', 'span.pattern-label', function(evt) {
                 // move pattern tester next to pattern label
                 var $pattern_label = $(this);
@@ -150,6 +156,14 @@
                 return false;
             });
             $(window).trigger('dploaded');
+
+            $('body').on('sortupdate', '.patterns-list.sortable', function(event, ui) {
+                //<input type="hidden" name="p_{{ pattern.id }}_order" value="{{ pattern.order }}" />
+                $('li[data-patternid]').each(function(index, element) {
+                    $('[name=p_' + $(this).attr('data-patternid') + '_order]').val(index+1);
+                    console.log('[name=p_' + $(this).attr('data-patternid') + '_order] = ' + (index+1));
+                });
+            });
         });
     </script>
 {% endblock %}

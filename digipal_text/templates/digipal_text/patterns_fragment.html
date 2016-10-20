@@ -10,7 +10,7 @@
                     <li data-patternid="{{pattern.id}}">
                         <a data-target="managed" href="#">
                             {%if pattern.condition == 'include' %}+{% endif%}{%if pattern.condition == 'exclude' %}-{% endif%}{%if pattern.condition == 'ignore' %}({% endif%}{{ pattern.key }}{%if pattern.condition == 'ignore' %}){% endif%}
-                            [{{ pattern.unhits }}]
+                            {% if pattern.error %}<span class="glyphicon glyphicon-warning-sign"></span>{% else %}[{{ pattern.unhits }}]{% endif %}
                         </a>
                     </li>
                 {% endfor %}

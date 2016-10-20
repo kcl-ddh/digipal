@@ -71,25 +71,26 @@ Duplicate transcription entries!
         [DONE] pattern error management
         [DONE] apply pattern conditions
         [DONE] cache the entry extra data instead of querying the DB for each record
-        !!!! expose facility patterns
+        !! expose facility patterns
         . detect matches which are too long
+        . detect overlaps
         [DONE] numbers: et dimidia: #232b3 "reddidit gildum pro i ferlino et dimidia"
         . save patterns as a single json object: easier to update
     . General
         . add pattern types
+        !!!! Find all variants of a pattern with stats
     . Bugs
         [DONE] why does cache.get return None? Because default cache is dummy and forgetful.
         [DONE] . why does Entry.objects.all() go through each unit twice?! Translation and Transcription units!
         [DONE] . why does plain_contents[unit.unitid] return the wrong entry? See above
         !!!! Prevent overwriting old patterns
+        . conditions are easily lost
     . Xtras:
         [DONE] Ajax load to speed up iterations
+        ! state transition matrix/Markov Chain
         . API
         . Dockerise (separate instance for API and Client)
         . Vue.js
-    . Pattern syntax
-        . capture (expression:parameter), sub-pattern <key>, OR (a|b|c), maybe ()
-        . {} habet {number} mansionem
 
 . Pattern discovery:
     Aim: we have a very formulaic corupus and want to semi-automatically discover frequent patterns and their occurences

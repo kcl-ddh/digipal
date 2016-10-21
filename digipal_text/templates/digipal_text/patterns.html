@@ -95,7 +95,10 @@
 {% endblock %}
 
 {% block main %}
+    <a href="https://confluence.dighum.kcl.ac.uk/display/EXON/Text+Segmentation+Tool">Help about this tool</a>
+
     {% include "digipal_text/patterns_fragment.html" %}
+
     <div id="pattern_tester">
         <input type="hidden" name="input" value="" />
         Pattern: <input type="text" name="pattern" value="pattern" /> <br/>
@@ -133,6 +136,8 @@
                 //
                 $('li[data-patternid]').removeClass('picked');
                 $('li[data-patternid='+patternid+']').addClass('picked');
+                //
+                $('input[name=selected_patternid]').val(patternid);
             }
 
             $('body').on('click', 'li[data-patternid] a', function(evt) {

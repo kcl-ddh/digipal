@@ -183,16 +183,18 @@ function init_search_page(options) {
         // Set focus on the search box. Place the cursor at the end.
         // Add a whitespace after the last search term.
         var search_box = $('#search-terms');
-        var search_terms = $('#search-terms').val().replace(/^\s+|\s+$/g, '') + ' ';
-        if (search_terms == ' ') search_terms = '';
+        if (search_box.length > 0) {
+            var search_terms = $('#search-terms').val().replace(/^\s+|\s+$/g, '') + ' ';
+            if (search_terms == ' ') search_terms = '';
 
-        var page = dputils.get_query_string_param('page');
-        if (!page || (page == '1')) {
-            // GN: 2015/08/19: disabled focus on page load
-            // because on small screens the text box is below the result
-            // and the user, when they arrive to the search page for the
-            // first time will be disoriented.
-            //search_box.val(search_terms).focus();
+            var page = dputils.get_query_string_param('page');
+            if (!page || (page == '1')) {
+                // GN: 2015/08/19: disabled focus on page load
+                // because on small screens the text box is below the result
+                // and the user, when they arrive to the search page for the
+                // first time will be disoriented.
+                //search_box.val(search_terms).focus();
+            }
         }
     }
 

@@ -5,6 +5,7 @@
         {# % csrf_token % #}
 
         <div class="panel patterns">
+            <input type="hidden" name="selected_patternid" value="" />
             <ul class="patterns-list sortable2">
                 {% for pattern in patterns.values %}
                     <li data-patternid="{{pattern.id}}">
@@ -80,6 +81,15 @@
             {{stats.result_size}} units found among {{stats.range_size}} in the selected range ({{ stats.result_size_pc }}%).
             <span class="pull-right small legend">{{ stats.response_time }} s.</span>
         </div>
+
+        {% if 0 %}
+            <div>
+                {% for variant, c in variants.iteritems %}
+                    {{ c }}: {{ variant }}
+                    <br/>
+                {% endfor %}
+            </div>
+        {% endif %}
 
         <div class="units">
             {% for unit in units %}

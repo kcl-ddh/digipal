@@ -25,6 +25,10 @@ def patterns_view(request):
 
 class PatternAnalyser(object):
 
+    patterns = {
+        ur'<number>': ur'\b(duabus|aliam|dimid|dimidi%|unam|[iuxlcm]+)\b',
+    }
+
     def get_unit_model(self):
         from exon.customisations.digipal_text.models import Entry
         ret = Entry
@@ -41,6 +45,9 @@ class PatternAnalyser(object):
         # settings variable.
 
         context = {}
+
+        context['advanced_search_form'] = 1
+        context['variants'] = {}
 
         context['conditions'] = [
             {'key': '', 'label': 'May have'},
@@ -84,7 +91,7 @@ class PatternAnalyser(object):
             stats['range_size'] += 1
 
             # segment the unit
-            self.segment_unit(unit, context)
+            self.segment_unit(unit, context, request)
 
             if unit.match_conditions:
                 context['units'].append(unit)
@@ -115,7 +122,7 @@ class PatternAnalyser(object):
 
         return ret
 
-    def segment_unit(self, unit, context):
+    def segment_unit(self, unit, context, request):
         patterns = context['patterns']
         unit.patterns = []
 
@@ -127,6 +134,8 @@ class PatternAnalyser(object):
         content_plain = content_plain.replace('v', 'u')
         content_plain = content_plain.replace('7', 'et')
         content_plain = content_plain.replace('.', ' ').replace(',', ' ').replace(':', ' ').replace('[', ' ').replace(']', ' ')
+        content_plain = content_plain.replace(u'\u00C6', 'AE')
+        content_plain = content_plain.replace(u'\u00E6', 'ae')
         content_plain = content_plain.replace(u'\u00A7', '')
         content_plain = re.sub('\s+', ' ', content_plain)
         content_plain = content_plain.strip()
@@ -151,7 +160,15 @@ class PatternAnalyser(object):
                         # mark it up
                         unit.plain_content = unit.plain_content[0:match.end()] + '</span>' + unit.plain_content[match.end():]
                         unit.plain_content = unit.plain_content[0:match.start()] + '<span class="m">' + unit.plain_content[match.start():]
+
+                        if str(request.REQUEST.get('selected_patternid', 0)) == str(pattern.id):
+                            variant = match.group(0)
+                            variant = re.sub(self.patterns['<number>'], ur'<number>', variant)
+                            variant = re.sub(ur'\b[A-Z]\w+\b', ur'<name>', variant)
+                            context['variants'][variant] = context['variants'].get(variant, 0) + 1
+
                         if first_match_only: break
+
                 if (pattern.condition == 'include' and not found) or (pattern.condition == 'exclude' and found):
                     unit.match_conditions = False
                 if found:
@@ -219,9 +236,17 @@ class PatternAnalyser(object):
                     # hides:different units hid*: hida, uirgat*, ferdi*/ferlin*
                     # ? 47b1: et ui agris
                     # 41a2: iiii hidis et uirga et dimidia
-                    ret = ret.replace(ur'<hide>', ur'<number> <hide-unit>( et <number>( <hide-unit>)?)*')
-                    ret = ret.replace(ur'<hide-unit>', ur'(hid%|uirg%|urig%|fer.i%|agr%)')
-                    ret = ret.replace(ur'<number>', ur'\b(duabus|aliam|dimid|dimidi%|unam|[iuxlcm]+)\b')
+                    ret = ret.replace(ur'<hides>', ur'<number> <hide>( et dimid%| et <number> <hide>)*')
+                    ret = ret.replace(ur'<peasants>', ur'<number> <peasant>( et dimid%| et <number> <peasant>)*')
+                    ret = ret.replace(ur'<livestocks>', ur'<number> <livestock>( et dimid%| et <number> <livestock>)*')
+                    ret = ret.replace(ur'<moneys>', ur'<number> <money>( et dimid%| et <number> <money>)*')
+
+                    ret = ret.replace(ur'<hide>', ur'(hid%|uirg%|urig%|fer.i%|agr%|car%c%)')
+                    ret = ret.replace(ur'<peasant>', ur'(uillan%|bordar%|cott?ar%|costcet%|seru%)')
+                    ret = ret.replace(ur'<livestock>', ur'(porc%|oues%|capra%|animal%|ronc%|runc%|uacas)')
+                    ret = ret.replace(ur'<money>', ur'(solidos|libras)')
+
+                    ret = ret.replace(ur'<number>', self.patterns['<number>'])
                     ret = ret.replace(ur'<person>', ur'\w\w%')
                     # !! How to remove Has? 28a1
                     ret = ret.replace(ur'<name>', ur'\w+(( et)? [A-Z]\w*)*')
@@ -229,7 +254,7 @@ class PatternAnalyser(object):
                     #  e.g. x (<number>)? y
                     while True:
                         ret2 = ret
-                        ret = re.sub(ur' (\([^)]+\))\? ', ur'( \1)? ', ret2)
+                        ret = re.sub(ur'( |^)(\([^)]+\))\?( |$)', ur'(\1\2)?\3', ret2)
                         if ret == ret2: break
                     # <person> habet <number> mansionem
                     ret = ret.replace(ur'%', ur'\w*')

@@ -99,7 +99,9 @@ class NameModel(models.Model):
         ordering = ['name']
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(unicode(self.name))
+        self.slug = (self.slug or '').strip()
+        if not self.slug:
+            self.slug = slugify(unicode(self.name))
         super(NameModel, self).save(*args, **kwargs)
 
     def __unicode__(self):

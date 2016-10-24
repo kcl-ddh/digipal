@@ -1,3 +1,21 @@
+Todo:
+. word list
+    . fix errors with words stuck together and special chars
+    . export to Excel
+. navigation
+    . toc above images
+    . toc above text editor?
+. UI
+    . remove rekeyed text
+    .
+. patterns:
+    . detect concurrent changes
+
+
+--
+Pattern analysis
+--
+
 Problems:
     Quality TEXT: e.g. et dimidia et dimidia, htenuit, [---]
 Question:

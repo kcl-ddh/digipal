@@ -115,7 +115,7 @@ Commands:
         if command == 'trefs2csv':
             known_command = True
             self.trefs2csv()
-            
+
         if command == 'setentryhand':
             known_command = True
             self.setentryhand()
@@ -258,7 +258,7 @@ Commands:
 
     def setentryhand(self):
         # populate digipal_text.entryhand from exon_reference_system
-    
+
         print 'delete all records'
         from digipal_text.models import EntryHand
         [r.delete() for r in EntryHand.objects.all()]
@@ -269,13 +269,13 @@ Commands:
             from exon_reference_system
             ;
         '''
-        
+
         recs = dputils.sql_select_dict(query)
-        
+
         def add_entryhand(rec, scribe_column_number):
             # add one record in EntryHand from a scribe column in exon_reference_system record
             scribes = [s.strip().lower() for s in (rec['scribe%s' % scribe_column_number] or '').split(',')]
-            
+
             for scribe in scribes:
                 if scribe:
                     rec['order'] = rec.get('order', -1) + 1
@@ -290,18 +290,18 @@ Commands:
                         hand_label = 'unknown'
                         certainty = 0
                     EntryHand(entry_number=rec['entry_number'], item_part_id=1, hand_label=hand_label, order=rec['order'], correction=correction, certainty=certainty).save()
-        
+
         print 'insert EntryHand records'
         for rec in recs:
             rec = {k: (v or '').strip() for k, v in rec.iteritems()}
             if rec['entry_number']:
                 for i in [1, 2, 3]:
                     add_entryhand(rec, i)
-        
+
         # Use this query to find all hands with labels not found in digipal_hand
         '''
         select eh.hand_label, count(*), min(entry_number), max(entry_number)
-        from digipal_text_entryhand eh 
+        from digipal_text_entryhand eh
         left join digipal_hand ha on eh.hand_label = lower(ha.label)
         where ha.label is null
         --order by entry_number, hand_label, "order"
@@ -309,9 +309,9 @@ Commands:
         order by eh.hand_label
         ;
         '''
-                    
+
         print '%s EntryHand inserted' % EntryHand.objects.count()
-        
+
     def trefs2csv(self):
 
         file_path = 'trefs.csv'
@@ -391,7 +391,7 @@ Commands:
         #for ref in re.findall(ur'(?musi)<span data-dpt="supplied" data-dpt-type="reference" data-dpt-cat="chars">()</span>', text.content):
 
     def entries2csv_command(self):
-        headings = ['entry', 'translation', 'transcription-sample']
+        headings = ['entry', 'translation', 'transcription']
         file_path = 'entries-text.csv'
 
         from digipal_text.models import TextContentXML
@@ -399,7 +399,7 @@ Commands:
 
         rows = {}
 
-        for ctype in ['translation', 'transcription-sample']:
+        for ctype in ['translation', 'transcription']:
             text = TextContentXML.objects.filter(text_content__type__slug=ctype).first()
             print text.id
             content = u'<root>%s</root>' % text.content
@@ -488,7 +488,7 @@ Commands:
         from digipal_text.models import TextContentXML
 
         #text = TextContentXML.objects.filter(text_content__type__slug='translation').first()
-        text = TextContentXML.objects.filter(text_content__type__slug='transcription-sample').first()
+        text = TextContentXML.objects.filter(text_content__type__slug='transcription').first()
         content = u'<root>%s</root>' % text.content
         from digipal import utils
         xml = utils.get_xml_from_unicode(content, True)
@@ -1338,13 +1338,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 self.REQUEST = request
 
         context = get_hundreds_view_context(MyRequest({'oc': ''}))
-        
+
         info = {}
         for shire_data in context['shires']:
             if shire_data['name'].lower() == shire:
                 info = shire_data
                 break
-            
+
 
         print 'optimise... %s' % shire
 

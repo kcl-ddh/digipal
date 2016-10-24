@@ -254,7 +254,7 @@ Commands:
         source = Source.get_source_from_keyword(u'moa', none_if_not_found=True)
         for name in ['Contemporary', 'Anachronistic: Palaeography', 'Anachronistic: Diplomatic']:
             auth, created = AuthenticityCategory.objects.get_or_create(name=name, slug=slugify(unicode(name)))
-            genuine = genuine or auth 
+            genuine = genuine or auth
 
         # set genuine to all the item parts
         for ip in ItemPart.objects.filter():
@@ -262,7 +262,7 @@ Commands:
                 print ip.id
                 ip = ItemPartAuthenticity(item_part=ip, source=source, category=genuine)
             ip.save()
-        
+
     @transaction.atomic
     def convert_exon_folio_numbers(self):
         lines = dputils.read_all_lines_from_csv(self.options['src'])
@@ -2130,6 +2130,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             con_dst.disable_constraint_checking()
 
             for src_table in src_tables:
+                if src_table.endswith('xmlcopy'):
+                    # skipped this table as it's too big and only a local backup
+                    print 'skipped'
+                    continue
                 if re.search(r'%s' % table_filter, src_table):
                     if src_table in dst_tables:
                         utils.sqlDeleteAll(con_dst, src_table, self.is_dry_run())

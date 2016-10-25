@@ -402,8 +402,8 @@ class HandAdmin(DigiPalModelAdmin):
     form = admin_forms.HandForm
 
     filter_horizontal = ['images']
-    list_display = ['id', 'legacy_id', 'scragg', 'item_part', 'num', 'label', 'script', 'scribe',
-            'assigned_date', 'assigned_place', 'created',
+    list_display = ['id', 'item_part', 'label', 'num', 'scragg', 'script', 'scribe',
+            'assigned_date', 'assigned_place', 'legacy_id', 'created',
             'modified']
     list_display_links = list_display
     search_fields = ['id', 'legacy_id', 'scragg', 'label', 'num',

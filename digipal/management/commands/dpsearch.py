@@ -314,9 +314,9 @@ Options:
 
         info['results'] = ret
         info['result_size'] = len(res)
-        
+
         ret += '\n\n%s documents found' % len(res)
-        
+
         return ret
 
     def test(self, options):

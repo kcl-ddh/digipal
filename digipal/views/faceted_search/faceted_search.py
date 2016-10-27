@@ -638,10 +638,13 @@ class FacetedModel(object):
         m = re.search(ur'(?i)baiduspider|AhrefsBot', user_agent)
         return m
 
+    def get_whoosh_index_path(self):
+        import os
+        return os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', self.key)
+
     def get_whoosh_index(self):
         from whoosh.index import open_dir
-        import os
-        index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', self.key))
+        index = open_dir(self.get_whoosh_index_path())
         return index
 
     def get_requested_records(self, request):
@@ -800,7 +803,7 @@ class FacetedModel(object):
 #                     self.ids = []
 #                     if str(record.id) in ids and (search_phrase or field_queries):
 #                         record.found = True
-            
+
             if 1:
             #else:
                 hand_filters.chrono('bulk:')
@@ -836,7 +839,7 @@ class FacetedModel(object):
             hand_filters.chrono(':sql')
 
         return ret
-    
+
     def get_snippets_tools(self):
         if getattr(self, 'snippets_tools', None) is None:
             # TODO: get that from the existing field type function used for Whoosh schema creation
@@ -854,10 +857,10 @@ class FacetedModel(object):
 
     def get_tokens_from_search_phrase(self, phrase):
         tools = self.get_snippets_tools()
-        
+
         # TODO: pre-process special contructs from the search phrase (e.g. content:word* AND)
         ret = [token.text for token in tools['analyzer'](phrase)]
-        
+
         return ret
 
     def get_snippets_from_record(self, record, terms):
@@ -865,11 +868,11 @@ class FacetedModel(object):
         from whoosh import highlight
         tools = self.get_snippets_tools()
         content = self.get_plain_text_from_xml(record.content)
-        excerpts = highlight.highlight(content, terms=terms, analyzer=tools['analyzer'], 
+        excerpts = highlight.highlight(content, terms=terms, analyzer=tools['analyzer'],
             fragmenter=tools['fragmenter'], formatter=tools['formatter'], top=3)
         if excerpts:
             excerpts = tools['template'](excerpts)
-        
+
         return excerpts
 
     def is_full_search(self):

@@ -405,13 +405,16 @@ class HandAdmin(DigiPalModelAdmin):
     list_display = ['id', 'item_part', 'label', 'num', 'scragg', 'script', 'scribe',
             'assigned_date', 'assigned_place', 'legacy_id', 'created',
             'modified']
-    list_display_links = list_display
+    list_display_links = ['id', 'item_part', 'label', 'scragg', 'script', 'scribe',
+            'assigned_date', 'assigned_place', 'legacy_id', 'created',
+            'modified']
     search_fields = ['id', 'legacy_id', 'scragg', 'label', 'num',
             'em_title', 'label', 'item_part__display_label',
             'display_note', 'internal_note']
     list_filter = ['latin_only', admin_filters.HandItempPartFilter,
                     admin_filters.HandFilterSurrogates, admin_filters.HandGlossNumFilter,
                     admin_filters.HandGlossTextFilter, admin_filters.HandImageNumberFilter]
+    list_editable = ['num']
 
     fieldsets = admin_forms.fieldsets_hand
 

@@ -5,28 +5,9 @@ Todo:
 . navigation
     . toc above images
     . toc above text editor?
-. UI
-    [DONE] remove rekeyed text
-    fix the default link to the text editor:
-        . image/X/
 . patterns:
     . detect concurrent changes
-
-
-I've been using Fran's descriptions today -- brilliantly useful and detailed -- and had a few queries. These are probably matters for the next team meeting but I wanted to record my thoughts now before I forget them.
-
-1. How do I edit the scribal profiles? They are currently in draft form and will need tidying up, amplifying and aligning with the rest of the database (e.g. name-forms) before the website is ready for general release.
-
-Next, please see the screenshot attached.
-
-2. The Codicology tab links straight through to the 3-screen view of image/text/translation. You probably are aware of this already but I thought I should mention it.
-
-3.  I suggest that we think seriously about the TEXTS tab. I imagine that that's a simple matter of typing in a box, so not an issue for you at all. `Texts' here means something like `view', but to most of the users of the website the word`text' means something equivalent to `type of entry'. They will expect it to refer to the original contents of the manuscript, not to supplementary information which we have provided. Version/information/source/resource/view might be less confusing.
-
-This message requires only the briefest reply.
-
-with very many thanks indeed,
-
+    . fix bug with the creation of a new pattern
 
 --
 Pattern analysis

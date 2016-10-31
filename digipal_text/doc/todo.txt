@@ -25,6 +25,10 @@ the word`text' means something equivalent to `type of entry'. They will expect i
 of the manuscript, not to supplementary information which we have provided. Version/information/source/resource/view
 might be less confusing.
 
+. patterns:
+    . detect concurrent changes
+    . fix bug with the creation of a new pattern
+
 --
 Pattern analysis
 --

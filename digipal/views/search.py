@@ -76,7 +76,7 @@ def search_index_view(request):
                 reindexes.append(k)
 
         if reindexes:
-            command = 'python manage.py dpsearch index_facets --if=%s' % ','.join(reindexes)
+            command = 'python %s dpsearch index_facets --if=%s' % (os.path.join(settings.PROJECT_ROOT, '..', 'manage.py'), ','.join(reindexes))
             print command
             child_id = Popen(command).pid
             print child_id

@@ -1354,3 +1354,34 @@ def populate_index(ct, index=None):
 
     print '\tdone (%s records)' % record_count
 
+from digipal.models import KeyVal
+    
+class SearchIndexer(object):
+    # TODO: move the above indexing functions to this class
+
+    if 0:
+        state = {
+            'pid': 0,
+            'state': 'queued|indexing|indexed',
+            'progress': 0.9,
+            'indexes': {
+                'INDEXKEY': {
+                    'state': 'queued|indexing|indexed',
+                    'progress': 0.9,
+                },
+                # ...
+            }
+        }
+    
+    def get_state(self):
+        ret = KeyVal.get('indexer') 
+        return ret
+
+    def set_state(self, state):
+        KeyVal.set('indexer', state)
+        
+    def request_indexing(self, index_keys):
+         pass
+     
+     
+    

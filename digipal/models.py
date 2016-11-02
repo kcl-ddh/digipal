@@ -3536,6 +3536,31 @@ class RequestLog(models.Model):
             rl = cls(result_count=count, request=path)
             rl.save()
 
+class KeyVal(models.Model):
+    #
+    # A simple key-value table for ad hoc data that don't need their own dedicated table
+    # use get() and set() class methods to access entries
+    #
+    key = models.CharField(max_length=300, null=False, blank=False, unique=True)
+    val = models.TextField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    @classmethod
+    def get(cls, key, default=None):
+        ret = default
+        keyval = cls.objects.filter(key=key).first()
+        if keyval:
+            ret = keyval.val
+        return ret
+        
+    @classmethod
+    def set(cls, key, val):
+        keyval = cls.objects.get_or_create(key=key)
+        if val != keyval.val:
+            keyval.val = val
+            keyval.save()
+
 class ApiTransform(models.Model):
     title = models.CharField(max_length=30, blank=False, null=False, help_text='A unique title for this XSLT template.', unique=True)
     slug = models.SlugField(max_length=30, blank=False, null=False, help_text='A unique code to refer to this template when using the web API. @xslt=slug', editable=False, unique=True)

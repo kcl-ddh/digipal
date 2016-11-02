@@ -6,6 +6,7 @@ import lxml.etree as ET
 from lxml.etree import XMLSyntaxError
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, render_to_response
+from django.utils.datastructures import SortedDict
 psutil = None
 try:
     import psutil
@@ -1367,7 +1368,7 @@ def get_plain_text_from_xmltext(xml_str):
 
     return ret
 
-def run_shell_command(self, command):
+def run_shell_command(command):
     ret = True
     try:
         os.system(command)
@@ -1377,3 +1378,11 @@ def run_shell_command(self, command):
         pass
     return ret
 
+def getSortedDictFromDict(dic):
+    ret = SortedDict()
+    
+    keys = dic.keys()
+    for k in sorted(keys):
+        ret[k] = dic[k]
+    
+    return ret

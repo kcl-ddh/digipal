@@ -1,41 +1,55 @@
 {% extends "base.html" %}
 {% comment %}
 ################################
-#    INDEX PAGE                #
+#    SEARCH INDEXES            #
 ################################
 {% endcomment%}
-{% load pages_tags mezzanine_tags i18n %}
+{% load pages_tags mezzanine_tags i18n humanize %}
 {% load mezzanine_tags pagination_tags html_escape %}
 
 {% block meta_title %}
     Search Index
 {% endblock %}
 
+{% block extra_css %}
+    {{ block.super }}
+    <style type="text/css">
+        input.big-checkbox {width: 1.5em; height: 1.5em;}
+    </style>
+{% endblock %}
+
 {% block main %}
 
-        <h1 class='header1'>Search Index</h1>
+<h1 class='header1'>Search Indexer</h1>
 
-        <table class="table">
+<form action="" method="POST">
+    {% csrf_token %}
+    <table class="table table-striped table-hover">
+        <theader>
             <tr>
-                <td><input type="checkbox" name="select-0" /></td>
-                <td>Label</td>
-                <td>Created</td>
-                <td>Size (in MB)</td>
+                <th><input class="form-control big-checkbox" type="checkbox" name="select-0" /></th>
+                <th>Label</th>
+                <th>Created</th>
+                <th>Size</th>
             </tr>
-            {% for index in indexes.values %}
+        </theader>
+        <tbody>
+            {% for key, index in indexes.iteritems %}
                 <tr>
-                    <td><input type="checkbox" name="select-{{index.object.key}}}" /></td>
+                    <td><input type="checkbox" class="form-control big-checkbox" name="select-{{index.object.key}}" /></td>
                     <td>{{index.object.label}}</td>
-                    <td>{{index.info.date}}</td>
-                    <td>{{index.info.size}}</td>
+                    <td>{{index.info.date|naturaltime}}</td>
+                    <td>{{index.info.size|filesizeformat}}</td>
                 </tr>
             {% endfor %}
-        </table>
+        </tbody>
+    </table>
+    <p>
+        <button class="btn btn-primary" type="submit" name="action" value="reindex">Reindex</button>
+    </p>
+</form>
 
 {% endblock main %}
 {% block extra_js %}
-    {{ block.super }}
-{% endblock %}
-{% block extra_css %}
     {{ block.super }}
 {% endblock %}

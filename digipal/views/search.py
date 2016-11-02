@@ -10,6 +10,7 @@ from django.conf import settings
 from digipal.templatetags import hand_filters
 
 import logging
+from subprocess import Popen
 dplog = logging.getLogger('digipal_debugger')
 
 def get_search_types(request=None):
@@ -38,12 +39,23 @@ def get_search_types_display(content_types):
     return ret
 
 def search_index_view(request):
-    context = {'indexes': {}}
+    context = {'indexes': SortedDict()}
+
+    '''
+    todo
+    DONE reindex selected indexes in background
+    . show when indexer is working
+    . lock form (if working)
+    . show last time indexer started (if working)
+    . ajaxify
+    . vue.js?
+    '''
 
     from digipal.views.faceted_search import faceted_search
     from digipal.utils import get_all_files_under
     from datetime import datetime
-
+    
+    # read the index stats
     for ct in faceted_search.get_types(True):
         info = {'date': 0, 'size': 0}
         context['indexes'][ct.key] = {'object': ct, 'info': info}
@@ -53,8 +65,22 @@ def search_index_view(request):
             info['date'] = max(info['date'], os.path.getmtime(afile))
 
         info['date'] = datetime.fromtimestamp(info['date'])
-        info['size'] = int(info['size'] / 1024 / 1024)
+        info['size'] = int(info['size'])
+        
+    # process request
+    action = request.POST.get('action', '')
+    reindexes = []
+    if action == 'reindex':
+        for k in context['indexes']:
+            if request.POST.get('select-%s' % k):
+                reindexes.append(k)
 
+        if reindexes:
+            command = 'python manage.py dpsearch index_facets --if=%s' % ','.join(reindexes)
+            print command
+            child_id = Popen(command).pid
+            print child_id
+            
     ret = render_to_response('search/search_index.html', context, context_instance=RequestContext(request))
     return ret
 

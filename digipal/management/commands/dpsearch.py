@@ -95,7 +95,6 @@ Options:
         )
 
     def handle(self, *args, **options):
-
         self.logger = utils.Logger()
 
         self.log_level = 3

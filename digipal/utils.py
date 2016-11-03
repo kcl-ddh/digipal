@@ -1378,11 +1378,71 @@ def run_shell_command(command):
         pass
     return ret
 
-def getSortedDictFromDict(dic):
-    ret = SortedDict()
+def call_management_command(command, *args, **kwargs):
+    '''
+    Execute a Django management command in a SEPARATE PROCESS.
     
-    keys = dic.keys()
-    for k in sorted(keys):
-        ret[k] = dic[k]
+    e.g. call_management_command('command', 'arg1', 'arg2', option1=val1, option2=val2)
+    is executed as:
+    python manage.py command arg1 arg2 --option1=val1 --option2=val2
     
-    return ret
+    Note that the option names can be different from the internal names used
+    by the management command. So not exactly the same as django call_command()
+    
+    Approach:
+    We use Popen() to start another python process running the dhjango command.
+    That process seems to inherit from our virtual env settings.
+    And it will survive its parent.
+    I.e. it's like doing a 'nohup ... &' from the command line
+    
+    Alternatives:
+        * call command from this process: too long, browser will time out, web
+            worker can be killed.
+        * celery: best approach but introduces two new services (celery and redis
+            , DB and cache brokers are not reliable)
+        * p = multiprocessing.Process(fct); p.start() # fct => call_management() 
+            causes weird issues on Windows
+            probably due concurrent modification of shared resources/variables.
+        * os.fork(): not supported by Windows?. Approach is similar to previous 
+            one, anyway.
+    '''
+    
+    # django manage command line 
+    command_django = '%s %s %s' % (
+        command, 
+        ' '.join(args), 
+        (' '.join(['--%s=%s' % (k, v) for k, v in kwargs.iteritems()]))
+    )
+    
+    # shell command line
+    from django.conf import settings
+    import sys
+    command_shell = '%s %s %s' % (sys.executable, os.path.join(settings.PROJECT_ROOT, '..', 'manage.py'), command_django)
+    
+    if 1:
+        # run the command in a child process, calling python
+        from subprocess import Popen
+        child_id = Popen(command_shell.split()).pid
+    else:
+        # fork doesn't work on WIndows
+        # run the command in a child process, calling command directly from this context
+        from django.core.management import call_command
+        from digipal.models import KeyVal
+        from multiprocessing import Process
+        from datetime import datetime
+        def f(reindexes_str):
+            KeyVal.set('k2.a', repr(datetime.now()))
+            KeyVal.set('k2.b', reindexes_str)
+            print 'HERE'
+            try:
+                call_command('dpsearch', 'index_facets', index_filter=reindexes_str)
+            except Exception, e:
+                KeyVal.set('k2.c', 'ERROR: %s' % repr(e))
+            else: 
+                KeyVal.set('k2.c', repr(datetime.now()))
+            exit()
+        print 'h1'
+        ##p = Process(target=f, args=(','.join(reindexes),))
+        ##p.start()
+        print 'h2'
+        ##print p

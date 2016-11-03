@@ -3556,7 +3556,7 @@ class KeyVal(models.Model):
         
     @classmethod
     def set(cls, key, val):
-        keyval = cls.objects.get_or_create(key=key)
+        keyval, created = cls.objects.get_or_create(key=key)
         if val != keyval.val:
             keyval.val = val
             keyval.save()

@@ -75,31 +75,9 @@ def search_index_view(request):
         for k in context['indexes']:
             if request.POST.get('select-%s' % k):
                 reindexes.append(k)
-
+        
         if reindexes:
-            sub_command_params = ('dpsearch', ['index_facets'], {'if': ','.join(reindexes)})
-            # serialise parameters into command line arguments and options 
-            sub_command = '%s %s %s' % (
-                sub_command_params[0], 
-                ' '.join(sub_command_params[1]), 
-                (' '.join(['--%s=%s' % (k, v) for k, v in sub_command_params[2].iteritems()]))
-            )
-            # wrapping the command
-            command = 'python %s %s' % (os.path.join(settings.PROJECT_ROOT, '..', 'manage.py'), sub_command)
-            print command
-            if 0:
-                # run the command in a child process, calling python
-                child_id = Popen(command).pid
-                print child_id
-            else:
-                # run the command in a child process, calling command directly from this context
-                from django.core.management import call_command
-                from multiprocessing import Process
-                def f(sub_command_params):
-                    print 'HERE'
-                    call_command(sub_command_params[0], 'index_facets', index_filter=sub_command_params[2]['if'])
-                    exit()
-                Process(target=f, args=(sub_command_params))
+            dputils.call_management_command('dpsearch', 'index_facets', **{'if': ','.join(reindexes)})
             
     ret = render_to_response('search/search_index.html', context, context_instance=RequestContext(request))
     return ret

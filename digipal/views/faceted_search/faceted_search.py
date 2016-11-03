@@ -1253,7 +1253,7 @@ def get_whoosh_field_type(field, sortable=False):
         # A code (e.g. K. 402, Royal 7.C.xii)
         # Accepts partial but exact search (e.g. royal)
         # See JIRA 358
-        ret = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True), stored=True, sortable=sortable)
+        ret = TEXT(analyzer=SimpleAnalyzer(ur'[/.\s()\u2013\u2014-]', True), stored=True, sortable=sortable)
     elif field_type == 'title':
         # A title (e.g. British Library)
         # Accepts variants and partial search (e.g. 'libraries')
@@ -1383,5 +1383,3 @@ class SearchIndexer(object):
     def request_indexing(self, index_keys):
          pass
      
-     
-    

@@ -1417,7 +1417,14 @@ def call_management_command(command, *args, **kwargs):
     # shell command line
     from django.conf import settings
     import sys
-    command_shell = '%s %s %s' % (sys.executable, os.path.join(settings.PROJECT_ROOT, '..', 'manage.py'), command_django)
+    
+    python_path = sys.executable
+    # above doesn't always work with virtual env
+    import django
+    '/vol/exon/webroot/envs/stg/local/lib/python2.7/site-packages/django/__init__.pyc'
+    python_path = re.sub('local/lib/.*', 'bin/python', django.__file__)
+    
+    command_shell = '%s %s %s' % (python_path, os.path.join(settings.PROJECT_ROOT, '..', 'manage.py'), command_django)
     
     if 1:
         # run the command in a child process, calling python

@@ -337,6 +337,11 @@ def fix_permissions(username, project_folder, options):
     if not get_config('DJANGO_WEB_SERVER', False):
         dirs = [d for d in ('%(p)s/search' % {'p': project_folder}).split(';') if os.path.exists(d)]
         system('%schmod 750 -R %s' % (sudo, ' '.join(dirs)))
+        
+    if has_sudo:
+        # .hg must be owned by the user pulling otherwise mercurial
+        # complains.
+        system('%schown %s -R .hg' % (sudo, username, config.PROJECT_GROUP))
     
     if 0:
         # See MOA-197

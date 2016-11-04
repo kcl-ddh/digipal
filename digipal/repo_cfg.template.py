@@ -11,3 +11,13 @@ SELF_CONTAINED = True
 # Set this to True is you are running the site using Django Web Server
 # In that case collectstatic won't be run
 DJANGO_WEB_SERVER = False
+
+# Set to True if you are editing the code with eclipse. 
+# Eclipse needs the files to be writable by the owner
+# even if the user editing has group write!
+ECLIPSE_EDITABLE = False
+
+# Set to True if www-data manages the code upgrade
+# WWW-DATA will have write access to source code
+# NOT for production server
+BUILT_BY_WWW_DATA = True

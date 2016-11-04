@@ -296,19 +296,53 @@ def process_commands_main_dir():
         show_help()
 
 def fix_permissions(username, project_folder, options):
-    if os.name != 'nt':
-        has_sudo = not options.automatic and username in ['gnoel', 'jeff']
-        
-        with_sudo = ''
-        sudo = ''
-        if has_sudo:
-            with_sudo = '(with sudo)'
-            sudo = 'sudo '
-        print '> fix permissions %s' % with_sudo
+    if os.name == 'nt': return
+    
+    sudo_users = get_config('SUDO_USERS', ['gnoel', 'jeff'])
+    has_sudo = not options.automatic and username in sudo_users
+    
+    sudo = with_sudo = ''
+    if has_sudo:
+        with_sudo = '(with sudo)'
+        sudo = 'sudo '
+    print '> fix permissions %s' % with_sudo
+    
+    web_service_user = 'www-data'
+    if get_config('DJANGO_WEB_SERVER', False):
+        web_service_user = username
+    
+    
+    # ALL files belong to PROJECT_GROUP
+    system('%schgrp %s -R .' % (sudo, config.PROJECT_GROUP))
+    
+    # ALL files belong to www-data or current user
+    if has_sudo:
+        system('%schown %s -R .' % (sudo, web_service_user))
+    
+    # -r- xrw x---
+    default_perms = 570
+    # eclipse need owner write
+    # builder need to modify code
+    if get_config('ECLIPSE_EDITABLE', False) or \
+       get_config('BUILT_BY_WWW_DATA', False): 
+        # -rw xrw x---
+        default_perms = 770
+    system('%schmod %s -R .' % (sudo, default_perms))
 
+    # some files can be written by web service
+    dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
+    system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
+    
+    # prevent user from rewriting the indexes if they are managed by web service
+    if not get_config('DJANGO_WEB_SERVER', False):
+        dirs = [d for d in ('%(p)s/search' % {'p': project_folder}).split(';') if os.path.exists(d)]
+        system('%schmod 570 -R %s' % (sudo, ' '.join(dirs)))
+    
+    if 0:
         # See MOA-197
         if username == 'www-data' or username == config.PROJECT_GROUP:
             # -rw xrw x---
+            system('%schown :%s -R .' % (sudo, config.PROJECT_GROUP))
             system('%schmod 770 -R .' % sudo)
             #system('%schgrp -R %s .' % (sudo, config.PROJECT_GROUP))
         else:
@@ -329,11 +363,13 @@ def fix_permissions(username, project_folder, options):
             # -rw xrw x---
             dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
             system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
+            dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
+            system('%schmod u-w -R %s' % (sudo, ' '.join(dirs)))
 
-        # we do this because the cron job to reindex the content
-        # recreate the dirs with owner = gnoel:ddh-research
-        system('%schmod o+r -R %s/search' % (sudo, project_folder))
-        system('%schmod o+x -R %s/search/*' % (sudo, project_folder))
+    # we do this because the cron job to reindex the content
+    # recreate the dirs with owner = gnoel:ddh-research
+    #system('%schmod o+r -R %s/search' % (sudo, project_folder))
+    #system('%schmod o+x -R %s/search/*' % (sudo, project_folder))
 
     
 

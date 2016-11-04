@@ -19,5 +19,9 @@ ECLIPSE_EDITABLE = False
 
 # Set to True if www-data manages the code upgrade
 # WWW-DATA will have write access to source code
-# NOT for production server
-BUILT_BY_WWW_DATA = True
+# NOT FOR PRODUCTION SERVER
+BUILT_BY_WWW_DATA = False
+
+# Users with sudo access on this machine
+# Used to fix file permissions
+SUDO_USERS = ['gnoel', 'jeff']

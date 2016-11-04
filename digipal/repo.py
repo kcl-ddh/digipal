@@ -336,7 +336,7 @@ def fix_permissions(username, project_folder, options):
     # prevent user from rewriting the indexes if they are managed by web service
     if not get_config('DJANGO_WEB_SERVER', False):
         dirs = [d for d in ('%(p)s/search' % {'p': project_folder}).split(';') if os.path.exists(d)]
-        system('%schmod 570 -R %s' % (sudo, ' '.join(dirs)))
+        system('%schmod 750 -R %s' % (sudo, ' '.join(dirs)))
     
     if 0:
         # See MOA-197

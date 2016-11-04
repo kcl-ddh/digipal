@@ -1420,9 +1420,9 @@ def call_management_command(command, *args, **kwargs):
     
     python_path = sys.executable
     # above doesn't always work with virtual env
-    import django
-    '/vol/exon/webroot/envs/stg/local/lib/python2.7/site-packages/django/__init__.pyc'
-    python_path = re.sub('local/lib/.*', 'bin/python', django.__file__)
+    virtualenv = os.environ.get('VIRTUAL_ENV')
+    if virtualenv:
+        python_path = os.path.join(virtualenv, 'bin', 'python')
     
     command_shell = '%s %s %s' % (python_path, os.path.join(settings.PROJECT_ROOT, '..', 'manage.py'), command_django)
     

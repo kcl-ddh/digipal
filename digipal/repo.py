@@ -341,7 +341,7 @@ def fix_permissions(username, project_folder, options):
     if has_sudo:
         # .hg must be owned by the user pulling otherwise mercurial
         # complains.
-        system('%schown %s -R .hg' % (sudo, username, config.PROJECT_GROUP))
+        system('%schown %s -R .hg' % (sudo, username))
     
     if 0:
         # See MOA-197

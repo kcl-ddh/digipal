@@ -1422,7 +1422,9 @@ def call_management_command(command, *args, **kwargs):
     if 1:
         # run the command in a child process, calling python
         from subprocess import Popen
+        dplog('call command : %s' % command_shell)
         child_id = Popen(command_shell.split()).pid
+        dplog('called command : %s | %s' % (child_id, command_shell))
     else:
         # fork doesn't work on WIndows
         # run the command in a child process, calling command directly from this context

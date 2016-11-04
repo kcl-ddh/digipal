@@ -901,7 +901,7 @@ class FacetedModel(object):
 
         self.cache_hit = False
         if ret is None:
-            utils.dplog('Cache MISS')
+            #utils.dplog('Cache MISS')
             res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
 
             ret = {
@@ -916,7 +916,7 @@ class FacetedModel(object):
             cache.set(search_key, json.dumps(ret))
         else:
             self.cache_hit = True
-            utils.dplog('Cache HIT')
+            #utils.dplog('Cache HIT')
             ret = json.loads(ret)
 
         return ret

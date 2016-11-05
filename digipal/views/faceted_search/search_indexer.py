@@ -2,6 +2,7 @@ from digipal import utils as dputils
 from digipal.templatetags.hand_filters import chrono
 from digipal.models import KeyVal
 from digipal.views.faceted_search import faceted_search
+from datetime import datetime
 import os
 
 '''
@@ -16,41 +17,24 @@ import os
 '''
 class SearchIndexer(object):
     # TODO: move the above indexing functions to this class
-
-    if 0:
-        state = {
-            'pid': 0,
-            'state': 'queued|indexing|indexed',
-            'progress': 0.9,
-            'indexes': {
-                'INDEXKEY': {
-                    'state': 'queued|indexing|indexed',
-                    'progress': 0.9,
-                },
-                # ...
-            }
-        }
     
-    def get_state(self):
-        ret = KeyVal.get('indexer') 
-        return ret
+    date_format = '%d-%m-%Y %H:%M:%S'
 
-    def set_state(self, state):
-        KeyVal.set('indexer', state)
-        
     def build_indexes(self, index_filter=[]):
-        ''' Rebuild the indexes which key is in index_filter. All if index_filter is empty'''
+        ''' Rebuild indexes based on the keys in index_filter. All if index_filter is empty'''
+        self.indexable_types = []
         for ct in faceted_search.get_types(True):
             if not index_filter or ct.key in index_filter:
-                #index = create_index_schema(ct)
-                self.create_index_schema(ct)
-    #             if index:
-                if 1:
-                    #populate_index(ct, index)
-                    self.populate_index(ct)
-                    #index = None
-                    self.optimize_index(ct)
-    
+                self.indexable_types.append(ct)
+
+        self.init_state()
+        for ct in self.indexable_types:
+            self.write_state_update(ct, 0.001)
+            self.create_index_schema(ct)
+            self.populate_index(ct)
+            self.optimize_index(ct)
+            self.write_state_update(ct, 1.0)
+
     def create_index_schema(self, ct):
         print '%s' % ct.key
     
@@ -249,3 +233,102 @@ class SearchIndexer(object):
             ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
     
         return ret
+    
+    #-----------------------
+    # STATE 
+    #-----------------------
+    
+    if 0:
+        state = {
+            'pid': 0,
+            'state': 'queued|indexing|indexed',
+            'progress': 0.9,
+            'started': '',
+            'updated': '',
+            'indexes': {
+                'INDEXKEY': {
+                    'state': 'queued|indexing|indexed',
+                    'progress': 0.9,
+                    'started': ''
+                },
+                # ...
+            }
+        }
+        
+    def write_state_initial(self, index_filter):
+        state = {
+            'pid': os.getpid(),
+            'state': 'queued',
+            'progress': 0.0,
+            'started': datetime.now(),
+            'indexes': {
+            }
+        }
+        for ct in self.indexable_types:
+            state['indexes'][ct.key] = {
+                'state': 'queued',
+                'progress': 0.0,
+                'started': None,
+            }
+                
+        self.write_state(state)
+        self.state = state
+
+    def write_state_update(self, ct, progress):
+        self.state['indexes'][ct.key]['progress'] = progress
+        self.write_state(self.state)
+
+    def read_state(self):
+        ret = KeyVal.getjs('indexer')
+        self.convert_state_dates_to_objects(ret) 
+        return ret
+    
+    def write_state(self, state):
+        state['updated'] = datetime.now()
+        state['progress'] = 1.0 * sum([idx['progress'] for idx in state['indexes']]) / len(state['indexes'])
+        state['state'] = None
+        for idx in state['indexes']:
+            if idx['progress'] == 0.0:
+                idx['state'] = 'queued'
+            if idx['progress'] > 0.0:
+                idx['state'] = 'indexing'
+            if idx['progress'] == 1.0:
+                idx['state'] = 'indexed'
+            if state['state'] not in [None, idx['state']]:
+                state['state'] = 'indexing'
+            else:
+                state['state'] = idx['state']
+        
+        # json conversion doesn't understand python dates
+        self.convert_state_dates_to_strings(state) 
+        KeyVal.setjs('indexer', state)
+        self.convert_state_dates_to_objects(state)
+
+    def convert_state_dates_to_strings(self, state):
+        if not state: return
+
+        def get_str_from_date(adate):
+            ret = None
+            if adate:
+                adate.strftime(self.date_format)
+            return ret
+        
+        state['started'] = get_str_from_date(state['started'])
+        state['updated'] = get_str_from_date(state['updated'])
+        for idx in state['indexes']:
+            idx['started'] = get_str_from_date(idx['started'])
+        
+    def convert_state_dates_to_objects(self, state):
+        if not state: return
+
+        def get_date_from_str(adate):
+            ret = None
+            if adate:
+                ret = datetime.strptime(adate, self.date_format)
+            return ret
+        state['started'] = get_date_from_str(state['started'])
+        state['updated'] = get_date_from_str(state['updated'])
+        for idx in state['indexes']:
+            idx['started'] = get_date_from_str(idx['started'])
+        
+    

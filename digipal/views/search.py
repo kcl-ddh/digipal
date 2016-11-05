@@ -55,12 +55,20 @@ def search_index_view(request):
     from digipal.views.faceted_search import faceted_search
     from digipal.utils import get_all_files_under
     from datetime import datetime
+    from digipal.views.faceted_search.search_indexer import SearchIndexer
+
+    indexer = SearchIndexer()
+    context['indexing'] = indexer.read_state()
     
     # read the index stats
     for ct in faceted_search.get_types(True):
         info = {'date': 0, 'size': 0}
-        context['indexes'][ct.key] = {'object': ct, 'info': info}
-
+        context['indexes'][ct.key] = {
+            'object': ct, 
+            'info': info,
+            'indexing': context['indexing']['indexes'].get(ct.key, None) if context['indexing'] else None,
+        }
+        
         for afile in get_all_files_under(ct.get_whoosh_index_path(), file_types='f'):
             info['size'] += os.path.getsize(afile)
             info['date'] = max(info['date'], os.path.getmtime(afile))

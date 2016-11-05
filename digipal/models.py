@@ -3536,6 +3536,7 @@ class RequestLog(models.Model):
             rl = cls(result_count=count, request=path)
             rl.save()
 
+import json
 class KeyVal(models.Model):
     #
     # A simple key-value table for ad hoc data that don't need their own dedicated table
@@ -3546,6 +3547,21 @@ class KeyVal(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
 
+    @classmethod
+    def getjs(cls, key, default=None):
+        notfound = '##NOTFOUND##'
+        ret = cls.get(key, notfound)
+        if ret == notfound:
+            ret = default
+        else:
+            ret = json.loads(ret)
+            
+        return ret
+
+    @classmethod
+    def setjs(cls, key, val):
+        cls.set(key, json.dumps(val))
+    
     @classmethod
     def get(cls, key, default=None):
         ret = default

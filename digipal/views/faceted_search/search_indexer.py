@@ -256,6 +256,12 @@ class SearchIndexer(object):
         }
         
     def write_state_initial(self):
+        state = self.get_state_initial([ct.key for ct in self.indexable_types])
+        
+        self.write_state(state)
+        self.state = state
+
+    def get_state_initial(self, index_keys):
         state = {
             'pid': os.getpid(),
             'state': 'queued',
@@ -264,15 +270,14 @@ class SearchIndexer(object):
             'indexes': {
             }
         }
-        for ct in self.indexable_types:
-            state['indexes'][ct.key] = {
+        for index_key in index_keys:
+            state['indexes'][index_key] = {
                 'state': 'queued',
                 'progress': 0.0,
                 'started': None,
             }
                 
-        self.write_state(state)
-        self.state = state
+        return state
 
     def write_state_update(self, ct, progress):
         self.state['indexes'][ct.key]['progress'] = progress

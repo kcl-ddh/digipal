@@ -25,8 +25,6 @@
 
 {% block main %}
 
-<h1 class='header1'>Search Indexer</h1>
-
 {% include "search/search_index_fragment.html" %}
 
 {% endblock main %}
@@ -35,6 +33,16 @@
     <script>
         jQuery(document).ready(function($) {
             window.init_search_page();
+            
+            var refresh_rate = 2;
+
+            // called each time the ajax content is refreshed
+            $(window).on('dploaded', function() {
+                if ($('.is_running').val() == '1') {
+                    setTimeout(function(){ $('#search-ajax-fragment a.action-refresh').click(); }, refresh_rate*1000);
+                }
+            });
+            $(window).trigger('dploaded');
         });
     </script>
 {% endblock %}

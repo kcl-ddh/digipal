@@ -2,20 +2,32 @@
 {% load mezzanine_tags pagination_tags html_escape %}
 
 <div id="search-ajax-fragment">
-
-    {% if indexing %}
-        <div class="message">
-            {{ indexing.state }}
-            {% if indexing.progress < 1.0 %}
-                {% widthratio indexing.progress 1 100 %}% (started {{ indexing.started|naturaltime }} {#, last updated {{ indexing.updated|naturaltime }} #})
-            {% else %} 
-                {{ indexing.updated|naturaltime }} 
-            {% endif %}
-        </div>
-    {% endif %}
-    
     <form action="" method="POST">
-        {% csrf_token %}
+        <h1 class='header1'>
+            Search Indexer
+            <span class="pull-right small">
+                <input type="hidden" name="action" value="reindex"/>
+                <button class="btn btn-primary" type="submit" name="submit" value="submit" {%if running%}disabled{%endif%}>Reindex</button>
+    
+                <a class="action-refresh" href="?action=refresh">
+                    <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                </a>
+            </span>
+        </h1>
+    
+        {% if indexing %}
+            <div class="message">
+                {{ indexing.state }}
+                {% if indexing.progress < 1.0 %}
+                    {% widthratio indexing.progress 1 100 %}% (started {{ indexing.started|naturaltime }} {#, last updated {{ indexing.updated|naturaltime }} #})
+                {% else %} 
+                    {{ indexing.updated|naturaltime }} 
+                {% endif %}
+            </div>
+        {% endif %}
+    
+        <input type="hidden" name="is_running" class="is_running" value="{%if running%}1{%else%}0{%endif%}"/>
+        
         <table class="table table-striped table-hover">
             <theader>
                 <tr>
@@ -42,9 +54,6 @@
                 {% endfor %}
             </tbody>
         </table>
-        <p>
-            <button class="btn btn-primary" type="submit" name="action" value="reindex" {%if running%}disabled{%endif%}>Reindex</button>
-        </p>
     </form>
 
 </div>

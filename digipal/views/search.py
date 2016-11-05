@@ -12,6 +12,7 @@ from digipal.templatetags import hand_filters
 
 import logging
 from subprocess import Popen
+from django.views.decorators.csrf import csrf_exempt
 dplog = logging.getLogger('digipal_debugger')
 
 def get_search_types(request=None):
@@ -39,6 +40,7 @@ def get_search_types_display(content_types):
         ret += '\'%s\'' % type.label
     return ret
 
+@csrf_exempt
 def search_index_view(request):
     context = {'indexes': SortedDict()}
 
@@ -58,7 +60,23 @@ def search_index_view(request):
     from digipal.views.faceted_search.search_indexer import SearchIndexer
 
     indexer = SearchIndexer()
-    context['indexing'] = indexer.read_state()
+
+    content_types = faceted_search.get_types(True)
+
+    # process request
+    action = request.POST.get('action', '')
+    reindexes = []
+    if action == 'reindex':
+        for ct in content_types:
+            if request.POST.get('select-%s' % ct.key):
+                reindexes.append(ct.key)
+        
+        if reindexes:
+            dputils.call_management_command('dpsearch', 'index_facets', **{'if': ','.join(reindexes)})
+            context['indexing'] = indexer.get_state_initial(reindexes)
+    if not 'indexing' in context:
+        context['indexing'] = indexer.read_state()
+    
     context['running'] = context['indexing'] and context['indexing']['progress'] < 1.0
     now = datetime.now()
     if context['indexing'] and\
@@ -66,7 +84,7 @@ def search_index_view(request):
         context['indexing'] = None
     
     # read the index stats
-    for ct in faceted_search.get_types(True):
+    for ct in content_types:
         info = {'date': 0, 'size': 0}
         context['indexes'][ct.key] = {
             'object': ct, 
@@ -81,17 +99,6 @@ def search_index_view(request):
         info['date'] = datetime.fromtimestamp(info['date'])
         info['size'] = int(info['size'])
         
-    # process request
-    action = request.POST.get('action', '')
-    reindexes = []
-    if action == 'reindex':
-        for k in context['indexes']:
-            if request.POST.get('select-%s' % k):
-                reindexes.append(k)
-        
-        if reindexes:
-            dputils.call_management_command('dpsearch', 'index_facets', **{'if': ','.join(reindexes)})
-    
     template = 'search/search_index.html'
     if request.is_ajax():
         template = 'search/search_index_fragment.html'

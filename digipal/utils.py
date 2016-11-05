@@ -531,25 +531,9 @@ def remove_xml_elements(xml, xpath):
 
 #-------------------------------------
 #
-#             WHOOSH
+#             INT & DATES
 #
 #-------------------------------------
-
-def recreate_whoosh_index(path, index_name, schema):
-    import os.path
-    from whoosh.index import create_in
-    if not os.path.exists(path):
-        os.mkdir(path)
-    path = os.path.join(path, index_name)
-    if os.path.exists(path):
-        import shutil
-        shutil.rmtree(path)
-    os.mkdir(path)
-    print '\tCreated index under "%s"' % path
-    # TODO: check if this REcreate the existing index
-    index = create_in(path, schema)
-
-    return index
 
 def get_int(obj, default=0):
     '''Returns an int from an obj (e.g. string)
@@ -1391,7 +1375,8 @@ def get_python_path():
     
     # TODO
     # best approach would be to use the above and set the PYTHONPATH
-    # but not easy and cross OS to pass sys.path within Popen() 
+    # but not easy and cross OS to pass sys.path within Popen()
+    # If this works we don't need the code below to find virtualenv python 
     lib_path = (os.pathsep).join(sys.path)
     
     # another is to find python within the virtual env

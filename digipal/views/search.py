@@ -91,8 +91,12 @@ def search_index_view(request):
         
         if reindexes:
             dputils.call_management_command('dpsearch', 'index_facets', **{'if': ','.join(reindexes)})
+    
+    template = 'search/search_index.html'
+    if request.is_ajax():
+        template = 'search/search_index_fragment.html'
             
-    ret = render_to_response('search/search_index.html', context, context_instance=RequestContext(request))
+    ret = render_to_response(template, context, context_instance=RequestContext(request))
     return ret
 
 def catalogue_number_view(request, source='', number=''):

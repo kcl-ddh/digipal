@@ -16,8 +16,7 @@ import os
         si.build_indexes(['images', 'manuscripts'])
 '''
 class SearchIndexer(object):
-    # TODO: move the above indexing functions to this class
-    
+
     date_format = '%d-%m-%Y %H:%M:%S'
 
     def build_indexes(self, index_filter=[]):
@@ -30,9 +29,11 @@ class SearchIndexer(object):
         self.write_state_initial()
         for ct in self.indexable_types:
             self.write_state_update(ct, 0.001)
+            
             self.create_index_schema(ct)
             self.populate_index(ct)
             self.optimize_index(ct)
+            
             self.write_state_update(ct, 1.0)
 
     def create_index_schema(self, ct):
@@ -65,7 +66,7 @@ class SearchIndexer(object):
         print '\tgenerate sort rankings'
     
         chrono('RANK_VALUES:')
-        ct.prepare_value_rankings()
+        ct.prepare_value_rankings(callback=lambda progress: self.write_state_update(ct, max(0.001, 1.0/3.0*progress)))
         chrono(':RANK_VALUES')
     
         chrono('INDEXING QUERY:')
@@ -73,11 +74,9 @@ class SearchIndexer(object):
         dputils.gc_collect()
     
         from whoosh.writing import BufferedWriter
-        # writer = BufferedWriter(index, period=None, limit=20)
         rcs = ct.get_all_records(True)
         record_count = rcs.count()
     
-        #writer = index.writer()
         writer = None
     
         chrono(':INDEXING QUERY')
@@ -85,8 +84,8 @@ class SearchIndexer(object):
         print '\tadd records to index'
     
         i = 0
-        #commit_size = 1000000
         commit_size = 500
+        progress_size = 200
     
         # settings.DEV_SERVER = True
         chrono('INDEXING:')
@@ -125,6 +124,9 @@ class SearchIndexer(object):
                 continue
     
             writer.add_document(**ct.get_document_from_record(record))
+
+            if (i % progress_size) == 0:
+                self.write_state_update(ct, (1 + 1.0 * i / record_count) * 1.0/3)
     
         if writer:
             writer.commit(merge=False)
@@ -141,6 +143,7 @@ class SearchIndexer(object):
         print '\tdone (%s records)' % record_count
 
     def optimize_index(self, ct):
+        self.write_state_update(ct, 1.0/3*2)
         dputils.gc_collect()
         index = ct.get_whoosh_index()
         print '\toptimize index'
@@ -306,8 +309,8 @@ class SearchIndexer(object):
         
         # json conversion doesn't understand python dates
         self.convert_state_dates_to_strings(state)
-        print '-' * 20
-        print state 
+        #print '-' * 20
+        #print state 
         KeyVal.setjs('indexer', state)
         self.convert_state_dates_to_objects(state)
 

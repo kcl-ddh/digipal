@@ -154,10 +154,13 @@ class FacetedModel(object):
         self.value_rankings = {}
         utils.gc_collect()
 
-    def prepare_value_rankings(self):
+    def prepare_value_rankings(self, callback=None):
         ''' populate self.value_rankings dict
             It generates a ranking number for each value in each sortable field
             This will be stored in the index as a separate field to allow sorting by any column
+            
+            callback = a function that takes a value between 0.0 and 1.0,
+                representing the progress
         '''
         self.clear_value_rankings()
 
@@ -165,16 +168,24 @@ class FacetedModel(object):
         #records = self.get_all_records(True).order_by('id')
         #print '\t\t%d records' % records.count()
 
+        indexable_fields = []
         for field in self.fields:
             if self.is_field_indexable(field):
-                whoosh_sortable_field = self._get_sortable_whoosh_field(field)
-                if whoosh_sortable_field and whoosh_sortable_field != field['key']:
+                indexable_fields.append(field)
 
-                    print '\t\t' + field['key']
+        i = 0
+        for field in indexable_fields:
+            i += 1
+            whoosh_sortable_field = self._get_sortable_whoosh_field(field)
+            if whoosh_sortable_field and whoosh_sortable_field != field['key']:
 
-                    # get all the values for that field in the table
-                    self.value_rankings[whoosh_sortable_field], sorted_values = self.get_field_value_ranking(field)
-                    ##self.get_field_value_ranking(field)
+                print '\t\t' + field['key']
+
+                # get all the values for that field in the table
+                self.value_rankings[whoosh_sortable_field], sorted_values = self.get_field_value_ranking(field)
+                
+                if callback:
+                    callback(1.0*i/len(indexable_fields))
 
     def get_field_value_ranking(self, field):
         # get all the values for that field in the table

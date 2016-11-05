@@ -27,7 +27,7 @@ class SearchIndexer(object):
             if not index_filter or ct.key in index_filter:
                 self.indexable_types.append(ct)
 
-        self.init_state()
+        self.write_state_initial()
         for ct in self.indexable_types:
             self.write_state_update(ct, 0.001)
             self.create_index_schema(ct)
@@ -255,7 +255,7 @@ class SearchIndexer(object):
             }
         }
         
-    def write_state_initial(self, index_filter):
+    def write_state_initial(self):
         state = {
             'pid': os.getpid(),
             'state': 'queued',
@@ -285,9 +285,9 @@ class SearchIndexer(object):
     
     def write_state(self, state):
         state['updated'] = datetime.now()
-        state['progress'] = 1.0 * sum([idx['progress'] for idx in state['indexes']]) / len(state['indexes'])
+        state['progress'] = 1.0 * sum([idx['progress'] for idx in state['indexes'].values()]) / len(state['indexes'].keys())
         state['state'] = None
-        for idx in state['indexes']:
+        for idx in state['indexes'].values():
             if idx['progress'] == 0.0:
                 idx['state'] = 'queued'
             if idx['progress'] > 0.0:
@@ -300,7 +300,9 @@ class SearchIndexer(object):
                 state['state'] = idx['state']
         
         # json conversion doesn't understand python dates
-        self.convert_state_dates_to_strings(state) 
+        self.convert_state_dates_to_strings(state)
+        print '-' * 20
+        print state 
         KeyVal.setjs('indexer', state)
         self.convert_state_dates_to_objects(state)
 
@@ -310,12 +312,12 @@ class SearchIndexer(object):
         def get_str_from_date(adate):
             ret = None
             if adate:
-                adate.strftime(self.date_format)
+                ret = adate.strftime(self.date_format)
             return ret
         
         state['started'] = get_str_from_date(state['started'])
         state['updated'] = get_str_from_date(state['updated'])
-        for idx in state['indexes']:
+        for idx in state['indexes'].values():
             idx['started'] = get_str_from_date(idx['started'])
         
     def convert_state_dates_to_objects(self, state):
@@ -328,7 +330,7 @@ class SearchIndexer(object):
             return ret
         state['started'] = get_date_from_str(state['started'])
         state['updated'] = get_date_from_str(state['updated'])
-        for idx in state['indexes']:
+        for idx in state['indexes'].values():
             idx['started'] = get_date_from_str(idx['started'])
         
     

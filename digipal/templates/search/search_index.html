@@ -16,9 +16,17 @@
     <style type="text/css">
         input.big-checkbox {width: 1.5em; height: 1.5em;}
         .message {
+          border: 1px solid grey;
+          background: lightgrey;
+          padding: 0.5em;
+        }
+        .message-info {
+          border: 1px solid orange;
+          background: wheat;
+        }
+        .message-success {
           border: 1px solid green;
           background: lightgreen;
-          padding: 0.5em;
         }
     </style>
 {% endblock %}
@@ -43,6 +51,14 @@
                 }
             });
             $(window).trigger('dploaded');
+            
+            $('body').on('click', '[name=select-0]', function() {
+            	var checked = $(this).is(':checked');
+            	$('.index-selector').prop('checked', checked);
+            });
+            $('body').on('change', 'form input[type=checkbox]', function() {
+            	$('.action-reindex').prop('disabled', ($('form input:checked').length == 0) ? 'disabled' : false);
+            });
         });
     </script>
 {% endblock %}

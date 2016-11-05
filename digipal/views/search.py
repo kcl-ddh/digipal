@@ -13,6 +13,7 @@ from digipal.templatetags import hand_filters
 import logging
 from subprocess import Popen
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.views.decorators import staff_member_required
 dplog = logging.getLogger('digipal_debugger')
 
 def get_search_types(request=None):
@@ -40,6 +41,7 @@ def get_search_types_display(content_types):
         ret += '\'%s\'' % type.label
     return ret
 
+@staff_member_required
 @csrf_exempt
 def search_index_view(request):
     context = {'indexes': SortedDict()}
@@ -62,7 +64,7 @@ def search_index_view(request):
     indexer = SearchIndexer()
 
     content_types = faceted_search.get_types(True)
-
+    
     # process request
     action = request.POST.get('action', '')
     reindexes = []
@@ -98,6 +100,8 @@ def search_index_view(request):
 
         info['date'] = datetime.fromtimestamp(info['date'])
         info['size'] = int(info['size'])
+
+    context['title'] = 'Search Indexer'
         
     template = 'search/search_index.html'
     if request.is_ajax():

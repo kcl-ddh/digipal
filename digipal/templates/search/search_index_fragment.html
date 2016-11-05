@@ -1,0 +1,50 @@
+{% load pages_tags mezzanine_tags i18n humanize %}
+{% load mezzanine_tags pagination_tags html_escape %}
+
+<div id="search-ajax-fragment">
+
+    {% if indexing %}
+        <div class="message">
+            {{ indexing.state }}
+            {% if indexing.progress < 1.0 %}
+                {% widthratio indexing.progress 1 100 %}% (started {{ indexing.started|naturaltime }} {#, last updated {{ indexing.updated|naturaltime }} #})
+            {% else %} 
+                {{ indexing.updated|naturaltime }} 
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <form action="" method="POST">
+        {% csrf_token %}
+        <table class="table table-striped table-hover">
+            <theader>
+                <tr>
+                    <th><input title="Select all" class="form-control big-checkbox" type="checkbox" name="select-0" {%if running%}disabled{%endif%}/></th>
+                    <th>Index</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Size</th>
+                </tr>
+            </theader>
+            <tbody>
+                {% for key, index in indexes.iteritems %}
+                    <tr>
+                        <td><input type="checkbox" class="form-control big-checkbox" name="select-{{index.object.key}}" {%if running%}disabled{%endif%}/></td>
+                        <td>{{index.object.label}}</td>
+                        <td>
+                            {% if indexing and index.indexing %}
+                                {% widthratio index.indexing.progress 1 100 %}%
+                            {% endif %}
+                        </td>
+                        <td>{{index.info.date|naturaltime}}</td>
+                        <td>{{index.info.size|filesizeformat}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p>
+            <button class="btn btn-primary" type="submit" name="action" value="reindex" {%if running%}disabled{%endif%}>Reindex</button>
+        </p>
+    </form>
+
+</div>

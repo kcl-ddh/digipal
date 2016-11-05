@@ -59,9 +59,10 @@ def search_index_view(request):
 
     indexer = SearchIndexer()
     context['indexing'] = indexer.read_state()
+    context['running'] = context['indexing'] and context['indexing']['progress'] < 1.0
     now = datetime.now()
     if context['indexing'] and\
-        (context['indexing']['progress'] >= 1.0 and ((now - context['indexing']['updated']).total_seconds() > (60 * 10))):
+        (not context['running'] and ((now - context['indexing']['updated']).total_seconds() > (60 * 10))):
         context['indexing'] = None
     
     # read the index stats

@@ -43,7 +43,7 @@
     <table class="table table-striped table-hover">
         <theader>
             <tr>
-                <th><input class="form-control big-checkbox" type="checkbox" name="select-0" /></th>
+                <th><input class="form-control big-checkbox" type="checkbox" name="select-0" {%if running%}disabled{%endif%}/></th>
                 <th>Index</th>
                 <th>Status</th>
                 <th>Date</th>
@@ -53,7 +53,7 @@
         <tbody>
             {% for key, index in indexes.iteritems %}
                 <tr>
-                    <td><input type="checkbox" class="form-control big-checkbox" name="select-{{index.object.key}}" /></td>
+                    <td><input type="checkbox" class="form-control big-checkbox" name="select-{{index.object.key}}" {%if running%}disabled{%endif%}/></td>
                     <td>{{index.object.label}}</td>
                     <td>
                         {% if indexing and index.indexing %}
@@ -67,7 +67,7 @@
         </tbody>
     </table>
     <p>
-        <button class="btn btn-primary" type="submit" name="action" value="reindex">Reindex</button>
+        <button class="btn btn-primary" type="submit" name="action" value="reindex" {%if running%}disabled{%endif%}>Reindex</button>
     </p>
 </form>
 

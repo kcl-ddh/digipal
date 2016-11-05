@@ -1378,6 +1378,48 @@ def run_shell_command(command):
         pass
     return ret
 
+def get_python_path():
+    # return the full path to python executable that runs this script
+    
+    # basic approach, get it directly from sys.
+    # This is technically correct.
+    # However one caveat is when systemwide python is called with the libs
+    # from a virtualenv. In that case calling that python will not be able
+    # to run django due to missing packages. 
+    import sys, os
+    python_path = sys.executable
+    
+    # TODO
+    # best approach would be to use the above and set the PYTHONPATH
+    # but not easy and cross OS to pass sys.path within Popen() 
+    lib_path = (os.pathsep).join(sys.path)
+    
+    # another is to find python within the virtual env
+    if 0:
+        # simple case, but again may not work if system-wide python 
+        # called with virtualenv libs... (e.g. EXON server)
+        # In that case VIRTUAL_ENV is not set.
+        virtualenv = os.environ.get('VIRTUAL_ENV')
+        if  virtualenv:
+            ppath = os.path.join(virtualenv, 'bin', 'python')
+            if os.path.exists(ppath):
+                python_path = ppath
+
+    if 1:
+        # Here we try to find the virtualenv python in a directory above
+        # the django package. This assumes that django runs from within a
+        # virtualenv
+        import django
+        path = django.__file__
+        while len(path) > 1:
+            path = os.path.dirname(path)
+            ppath = os.path.join(path, 'bin', 'python')
+            if os.path.exists(ppath):
+                python_path = ppath
+                break
+            
+    return python_path
+
 def call_management_command(command, *args, **kwargs):
     '''
     Execute a Django management command in a SEPARATE PROCESS.
@@ -1418,11 +1460,7 @@ def call_management_command(command, *args, **kwargs):
     from django.conf import settings
     import sys
     
-    python_path = sys.executable
-    # above doesn't always work with virtual env
-    virtualenv = os.environ.get('VIRTUAL_ENV')
-    if virtualenv:
-        python_path = os.path.join(virtualenv, 'bin', 'python')
+    python_path = get_python_path()
     
     command_shell = '%s %s %s' % (python_path, os.path.join(settings.PROJECT_ROOT, '..', 'manage.py'), command_django)
     

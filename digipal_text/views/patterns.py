@@ -240,7 +240,8 @@ class PatternAnalyser(object):
                     ret = ret.replace(ur'<peasants>', ur'<number> <peasant>( et dimid%| et <number> <peasant>)*')
                     ret = ret.replace(ur'<livestocks>', ur'<number> <livestock>( et dimid%| et <number> <livestock>)*')
                     ret = ret.replace(ur'<moneys>', ur'<number> <money>( et dimid%| et <number> <money>)*')
-
+                    
+                    ret = ret.replace(ur'<title>', ur'\b(abbas|comes|capellanus|episcopus|frater|mater|presbiter|regina|rex|tagn%|taigni|tainn%|tangi|tangn%|tani|tanni%|tanorum|tanus|tegn%|teign%|teinorum|tenus|thesaurarius|uicecomes|uxor)\b')
                     ret = ret.replace(ur'<hide>', ur'(hid%|uirg%|urig%|fer.i%|agr%|car%c%)')
                     ret = ret.replace(ur'<peasant>', ur'(uillan%|bordar%|cott?ar%|costcet%|seru%)')
                     ret = ret.replace(ur'<livestock>', ur'(porc%|oues%|capra%|animal%|ronc%|runc%|uacas)')

@@ -84,8 +84,8 @@
 
         {% if 1 %}
             <div>
-                {% for variant, c in variants.iteritems %}
-                    {{ c }}: {{ variant }}
+                {% for variant in variants %}
+                    {{ variant.cnt }}: {{ variant.text }}
                     <br/>
                 {% endfor %}
             </div>

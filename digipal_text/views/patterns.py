@@ -26,7 +26,7 @@ def patterns_view(request):
 class PatternAnalyser(object):
 
     patterns = {
-        ur'<number>': ur'\b(duabus|aliam|dimid|dimidi%|unam|[iuxlcm]+)\b',
+        ur'<number>': ur'\b(duabus|aliam|dimid|dimidi%|unam|[iuxlcmd]+)\b',
     }
 
     def get_unit_model(self):
@@ -168,6 +168,10 @@ class PatternAnalyser(object):
                             context['variants'][variant] = context['variants'].get(variant, 0) + 1
 
                         if first_match_only: break
+
+                    print context['variants']
+                    variants = [{'text': variant, 'hits': context['variants'][variant]} for variant in sorted(context['variants'].keys())]
+                    context['variants'] = variants
 
                 if (pattern.condition == 'include' and not found) or (pattern.condition == 'exclude' and found):
                     unit.match_conditions = False

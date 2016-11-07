@@ -26,7 +26,7 @@ def patterns_view(request):
 class PatternAnalyser(object):
 
     patterns = {
-        ur'<number>': ur'\b(duabus|aliam|dimid|dimidi%|unam|[iuxlcmd]+)\b',
+        ur'<number>': ur'\b(duabus|aliam|dimid|dimidi%|unam|[ iuxlcmdMD]+( et [ iuxlcmdMD]+)?)\b',
     }
 
     def get_unit_model(self):

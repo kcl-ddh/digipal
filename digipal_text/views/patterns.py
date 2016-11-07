@@ -240,16 +240,23 @@ class PatternAnalyser(object):
                     # hides:different units hid*: hida, uirgat*, ferdi*/ferlin*
                     # ? 47b1: et ui agris
                     # 41a2: iiii hidis et uirga et dimidia
-                    ret = ret.replace(ur'<hides>', ur'<number> <hide>( et dimid%| et <number> <hide>)*')
-                    ret = ret.replace(ur'<peasants>', ur'<number> <peasant>( et dimid%| et <number> <peasant>)*')
-                    ret = ret.replace(ur'<livestocks>', ur'<number> <livestock>( et dimid%| et <number> <livestock>)*')
-                    ret = ret.replace(ur'<moneys>', ur'<number> <money>( et dimid%| et <number> <money>)*')
+                    #
+                    # c bordarios x minus
+                    # iiii libras et iii solidos i denarium minus
+                    #
+                    for keyword in 'hide,peasant,livestock,money'.split(','):
+                        ret = ret.replace(ur'<'+keyword+ur's>', ur'<number> <'+keyword+ur'>( et dimid%| et <number> <'+keyword+ur'>| <number> minus| <number> <'+keyword+ur'> minus)*')
+                        
+#                     ret = ret.replace(ur'<hides>', ur'<number> <hide>( et dimid%| et <number> <hide>)*')
+#                     ret = ret.replace(ur'<peasants>', ur'<number> <peasant>( et dimid%| et <number> <peasant>)*')
+#                     ret = ret.replace(ur'<livestocks>', ur'<number> <livestock>( et dimid%| et <number> <livestock>)*')
+#                     ret = ret.replace(ur'<moneys>', ur'<number> <money>( et dimid%| (et )?<number> <money>)*( minus)?')
                     
                     ret = ret.replace(ur'<title>', ur'\b(abbas|comes|capellanus|episcopus|frater|mater|presbiter|regina|rex|tagn%|taigni|tainn%|tangi|tangn%|tani|tanni%|tanorum|tanus|tegn%|teign%|teinorum|tenus|thesaurarius|uicecomes|uxor)\b')
-                    ret = ret.replace(ur'<hide>', ur'(hid%|uirg%|urig%|fer.i%|agr%|car%c%)')
-                    ret = ret.replace(ur'<peasant>', ur'(uillan%|bordar%|cott?ar%|costcet%|seru%)')
-                    ret = ret.replace(ur'<livestock>', ur'(porc%|oues%|capra%|animal%|ronc%|runc%|uacas)')
-                    ret = ret.replace(ur'<money>', ur'(solidos|libras)')
+                    ret = ret.replace(ur'<hide>', ur'\b(hid%|uirg%|urig%|fer.i%|agr%|car%c%)\b')
+                    ret = ret.replace(ur'<peasant>', ur'\b(uillan%|bordar%|cott?ar%|costcet%|seru%)\b')
+                    ret = ret.replace(ur'<livestock>', ur'\b(porc%|oues%|capra%|animal%|ronc%|runc%|uacas)\b')
+                    ret = ret.replace(ur'<money>', ur'\b(solidos|libras|obolum|obolus|numm%|denar%)\b')
 
                     ret = ret.replace(ur'<number>', self.patterns['<number>'])
                     ret = ret.replace(ur'<person>', ur'\w\w%')

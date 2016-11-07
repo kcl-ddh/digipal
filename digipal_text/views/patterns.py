@@ -48,6 +48,7 @@ class PatternAnalyser(object):
 
         context['advanced_search_form'] = 1
         context['variants'] = {}
+        context['active_tab'] = request.REQUEST.get('active_tab', 'tab-units')
 
         context['conditions'] = [
             {'key': '', 'label': 'May have'},
@@ -97,6 +98,9 @@ class PatternAnalyser(object):
                 context['units'].append(unit)
 
         hand_filters.chrono(':units')
+
+        variants = [{'text': variant, 'hits': context['variants'][variant]} for variant in sorted(context['variants'].keys())]
+        context['variants'] = variants
 
         # stats
         stats['result_size'] = len(context['units'])
@@ -168,10 +172,6 @@ class PatternAnalyser(object):
                             context['variants'][variant] = context['variants'].get(variant, 0) + 1
 
                         if first_match_only: break
-
-                    print context['variants']
-                    variants = [{'text': variant, 'hits': context['variants'][variant]} for variant in sorted(context['variants'].keys())]
-                    context['variants'] = variants
 
                 if (pattern.condition == 'include' and not found) or (pattern.condition == 'exclude' and found):
                     unit.match_conditions = False

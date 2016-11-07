@@ -276,7 +276,7 @@ function init_search_page(options) {
         // Any click on a link is intercepted and sent as an ajax request
         // the html fragment returned is re-injected into the page.
         // TODO: error management
-        $('body').on('click', '#search-ajax-fragment a:not([data-target]), #search-ajax-fragment form button:not([data-target]):not([data-toggle])', function(ev) {
+        $('body').on('click', '#search-ajax-fragment a:not([data-target]):not([data-toggle]), #search-ajax-fragment form button:not([data-target]):not([data-toggle])', function(ev) {
             var $element = $(this);
 
             var page_url = dputils.get_page_url($(location).attr('href'));

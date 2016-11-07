@@ -167,6 +167,10 @@
                 var input = $pattern_label.parent().find('.unit-content').html().trim();
                 $tester.find('input[name=input]').val(input.replace(/<[^>]+>/g, ''));
             });
+            
+            $('body').on('click', 'a[data-toggle="tab"]', function() {
+                $('input[name="active_tab"]').val($(this).attr('href').substring(1));
+            });
 
             // called each time the ajax content is refreshed
             $(window).on('dploaded', function() {

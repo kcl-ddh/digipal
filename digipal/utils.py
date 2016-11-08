@@ -1478,3 +1478,14 @@ def call_management_command(command, *args, **kwargs):
         ##p.start()
         print 'h2'
         ##print p
+
+def json_dumps(data):
+    from datetime import datetime
+    import json
+    def json_serial(obj):
+        """JSON serializer for objects not serializable by default json code"""
+        if isinstance(obj, datetime):
+            serial = obj.isoformat()
+            return serial
+        raise TypeError ("Type not serializable")    
+    return json.dumps(data, default=json_serial)

@@ -11,15 +11,17 @@ from django.db.utils import IntegrityError
 from django.utils.text import slugify
 from django.core.cache.backends.base import InvalidCacheBackendError
 from digipal.templatetags import hand_filters, html_escape
+from django.http.response import HttpResponse
 dplog = logging.getLogger('digipal_debugger')
 
 from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
-def patterns_view(request):
+def patterns_view(request, path):
+    
     hand_filters.chrono('PROCESS REQUEST:')
     ana = PatternAnalyser()
-    ret = ana.process_request(request)
+    ret = ana.process_request(request, path)
     hand_filters.chrono(':PROCESS REQUEST')
     return ret
 
@@ -34,7 +36,40 @@ class PatternAnalyser(object):
         ret = Entry
         return ret
 
-    def process_request(self, request):
+    def process_request(self, request, path):
+        res ={
+            'patterns': self.get_patterns(),
+            'results': {
+                'stats': {
+                    'total': 0,
+                    'found': 0,
+                    'returned': 0,
+                },
+                'units': [],
+                'variants': []
+            },
+        }
+        
+        data = dputils.json_dumps(res)
+        ret = HttpResponse(data, content_type='text/json')
+        ret['Access-Control-Allow-Origin'] = '*'
+        
+        return ret
+
+    def get_patterns(self):
+        ret = []
+        for pattern in TextPattern.objects.all().order_by('order'):
+            ret.append({
+                'key': pattern.key,
+                'title': pattern.title,
+                'created': pattern.created,
+                'updated': pattern.modified,
+                'order': pattern.order,
+            })
+        
+        return ret
+
+    def process_request2(self, request):
         self.request = request
 
         from datetime import datetime

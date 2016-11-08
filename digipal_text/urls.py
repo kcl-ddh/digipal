@@ -21,5 +21,6 @@ urlpatterns += patterns('digipal_text.views',
     url(r'^digipal/manuscripts/(\d+)/texts/([^/]+)/?$', 'viewer.text_api_view'),
 
     url(r'^digipal/patterns/?$', 'patterns.patterns_view'),
+    url(r'^digipal_text/api/patterns/([^/]*)/?$', 'patterns.patterns_view'),
 )
 

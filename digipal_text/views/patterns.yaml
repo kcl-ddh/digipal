@@ -1,0 +1,193 @@
+# this is an example of the Uber API
+# as a demonstration of an API spec in YAML
+swagger: '2.0'
+info:
+  title: Text Segmentation API
+  description: Define patterns and segment units of text
+  version: "1.0.0"
+# the domain of the service
+host: digipal.eu
+# array of all schemes that your API supports
+schemes:
+  - https
+  - http
+# will be prefixed to all paths
+basePath: /digipal/
+produces:
+  - application/json
+paths:
+  /patterns:
+    get:
+      summary: Patterns
+      description: |
+        The Patterns endpoint returns a list of user defined patterns
+      parameters: []
+      tags:
+        - Patterns
+      responses:
+        200:
+          description: An array of patterns
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Pattern'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: A Pattern definition
+      parameters:
+      - name: patterns
+        in: body
+        required: true
+        schema: 
+          $ref: '#/definitions/Patterns'
+      responses:
+        200:
+          description: An array of patterns
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PatternsAndResults'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /patterns/{key}:
+    put:
+      summary: A Pattern definition
+      description: |
+        Returns the definition of a pattern
+      parameters:
+      - name: key
+        in: path
+        description: ID of the requested TaxFiling
+        required: true
+        type: string
+      - name: search_options
+        in: body
+        required: false
+        schema:
+          $ref: '#/definitions/SearchOptions'
+      tags:
+        - Patterns
+      responses:
+        200:
+          description: A pattern definition
+          schema:
+            $ref: "#/definitions/PatternsAndResults"
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  SearchOptions:
+    type: object
+    properties:
+      range:
+        type: string
+      limit:
+        type: integer
+      parts:
+        type: array
+        items:
+          type: string
+          enum: ["patterns", "stats", "units", "variants"]
+      conditions:
+        type: object
+        properties:
+          key:
+            type: string
+          condition:
+            type: string
+            enum: ["", "include", "exclude", "ignore"]
+  PatternsAndResults:
+    type: object
+    properties:
+      patterns:
+        $ref: '#/definitions/Patterns'
+      results:
+        $ref: '#/definitions/Results'
+  Results:
+    type: object
+    properties:
+      stats:
+        type: object
+        properties:
+          total: 
+            type: integer
+          found: 
+            type: integer
+          returned:
+            type: integer
+      units:
+        $ref: '#/definitions/Units'
+      variants:
+        $ref: '#/definitions/Variants'
+  Units:
+    type: array
+    items:
+      $ref: '#/definitions/Unit'
+  Unit:
+    type: object
+    properties:
+      unitid:
+        type: string
+      text:
+        type: string
+      segments:
+        type: array
+        items:
+          $ref: '#/definitions/Segment'
+  Segment:
+    type: object
+    properties:
+      text:
+        type: string
+      segments:
+        type: array
+        items:
+          $ref: '#/definitions/Segment'
+  Variants:
+    type: array
+    items:
+      $ref: '#/definitions/Variant'
+  Variant:
+    type: object
+    properties:
+      text: 
+        type: string
+      hits: 
+        type: integer
+  Patterns:
+    type: array
+    items:
+      $ref: '#/definitions/Pattern'
+  Pattern:
+    type: object
+    properties:
+      key:
+        type: string
+        description: Unique identifier representing the pattern
+      title:
+        type: string
+        description: Title of the pattern definition
+      order:
+        type: integer
+      created:
+        type: string
+        description: Display name of product.
+      updated:
+        type: string
+        description: Display name of product.
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string

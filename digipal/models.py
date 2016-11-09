@@ -3560,7 +3560,7 @@ class KeyVal(models.Model):
 
     @classmethod
     def setjs(cls, key, val):
-        cls.set(key, json.dumps(val))
+        cls.set(key, dputils.json_dumps(val))
     
     @classmethod
     def get(cls, key, default=None):

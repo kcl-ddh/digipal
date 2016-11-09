@@ -4,7 +4,6 @@ import re, os
 from binhex import LINELEN
 import lxml.etree as ET
 from lxml.etree import XMLSyntaxError
-from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, render_to_response
 from django.utils.datastructures import SortedDict
 psutil = None
@@ -199,12 +198,6 @@ def urlencode(dict, doseq=0):
             d[k].append(v2)
     ret = urllib.urlencode(d, doseq)
     return ret
-
-def get_json_response(data):
-    '''Returns a HttpResponse with the given data variable encoded as json'''
-    import json
-    from django.http import HttpResponse
-    return HttpResponse(json.dumps(data), mimetype="application/json")
 
 def get_tokens_from_phrase(phrase, lowercase=False):
     ''' Returns a list of tokens from a query phrase.
@@ -1489,3 +1482,10 @@ def json_dumps(data):
             return serial
         raise TypeError ("Type not serializable")    
     return json.dumps(data, default=json_serial)
+
+def get_json_response(data):
+    '''Returns a HttpResponse with the given data variable encoded as json'''
+    from django.http.response import HttpResponse
+    ret = HttpResponse(json_dumps(data), content_type='application/json')
+    ret['Access-Control-Allow-Origin'] = '*'
+    return ret

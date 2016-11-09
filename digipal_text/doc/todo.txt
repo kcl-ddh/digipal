@@ -1,3 +1,34 @@
+TextSeg 2.0:
+    . refactoring
+        . JSON storage    
+            [DONE] use KeyVal to store the patterns in the database
+            [DONE] convert legacy data structure
+            . id:
+                generate new id if none
+                more compact? recordid-relid (relid is a counter)
+            . decide array or hash?
+            . order?
+            . data structure version?
+            . session data:
+                . conditions
+                . search options
+                . selection
+        . rest API
+            . improve API: get, set, search
+            . get all patterns
+            . set all patterns
+            . set a pattern
+            . apply patterns
+        . new UI with vue.js
+            . show list of patterns
+            . show a pattern
+            . select pattern
+            . edit a pattern
+            . reorder patterns
+             
+    . use namespace
+         
+
 Todo:
 . word list
     . fix errors with words stuck together and special chars

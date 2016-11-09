@@ -24,7 +24,7 @@
             width: 100%;
         }
         div.pattern {
-            display: none;
+            /*display: none;*/
             border-top: 2px solid lightgrey;
             border-bottom: 2px solid lightgrey;
             padding-top: 0.2em;
@@ -96,8 +96,50 @@
 
 {% block main %}
     <a href="https://confluence.dighum.kcl.ac.uk/display/EXON/Text+Segmentation+Tool">Help about this tool</a>
+
+    {% verbatim %}
+    <div id="patterns-ui">
+        <div class="panel patterns">
+            <ul class="patterns-list sortable2" id="patterns_list">
+                <li v-on:click.stop.prevent="select_pattern" v-for="pattern in response.patterns" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
+                    <a data-target="managed" href="#">
+                        <span v-bind:class="'pattern-condition-'+pattern.condition">{{pattern.key}}</span>
+                        <span class="glyphicon glyphicon-warning-sign" v-if="pattern.error"></span>
+                        <span v-if="!pattern.error">[{{ 0 }}]</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
     
-    
+        <div v-for="pattern in response.patterns">
+            <div v-if="(pattern.id == session.selected)"  class="pattern" v-bind:data-patternid="pattern.id">
+                <div class="form-group">
+                    <label for="p_key">Key</label>
+                    <input class="form-control input-sm" type="text" name="p_key" id="p_key" v-model="pattern.key" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                </div>
+                <div class="form-group">
+                    <label for="p_title">Title</label>
+                    <input class="form-control input-sm pattern-title" type="text" name="p_title" id="p_title" v-model="pattern.title" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                </div>
+                <div class="form-group">
+                    <label for="p_condition">Condition</label>
+                    <select class="form-control input-sm" name="p_condition" id="p_condition" v-model="session.conditions[pattern.id]">
+                        <option v-for="ckey in conditions">{{ conditions[ckey] }}</option>
+                    </select>
+                </div>
+                <span class="small legend" title="number of units NOT matching this pattern" data-toggle="tooltip" v-if="session.conditions[pattern.id] != 'ignore'">
+                    {{ pattern.unhits }}
+                </span>
+                <a class="pull-right btn btn-xs btn-danger delete-pattern" href="#" data-target="managed" title="Remove this pattern" data-toggle="tooltip">X</a>
+                <br/>
+                <div class="form-group form-group-full-width" style="display:table">
+                    <label for="p_pattern">Pattern</label>
+                    <input class="form-control pattern-input input-sm" type="text" name="p_pattern" id="p_pattern" v-model="pattern.pattern" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endverbatim %}
 
 {% endblock %}
 
@@ -109,8 +151,34 @@
         <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
         <script src="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.min.js"></script>
     {% endcompress %}
+    
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
 
-    <scrip type="text/javascript">
-        
+    <script type="text/javascript">
+        (function() {
+            var model = {
+                'response': {{ context_js|safe }},
+                'session': {
+                    'selected': 'woodland-4',
+                    'conditions': {'woodland-4': 'ignore'},
+                },
+                'conditions': {
+                    '': 'May have',
+                    'include': 'Must have',
+                    'exclude': 'Must not have',
+                    'ignore': 'Ignore',
+                }
+            }
+            
+            var patterns_list = new Vue({
+                el: '#patterns-ui',
+                data: model,
+                methods: {
+                    select_pattern: function(event) {
+                        this.session.selected = event.currentTarget.getAttribute('data-patternid');
+                    }
+                }
+            });
+        })();
     </script>
 {% endblock %}

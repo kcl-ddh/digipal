@@ -12,17 +12,24 @@ from django.utils.text import slugify
 from django.core.cache.backends.base import InvalidCacheBackendError
 from digipal.templatetags import hand_filters, html_escape
 from django.http.response import HttpResponse
+from digipal.models import KeyVal
 dplog = logging.getLogger('digipal_debugger')
 
 from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
-def patterns_view(request, path):
-    
-    hand_filters.chrono('PROCESS REQUEST:')
+def patterns_view(request):
     ana = PatternAnalyser()
-    ret = ana.process_request(request, path)
-    hand_filters.chrono(':PROCESS REQUEST')
+    context = ana.process_request_html(request)
+    template = 'digipal_text/patterns2.html'
+    ret = render(request, template, context)
+    return ret
+
+@csrf_exempt
+def patterns_api_view(request, path):
+    ana = PatternAnalyser()
+    data = ana.process_request_api(request, path)
+    ret = dputils.get_json_response(data)
     return ret
 
 class PatternAnalyser(object):
@@ -30,14 +37,22 @@ class PatternAnalyser(object):
     patterns = {
         ur'<number>': ur'\b(duabus|aliam|dimid|dimidi%|unam|[ iuxlcmdMD]+( et [ iuxlcmdMD]+)?)\b',
     }
+    
+    def __init__(self):
+        self.namespace = 'default'
 
     def get_unit_model(self):
         from exon.customisations.digipal_text.models import Entry
         ret = Entry
         return ret
 
-    def process_request(self, request, path):
-        res ={
+    def process_request_html(self, request):
+        ret = {'context_js': dputils.json_dumps(self.process_request_api(request))}
+
+        return ret
+        
+    def process_request_api(self, request, path=None):
+        ret ={
             'patterns': self.get_patterns(),
             'results': {
                 'stats': {
@@ -49,22 +64,46 @@ class PatternAnalyser(object):
                 'variants': []
             },
         }
-        
-        data = dputils.json_dumps(res)
-        ret = HttpResponse(data, content_type='text/json')
-        ret['Access-Control-Allow-Origin'] = '*'
-        
+
         return ret
 
     def get_patterns(self):
+        ret = self.get_or_set_patterns()
+        
+        if not ret:
+            # not found, try legacy...
+            ret = self.get_patterns_legacy()
+            # then save them
+            if 0 and ret:
+                ret = self.get_or_set_patterns(ret)
+        
+        return ret 
+
+    def get_or_set_patterns(self, patterns=None):
+        ''' Get (if patterns is None) or Set the patterns in the database
+            in & out = dictionary
+        ''' 
+        key = 'api.textseg.%s.patterns' % slugify(unicode(self.namespace))
+        if patterns:
+            ret = KeyVal.setjs(key, patterns)
+        else:
+            ret = KeyVal.getjs(key)
+        return ret
+    
+    def get_patterns_legacy(self):
         ret = []
+        import uuid
+        
         for pattern in TextPattern.objects.all().order_by('order'):
             ret.append({
                 'key': pattern.key,
                 'title': pattern.title,
-                'created': pattern.created,
+                'pattern': pattern.pattern,
+                #'created': pattern.created,
                 'updated': pattern.modified,
-                'order': pattern.order,
+                #'id': str(uuid.uuid4()),
+                'id': pattern.key,
+                #'order': pattern.order,
             })
         
         return ret

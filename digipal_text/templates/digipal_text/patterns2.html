@@ -91,6 +91,18 @@
             background: yellow;
             border: 1px dashed orange;
         }
+        .pattern-condition-include:before {
+            content: '+';
+        }
+        .pattern-condition-exclude:before {
+            content: '-';
+        }
+        .pattern-condition-ignore:before {
+            content: '(';
+        }
+        .pattern-condition-ignore:after {
+            content: ')';
+        }
     </style>
 {% endblock %}
 
@@ -103,7 +115,7 @@
             <ul class="patterns-list sortable2" id="patterns_list">
                 <li v-on:click.stop.prevent="select_pattern" v-for="pattern in response.patterns" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
                     <a data-target="managed" href="#">
-                        <span v-bind:class="'pattern-condition-'+pattern.condition">{{pattern.key}}</span>
+                        <span v-bind:class="'pattern-condition-'+session.conditions[pattern.id]">{{pattern.key}}</span>
                         <span class="glyphicon glyphicon-warning-sign" v-if="pattern.error"></span>
                         <span v-if="!pattern.error">[{{ 0 }}]</span>
                     </a>
@@ -124,7 +136,7 @@
                 <div class="form-group">
                     <label for="p_condition">Condition</label>
                     <select class="form-control input-sm" name="p_condition" id="p_condition" v-model="session.conditions[pattern.id]">
-                        <option v-for="ckey in conditions">{{ conditions[ckey] }}</option>
+                        <option v-bind:value="ckey" v-for="(label, ckey) in conditions">{{ label }}</option>
                     </select>
                 </div>
                 <span class="small legend" title="number of units NOT matching this pattern" data-toggle="tooltip" v-if="session.conditions[pattern.id] != 'ignore'">

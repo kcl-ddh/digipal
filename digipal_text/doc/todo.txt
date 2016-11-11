@@ -1,4 +1,9 @@
 TextSeg 2.0:
+    . improvements:
+        [DONE] concurrent editing level 1 (due to chaneg to particular patterns)
+        . concurrent editing level 2 (due to date check)
+        [DONE] interface is up to date all the time, no need to press update
+        . name spaces
     . refactoring
         . JSON storage    
             [DONE] use KeyVal to store the patterns in the database
@@ -26,15 +31,28 @@ TextSeg 2.0:
             [DONE] edit a pattern
             [DONE] save session, directly
             [DONE] save changes to server
-            . conflict detection 
-            . delete a pattern
+            [DONE] delete a pattern
+            [DONE] add new pattern
             . message
-            . add new pattern
+            . validate patterns on the fly
+            . conflict detection 
             . reorder patterns
             . use compact form
             . show results
-            . error management 
+            . error management
+                . server error
+                . invalid pattern expression
+                . duplicate keys
+                . wrong references
+            . generate slug automatically from the title
+                . change as long as they don't deviate
     . use namespace
+    . problems:
+        . GET may actually add a new pattern, not very restful behaviour
+        . the way the changes are transfered to the server has some issues:
+            . lots of small requests
+            . data is updated twice: by the user action and then the response
+                from the server. Make sure this doesn't cause two redraw. 
          
 
 Todo:

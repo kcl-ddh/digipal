@@ -13,6 +13,7 @@ from django.core.cache.backends.base import InvalidCacheBackendError
 from digipal.templatetags import hand_filters, html_escape
 from django.http.response import HttpResponse
 from digipal.models import KeyVal
+from datetime import datetime
 dplog = logging.getLogger('digipal_debugger')
 
 from django.views.decorators.csrf import csrf_exempt
@@ -57,37 +58,44 @@ class PatternAnalyser(object):
         
         patterns = self.get_patterns()
         
-        patternid = None
+        request_pattern = None
+        request_patterni = None
         if root == 'patterns':
             if len(params) == 1:
                 patternid = params[0]
-
-        if request.method == 'DELETE':
-            if patternid:
                 for i in range(0, len(patterns)):
                     if patterns[i]['id'] == patternid:
-                        del patterns[i]
+                        request_patterni = i
+                        request_pattern = patterns[i]
                         break
+
+        if request.method == 'DELETE':
+            if request_pattern:
+                del patterns[request_patterni]
                 self.get_or_set_patterns(patterns)
 
         if request.method == 'PUT':
             data = dputils.json_loads(request.body)
-            if patternid:
-                for i in range(0, len(patterns)):
-                    if patterns[i]['id'] == patternid:
-                        patterns[i] = data
+            if request_pattern:
+                print 'PUT found'
+                data['updated'] = datetime.now()
+                patterns[i] = data
+                print data
                 self.get_or_set_patterns(patterns)
         
         # add new pattern if missing and client asked for it
         if 1:
             title_new = 'New Pattern'
             if not patterns or patterns[-1]['title'] != title_new:
+                print 'ADD new pattern'
                 patterns.append({
                     'id': dputils.get_short_uid(),
                     'key': slugify(unicode(title_new)),
                     'title': title_new,
+                    'updated': datetime.now(),
                     'pattern': '',
                 });
+                self.get_or_set_patterns(patterns)
 
         ret ={
             'patterns': patterns,

@@ -6,6 +6,7 @@ import lxml.etree as ET
 from lxml.etree import XMLSyntaxError
 from django.shortcuts import render, render_to_response
 from django.utils.datastructures import SortedDict
+import base64
 psutil = None
 try:
     import psutil
@@ -1520,4 +1521,15 @@ def get_json_response(data):
     from django.http.response import HttpResponse
     ret = HttpResponse(json_dumps(data), content_type='application/json')
     ret['Access-Control-Allow-Origin'] = '*'
+    return ret
+
+def get_short_uid():
+    # The time in milliseconds in base 36 
+    # e.g. '5iiimluvxfg' 11 chars long
+    from datetime import datetime
+    ret = datetime.now().isoformat()
+    ret = long(re.sub(ur'\D', '', ret))
+    ret = str(ret)
+    #ret = base64.b64encode(str(ret), 'ascii')
+    #return parseInt((new Date()).toISOString().replace(/\D/g, '')).toString(36);
     return ret

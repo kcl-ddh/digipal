@@ -56,17 +56,39 @@ class PatternAnalyser(object):
         params = path.strip('/').split('/')
         
         patterns = self.get_patterns()
-
-        if request.method == 'POST':
-            data = dputils.json_loads(request.body)
-            if root == 'patterns':
-                if len(params) == 1:
-                    patternid = params[0]
-                    for i in range(0, len(patterns)):
-                        if patterns[i]['id'] == patternid:
-                            patterns[i] = data
-                    self.get_or_set_patterns(patterns)
         
+        patternid = None
+        if root == 'patterns':
+            if len(params) == 1:
+                patternid = params[0]
+
+        if request.method == 'DELETE':
+            if patternid:
+                for i in range(0, len(patterns)):
+                    if patterns[i]['id'] == patternid:
+                        del patterns[i]
+                        break
+                self.get_or_set_patterns(patterns)
+
+        if request.method == 'PUT':
+            data = dputils.json_loads(request.body)
+            if patternid:
+                for i in range(0, len(patterns)):
+                    if patterns[i]['id'] == patternid:
+                        patterns[i] = data
+                self.get_or_set_patterns(patterns)
+        
+        # add new pattern if missing and client asked for it
+        if 1:
+            title_new = 'New Pattern'
+            if not patterns or patterns[-1]['title'] != title_new:
+                patterns.append({
+                    'id': dputils.get_short_uid(),
+                    'key': slugify(unicode(title_new)),
+                    'title': title_new,
+                    'pattern': '',
+                });
+
         ret ={
             'patterns': patterns,
             'results': {

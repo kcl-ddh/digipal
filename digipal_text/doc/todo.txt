@@ -26,8 +26,8 @@ TextSeg 2.0:
             [DONE] edit a pattern
             [DONE] save session, directly
             [DONE] save changes to server
-            . delete a pattern
             . conflict detection 
+            . delete a pattern
             . message
             . add new pattern
             . reorder patterns

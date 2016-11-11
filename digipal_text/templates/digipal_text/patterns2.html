@@ -142,7 +142,7 @@
                 <span class="small legend" title="number of units NOT matching this pattern" data-toggle="tooltip" v-if="session.options.conditions[pattern.id] != 'ignore'">
                     {{ pattern.unhits }}
                 </span>
-                <a class="pull-right btn btn-xs btn-danger delete-pattern" href="#" data-target="managed" title="Remove this pattern" data-toggle="tooltip">X</a>
+                <a class="pull-right btn btn-xs btn-danger delete-pattern" v-on:click="delete_pattern(pattern.id)" href="#" data-target="managed" title="Remove this pattern" data-toggle="tooltip">X</a>
                 <br/>
                 <div class="form-group form-group-full-width" style="display:table">
                     <label for="p_pattern">Pattern</label>
@@ -201,6 +201,7 @@
                 }
             }
             
+            // Load user settings from the locaStorage 
             var session = window.localStorage.getItem('session');
             if (session) {
                 model.session = JSON.parse(session);
@@ -208,16 +209,31 @@
             
             var patterns_list = new Vue({
                 el: '#patterns-ui',
+                
                 data: model,
+                
+                watch: {
+                },
+                
                 methods: {
                     save_session: function() {
                         window.localStorage.setItem('session', JSON.stringify(this.session));
                     },
+                    
                     select_pattern: function(event) {
                         this.session.selected = event.currentTarget.getAttribute('data-patternid');
                         this.save_session();
                     },
+                    
+                    delete_pattern: function (patternid) {
+                    	this.change_pattern(patternid, 'delete')
+                    },
+                    
                     save_pattern: function (patternid) {
+                        this.change_pattern(patternid, 'put')
+                    },
+                    
+                    change_pattern: function (patternid, method) {
                         var pattern = null;
                         $(this.response.patterns).each(function(i, apattern) {
                             if (apattern.id == patternid) {
@@ -225,12 +241,13 @@
                             }
                         });
                         if (pattern) {
+                        	var self = this;
                             $.ajax({
                                 url: '/digipal_text/api/patterns/'+pattern.id+'/',
-                                type: 'post',
+                                type: method,
                                 data: JSON.stringify(pattern),
                             }).success(function(data) {
-                                this.response = data;
+                            	self.response = data;
                             })
                         }
                     }

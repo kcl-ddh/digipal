@@ -154,6 +154,18 @@
                 });
             },
 
+            get_short_uid: function() {
+                // The time in milliseconds in base 36 
+            	// e.g. '5iiimluvxfg' 11 chars long
+            	return parseInt((new Date()).toISOString().replace(/\D/g, '')).toString(36);
+            },
+            
+            slugify: function(string) {
+                var ret = string;
+                ret = ret.replace(/(^\W+)|(\W+$)/g, '').replace(/\W+/g, '-').toLowerCase()
+                return ret;
+            },
+
             /*
              * Returns the value of a parameter from the query string
              */

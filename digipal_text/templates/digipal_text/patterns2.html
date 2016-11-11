@@ -115,7 +115,7 @@
             <ul class="patterns-list sortable2" id="patterns_list">
                 <li v-on:click.stop.prevent="select_pattern" v-for="pattern in response.patterns" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
                     <a data-target="managed" href="#">
-                        <span v-bind:class="'pattern-condition-'+session.conditions[pattern.id]">{{pattern.key}}</span>
+                        <span v-bind:class="'pattern-condition-'+session.options.conditions[pattern.id]">{{pattern.key}}</span>
                         <span class="glyphicon glyphicon-warning-sign" v-if="pattern.error"></span>
                         <span v-if="!pattern.error">[{{ 0 }}]</span>
                     </a>
@@ -127,28 +127,42 @@
             <div v-if="(pattern.id == session.selected)"  class="pattern" v-bind:data-patternid="pattern.id">
                 <div class="form-group">
                     <label for="p_key">Key</label>
-                    <input class="form-control input-sm" type="text" name="p_key" id="p_key" v-model="pattern.key" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    <input class="form-control input-sm" type="text" name="p_key" id="p_key" v-on:blur="save_pattern(pattern.id)" v-model="pattern.key" autocomplete="off" autocorrect="off" autocapitalize="off" />
                 </div>
                 <div class="form-group">
                     <label for="p_title">Title</label>
-                    <input class="form-control input-sm pattern-title" type="text" name="p_title" id="p_title" v-model="pattern.title" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    <input class="form-control input-sm pattern-title" type="text" name="p_title" id="p_title" v-on:blur="save_pattern(pattern.id)" v-model="pattern.title" autocomplete="off" autocorrect="off" autocapitalize="off" />
                 </div>
                 <div class="form-group">
                     <label for="p_condition">Condition</label>
-                    <select class="form-control input-sm" name="p_condition" id="p_condition" v-model="session.conditions[pattern.id]">
+                    <select class="form-control input-sm" name="p_condition" id="p_condition" v-model="session.options.conditions[pattern.id]">
                         <option v-bind:value="ckey" v-for="(label, ckey) in conditions">{{ label }}</option>
                     </select>
                 </div>
-                <span class="small legend" title="number of units NOT matching this pattern" data-toggle="tooltip" v-if="session.conditions[pattern.id] != 'ignore'">
+                <span class="small legend" title="number of units NOT matching this pattern" data-toggle="tooltip" v-if="session.options.conditions[pattern.id] != 'ignore'">
                     {{ pattern.unhits }}
                 </span>
                 <a class="pull-right btn btn-xs btn-danger delete-pattern" href="#" data-target="managed" title="Remove this pattern" data-toggle="tooltip">X</a>
                 <br/>
                 <div class="form-group form-group-full-width" style="display:table">
                     <label for="p_pattern">Pattern</label>
-                    <input class="form-control pattern-input input-sm" type="text" name="p_pattern" id="p_pattern" v-model="pattern.pattern" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    <input class="form-control pattern-input input-sm" type="text" name="p_pattern" id="p_pattern" v-on:blur="save_pattern(pattern.id)" v-model="pattern.pattern" autocomplete="off" autocorrect="off" autocapitalize="off" />
                 </div>
             </div>
+        </div>
+    
+        <div class="actions">
+            <div class="form-group ">
+                <label for="units_range">Text range</label>
+                <input class="form-control input-sm" type="text" name="units_range" id="units_range" v-on:blur="save_session" v-model="session.options.range" autocomplete="off" autocorrect="off" autocapitalize="off" />
+            </div>
+        
+            <div class="form-group ">
+                <label for="units_limit">Show first</label>
+                <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" v-on:blur="save_session" v-model="session.options.limit"  autocomplete="off" autocorrect="off" autocapitalize="off" />
+            </div>
+            <input type="hidden" name="action" value="update" />
+            <button class="form-control btn btn-primary" type="submit" name="update">Update</button>
         </div>
     </div>
     {% endverbatim %}
@@ -167,12 +181,17 @@
     <script src="https://unpkg.com/vue/dist/vue.js"></script>
 
     <script type="text/javascript">
+        //enum: ["patterns", "stats", "units", "variants"]
         (function() {
             var model = {
                 'response': {{ context_js|safe }},
                 'session': {
                     'selected': 'woodland-4',
-                    'conditions': {'woodland-4': 'ignore'},
+                    'options': {
+                        'range': '',
+                        'limit': 10,
+                        'conditions': {'woodland-4': 'ignore'},
+                    }
                 },
                 'conditions': {
                     '': 'May have',
@@ -182,12 +201,38 @@
                 }
             }
             
+            var session = window.localStorage.getItem('session');
+            if (session) {
+                model.session = JSON.parse(session);
+            }
+            
             var patterns_list = new Vue({
                 el: '#patterns-ui',
                 data: model,
                 methods: {
+                    save_session: function() {
+                        window.localStorage.setItem('session', JSON.stringify(this.session));
+                    },
                     select_pattern: function(event) {
                         this.session.selected = event.currentTarget.getAttribute('data-patternid');
+                        this.save_session();
+                    },
+                    save_pattern: function (patternid) {
+                        var pattern = null;
+                        $(this.response.patterns).each(function(i, apattern) {
+                            if (apattern.id == patternid) {
+                                pattern = apattern;
+                            }
+                        });
+                        if (pattern) {
+                            $.ajax({
+                                url: '/digipal_text/api/patterns/'+pattern.id+'/',
+                                type: 'post',
+                                data: JSON.stringify(pattern),
+                            }).success(function(data) {
+                                this.response = data;
+                            })
+                        }
                     }
                 }
             });

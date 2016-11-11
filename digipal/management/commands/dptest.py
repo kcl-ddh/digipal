@@ -58,6 +58,8 @@ Commands:
         This is only for dev env. when you are changing the js/css, ...
         Note that transpiled code can't be made dynamic (e.g. less, ts)
 
+    jsdates
+        test date conversion during json parsing
 """
 
     args = 'locus|email'
@@ -139,6 +141,21 @@ Commands:
             known_command = True
             self.download_images(*args[1:])
             
+        if command == 'jsdates':
+            known_command = True
+            d = {
+                'd': {
+                    'd1': 'v1',
+                    'd2': '2016-10-28T13:27:38.944298+00:00',
+                },
+                'l': ['v1', '2016-10-28T13:27:38.944298+00:00'],
+            }
+            print repr(d)
+            ds = dputils.json_dumps(d)
+            print repr(ds)
+            d2 = dputils.json_loads(ds)
+            print repr(d2)
+
         if command =='mem':
             known_command = True
             self.test_mem(*args[1:])

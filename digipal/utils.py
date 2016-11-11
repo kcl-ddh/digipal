@@ -1483,6 +1483,38 @@ def json_dumps(data):
         raise TypeError ("Type not serializable")    
     return json.dumps(data, default=json_serial)
 
+def json_loads(data):
+    #from datetime import datetime
+    from django.utils.dateparse import parse_datetime
+    import json
+    
+    # convert all dates in a list of dictionary from string to datetime 
+    def convert_dates(dic):
+        if isinstance(dic, list):
+            for i in range(0, len(dic)):
+                if isinstance(dic[i], basestring):
+                    # 2016-10-28T13:27:38.944298+00:00
+                    v = dic[i]
+                    if re.match(ur'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.*', v):
+                        v = re.sub('(\+\d{2}):(\d{2})$', ur'\1\2', v)
+                        dic[i] = parse_datetime(v)
+                elif isinstance(v, dict) or isinstance(v, list):
+                    convert_dates(v) 
+        if isinstance(dic, dict):
+            for k, v in dic.iteritems():
+                if isinstance(v, basestring):
+                    # 2016-10-28T13:27:38.944298+00:00
+                    if re.match(ur'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.*', v):
+                        v = re.sub('(\+\d{2}):(\d{2})$', ur'\1\2', v)
+                        dic[k] = parse_datetime(v)
+                elif isinstance(v, dict) or isinstance(v, list):
+                    convert_dates(v) 
+                    
+    ret = json.loads(data)
+    convert_dates(ret)
+    
+    return ret
+
 def get_json_response(data):
     '''Returns a HttpResponse with the given data variable encoded as json'''
     from django.http.response import HttpResponse

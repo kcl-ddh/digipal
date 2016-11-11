@@ -9,23 +9,31 @@ TextSeg 2.0:
             . decide array or hash?
             . order?
             . data structure version?
-            . session data:
+            [DONE] session data:
                 . conditions
                 . search options
                 . selection
         . rest API
             . improve API: get, set, search
-            . get all patterns
-            . set all patterns
-            . set a pattern
+            [DONE] get all patterns
+            (). set all patterns
+            [DONE] set a pattern
             . apply patterns
         . new UI with vue.js
-            . show list of patterns
-            . show a pattern
-            . select pattern
-            . edit a pattern
+            [DONE] show list of patterns
+            [DONE] show a pattern
+            [DONE] select pattern
+            [DONE] edit a pattern
+            [DONE] save session, directly
+            [DONE] save changes to server
+            . delete a pattern
+            . conflict detection 
+            . message
+            . add new pattern
             . reorder patterns
-             
+            . use compact form
+            . show results
+            . error management 
     . use namespace
          
 

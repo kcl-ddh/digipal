@@ -26,9 +26,9 @@ def patterns_view(request):
     return ret
 
 @csrf_exempt
-def patterns_api_view(request, path):
+def patterns_api_view(request, root, path):
     ana = PatternAnalyser()
-    data = ana.process_request_api(request, path)
+    data = ana.process_request_api(request, root, path)
     ret = dputils.get_json_response(data)
     return ret
 
@@ -47,13 +47,28 @@ class PatternAnalyser(object):
         return ret
 
     def process_request_html(self, request):
-        ret = {'context_js': dputils.json_dumps(self.process_request_api(request))}
+        ret = {'context_js': dputils.json_dumps(self.process_request_api(request, 'patterns'))}
+        ret['wide_page'] = True
 
         return ret
         
-    def process_request_api(self, request, path=None):
+    def process_request_api(self, request, root, path=''):
+        params = path.strip('/').split('/')
+        
+        patterns = self.get_patterns()
+
+        if request.method == 'POST':
+            data = dputils.json_loads(request.body)
+            if root == 'patterns':
+                if len(params) == 1:
+                    patternid = params[0]
+                    for i in range(0, len(patterns)):
+                        if patterns[i]['id'] == patternid:
+                            patterns[i] = data
+                    self.get_or_set_patterns(patterns)
+        
         ret ={
-            'patterns': self.get_patterns(),
+            'patterns': patterns,
             'results': {
                 'stats': {
                     'total': 0,
@@ -66,7 +81,7 @@ class PatternAnalyser(object):
         }
 
         return ret
-
+    
     def get_patterns(self):
         ret = self.get_or_set_patterns()
         
@@ -75,7 +90,7 @@ class PatternAnalyser(object):
             ret = self.get_patterns_legacy()
             # then save them
             if 0 and ret:
-                ret = self.get_or_set_patterns(ret)
+                self.get_or_set_patterns(ret)
         
         return ret 
 
@@ -85,10 +100,10 @@ class PatternAnalyser(object):
         ''' 
         key = 'api.textseg.%s.patterns' % slugify(unicode(self.namespace))
         if patterns:
-            ret = KeyVal.setjs(key, patterns)
+            KeyVal.setjs(key, patterns)
         else:
-            ret = KeyVal.getjs(key)
-        return ret
+            patterns = KeyVal.getjs(key)
+        return patterns
     
     def get_patterns_legacy(self):
         ret = []

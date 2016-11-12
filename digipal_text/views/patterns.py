@@ -261,17 +261,6 @@ class PatternAnalyser(object):
         unit.match_conditions = True
 
         content_plain = self.get_plain_content_from_unit(unit)
-        # remove . because in some entries they are all over the place
-        content_plain = content_plain.replace('[---]', '')
-        content_plain = content_plain.replace('v', 'u')
-        content_plain = content_plain.replace('7', 'et')
-        content_plain = content_plain.replace('.', ' ').replace(',', ' ').replace(':', ' ').replace('[', ' ').replace(']', ' ')
-        content_plain = content_plain.replace(u'\u00C6', 'AE')
-        content_plain = content_plain.replace(u'\u00E6', 'ae')
-        content_plain = content_plain.replace(u'\u00A7', '')
-        content_plain = re.sub('\s+', ' ', content_plain)
-        content_plain = content_plain.strip()
-        unit.plain_content = content_plain
 
         first_match_only = True
 
@@ -335,7 +324,8 @@ class PatternAnalyser(object):
                     print 'REBUILD PLAIN CONTENT CACHE'
                     plain_contents = {}
                     for unit in self.get_unit_model().objects.filter(content_xml__id=4).iterator():
-                        plain_contents[unit.unitid] = unit.get_plain_content()
+                        # TODO: find a way to call this dynamically as it is project-specific
+                        plain_contents[unit.unitid] = self.preprocess_plain_text_custom(unit.get_plain_content())
                         if unit.unitid in ['25a2', '25a2']:
                             print unit.unitid, repr(plain_contents[unit.unitid][0: 20])
                     cache.set('plain_contents', plain_contents, None)
@@ -353,6 +343,19 @@ class PatternAnalyser(object):
             aunit.plain_content = ret
 
         return ret
+
+    def preprocess_plain_text_custom(self, content):
+        # remove . because in some entries they are all over the place
+        content = content.replace('[---]', '')
+        content = content.replace('v', 'u')
+        content = content.replace('7', 'et')
+        content = content.replace('.', ' ').replace(',', ' ').replace(':', ' ').replace('[', ' ').replace(']', ' ')
+        content = content.replace(u'\u00C6', 'AE')
+        content = content.replace(u'\u00E6', 'ae')
+        content = content.replace(u'\u00A7', '')
+        content = re.sub('\s+', ' ', content)
+        content = content.strip()
+        return content
 
     def get_pattern_from_key(self, key):
         ret = None
@@ -449,96 +452,3 @@ class PatternAnalyser(object):
             if ret: break
 
         return ret
-
-#     def process_request2(self, request):
-#         self.request = request
-# 
-#         from datetime import datetime
-# 
-#         t0 = datetime.now()
-# 
-#         # TODO: derive the info from the faceted_search settings.py or from a new
-#         # settings variable.
-# 
-#         context = {}
-# 
-#         context['advanced_search_form'] = 1
-#         context['variants'] = {}
-#         context['active_tab'] = request.REQUEST.get('active_tab', 'tab-units')
-# 
-#         context['conditions'] = [
-#             {'key': '', 'label': 'May have'},
-#             {'key': 'include', 'label': 'Must have'},
-#             {'key': 'exclude', 'label': 'Must not have'},
-#             {'key': 'ignore', 'label': 'Ignore'},
-#         ]
-# 
-#         # arguments
-#         args = request.REQUEST
-#         context['ulimit'] = get_int_from_request_var(request, 'ulimit', 10)
-#         #context['urange'] = args.get('urange', '') or '25a1-62b2,83a1-493b3'
-#         context['urange'] = args.get('urange', '')
-# 
-#         context['wide_page'] = True
-# 
-#         # Update the patterns from the request
-#         hand_filters.chrono('patterns:')
-#         self.update_patterns_from_request(request, context)
-#         hand_filters.chrono(':patterns')
-# 
-#         # Get the text units
-#         hand_filters.chrono('units:')
-#         context['units'] = []
-#         stats = {'response_time': 0, 'range_size': 0}
-# 
-#         for unit in self.get_unit_model().objects.filter(content_xml__id=4).iterator():
-#             #cx = unit.content_xml
-# 
-#             # only transcription
-#             #if cx.id != 4: continue
-# 
-#             # only fief
-#             types = unit.get_entry_type()
-#             #print unit.unitid, types
-#             if not types or 'F' not in types: continue
-# 
-#             # only selected range
-#             if not self.is_unit_in_range(unit, context['urange']): continue
-# 
-#             stats['range_size'] += 1
-# 
-#             # segment the unit
-#             self.segment_unit(unit, context, request)
-# 
-#             if unit.match_conditions:
-#                 context['units'].append(unit)
-# 
-#         hand_filters.chrono(':units')
-# 
-#         variants = [{'text': variant, 'hits': context['variants'][variant]} for variant in sorted(context['variants'].keys())]
-#         context['variants'] = variants
-# 
-#         # stats
-#         stats['result_size'] = len(context['units'])
-#         stats['result_size_pc'] = int(100.0 * stats['result_size'] / stats['range_size']) if stats['range_size'] else 'N/A'
-#         for pattern in context['patterns'].values():
-#             pattern.unhits = stats['range_size'] - pattern.hits
-# 
-#         # limit size of returned result
-#         if context['ulimit'] > 0:
-#             context['units'] = context['units'][0:context['ulimit']]
-# 
-#         stats['response_time'] = (datetime.now() - t0).total_seconds()
-#         context['stats'] = stats
-# 
-#         # render template
-#         template = 'digipal_text/patterns.html'
-#         if request.is_ajax():
-#             template = 'digipal_text/patterns_fragment.html'
-# 
-#         hand_filters.chrono('template:')
-#         ret = render(request, template, context)
-#         hand_filters.chrono(':template')
-# 
-#         return ret
-#     

@@ -23,7 +23,7 @@ TextSeg 2.0:
             [DONE] get all patterns
             (). set all patterns
             [DONE] set a pattern
-            . apply patterns
+            [DONE] apply patterns
         . new UI with vue.js
             [DONE] show list of patterns
             [DONE] show a pattern
@@ -33,22 +33,25 @@ TextSeg 2.0:
             [DONE] save changes to server
             [DONE] delete a pattern
             [DONE] add new pattern
+            [DONE] Show results
+            [DONE] message
+            [DONE] validate patterns on the fly
+            [DONE] use compact form
             * Grouping
-            * Show results
-            . message
-            . validate patterns on the fly
+            * apply conditions
             . conflict detection 
             . reorder patterns
-            [DONE] use compact form
             . error management
-                . server error
-                . invalid pattern expression
+                [DONE] server error
+                [DONE] invalid pattern expression
                 . duplicate keys
                 . wrong references
             . generate slug automatically from the title
                 . change as long as they don't deviate
     . use namespace
     . problems:
+        . avoid request each time blur... check if value actually changed
+        . conditions change not immediatelly reflected in the the patetrn list
         . GET may actually add a new pattern, not very restful behaviour
         . the way the changes are transfered to the server has some issues:
             . lots of small requests

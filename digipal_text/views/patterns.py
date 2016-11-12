@@ -43,6 +43,7 @@ class PatternAnalyser(object):
         self.patterns = None
         self.segunits = None
         self.regexs = {}
+        self.stats = {}
         self.namespace = 'default'
         self.options = {}
 
@@ -59,11 +60,15 @@ class PatternAnalyser(object):
         return ret
         
     def process_request_api(self, request, root, path=''):
+        t0 = datetime.now()
+        
         params = path.strip('/').split('/')
         
         patterns = self.get_patterns()
         
         self.options = request.REQUEST
+        
+        modified = False
         
         request_pattern = None
         request_patterni = None
@@ -79,7 +84,7 @@ class PatternAnalyser(object):
         if request.method == 'DELETE':
             if request_pattern:
                 del patterns[request_patterni]
-                self.get_or_set_patterns(patterns)
+                modified = True
 
         if request.method == 'PUT':
             data = dputils.json_loads(request.body)
@@ -88,7 +93,7 @@ class PatternAnalyser(object):
                 data['updated'] = datetime.now()
                 patterns[i] = data
                 print data
-                self.get_or_set_patterns(patterns)
+                modified = True
         
         # add new pattern if missing and client asked for it
         if 1:
@@ -102,7 +107,11 @@ class PatternAnalyser(object):
                     'updated': datetime.now(),
                     'pattern': '',
                 });
-                self.get_or_set_patterns(patterns)
+                modified = True
+                
+        if modified:
+            self.validate_patterns()
+            self.save_patterns()
 
         # return
         toreturn = request.REQUEST.get('ret', root).split(',')
@@ -113,6 +122,9 @@ class PatternAnalyser(object):
             ret['patterns'] = self.get_patterns()
         if 'segunits' in toreturn:
             ret['segunits'] = self.get_json_from_segunits()
+        if 'stats' in toreturn:
+            self.stats['duration_response'] = (datetime.now() - t0).total_seconds()
+            ret['stats'] = self.stats
         
 #         ret = {
 #             'patterns': patterns,
@@ -127,11 +139,16 @@ class PatternAnalyser(object):
 
         return ret
     
+    def validate_patterns(self):
+        patterns = self.get_patterns()
+        for pattern in patterns:
+            self.get_regex_from_pattern(patterns, pattern['key'])
+
     def get_json_from_segunits(self):
         ret = []
         for unit in self.get_segunits():
             ret.append({
-                'text': unit.plain_content,
+                'unit': unit.plain_content,
                 'patterns': [{'key': pattern[0], 'instance': pattern[1]} for pattern in unit.patterns if pattern[1]],
             })
         return ret
@@ -143,6 +160,9 @@ class PatternAnalyser(object):
     
     def get_patterns(self):
         return self.patterns or self.load_patterns()
+
+    def save_patterns(self):
+        self.load_or_save_patterns(self.patterns)
 
     def load_patterns(self):
         if not self.load_or_save_patterns():
@@ -200,7 +220,7 @@ class PatternAnalyser(object):
 
         # Get the text units
         hand_filters.chrono('units:')
-        stats = {'response_time': 0, 'range_size': 0, 'patterns': {}}
+        self.stats = stats = {'duration_segmentation': 0, 'range_size': 0, 'patterns': {}}
 
         for unit in self.get_unit_model().objects.filter(content_xml__id=4).iterator():
             # only fief
@@ -231,7 +251,7 @@ class PatternAnalyser(object):
         if context['ulimit'] > 0:
             self.segunits = self.segunits[0:context['ulimit']]
 
-        stats['response_time'] = (datetime.now() - t0).total_seconds()
+        stats['duration_segmentation'] = (datetime.now() - t0).total_seconds()
         context['stats'] = stats
 
     def segment_unit(self, unit, context):
@@ -287,7 +307,7 @@ class PatternAnalyser(object):
                 if (condition == 'include' and not found) or (condition == 'exclude' and found):
                     unit.match_conditions = False
                 if found:
-                    dputils.inc_counter(context['stats']['patterns'], pattern.id, 1)
+                    dputils.inc_counter(self.stats['patterns'], pattern['id'], 1)
                 else:
                     unit.patterns.append([pattern_key, ''])
 
@@ -349,6 +369,8 @@ class PatternAnalyser(object):
         if pattern:
             ret = self.regexs.get(pattern['key'], None)
             if ret is None:
+                if 'error' in pattern:
+                    del pattern['error']
                 ret = pattern['pattern']
                 if ret:
                     # eg.  iii hidas et ii carrucas
@@ -399,7 +421,7 @@ class PatternAnalyser(object):
                     if not ret.endswith(ur'\b'):
                         ret = ret + ur'\b'
                     try:
-                        pattern.pattern_converted = ret
+                        #pattern.pattern_converted = ret
                         ret = re.Regex(ret)
                     except Exception, e:
                         pattern['error'] = unicode(e)

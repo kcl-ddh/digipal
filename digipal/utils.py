@@ -1525,11 +1525,24 @@ def get_json_response(data):
 
 def get_short_uid():
     # The time in milliseconds in base 36 
-    # e.g. '5iiimluvxfg' 11 chars long
+    # e.g. 2016-11-12 23:14:29.337677+05:00 -> LMXOd7f65 (9 chars)
+    # result is URL safe
     from datetime import datetime
-    ret = datetime.now().isoformat()
-    ret = long(re.sub(ur'\D', '', ret))
-    ret = str(ret)
+    b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.'
+    BASE = len(b64)
+    def num_encode(n):
+        s = []
+        while True:
+            n, r = divmod(n, BASE)
+            s.append(b64[r])
+            if n == 0: break
+        return ''.join(reversed(s))
+    
+    ret = datetime.utcnow()
+    ret = '%s%s%s%s%s%s' % (b64[ret.month], b64[ret.day], b64[ret.hour], b64[ret.minute], b64[ret.second], num_encode(long('%s%s' % (ret.year - 2000, ret.microsecond))))
+    #ret = ret.isoformat()
+    #ret = long(re.sub(ur'\D', '', ret))
+    #ret = str(ret)
     #ret = base64.b64encode(str(ret), 'ascii')
     #return parseInt((new Date()).toISOString().replace(/\D/g, '')).toString(36);
     return ret

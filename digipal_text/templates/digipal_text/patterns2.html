@@ -35,9 +35,26 @@
         input.pattern-title {
             min-width: 30em;
         }
-        .error-message {
+        .messages {
+            border: 1px solid lightgrey;
+            border-radius: 0.5em;
+            background-color: floralwhite;
+            padding: 0.2em;
+            margin: 0.2em;
+        }
+        .messages.ul {
+            padding-left: 1.5em;
+        }
+        .message-error {
             color: red;
-            font-weight: bold;
+        }
+        .message-warn {
+            color: orange;
+        }
+        .message-success {
+            color: green;
+        }
+        .message-info {
         }
         .missing-pattern {
             color: red;
@@ -110,7 +127,15 @@
     <a href="https://confluence.dighum.kcl.ac.uk/display/EXON/Text+Segmentation+Tool">Help about this tool</a>
 
     {% verbatim %}
-    <div id="patterns-ui">
+    <div id="patterns-ui" class="form-inline">
+        <div class="messages" >
+            <ul v-for="message in response.messages">
+                <li v-bind:class="'message message-'+message.type">
+                    {{ message.message }}
+                </li>
+            </ul>
+        </div>
+    
         <div class="panel patterns">
             <ul class="patterns-list sortable2" id="patterns_list">
                 <li v-on:click.stop.prevent="select_pattern" v-for="pattern in response.patterns" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
@@ -162,7 +187,7 @@
                 <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" v-on:blur="save_session" v-model="session.options.limit"  autocomplete="off" autocorrect="off" autocapitalize="off" />
             </div>
             <input type="hidden" name="action" value="update" />
-            <button class="form-control btn btn-primary" type="submit" name="update">Update</button>
+            <button class="form-control btn btn-primary" type="submit" v-on:click="apply_patterns" name="update">Update</button>
         </div>
     </div>
     {% endverbatim %}
@@ -206,6 +231,9 @@
             if (session) {
                 model.session = JSON.parse(session);
             }
+            ['messages', 'patterns', 'segunits', 'stats', 'variants'].map(function(val) {
+                model.response[val] = model.response[val] || [];
+            });
             
             var patterns_list = new Vue({
                 el: '#patterns-ui',
@@ -241,16 +269,37 @@
                             }
                         });
                         if (pattern) {
-                        	var self = this;
-                            $.ajax({
-                                url: '/digipal_text/api/patterns/'+pattern.id+'/',
-                                type: method,
-                                data: JSON.stringify(pattern),
-                            }).success(function(data) {
-                            	self.response = data;
-                            })
+                        	this.call_api('patterns/'+pattern.id, method, pattern);
                         }
-                    }
+                    },
+                    
+                    apply_patterns: function () {
+                        this.call_api('patterns', 'get', {}, ['patterns', 'segunits', 'stats']);
+                    },
+
+                    call_api: function (path, method, data, toreturn) {
+                    	var self = this;
+                        path = path.replace(/(^\/|\/$)/g, '') + '/';
+                        toreturn = toreturn || [path.replace(/\/.*$/, '')];
+                        $.ajax({
+                            url: '/digipal_text/api/'+path+'?ret='+(toreturn.join(',')),
+                            type: method,
+                            data: JSON.stringify(data),
+                            dataType: 'json',
+                        }).success(function(data) {
+                            // merge with out previous responses.
+                            // so we can get partial response, more efficient.
+                            self.response.messages = [];
+                            for (key in data) {
+                                self.response[key] = data[key];
+                            }
+                        }).fail(function(jqXHR, textStatus) {
+                            self.response.messages = [{
+                                'type': 'error',
+                                'message': 'Request failed: ' + textStatus,
+                            }];
+                        })
+                    },
                 }
             });
         })();

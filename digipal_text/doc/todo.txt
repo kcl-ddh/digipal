@@ -33,12 +33,13 @@ TextSeg 2.0:
             [DONE] save changes to server
             [DONE] delete a pattern
             [DONE] add new pattern
+            * Grouping
+            * Show results
             . message
             . validate patterns on the fly
             . conflict detection 
             . reorder patterns
-            . use compact form
-            . show results
+            [DONE] use compact form
             . error management
                 . server error
                 . invalid pattern expression

@@ -125,17 +125,6 @@ class PatternAnalyser(object):
         if 'stats' in toreturn:
             self.stats['duration_response'] = (datetime.now() - t0).total_seconds()
             ret['stats'] = self.stats
-        
-#         ret = {
-#             'patterns': patterns,
-#             'stats': {
-#                 'total': 0,
-#                 'found': 0,
-#                 'returned': 0,
-#             },
-#             'units': [],
-#             'variants': []
-#         }
 
         return ret
     
@@ -149,7 +138,8 @@ class PatternAnalyser(object):
         for unit in self.get_segunits():
             ret.append({
                 'unit': unit.plain_content,
-                'patterns': [{'key': pattern[0], 'instance': pattern[1]} for pattern in unit.patterns if pattern[1]],
+                'unitid': unit.unitid,
+                'patterns': [{'id': pattern[0], 'instance': pattern[1]} for pattern in unit.patterns if pattern[1]],
             })
         return ret
         
@@ -260,19 +250,19 @@ class PatternAnalyser(object):
 
         unit.match_conditions = True
 
-        content_plain = self.get_plain_content_from_unit(unit)
+        self.get_plain_content_from_unit(unit)
 
         first_match_only = True
 
         for pattern in patterns:
-            pattern_key = pattern['key']
-            if not pattern['id']: continue
+            patternid = pattern['id']
+            if not patternid: continue
             condition = ''
             # TODO: way to pass conditions in the request
             ##if pattern.condition == 'ignore': continue
 
             # get regex from pattern
-            rgx = self.get_regex_from_pattern(patterns, pattern_key)
+            rgx = self.get_regex_from_pattern(patterns, patternid)
 
             # apply regex to unit
             if rgx:
@@ -280,7 +270,7 @@ class PatternAnalyser(object):
                 if 1:
                     for match in rgx.finditer(unit.plain_content):
                         found = True
-                        unit.patterns.append([pattern_key, match.group(0)])
+                        unit.patterns.append([patternid, match.group(0)])
                         # mark it up
                         unit.plain_content = unit.plain_content[0:match.end()] + '</span>' + unit.plain_content[match.end():]
                         unit.plain_content = unit.plain_content[0:match.start()] + '<span class="m">' + unit.plain_content[match.start():]
@@ -298,7 +288,7 @@ class PatternAnalyser(object):
                 if found:
                     dputils.inc_counter(self.stats['patterns'], pattern['id'], 1)
                 else:
-                    unit.patterns.append([pattern_key, ''])
+                    unit.patterns.append([patternid, ''])
 
 
     def get_plain_content_from_unit(self, aunit):
@@ -364,13 +354,21 @@ class PatternAnalyser(object):
                 ret = pattern
                 break
         return ret
-    
-    def get_regex_from_pattern(self, patterns, pattern_key):
+
+    def get_pattern_from_id(self, patternid):
         ret = None
-        pattern = self.get_pattern_from_key(pattern_key)
+        for pattern in self.get_patterns():
+            if pattern['id'] == patternid:
+                ret = pattern
+                break
+        return ret
+    
+    def get_regex_from_pattern(self, patterns, patternid):
+        ret = None
+        pattern = self.get_pattern_from_id(patternid)
 
         if pattern:
-            ret = self.regexs.get(pattern['key'], None)
+            ret = self.regexs.get(patternid, None)
             if ret is None:
                 if 'error' in pattern:
                     del pattern['error']
@@ -430,7 +428,7 @@ class PatternAnalyser(object):
                         pattern['error'] = unicode(e)
                         ret = re.Regex('INVALID PATTERN')
                     finally:
-                        self.regexs[pattern['key']] = ret
+                        self.regexs[patternid] = ret
 
         return ret
 

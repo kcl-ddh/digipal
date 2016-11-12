@@ -133,107 +133,110 @@
 {% block main %}
     <a href="https://confluence.dighum.kcl.ac.uk/display/EXON/Text+Segmentation+Tool">Help about this tool</a>
 
-    {% verbatim %}
-    <div id="patterns-ui" class="form-inline">
-        <div class="messages" v-if="response.messages && response.messages.length">
-            <ul v-for="message in response.messages">
-                <li v-bind:class="'message message-'+message.type">
-                    {{ message.message }}
-                </li>
-            </ul>
-        </div>
-    
-        <div class="panel patterns">
-            <ul class="patterns-list sortable2" id="patterns_list">
-                <li v-on:click.stop.prevent="select_pattern" v-for="pattern in response.patterns" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
-                    <span>
-                        <span class="glyphicon glyphicon-warning-sign pattern-error" v-if="pattern.error"></span>
-                        <span v-bind:class="'pattern-condition-'+session.options.conditions[pattern.id]">{{pattern.key}}</span>
-                        <span v-if="!pattern.error">[{{ 0 }}]</span>
-                    </span>
-                </li>
-            </ul>
-        </div>
-    
-        <div v-for="pattern in response.patterns">
-            <div v-if="(pattern.id == session.selected)"  class="pattern" v-bind:data-patternid="pattern.id">
-                <div class="form-group">
-                    <label for="p_key">Key</label>
-                    <input class="form-control input-sm" type="text" name="p_key" id="p_key" v-on:blur="save_pattern(pattern.id)" v-model="pattern.key" autocomplete="off" autocorrect="off" autocapitalize="off" />
-                </div>
-                <div class="form-group">
-                    <label for="p_title">Title</label>
-                    <input class="form-control input-sm pattern-title" type="text" name="p_title" id="p_title" v-on:blur="save_pattern(pattern.id)" v-model="pattern.title" autocomplete="off" autocorrect="off" autocapitalize="off" />
-                </div>
-                <div class="form-group">
-                    <label for="p_condition">Condition</label>
-                    <select class="form-control input-sm" name="p_condition" id="p_condition" v-model="session.options.conditions[pattern.id]">
-                        <option v-bind:value="ckey" v-for="(label, ckey) in conditions">{{ label }}</option>
-                    </select>
-                </div>
-                <span class="small legend" title="number of units NOT matching this pattern" data-toggle="tooltip" v-if="session.options.conditions[pattern.id] != 'ignore'">
-                    {{ pattern.unhits }}
-                </span>
-                <a class="pull-right btn btn-xs btn-danger delete-pattern" v-on:click="delete_pattern(pattern.id)" href="#" data-target="managed" title="Remove this pattern" data-toggle="tooltip">X</a>
-                <br/>
-                <div class="form-group form-group-full-width" style="display:table">
-                    <label for="p_pattern">Pattern</label>
-                    <input class="form-control pattern-input input-sm" type="text" name="p_pattern" id="p_pattern" v-on:blur="save_pattern(pattern.id)" v-model="pattern.pattern" autocomplete="off" autocorrect="off" autocapitalize="off" />
-                </div>
-                <div v-if="pattern.error" class="pattern-error">Syntax error: {{ pattern.error }}</div>
-            </div>
-        </div>
-    
-        <div class="actions">
-            <div class="form-group ">
-                <label for="units_range">Text range</label>
-                <input class="form-control input-sm" type="text" name="units_range" id="units_range" v-on:blur="save_session" v-model="session.options.range" autocomplete="off" autocorrect="off" autocapitalize="off" />
-            </div>
-        
-            <div class="form-group ">
-                <label for="units_limit">Show first</label>
-                <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" v-on:blur="save_session" v-model="session.options.limit"  autocomplete="off" autocorrect="off" autocapitalize="off" />
-            </div>
-            <button class="form-control btn btn-primary" type="submit" v-on:click="apply_patterns" name="update">Update</button>
-        </div>
-        
-        <div class="stats panel" v-if="response.stats.result_size">
-            {{response.stats.result_size}} units found among {{response.stats.range_size}} in the selected range ({{ response.stats.result_size_pc }}%).
-            <span class="pull-right small legend">{{ response.stats.duration_response }} s.</span>
-        </div>
-
-        <ul class="nav nav-tabs">
-            <li class="active"><a data-toggle="tab" href="#tab-units">Units</a></li>
-            <li><a data-toggle="tab" href="#tab-variants">Variants</a></li>
-        </ul>
-
-        <div class="tab-content">
-            <div id="tab-variants" class="tab-pane fade">
-                <ul>
-                    <li v-for="variant in response.variants">
-                        {{ variant.hits }}: {{ variant.text }}
+    <div id="patterns-ui-screen">
+        {% verbatim %}
+        <div id="patterns-ui" class="form-inline">
+            <div class="messages" v-if="response.messages && response.messages.length">
+                <ul v-for="message in response.messages">
+                    <li v-bind:class="'message message-'+message.type">
+                        {{ message.message }}
                     </li>
                 </ul>
             </div>
-            <div id="tab-units" class="tab-pane fade in active">
-                <div class="units" v-for="unit in response.segunits">
-                    <div class="unit">
-                        #{{ unit.unitid }}
-                        <div class="unit-content" v-html="unit.unit">
+        
+            <div class="panel patterns">
+                <ul class="patterns-list sortable2" id="patterns_list">
+                    <li v-on:click.stop.prevent="select_pattern" v-for="pattern in response.patterns" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
+                        <span>
+                            <span class="glyphicon glyphicon-warning-sign pattern-error" v-if="pattern.error"></span>
+                            <span v-bind:class="'pattern-condition-'+session.options.conditions[pattern.id]">{{pattern.key}}</span>
+                            <span v-if="!pattern.error">[{{ 0 }}]</span>
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        
+            <div v-for="pattern in response.patterns">
+                <div v-if="(pattern.id == session.selected)"  class="pattern" v-bind:data-patternid="pattern.id">
+                    <div class="form-group">
+                        <label for="p_key">Key</label>
+                        <input class="form-control input-sm" type="text" name="p_key" id="p_key" v-on:blur="save_pattern(pattern.id)" v-model="pattern.key" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    </div>
+                    <div class="form-group">
+                        <label for="p_title">Title</label>
+                        <input class="form-control input-sm pattern-title" type="text" name="p_title" id="p_title" v-on:blur="save_pattern(pattern.id)" v-model="pattern.title" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    </div>
+                    <div class="form-group">
+                        <label for="p_condition">Condition</label>
+                        <select class="form-control input-sm" name="p_condition" id="p_condition" v-model="session.options.conditions[pattern.id]">
+                            <option v-bind:value="ckey" v-for="(label, ckey) in conditions">{{ label }}</option>
+                        </select>
+                    </div>
+                    <span class="small legend" title="number of units NOT matching this pattern" data-toggle="tooltip" v-if="session.options.conditions[pattern.id] != 'ignore'">
+                        {{ pattern.unhits }}
+                    </span>
+                    <a class="pull-right btn btn-xs btn-danger delete-pattern" v-on:click="delete_pattern(pattern.id)" href="#" data-target="managed" title="Remove this pattern" data-toggle="tooltip">X</a>
+                    <br/>
+                    <div class="form-group form-group-full-width" style="display:table">
+                        <label for="p_pattern">Pattern</label>
+                        <input class="form-control pattern-input input-sm" type="text" name="p_pattern" id="p_pattern" v-on:blur="save_pattern(pattern.id)" v-model="pattern.pattern" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    </div>
+                    <div v-if="pattern.error" class="pattern-error">Syntax error: {{ pattern.error }}</div>
+                </div>
+            </div>
+        
+            <div class="actions">
+                <div class="form-group ">
+                    <label for="units_range">Text range</label>
+                    <input class="form-control input-sm" type="text" name="units_range" id="units_range" v-on:blur="save_session" v-model="session.options.range" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                </div>
+            
+                <div class="form-group ">
+                    <label for="units_limit">Show first</label>
+                    <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" v-on:blur="save_session" v-model="session.options.limit"  autocomplete="off" autocorrect="off" autocapitalize="off" />
+                </div>
+                <button class="form-control btn btn-primary" type="submit" v-on:click="apply_patterns" name="update">Update</button>
+            </div>
+            
+            <div class="stats panel" v-if="response.stats.result_size">
+                {{response.stats.result_size}} units found among {{response.stats.range_size}} in the selected range ({{ response.stats.result_size_pc }}%).
+                <span class="pull-right small legend">{{ response.stats.duration_response }} s.</span>
+            </div>
+    
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#tab-units">Units</a></li>
+                <li><a data-toggle="tab" href="#tab-variants">Variants</a></li>
+            </ul>
+    
+            <div class="tab-content">
+                <div id="tab-variants" class="tab-pane fade">
+                    <ul>
+                        <li v-for="variant in response.variants">
+                            {{ variant.hits }}: {{ variant.text }}
+                        </li>
+                    </ul>
+                </div>
+                <div id="tab-units" class="tab-pane fade in active">
+                    <div class="units" v-for="unit in response.segunits">
+                        <div class="unit">
+                            #{{ unit.unitid }}
+                            <div class="unit-content" v-html="unit.unit"></div>
+                            <br/>
+                            <div v-for="pattern in unit.patterns">
+                                <span v-bind:class="{'pattern-label': 1, 'missing-pattern': !pattern.instance}">
+                                    {{ get_pattern_key_from_id(pattern.id) }}
+                                </span>:
+                                {{ pattern.instance }}
+                            </div>
+                            <hr/>
                         </div>
-                        <br/><br/>
-                        <div v-for="pattern in unit.patterns">
-                            <span v-bind:class="{'pattern-label': 1, 'missing-pattern': pattern.instance}">{{ pattern.key }}</span>:
-                            {{ pattern.instance }}
-                        </div>
-                        <hr/>
                     </div>
                 </div>
             </div>
+            
         </div>
-        
+        {% endverbatim %}
     </div>
-    {% endverbatim %}
 
 {% endblock %}
 
@@ -286,7 +289,18 @@
                 watch: {
                 },
                 
+                computed: {
+                },
+                
                 methods: {
+                    get_pattern_key_from_id: function(patternid) {
+                        for (i in this.response.patterns) {
+                            if (this.response.patterns[i].id != patternid) continue; 
+                            return this.response.patterns[i].key; 
+                        }
+                        return '?';
+                    },
+                    
                     save_session: function() {
                         window.localStorage.setItem('session', JSON.stringify(this.session));
                     },

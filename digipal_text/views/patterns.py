@@ -44,9 +44,13 @@ class PatternAnalyser(object):
         self.segunits = None
         self.regexs = {}
         self.stats = {}
+        self.messages = []
         self.namespace = 'default'
         self.options = {}
 
+    def add_message(self, message, atype='info'):
+        self.messages.append({'message': message, 'type': atype})
+    
     def get_unit_model(self):
         from exon.customisations.digipal_text.models import Entry
         ret = Entry
@@ -62,13 +66,12 @@ class PatternAnalyser(object):
     def process_request_api(self, request, root, path=''):
         t0 = datetime.now()
         
-        params = path.strip('/').split('/')
-        
-        patterns = self.get_patterns()
-        
         self.options = request.GET.copy()
-        
-        modified = False
+
+        # make sure this is called AFTER self.options is set 
+        patterns = self.get_patterns()
+
+        params = path.strip('/').split('/')
         
         if request.body:
             data = dputils.json_loads(request.body)
@@ -84,6 +87,9 @@ class PatternAnalyser(object):
                         request_pattern = patterns[i]
                         break
 
+        # Manages modifications 
+        modified = False
+
         if request.method == 'DELETE':
             if request_pattern:
                 del patterns[request_patterni]
@@ -91,11 +97,12 @@ class PatternAnalyser(object):
 
         if request.method == 'PUT':
             if request_pattern:
-                print 'PUT found'
-                data['updated'] = datetime.now()
-                patterns[i] = data
-                print data
-                modified = True
+                if data['updated'] < request_pattern['updated']:
+                    self.add_message('Change cancelled (this pattern was modified in the meantime)', 'error')
+                else: 
+                    data['updated'] = dputils.now()
+                    patterns[i] = data
+                    modified = True
         
         # add new pattern if missing and client asked for it
         # TODO: not restful to change data on GET!
@@ -108,7 +115,7 @@ class PatternAnalyser(object):
                     'id': dputils.get_short_uid(),
                     'key': slugify(unicode(title_new)),
                     'title': title_new,
-                    'updated': datetime.now(),
+                    'updated': dputils.now(),
                     'pattern': '',
                 });
                 modified = True
@@ -134,6 +141,7 @@ class PatternAnalyser(object):
         if 'stats' in toreturn:
             self.stats['duration_response'] = (datetime.now() - t0).total_seconds()
             ret['stats'] = self.stats
+        ret['messages'] = self.messages
 
         return ret
     
@@ -164,7 +172,8 @@ class PatternAnalyser(object):
         self.load_or_save_patterns(self.patterns)
 
     def load_patterns(self):
-        if not self.load_or_save_patterns():
+        if self.options.get('legacy', False) or not self.load_or_save_patterns():
+            self.add_message('Reset legacy patterns', 'info')
             # not found, try legacy...
             self.load_or_save_patterns(self.load_patterns_legacy())
         
@@ -187,14 +196,11 @@ class PatternAnalyser(object):
         
         for pattern in TextPattern.objects.all().order_by('order'):
             ret.append({
+                'id': dputils.get_short_uid(pattern.created),
                 'key': pattern.key,
                 'title': pattern.title,
                 'pattern': pattern.pattern,
-                #'created': pattern.created,
                 'updated': pattern.modified,
-                #'id': str(uuid.uuid4()),
-                'id': dputils.get_short_uid(),
-                #'order': pattern.order,
             })
         
         return ret

@@ -1499,8 +1499,8 @@ def json_loads(data):
                     if re.match(ur'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.*', v):
                         v = re.sub('(\+\d{2}):(\d{2})$', ur'\1\2', v)
                         dic[i] = parse_datetime(v)
-                elif isinstance(v, dict) or isinstance(v, list):
-                    convert_dates(v) 
+                elif isinstance(dic[i], dict) or isinstance(dic[i], list):
+                    convert_dates(dic[i]) 
         if isinstance(dic, dict):
             for k, v in dic.iteritems():
                 if isinstance(v, basestring):
@@ -1523,10 +1523,11 @@ def get_json_response(data):
     ret['Access-Control-Allow-Origin'] = '*'
     return ret
 
-def get_short_uid():
+def get_short_uid(adatetime=None):
     # The time in milliseconds in base 36 
     # e.g. 2016-11-12 23:14:29.337677+05:00 -> LMXOd7f65 (9 chars)
     # result is URL safe
+    # If adatetime is None, uses now()
     from datetime import datetime
     b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.'
     BASE = len(b64)
@@ -1538,7 +1539,7 @@ def get_short_uid():
             if n == 0: break
         return ''.join(reversed(s))
     
-    ret = datetime.utcnow()
+    ret = adatetime or datetime.utcnow()
     ret = '%s%s%s%s%s%s' % (b64[ret.month], b64[ret.day], b64[ret.hour], b64[ret.minute], b64[ret.second], num_encode(long('%s%s' % (ret.year - 2000, ret.microsecond))))
     #ret = ret.isoformat()
     #ret = long(re.sub(ur'\D', '', ret))
@@ -1546,3 +1547,30 @@ def get_short_uid():
     #ret = base64.b64encode(str(ret), 'ascii')
     #return parseInt((new Date()).toISOString().replace(/\D/g, '')).toString(36);
     return ret
+
+from datetime import datetime, timedelta, tzinfo
+
+# A UTC class.
+# Core Python has limited support time-zone aware datetimes
+# We add UTC  
+# http://stackoverflow.com/a/2331635/3748764
+class UTC(tzinfo):
+    """UTC"""
+
+    zero_offset = timedelta(0)
+
+    def utcoffset(self, dt):
+        return self.zero_offset
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return self.zero_offset
+
+utc = UTC()
+
+def now():
+    '''Returns UTC now datetime with time-zone'''
+    return datetime.now(utc)
+    

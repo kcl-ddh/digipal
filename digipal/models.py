@@ -3554,7 +3554,7 @@ class KeyVal(models.Model):
         if ret == notfound:
             ret = default
         else:
-            ret = json.loads(ret)
+            ret = dputils.json_loads(ret)
             
         return ret
 

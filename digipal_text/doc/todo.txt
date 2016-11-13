@@ -39,8 +39,7 @@ TextSeg 2.0:
             [DONE] use compact form
             * Grouping
             [DONE] apply conditions
-            . conflict detection
-                . apply smaller patterns first? 
+            [DONE] conflict detection
             . reorder patterns
             . error management
                 [DONE] server error
@@ -49,6 +48,7 @@ TextSeg 2.0:
                 . wrong references
             . generate slug automatically from the title
                 . change as long as they don't deviate
+            . add to group
     . use namespace
     . problems:
         . avoid request each time blur... check if value actually changed
@@ -168,9 +168,10 @@ Duplicate transcription entries!
         [DONE] pattern error management
         [DONE] apply pattern conditions
         [DONE] cache the entry extra data instead of querying the DB for each record
-        !! expose facility patterns
+        ** expose facility patterns
         . detect matches which are too long
         . detect overlaps
+            . apply smaller patterns first? 
         [DONE] numbers: et dimidia: #232b3 "reddidit gildum pro i ferlino et dimidia"
         . save patterns as a single json object: easier to update
     . General

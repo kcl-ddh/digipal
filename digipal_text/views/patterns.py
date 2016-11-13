@@ -66,10 +66,13 @@ class PatternAnalyser(object):
         
         patterns = self.get_patterns()
         
-        self.options = request.REQUEST
+        self.options = request.GET.copy()
         
         modified = False
         
+        if request.body:
+            data = dputils.json_loads(request.body)
+
         request_pattern = None
         request_patterni = None
         if root == 'patterns':
@@ -87,7 +90,6 @@ class PatternAnalyser(object):
                 modified = True
 
         if request.method == 'PUT':
-            data = dputils.json_loads(request.body)
             if request_pattern:
                 print 'PUT found'
                 data['updated'] = datetime.now()
@@ -96,6 +98,8 @@ class PatternAnalyser(object):
                 modified = True
         
         # add new pattern if missing and client asked for it
+        # TODO: not restful to change data on GET!
+        # turn this into separate POST request.
         if 1:
             title_new = 'New Pattern'
             if not patterns or patterns[-1]['title'] != title_new:
@@ -109,11 +113,16 @@ class PatternAnalyser(object):
                 });
                 modified = True
                 
+        if root == 'segunits':
+            if request.method == 'POST':
+                if data:
+                    self.options.update(data)
+        
         if modified:
             self.validate_patterns()
             self.save_patterns()
 
-        # return
+        # what to return?
         toreturn = request.REQUEST.get('ret', root).split(',')
         
         ret = {}
@@ -131,7 +140,7 @@ class PatternAnalyser(object):
     def validate_patterns(self):
         patterns = self.get_patterns()
         for pattern in patterns:
-            self.get_regex_from_pattern(patterns, pattern['key'])
+            self.get_regex_from_pattern(patterns, pattern['id'])
 
     def get_json_from_segunits(self):
         ret = []
@@ -244,6 +253,12 @@ class PatternAnalyser(object):
         stats['duration_segmentation'] = (datetime.now() - t0).total_seconds()
         context['stats'] = stats
 
+    def get_condition(self, patternid):
+        conditions = self.options.get('conditions', {})
+        ret = conditions.get(patternid, '') 
+        
+        return ret
+
     def segment_unit(self, unit, context):
         patterns = self.get_patterns()
         unit.patterns = []
@@ -257,7 +272,7 @@ class PatternAnalyser(object):
         for pattern in patterns:
             patternid = pattern['id']
             if not patternid: continue
-            condition = ''
+            condition = self.get_condition(patternid)
             # TODO: way to pass conditions in the request
             ##if pattern.condition == 'ignore': continue
 

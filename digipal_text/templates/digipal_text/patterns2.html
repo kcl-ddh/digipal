@@ -115,17 +115,35 @@
             background: yellow;
             border: 1px dashed orange;
         }
+        .pattern-condition:before, .pattern-condition:after {
+            position: relative;
+            top: 1px;
+            display: inline-block;
+            font-family: 'Glyphicons Halflings';
+            font-style: normal;
+            font-weight: 400;
+            line-height: 1;
+            -webkit-font-smoothing: antialiased;
+            margin: 1px;
+        }
         .pattern-condition-include:before {
-            content: '+';
+            /* + */
+            content: "\002b";
         }
         .pattern-condition-exclude:before {
-            content: '-';
+            /* + */
+            content: "\e082";
         }
         .pattern-condition-ignore:before {
+            font-family: inherit;
             content: '(';
         }
         .pattern-condition-ignore:after {
+            font-family: inherit;
             content: ')';
+        }
+        .pattern-condition-ignore {
+            color: #888;
         }
     </style>
 {% endblock %}
@@ -147,9 +165,9 @@
             <div class="panel patterns">
                 <ul class="patterns-list sortable2" id="patterns_list">
                     <li v-on:click.stop.prevent="select_pattern" v-for="pattern in response.patterns" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
-                        <span>
+                        <span v-bind:class="'pattern-condition pattern-condition-'+session.options.conditions[pattern.id]">
                             <span class="glyphicon glyphicon-warning-sign pattern-error" v-if="pattern.error"></span>
-                            <span v-bind:class="'pattern-condition-'+session.options.conditions[pattern.id]">{{pattern.key}}</span>
+                            <span>{{pattern.key}}</span>
                             <span v-if="!pattern.error">{{ response.stats.patterns ? '[' + (response.stats.patterns[pattern.id] || 0) + ']' : '' }}</span>
                         </span>
                     </li>
@@ -350,8 +368,11 @@
                             'ulimit': this.session.options.ulimit,
                             'urange': this.session.options.urange,
                         }
+                        // send this in the body as it can be too long for URL
                         var data = {'conditions': this.session.options.conditions};
-                        this.call_api('segunits', 'get', data, ['patterns', 'segunits', 'stats'], options);
+                        // which means that we have to use POST (GET is not meant to carry a body)
+                        // http://stackoverflow.com/q/14202257/3748764
+                        this.call_api('segunits', 'post', data, ['patterns', 'segunits', 'stats'], options);
                     },
 
                     call_api: function (path, method, data, toreturn, qs) {
@@ -369,7 +390,7 @@
                         $.ajax({
                             url: '/digipal_text/api/'+path+'?ret='+(toreturn.join(','))+qs,
                             type: method,
-                            data: JSON.stringify(data),
+                            data: data ? JSON.stringify(data) : null,
                             dataType: 'json',
                         }).success(function(data) {
                             // merge with out previous responses.

@@ -38,8 +38,9 @@ TextSeg 2.0:
             [DONE] validate patterns on the fly
             [DONE] use compact form
             * Grouping
-            * apply conditions
-            . conflict detection 
+            [DONE] apply conditions
+            . conflict detection
+                . apply smaller patterns first? 
             . reorder patterns
             . error management
                 [DONE] server error

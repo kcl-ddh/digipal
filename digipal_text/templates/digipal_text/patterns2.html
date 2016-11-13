@@ -359,11 +359,15 @@
                             }
                         });
                         if (pattern) {
-                        	this.call_api('patterns/'+pattern.id, method, pattern);
+                            this.call_api('patterns/'+pattern.id, method, pattern);
                         }
                     },
                     
                     apply_patterns: function () {
+                        $('#patterns-ui-screen').stop().animate({
+                            opacity: 0.50,
+                        }, 500);
+
                         var options = {
                             'ulimit': this.session.options.ulimit,
                             'urange': this.session.options.urange,
@@ -372,10 +376,12 @@
                         var data = {'conditions': this.session.options.conditions};
                         // which means that we have to use POST (GET is not meant to carry a body)
                         // http://stackoverflow.com/q/14202257/3748764
-                        this.call_api('segunits', 'post', data, ['patterns', 'segunits', 'stats'], options);
+                        this.call_api('segunits', 'post', data, ['patterns', 'segunits', 'stats'], options, function() {
+                            $('#patterns-ui-screen').stop().animate({opacity: 1,});
+                        });
                     },
 
-                    call_api: function (path, method, data, toreturn, qs) {
+                    call_api: function (path, method, data, toreturn, qs, after) {
                     	var self = this;
                         path = path.replace(/(^\/|\/$)/g, '') + '/';
                         toreturn = toreturn || [path.replace(/\/.*$/, '')];
@@ -387,7 +393,7 @@
                         	}
                             qs = '&'+qsa.join('&');
                         }
-                        $.ajax({
+                        var req = $.ajax({
                             url: '/digipal_text/api/'+path+'?ret='+(toreturn.join(','))+qs,
                             type: method,
                             data: data ? JSON.stringify(data) : null,
@@ -396,6 +402,7 @@
                             // merge with out previous responses.
                             // so we can get partial response, more efficient.
                             self.response.messages = [];
+                            // send response to our different views
                             for (key in data) {
                                 self.response[key] = data[key];
                             }
@@ -407,7 +414,10 @@
                                 'type': 'error',
                                 'message': 'Request failed: ' + textStatus,
                             }];
-                        })
+                        });
+                        if (after) {
+                            req.always(after);
+                        }
                     },
                 }
             });

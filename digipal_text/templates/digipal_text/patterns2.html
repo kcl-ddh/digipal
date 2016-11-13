@@ -150,7 +150,7 @@
                         <span>
                             <span class="glyphicon glyphicon-warning-sign pattern-error" v-if="pattern.error"></span>
                             <span v-bind:class="'pattern-condition-'+session.options.conditions[pattern.id]">{{pattern.key}}</span>
-                            <span v-if="!pattern.error">[{{ 0 }}]</span>
+                            <span v-if="!pattern.error">{{ response.stats.patterns ? '[' + (response.stats.patterns[pattern.id] || 0) + ']' : '' }}</span>
                         </span>
                     </li>
                 </ul>
@@ -283,6 +283,9 @@
                 model.response[val] = model.response[val] || [];
             });
             
+            // inputs and outputs are managed by two separate views to prevent 
+            // huge lags when typing above long results.
+            // TODO: try to optimise the long result rendering.
             var results_ui = new Vue({
                 el: '#results-ui',
                 
@@ -343,8 +346,12 @@
                     },
                     
                     apply_patterns: function () {
-                        var options = this.session.options;
-                    	this.call_api('patterns', 'get', {}, ['patterns', 'segunits', 'stats'], options);
+                        var options = {
+                            'ulimit': this.session.options.ulimit,
+                            'urange': this.session.options.urange,
+                        }
+                        var data = {'conditions': this.session.options.conditions};
+                        this.call_api('segunits', 'get', data, ['patterns', 'segunits', 'stats'], options);
                     },
 
                     call_api: function (path, method, data, toreturn, qs) {

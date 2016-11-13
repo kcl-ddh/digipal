@@ -160,11 +160,11 @@
                 <div v-if="(pattern.id == session.selected)"  class="pattern" v-bind:data-patternid="pattern.id">
                     <div class="form-group">
                         <label for="p_key">Key</label>
-                        <input class="form-control input-sm" type="text" name="p_key" id="p_key" v-on:blur="save_pattern(pattern.id)" v-model="pattern.key" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                        <input class="form-control input-sm" type="text" name="p_key" id="p_key" v-on:change="save_pattern(pattern.id)" v-model="pattern.key" autocomplete="off" autocorrect="off" autocapitalize="off" />
                     </div>
                     <div class="form-group">
                         <label for="p_title">Title</label>
-                        <input class="form-control input-sm pattern-title" type="text" name="p_title" id="p_title" v-on:blur="save_pattern(pattern.id)" v-model="pattern.title" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                        <input class="form-control input-sm pattern-title" type="text" name="p_title" id="p_title" v-on:change="save_pattern(pattern.id)" v-model="pattern.title" autocomplete="off" autocorrect="off" autocapitalize="off" />
                     </div>
                     <div class="form-group">
                         <label for="p_condition">Condition</label>
@@ -179,7 +179,7 @@
                     <br/>
                     <div class="form-group form-group-full-width" style="display:table">
                         <label for="p_pattern">Pattern</label>
-                        <input class="form-control pattern-input input-sm" type="text" name="p_pattern" id="p_pattern" v-on:blur="save_pattern(pattern.id)" v-model="pattern.pattern" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                        <input class="form-control pattern-input input-sm" type="text" name="p_pattern" id="p_pattern" v-on:change="save_pattern(pattern.id)" v-model="pattern.pattern" autocomplete="off" autocorrect="off" autocapitalize="off" />
                     </div>
                     <div v-if="pattern.error" class="pattern-error">Syntax error: {{ pattern.error }}</div>
                 </div>
@@ -188,12 +188,12 @@
             <div class="actions">
                 <div class="form-group ">
                     <label for="units_range">Text range</label>
-                    <input class="form-control input-sm" type="text" name="units_range" id="units_range" v-on:blur="save_session" v-model="session.options.range" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    <input class="form-control input-sm" type="text" name="units_range" id="units_range" v-on:change="save_session" v-model="session.options.urange" autocomplete="off" autocorrect="off" autocapitalize="off" />
                 </div>
             
                 <div class="form-group ">
                     <label for="units_limit">Show first</label>
-                    <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" v-on:blur="save_session" v-model="session.options.limit"  autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" v-on:change="save_session" v-model="session.options.ulimit"  autocomplete="off" autocorrect="off" autocapitalize="off" />
                 </div>
                 <button class="form-control btn btn-primary" type="submit" v-on:click="apply_patterns" name="update">Update</button>
             </div>
@@ -202,7 +202,9 @@
                 {{response.stats.result_size}} units found among {{response.stats.range_size}} in the selected range ({{ response.stats.result_size_pc }}%).
                 <span class="pull-right small legend">{{ response.stats.duration_response }} s.</span>
             </div>
+        </div>
     
+        <div id="results-ui">
             <ul class="nav nav-tabs">
                 <li class="active"><a data-toggle="tab" href="#tab-units">Units</a></li>
                 <li><a data-toggle="tab" href="#tab-variants">Variants</a></li>
@@ -259,8 +261,8 @@
                 'session': {
                     'selected': 'woodland-4',
                     'options': {
-                        'range': '',
-                        'limit': 10,
+                        'urange': '',
+                        'ulimit': 10,
                         'conditions': {'woodland-4': 'ignore'},
                     }
                 },
@@ -281,7 +283,25 @@
                 model.response[val] = model.response[val] || [];
             });
             
-            var patterns_list = new Vue({
+            var results_ui = new Vue({
+                el: '#results-ui',
+                
+                data: {
+                    'response': {},
+                },
+                
+                methods: {
+                    get_pattern_key_from_id: function(patternid) {
+                        for (i in this.response.patterns) {
+                            if (this.response.patterns[i].id != patternid) continue; 
+                            return this.response.patterns[i].key; 
+                        }
+                        return '?';
+                    },
+                }
+            });
+
+            var patterns_ui = new Vue({
                 el: '#patterns-ui',
                 
                 data: model,
@@ -293,14 +313,6 @@
                 },
                 
                 methods: {
-                    get_pattern_key_from_id: function(patternid) {
-                        for (i in this.response.patterns) {
-                            if (this.response.patterns[i].id != patternid) continue; 
-                            return this.response.patterns[i].key; 
-                        }
-                        return '?';
-                    },
-                    
                     save_session: function() {
                         window.localStorage.setItem('session', JSON.stringify(this.session));
                     },
@@ -331,15 +343,24 @@
                     },
                     
                     apply_patterns: function () {
-                        this.call_api('patterns', 'get', {}, ['patterns', 'segunits', 'stats']);
+                        var options = this.session.options;
+                    	this.call_api('patterns', 'get', {}, ['patterns', 'segunits', 'stats'], options);
                     },
 
-                    call_api: function (path, method, data, toreturn) {
+                    call_api: function (path, method, data, toreturn, qs) {
                     	var self = this;
                         path = path.replace(/(^\/|\/$)/g, '') + '/';
                         toreturn = toreturn || [path.replace(/\/.*$/, '')];
+                        qs = qs || '';
+                        if (qs) {
+                        	var qsa = [];
+                        	for (var k in qs) {
+                        		qsa.push(k+'='+qs[k]);
+                        	}
+                            qs = '&'+qsa.join('&');
+                        }
                         $.ajax({
-                            url: '/digipal_text/api/'+path+'?ret='+(toreturn.join(',')),
+                            url: '/digipal_text/api/'+path+'?ret='+(toreturn.join(','))+qs,
                             type: method,
                             data: JSON.stringify(data),
                             dataType: 'json',
@@ -349,6 +370,9 @@
                             self.response.messages = [];
                             for (key in data) {
                                 self.response[key] = data[key];
+                            }
+                            if (data.segunits) {
+                                results_ui.response = data;
                             }
                         }).fail(function(jqXHR, textStatus) {
                             self.response.messages = [{

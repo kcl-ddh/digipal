@@ -166,7 +166,7 @@
                 <ul class="patterns-list sortable2" id="patterns_list">
                     <template v-for="pattern in response.patterns">
                         <li v-if="is_first_in_group(pattern.key)" v-on:click="toggle_group(pattern.key)">
-                            <span v-bind:class="'glyphicon glyphicon-resize-'+(is_pattern_visible(pattern.key) ? 'small' : 'full')"></span>
+                            <span v-bind:class="'glyphicon glyphicon-resize-'+(is_pattern_visible(pattern.key) ? 'full' : 'small')"></span>
                             {{ get_group_label(pattern.key) }}
                         </li>
                         <li v-if="is_pattern_visible(pattern.key)" v-on:click.stop.prevent="select_pattern" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
@@ -393,11 +393,12 @@
                         this.save_session();
                     },
                     is_pattern_visible: function(pattern_key) {
-                        if (pattern_key == 'new-pattern') {
-                            //console.log(pattern_key+' '+(ret? 'visible':'not visible'));
+                        var group_label = this.get_group_label(pattern_key);
+                        if (pattern_key == group_label) return true;
+                        if (0 && pattern_key == 'new-pattern') {
                             console.log(Date());
                         }
-                        var ret = !!(this.session.expanded[this.get_group_label(pattern_key)]);
+                        var ret = !!(this.session.expanded[group_label]);
                         return ret;
                     },
                     get_group_label: function(pattern_key) {

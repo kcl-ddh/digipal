@@ -361,7 +361,16 @@
                 },
                 
                 mounted: function() {
-                    $('#patterns_list').sortable({placeholder: 'ui-state-highlight'});
+                    var self = this;
+                    $('#patterns_list').sortable({
+                        placeholder: 'ui-state-highlight',
+                        stop: function(event, ui) { 
+                            self.changed_order(event, ui);
+                            // have to cancel operation otherwise it messes up the
+                            // order enforced by the server when the api returns.
+                            $(this).sortable("cancel");
+                        },
+                    });
                     this.rendered();
                 },
                 
@@ -401,12 +410,11 @@
                         this.save_session();
                     },
                     
-                    change_order: function (ul) {
-                        var order = [];
-                        $(ul).find('[data-patternid]').each(function() { 
-                            order.push($(this).attr('data-patternid')); 
-                        });
-                        console.log(order);
+                    changed_order: function (event, ui) {
+                        var pattern_key = ui.item.text().trim();
+                        var prev = ui.item.prev('li');
+                        prev = prev.length ? prev.text().trim() : '';
+                        this.call_api('move_pattern', 'post', {pattern: pattern_key, previous: prev}, ['patterns']);
                     },
                     
                     delete_pattern: function (patternid) {

@@ -73,6 +73,7 @@ class PatternAnalyser(object):
 
         params = path.strip('/').split('/')
         
+        data = None
         if request.body:
             data = dputils.json_loads(request.body)
 
@@ -103,6 +104,8 @@ class PatternAnalyser(object):
                     data['updated'] = dputils.now()
                     patterns[i] = data
                     modified = True
+                    
+        if self.move_pattern(request, root, data): modified = True
         
         # add new pattern if missing and client asked for it
         # TODO: not restful to change data on GET!
@@ -145,6 +148,31 @@ class PatternAnalyser(object):
 
         return ret
     
+    def move_pattern(self, request, root, data):
+        ret = False
+        if root == 'move_pattern' and data:
+            if request.method == 'POST':
+                move = [None, None]
+                for i in range(0, len(self.patterns)):
+                    if self.patterns[i]['key'] == data['pattern']:
+                        move[0] = i
+                    if self.patterns[i]['key'] == data['previous']:
+                        move[1] = i + 1
+                if data['previous'] == '':
+                    move[1] = 0
+                print 'MOVE'
+                print move
+                if move[0] is not None and move[1] is not None:
+                    copy = self.patterns[move[0]]
+                    self.patterns.insert(move[1], copy)
+                    del self.patterns[move[0] + (1 if move[0] > move[1] else 0)]
+                    ret = False
+                    print [p['key'] for p in self.patterns]
+                else:
+                    self.add_message('Can\'t move pattern, one of the references is wrong', 'error')
+        
+        return ret
+
     def validate_patterns(self):
         patterns = self.get_patterns()
         for pattern in patterns:

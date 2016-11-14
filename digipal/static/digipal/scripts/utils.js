@@ -794,3 +794,54 @@
     });
 })(jQuery);
 
+
+/**
+Lightweight component to make a UL sortable with drag and drop.
+Usage:
+    lisort(<ONE LI ELEMENT>, <CALLBACK>);
+
+Call lisort each time a user clicks on a li. The li cen then be 
+dragged among the list. At the end the CALLBACK is called with the parent UL.
+
+Second call of lisort on the same li will be ignored.
+
+Reasons for using this:
+    * it's minimal and functional
+    * it works well with reactive view managers as it won't delay rendering
+      by being reapplied each time the list has changed.
+
+Depends on:
+    * jquery
+    * a .dragging class to highlight the element while it's being dragged
+
+**/
+(function($) {
+    window.lisort = function(li, ondone) {
+        var w = window;
+        w.$dragged_element = null;
+        //w.$dragged_element_before = null;
+        var $li = $(li);
+        
+        $li.not('[draggable]').attr('draggable', true).on('dragstart', function(e) {
+            e.originalEvent.dataTransfer.setData("text", $(this).text());
+            w.$dragged_element = $(this);
+            w.$dragged_element.addClass('dragging');
+            //w.$dragged_element_before = $dragged_element.prev('li');
+        });
+    
+        $li.siblings('li:not(.lisort)').addClass('lisort').on('dragenter', function(e) {
+            e.preventDefault();
+            w.$dragged_element.insertBefore($(this));
+            //console.log(e);
+        });
+    
+        $li.parent('ul:not(.lisort)').addClass('lisort').on('dragend', function(e) {
+            w.$dragged_element.removeClass('dragging');
+            if (ondone) {
+                ondone(this);
+            }
+            w.$dragged_element = null;
+            //w.$dragged_element_before = null;
+        });
+    };
+})(jQuery);

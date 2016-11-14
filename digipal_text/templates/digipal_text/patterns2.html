@@ -163,7 +163,7 @@
             </div>
         
             <div class="panel patterns">
-                <ul class="patterns-list sortable2" id="patterns_list">
+                <ul class="patterns-list" id="patterns_list">
                     <template v-for="pattern in response.patterns">
                         <li v-if="is_first_in_group(pattern.key)" v-on:click="toggle_group(pattern.key)">
                             <span v-bind:class="'glyphicon glyphicon-resize-'+(is_pattern_visible(pattern.key) ? 'full' : 'small')"></span>
@@ -357,16 +357,35 @@
                 watch: {
                 },
                 
+                mounted: function() {
+                    this.rendered();
+                },
+                
+                updated: function() {
+                    this.rendered();
+                },
+
                 computed: {
                 },
                 
                 methods: {
+                	
+                    rendered: function() {
+                        //console.log('rendered');
+                        // Dragging the selected li is managed outside the Vue.
+                        // Just make sure the selected li is draggable after each rendering.
+                        var self = this;
+                        var li = this.$el.querySelector('.picked');
+                        window.lisort(li, function(ul) {self.change_order(ul)});
+                    },
+                    
                     save_session: function() {
                         window.localStorage.setItem(storage_key, JSON.stringify(this.session));
                     },
                     
                     select_pattern: function(event) {
-                        this.session.selected = event.currentTarget.getAttribute('data-patternid');
+                        var li = event.currentTarget;
+                        this.session.selected = li.getAttribute('data-patternid');
                         
                         // make sure vue.js listens to the condition
                         // problem = conditions[id] doesn't exist in advance
@@ -375,6 +394,14 @@
                         this.$set(this.session.options.conditions, this.session.selected, this.session.options.conditions[this.session.selected] || '');
                         
                         this.save_session();
+                    },
+                    
+                    change_order: function (ul) {
+                        var order = [];
+                        $(ul).find('[data-patternid]').each(function() { 
+                            order.push($(this).attr('data-patternid')); 
+                        });
+                        console.log(order);
                     },
                     
                     delete_pattern: function (patternid) {

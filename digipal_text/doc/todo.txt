@@ -39,7 +39,7 @@ TextSeg 2.0:
             [DONE] use compact form
             ** Grouping
                 [DONE] expand-collapse
-                * show stats per group
+                [DONE] show stats per group
                 . add to group
             [DONE] apply conditions
             [DONE] conflict detection
@@ -65,6 +65,7 @@ TextSeg 2.0:
             trigger a redraw -> vue.js not listening to new items added to object
             under data. <- not listening to those changes?
         . very slow rendering of long list of results
+            . due to adblock plugin!
          
 
 Todo:

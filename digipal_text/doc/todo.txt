@@ -1,19 +1,19 @@
 TextSeg 2.0:
     . improvements:
         [DONE] concurrent editing level 1 (due to chaneg to particular patterns)
-        . concurrent editing level 2 (due to date check)
+        [DONE] concurrent editing level 2 (due to date check)
         [DONE] interface is up to date all the time, no need to press update
         . name spaces
     . refactoring
         . JSON storage    
             [DONE] use KeyVal to store the patterns in the database
             [DONE] convert legacy data structure
-            . id:
+            [DONE] id:
                 generate new id if none
                 more compact? recordid-relid (relid is a counter)
-            . decide array or hash?
+            [DONE] decide array or hash?
             . order?
-            . data structure version?
+            (). data structure version?
             [DONE] session data:
                 . conditions
                 . search options
@@ -37,18 +37,21 @@ TextSeg 2.0:
             [DONE] message
             [DONE] validate patterns on the fly
             [DONE] use compact form
-            * Grouping
+            ** Grouping
+                [DONE] expand-collapse
+                * show stats per group
+                . add to group
             [DONE] apply conditions
             [DONE] conflict detection
-            . reorder patterns
+            ** expose internal patterns 
+            * reorder patterns
             . error management
                 [DONE] server error
                 [DONE] invalid pattern expression
                 . duplicate keys
                 . wrong references
-            . generate slug automatically from the title
+            * generate slug automatically from the title
                 . change as long as they don't deviate
-            . add to group
     . use namespace
     . problems:
         . avoid request each time blur... check if value actually changed
@@ -60,7 +63,7 @@ TextSeg 2.0:
                 from the server. Make sure this doesn't cause two redraw. 
         . expansion of groups of patterns and change in conditions don't 
             trigger a redraw -> vue.js not listening to new items added to object
-            under data.
+            under data. <- not listening to those changes?
         . very slow rendering of long list of results
          
 

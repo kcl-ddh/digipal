@@ -137,7 +137,7 @@ class PatternAnalyser(object):
         if 'patterns' in toreturn:
             ret['patterns'] = self.get_patterns()
         if 'segunits' in toreturn:
-            ret['segunits'] = self.get_json_from_segunits()
+            ret['segunits'] = self.get_json_from_segunits(toreturn)
         if 'stats' in toreturn:
             self.stats['duration_response'] = (datetime.now() - t0).total_seconds()
             ret['stats'] = self.stats
@@ -150,14 +150,19 @@ class PatternAnalyser(object):
         for pattern in patterns:
             self.get_regex_from_pattern(patterns, pattern['id'])
 
-    def get_json_from_segunits(self):
+    def get_json_from_segunits(self, toreturn):
         ret = []
         for unit in self.get_segunits():
-            ret.append({
-                'unit': unit.plain_content,
+            item = {
+                'unit': '',
                 'unitid': unit.unitid,
-                'patterns': [{'id': pattern[0], 'instance': pattern[1]} for pattern in unit.patterns if pattern[1]],
-            })
+                'patterns': [],
+            }
+            if 'segunits.patterns' in toreturn:
+                item['patterns'] = [{'id': pattern[0], 'instance': pattern[1]} for pattern in unit.patterns if pattern[1]]
+            if 'segunits.unit' in toreturn:
+                item['unit'] = unit.plain_content
+            ret.append(item)
         return ret
         
     def get_segunits(self):

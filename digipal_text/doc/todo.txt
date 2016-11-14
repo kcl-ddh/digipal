@@ -45,6 +45,9 @@ TextSeg 2.0:
             [DONE] conflict detection
             ** expose internal patterns 
             * reorder patterns
+                . pb1: need to move groups as well
+                . pb2: need to be able to move without clicking first
+                . pb3: the li won't move to all possible places
             . error management
                 [DONE] server error
                 [DONE] invalid pattern expression

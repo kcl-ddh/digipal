@@ -827,6 +827,8 @@ Depends on:
             w.$dragged_element = $(this);
             w.$dragged_element.addClass('dragging');
             //w.$dragged_element_before = $dragged_element.prev('li');
+        }).on('drag', function(e) {
+        	console.log(e);
         });
     
         $li.siblings('li:not(.lisort)').addClass('lisort').on('dragenter', function(e) {
@@ -843,5 +845,6 @@ Depends on:
             w.$dragged_element = null;
             //w.$dragged_element_before = null;
         });
+
     };
 })(jQuery);

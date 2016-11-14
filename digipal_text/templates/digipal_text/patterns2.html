@@ -9,6 +9,9 @@
     {{ block.super }}
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.css"/>
     <style>
+        .dragging {
+            background-color: yellow;
+        }
         div.form-group-full-width {
             display:table;
             width: 100%;
@@ -358,6 +361,7 @@
                 },
                 
                 mounted: function() {
+                    $('#patterns_list').sortable({placeholder: 'ui-state-highlight'});
                     this.rendered();
                 },
                 
@@ -374,9 +378,10 @@
                         //console.log('rendered');
                         // Dragging the selected li is managed outside the Vue.
                         // Just make sure the selected li is draggable after each rendering.
+                        // Remember that selection can happen without a click.
                         var self = this;
                         var li = this.$el.querySelector('.picked');
-                        window.lisort(li, function(ul) {self.change_order(ul)});
+                        //window.lisort(li, function(ul) {self.change_order(ul)});
                     },
                     
                     save_session: function() {

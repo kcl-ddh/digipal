@@ -230,7 +230,10 @@ class PatternAnalyser(object):
 
         # Get the text units
         hand_filters.chrono('units:')
-        self.stats = stats = {'duration_segmentation': 0, 'range_size': 0, 'patterns': {}}
+        self.stats = stats = {'duration_segmentation': 0, 'range_size': 0, 'patterns': {}, 'groups': {}}
+        for pattern in self.get_patterns():
+            group = re.sub(ur'-\d+$', '', pattern['key'])
+            self.stats['groups'][group] = 0
 
         for unit in self.get_unit_model().objects.filter(content_xml__id=4).iterator():
             # only fief
@@ -273,6 +276,7 @@ class PatternAnalyser(object):
     def segment_unit(self, unit, context):
         patterns = self.get_patterns()
         unit.patterns = []
+        found_groups = {}
 
         unit.match_conditions = True
 
@@ -312,10 +316,13 @@ class PatternAnalyser(object):
                 if (condition == 'include' and not found) or (condition == 'exclude' and found):
                     unit.match_conditions = False
                 if found:
+                    found_groups[re.sub(ur'-\d+$', '', pattern['key'])] = 1
                     dputils.inc_counter(self.stats['patterns'], pattern['id'], 1)
                 else:
                     unit.patterns.append([patternid, ''])
-
+        
+        for group in found_groups:
+            self.stats['groups'][group] += 1
 
     def get_plain_content_from_unit(self, aunit):
         from django.core.cache import cache

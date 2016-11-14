@@ -168,7 +168,9 @@
                         <li v-if="is_first_in_group(pattern.key)" v-on:click="toggle_group(pattern.key)">
                             <span v-bind:class="'glyphicon glyphicon-resize-'+(is_pattern_visible(pattern.key) ? 'full' : 'small')"></span>
                             {{ get_group_label(pattern.key) }}
+                            <span>{{ response.stats.groups ? '[' + (response.stats.groups[get_group_label(pattern.key)] || 0) + ']' : '' }}</span>
                         </li>
+                        
                         <li v-if="is_pattern_visible(pattern.key)" v-on:click.stop.prevent="select_pattern" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
                             <span v-bind:class="'pattern-condition pattern-condition-'+session.options.conditions[pattern.id]">
                                 <span class="glyphicon glyphicon-warning-sign pattern-error" v-if="pattern.error"></span>

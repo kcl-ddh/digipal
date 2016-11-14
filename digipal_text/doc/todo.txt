@@ -58,6 +58,10 @@ TextSeg 2.0:
             . lots of small requests
             . data is updated twice: by the user action and then the response
                 from the server. Make sure this doesn't cause two redraw. 
+        . expansion of groups of patterns and change in conditions don't 
+            trigger a redraw -> vue.js not listening to new items added to object
+            under data.
+        . very slow rendering of long list of results
          
 
 Todo:

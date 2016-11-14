@@ -164,13 +164,19 @@
         
             <div class="panel patterns">
                 <ul class="patterns-list sortable2" id="patterns_list">
-                    <li v-on:click.stop.prevent="select_pattern" v-for="pattern in response.patterns" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
-                        <span v-bind:class="'pattern-condition pattern-condition-'+session.options.conditions[pattern.id]">
-                            <span class="glyphicon glyphicon-warning-sign pattern-error" v-if="pattern.error"></span>
-                            <span>{{pattern.key}}</span>
-                            <span v-if="!pattern.error">{{ response.stats.patterns ? '[' + (response.stats.patterns[pattern.id] || 0) + ']' : '' }}</span>
-                        </span>
-                    </li>
+                    <template v-for="pattern in response.patterns">
+                        <li v-if="is_first_in_group(pattern.key)" v-on:click="toggle_group(pattern.key)">
+                            <span v-bind:class="'glyphicon glyphicon-resize-'+(is_pattern_visible(pattern.key) ? 'small' : 'full')"></span>
+                            {{ get_group_label(pattern.key) }}
+                        </li>
+                        <li v-if="is_pattern_visible(pattern.key)" v-on:click.stop.prevent="select_pattern" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
+                            <span v-bind:class="'pattern-condition pattern-condition-'+session.options.conditions[pattern.id]">
+                                <span class="glyphicon glyphicon-warning-sign pattern-error" v-if="pattern.error"></span>
+                                <span>{{pattern.key}}</span>
+                                <span v-if="!pattern.error">{{ response.stats.patterns ? '[' + (response.stats.patterns[pattern.id] || 0) + ']' : '' }}</span>
+                            </span>
+                        </li>
+                    </template>
                 </ul>
             </div>
         
@@ -282,20 +288,28 @@
                         'urange': '',
                         'ulimit': 10,
                         'conditions': {'woodland-4': 'ignore'},
-                    }
+                    },
+                    'expanded': {
+                    },
                 },
                 'conditions': {
                     '': 'May have',
                     'include': 'Must have',
                     'exclude': 'Must not have',
                     'ignore': 'Ignore',
-                }
+                },
+                'last_forced_update': Date(),
             }
             
-            // Load user settings from the locaStorage 
-            var session = window.localStorage.getItem('session');
+            // Load user settings from the locaStorage
+            var namespace = 'default';
+            var storage_key = 'textseg.'+namespace;
+            var session = window.localStorage.getItem(storage_key);
             if (session) {
                 model.session = JSON.parse(session);
+                if (!model.session.expanded) {
+                	model.session.expanded = {};
+                }
             }
             ['messages', 'patterns', 'segunits', 'stats', 'variants'].map(function(val) {
                 model.response[val] = model.response[val] || [];
@@ -335,11 +349,18 @@
                 
                 methods: {
                     save_session: function() {
-                        window.localStorage.setItem('session', JSON.stringify(this.session));
+                        window.localStorage.setItem(storage_key, JSON.stringify(this.session));
                     },
                     
                     select_pattern: function(event) {
                         this.session.selected = event.currentTarget.getAttribute('data-patternid');
+                        
+                        // make sure vue.js listens to the condition
+                        // problem = conditions[id] doesn't exist in advance
+                        // so vue.js doesn't detect change and therefore doesn't
+                        // redraw after the first time a condition is added.
+                        this.$set(this.session.options.conditions, this.session.selected, this.session.options.conditions[this.session.selected] || '');
+                        
                         this.save_session();
                     },
                     
@@ -361,6 +382,26 @@
                         if (pattern) {
                             this.call_api('patterns/'+pattern.id, method, pattern);
                         }
+                    },
+                    
+                    is_first_in_group: function(pattern_key) {
+                        return pattern_key.substring(pattern_key.length-2) === '-1'; 
+                    },
+                    toggle_group: function(pattern_key) {
+                        var group_key = this.get_group_label(pattern_key);
+                        this.$set(this.session.expanded, group_key, !(this.session.expanded[group_key]));
+                        this.save_session();
+                    },
+                    is_pattern_visible: function(pattern_key) {
+                        if (pattern_key == 'new-pattern') {
+                            //console.log(pattern_key+' '+(ret? 'visible':'not visible'));
+                            console.log(Date());
+                        }
+                        var ret = !!(this.session.expanded[this.get_group_label(pattern_key)]);
+                        return ret;
+                    },
+                    get_group_label: function(pattern_key) {
+                        return pattern_key.replace(/-\d+$/, '');
                     },
                     
                     apply_patterns: function () {

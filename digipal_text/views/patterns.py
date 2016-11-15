@@ -153,25 +153,87 @@ class PatternAnalyser(object):
         if root == 'move_pattern' and data:
             if request.method == 'POST':
                 move = [None, None]
-                for i in range(0, len(self.patterns)):
-                    if self.patterns[i]['key'] == data['pattern']:
-                        move[0] = i
-                    if self.patterns[i]['key'] == data['previous']:
-                        move[1] = i + 1
+                move[0] = self.get_pattern_index_from_key(data['pattern'])
                 if data['previous'] == '':
                     move[1] = 0
-                print 'MOVE'
-                print move
+                else:
+                    move[1] = self.get_pattern_index_from_key(data['previous'])
+                    if move[1] is not None: move[1] += 1
                 if move[0] is not None and move[1] is not None:
                     copy = self.patterns[move[0]]
                     self.patterns.insert(move[1], copy)
                     del self.patterns[move[0] + (1 if move[0] > move[1] else 0)]
-                    ret = False
-                    print [p['key'] for p in self.patterns]
+                    self.auto_correct_pattern_orders_and_numbers()
+                    ret = True
                 else:
                     self.add_message('Can\'t move pattern, one of the references is wrong', 'error')
         
         return ret
+    
+    def get_pattern_index_from_key(self, pattern_key):
+        ret = None
+        
+        for i in range(0, len(self.patterns)):
+            if self.patterns[i]['key'] == pattern_key:
+                ret = i
+                break
+
+        # not found? perhaps it's a group name
+        if ret is None:
+            group_key = self.get_group_key_from_pattern_key(pattern_key)
+            if group_key == pattern_key:
+                ret = self.get_pattern_index_from_key(group_key+'-1')
+
+        return ret
+
+    def get_group_key_from_pattern_key(self, pattern_key):
+        ret = pattern_key
+        
+        ret = re.sub('-\d+$', '', ret)
+        
+        return ret
+    
+    def auto_correct_pattern_orders_and_numbers(self):
+        '''
+        Fix the order of the patterns and their numbers so:
+            1. all patterns within a group are next to each other
+            2. there are no gaps in the numbers
+            3. order of appearance dictate the number
+        
+        e.g.
+        p-3, q-4, p-2, q1
+        =>
+        p-1, p-2, q-1, q-2
+        
+        NOTE: we change self.patterns IN PLACE. This means that references
+        to self.patterns outside this method are updated as well.
+        '''
+        # find the sequence of groups (groups)
+        # and the sequence of patterns within each group (group_patterns)
+        group_patterns = {}
+        groups = []
+        i = 0
+        for p in self.patterns:
+            i += 1
+            group_key = self.get_group_key_from_pattern_key(p['key'])
+            if group_key not in groups:
+                groups.append(group_key)
+                group_patterns[group_key] = []
+            group_patterns[group_key].append(p)
+        
+        # group patterns together and renumber them
+        i = 0
+        for g in groups:
+            j = 0
+            for p in group_patterns[g]:
+                j += 1
+                self.patterns[i] = p
+                p['key'] = '%s-%s' % (g, j)
+                i += 1
+        
+        # trim the rest of the list
+        while i < len(self.patterns):
+            del self.patterns[i]
 
     def validate_patterns(self):
         patterns = self.get_patterns()

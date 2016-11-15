@@ -359,7 +359,8 @@ class PatternAnalyser(object):
         args = self.options
         # unpack hilite
         args['hilite'] = args.get('hilite', '').split(',')
-        args['hilite_groups'] = [self.get_group_key_from_pattern_key(self.get_pattern_from_id(pid)['key']) for pid in args['hilite'] if pid]
+        print repr(args['hilite'])
+        args['hilite_groups'] = [self.get_group_key_from_pattern_key(self.get_pattern_from_id(pid)['key']) for pid in args['hilite'] if pid and self.get_pattern_from_id(pid)]
         args['ignore'] = args.get('ignore', '')
         args['exclude'] = args.get('exclude', '')
         

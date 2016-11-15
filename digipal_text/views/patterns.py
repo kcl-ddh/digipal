@@ -157,9 +157,11 @@ class PatternAnalyser(object):
         # if no key, slugify the title
         pattern['key'] = pattern['key'] or slugify(unicode(pattern['title']))
         # if no title, unslugify the key
-        pattern['title'] = pattern['title'] or pattern['key'].replace('-', '').title()
+        pattern['title'] = pattern['title'] or pattern['key'].replace('_', ' > ').replace('-', '').title()
         # trim pattern
         pattern['pattern'] = pattern.get('pattern', '').strip()
+        if not pattern.get('id', '').strip():
+            pattern['id'] = dputils.get_short_uid()
     
     def move_pattern(self, request, root, data):
         ret = False
@@ -312,6 +314,27 @@ class PatternAnalyser(object):
                 'title': pattern.title,
                 'pattern': pattern.pattern,
                 'updated': pattern.modified,
+            })
+
+        helpers = [
+            ('', ur''),
+            ('number', self.patterns_internal['<number>']),
+            ('measurements', ur'<number> <thing>( et dimid%| et <number> <thing>| <number> minus| <number> <thing> minus)*'),
+            ('person', ur'\w\w%'),
+            ('name', ur'\w+(( et)? [A-Z]\w*)*'),
+            ('money', ur'\b(solidos|libras|obolum|obolus|numm%|denar%)\b'),
+            ('title', ur'\b(abbas|comes|capellanus|episcopus|frater|mater|presbiter|regina|rex|tagn%|taigni|tainn%|tangi|tangn%|tani|tanni%|tanorum|tanus|tegn%|teign%|teinorum|tenus|thesaurarius|uicecomes|uxor)\b'),
+            ('hide', ur'\b(hid%|uirg%|urig%|fer.i%|agr%|car%c%)\b'),
+            ('peasant', ur'\b(uillan%|bordar%|cott?ar%|costcet%|seru%)\b'),
+            ('livestock', ur'\b(porc%|oues%|capra%|animal%|ronc%|runc%|uacas)\b'),
+        ]
+        for key, pattern in helpers:
+            ret.append({
+                'id': dputils.get_short_uid(),
+                'key': 'helper_%s' % key,
+                'title': key.title(),
+                'pattern': pattern,
+                'updated': dputils.now(),
             })
         
         return ret
@@ -526,24 +549,27 @@ class PatternAnalyser(object):
                     # c bordarios x minus
                     # iiii libras et iii solidos i denarium minus
                     #
-                    for keyword in 'hide,peasant,livestock,money'.split(','):
-                        ret = ret.replace(ur'<'+keyword+ur's>', ur'<number> <'+keyword+ur'>( et dimid%| et <number> <'+keyword+ur'>| <number> minus| <number> <'+keyword+ur'> minus)*')
+                    if 0:
+                        for keyword in 'hide,peasant,livestock,money'.split(','):
+                            ret = ret.replace(ur'<'+keyword+ur's>', ur'<number> <'+keyword+ur'>( et dimid%| et <number> <'+keyword+ur'>| <number> minus| <number> <'+keyword+ur'> minus)*')
+                            
+        #                     ret = ret.replace(ur'<hides>', ur'<number> <hide>( et dimid%| et <number> <hide>)*')
+        #                     ret = ret.replace(ur'<peasants>', ur'<number> <peasant>( et dimid%| et <number> <peasant>)*')
+        #                     ret = ret.replace(ur'<livestocks>', ur'<number> <livestock>( et dimid%| et <number> <livestock>)*')
+        #                     ret = ret.replace(ur'<moneys>', ur'<number> <money>( et dimid%| (et )?<number> <money>)*( minus)?')
                         
-#                     ret = ret.replace(ur'<hides>', ur'<number> <hide>( et dimid%| et <number> <hide>)*')
-#                     ret = ret.replace(ur'<peasants>', ur'<number> <peasant>( et dimid%| et <number> <peasant>)*')
-#                     ret = ret.replace(ur'<livestocks>', ur'<number> <livestock>( et dimid%| et <number> <livestock>)*')
-#                     ret = ret.replace(ur'<moneys>', ur'<number> <money>( et dimid%| (et )?<number> <money>)*( minus)?')
-                    
-                    ret = ret.replace(ur'<title>', ur'\b(abbas|comes|capellanus|episcopus|frater|mater|presbiter|regina|rex|tagn%|taigni|tainn%|tangi|tangn%|tani|tanni%|tanorum|tanus|tegn%|teign%|teinorum|tenus|thesaurarius|uicecomes|uxor)\b')
-                    ret = ret.replace(ur'<hide>', ur'\b(hid%|uirg%|urig%|fer.i%|agr%|car%c%)\b')
-                    ret = ret.replace(ur'<peasant>', ur'\b(uillan%|bordar%|cott?ar%|costcet%|seru%)\b')
-                    ret = ret.replace(ur'<livestock>', ur'\b(porc%|oues%|capra%|animal%|ronc%|runc%|uacas)\b')
-                    ret = ret.replace(ur'<money>', ur'\b(solidos|libras|obolum|obolus|numm%|denar%)\b')
+                        ret = ret.replace(ur'<title>', ur'\b(abbas|comes|capellanus|episcopus|frater|mater|presbiter|regina|rex|tagn%|taigni|tainn%|tangi|tangn%|tani|tanni%|tanorum|tanus|tegn%|teign%|teinorum|tenus|thesaurarius|uicecomes|uxor)\b')
+                        ret = ret.replace(ur'<hide>', ur'\b(hid%|uirg%|urig%|fer.i%|agr%|car%c%)\b')
+                        ret = ret.replace(ur'<peasant>', ur'\b(uillan%|bordar%|cott?ar%|costcet%|seru%)\b')
+                        ret = ret.replace(ur'<livestock>', ur'\b(porc%|oues%|capra%|animal%|ronc%|runc%|uacas)\b')
+                        ret = ret.replace(ur'<money>', ur'\b(solidos|libras|obolum|obolus|numm%|denar%)\b')
+        
+                        ret = ret.replace(ur'<number>', self.patterns_internal['<number>'])
+                        ret = ret.replace(ur'<person>', ur'\w\w%')
+                        # !! How to remove Has? 28a1
+                        ret = ret.replace(ur'<name>', ur'\w+(( et)? [A-Z]\w*)*')
 
-                    ret = ret.replace(ur'<number>', self.patterns_internal['<number>'])
-                    ret = ret.replace(ur'<person>', ur'\w\w%')
-                    # !! How to remove Has? 28a1
-                    ret = ret.replace(ur'<name>', ur'\w+(( et)? [A-Z]\w*)*')
+                    # LOW LEVEL SYNTACTIC SUGAR
 
                     #  e.g. x (<number>)? y
                     while True:

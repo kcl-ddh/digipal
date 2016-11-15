@@ -45,7 +45,15 @@ TextSeg 2.0:
             [DONE] conflict detection
             * generate slug automatically from the title
                 . change as long as they don't deviate
-            ** expose internal patterns 
+            ** expose internal patterns
+                [DONE] add when loading from legacy
+                    . helper_P
+                . recognise _ as group separator
+                    [DONE] in UI
+                . convert references <P> -> helper_P 
+                . validate references 
+                . special pattern: <Ps>
+                . don't apply helpers
             * reorder patterns
                 . can't move group after another
                 [DONE] pb1: need to move groups as well
@@ -53,6 +61,10 @@ TextSeg 2.0:
                 [DONE] reordering?
                 [DONE] pb2: need to be able to move without clicking first
                 [DONE] pb3: the li won't move to all possible places
+            . bulk conditions:
+                . exclude other|all pattern in group
+                . ignore other goups
+            * add ad-hoc segments to group
             [DONE] error management
                 [DONE] server error
                 [DONE] invalid pattern expression

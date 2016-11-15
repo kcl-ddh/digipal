@@ -12,6 +12,9 @@
         .dragging {
             background-color: yellow;
         }
+        .panel.patterns {
+            margin-bottom: 0;
+        }
         div.form-group-full-width {
             display:table;
             width: 100%;
@@ -28,7 +31,7 @@
         }
         div.pattern {
             /*display: none;*/
-            border-top: 2px solid lightgrey;
+            /*border-top: 2px solid lightgrey;*/
             border-bottom: 2px solid lightgrey;
             padding-top: 0.2em;
             margin-top: 0.2em;
@@ -442,7 +445,7 @@
                     },
                     
                     is_first_in_group: function(pattern_key) {
-                        return pattern_key.substring(pattern_key.length-2) === '-1'; 
+                        return (pattern_key.substring(pattern_key.length-2) === '-1' || pattern_key.substring(pattern_key.length-1) === '_'); 
                     },
                     toggle_group: function(pattern_key) {
                         var group_key = this.get_group_label(pattern_key);
@@ -459,7 +462,7 @@
                         return ret;
                     },
                     get_group_label: function(pattern_key) {
-                        return pattern_key.replace(/-\d+$/, '');
+                        return pattern_key.replace(/(-\d+|_[^_]*)$/, '');
                     },
                     
                     apply_patterns: function () {

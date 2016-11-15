@@ -50,10 +50,11 @@ TextSeg 2.0:
                     . helper_P
                 . recognise _ as group separator
                     [DONE] in UI
-                . convert references <P> -> helper_P 
-                . validate references 
-                . special pattern: <Ps>
-                . don't apply helpers
+                    . server side
+                [DONE] convert references <P> -> helper_P 
+                [DONE] validate references 
+                [DONE] special pattern: <Ps>
+                [DONE] don't apply helpers
             * reorder patterns
                 . can't move group after another
                 [DONE] pb1: need to move groups as well

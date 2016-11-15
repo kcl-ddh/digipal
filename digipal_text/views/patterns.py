@@ -134,6 +134,10 @@ class PatternAnalyser(object):
         if modified:
             self.validate_patterns()
             self.save_patterns()
+            
+        pattern_errors = sum([1 for pattern in self.patterns if 'error' in pattern])
+        if pattern_errors:
+            self.add_message('%s invalid patterns' % pattern_errors, 'warn')
 
         # what to return?
         toreturn = request.REQUEST.get('ret', root).split(',')
@@ -204,7 +208,8 @@ class PatternAnalyser(object):
     def get_group_key_from_pattern_key(self, pattern_key):
         ret = pattern_key
         
-        ret = re.sub('-\d+$', '', ret)
+        if ret:
+            ret = re.sub('-\d+$', '', ret)
         
         return ret
     
@@ -319,7 +324,7 @@ class PatternAnalyser(object):
         helpers = [
             ('', ur''),
             ('number', self.patterns_internal['<number>']),
-            ('measurements', ur'<number> <thing>( et dimid%| et <number> <thing>| <number> minus| <number> <thing> minus)*'),
+            ('measurement', ur'<number> <PATTERN>( et dimid%| et <number> <PATTERN>| <number> minus| <number> <PATTERN> minus)*'),
             ('person', ur'\w\w%'),
             ('name', ur'\w+(( et)? [A-Z]\w*)*'),
             ('money', ur'\b(solidos|libras|obolum|obolus|numm%|denar%)\b'),
@@ -352,7 +357,12 @@ class PatternAnalyser(object):
 
         # arguments
         args = self.options
+        # unpack hilite
         args['hilite'] = args.get('hilite', '').split(',')
+        args['hilite_groups'] = [self.get_group_key_from_pattern_key(self.get_pattern_from_id(pid)['key']) for pid in args['hilite'] if pid]
+        args['ignore'] = args.get('ignore', '')
+        args['exclude'] = args.get('exclude', '')
+        
         context['ulimit'] = dputils.get_int(args.get('ulimit', 10), 10)
         #context['urange'] = args.get('urange', '') or '25a1-62b2,83a1-493b3'
         context['urange'] = args.get('urange', '')
@@ -397,10 +407,21 @@ class PatternAnalyser(object):
         stats['duration_segmentation'] = (datetime.now() - t0).total_seconds()
         context['stats'] = stats
 
-    def get_condition(self, patternid):
+    def get_condition(self, pattern):
+        if pattern['key'].startswith('helper_'): return 'ignore'
         conditions = self.options.get('conditions', {})
-        ret = conditions.get(patternid, '') 
+        ret = conditions.get(pattern['id'], '')
         
+        if pattern['id'] not in self.options['hilite']:
+            if self.options['ignore'] == 'other_patterns':
+                    ret = 'ignore'
+            elif self.options['ignore'] == 'other_groups':
+                if self.get_group_key_from_pattern_key(pattern['key']) not in self.options['hilite_groups']:
+                    ret = 'ignore'
+            if self.options['exclude'] == 'this_group':
+                if self.get_group_key_from_pattern_key(pattern['key']) in self.options['hilite_groups']:
+                    ret = 'exclude'
+
         return ret
 
     def segment_unit(self, unit, context):
@@ -417,7 +438,7 @@ class PatternAnalyser(object):
         for pattern in patterns:
             patternid = pattern['id']
             if not patternid: continue
-            condition = self.get_condition(patternid)
+            condition = self.get_condition(pattern)
             if condition == 'ignore': continue
 
             # get regex from pattern
@@ -510,12 +531,15 @@ class PatternAnalyser(object):
         content = content.strip()
         return content
 
-    def get_pattern_from_key(self, key):
+    def get_pattern_from_key(self, key, try_helper=False):
         ret = None
         for pattern in self.get_patterns():
             if pattern['key'] == key:
                 ret = pattern
                 break
+        if not ret and try_helper and not key.startswith('helper_'):
+            ret = self.get_pattern_from_key('helper_%s' % key)
+            
         return ret
 
     def get_pattern_from_id(self, patternid):
@@ -549,15 +573,48 @@ class PatternAnalyser(object):
                     # c bordarios x minus
                     # iiii libras et iii solidos i denarium minus
                     #
+                    
+                    measurement = self.get_pattern_from_key('helper_measurement')
+                    
+                    def replace_reference(match):
+                        rep = match.group(0)
+                        ref = match.group(1)
+                        if ref == 'PATTERN': return rep
+                        # TODO: try other than helper_, not now as it might have
+                        # accidental match
+                        ref_pattern = self.get_pattern_from_key('helper_'+ref)
+                        if ref_pattern:
+                            rep = ref_pattern['pattern']
+                        else:
+                            if measurement:
+                                # try singular helper
+                                if ref.endswith('s'):
+                                    ref_pattern = self.get_pattern_from_key(('helper_%s' % ref)[0:-1])
+                                    if ref_pattern:
+                                        # let's apply measurement to this
+                                        rep = ref_pattern['pattern']
+                                        rep = measurement['pattern'].replace('<PATTERN>', rep)
+                                    
+                        if not ref_pattern:
+                            pattern['error'] = 'Reference to an unknown pattern: <%s>. Check the spelling.' % ref
+                            
+                        return rep
+                    
+                    i = 0
+                    while 'error' not in pattern:
+                        i += 1
+                        before = ret
+                        ret = re.sub(ur'<([^>]+)>', replace_reference, ret)
+                        if i > 100:
+                            pattern['error'] = 'Detected circular references in the pattern. E.g. p1 = <p2>; p2 = <p1>.'
+                            break
+                        if ret == before:
+                            break
+                    
                     if 0:
                         for keyword in 'hide,peasant,livestock,money'.split(','):
                             ret = ret.replace(ur'<'+keyword+ur's>', ur'<number> <'+keyword+ur'>( et dimid%| et <number> <'+keyword+ur'>| <number> minus| <number> <'+keyword+ur'> minus)*')
                             
-        #                     ret = ret.replace(ur'<hides>', ur'<number> <hide>( et dimid%| et <number> <hide>)*')
-        #                     ret = ret.replace(ur'<peasants>', ur'<number> <peasant>( et dimid%| et <number> <peasant>)*')
-        #                     ret = ret.replace(ur'<livestocks>', ur'<number> <livestock>( et dimid%| et <number> <livestock>)*')
-        #                     ret = ret.replace(ur'<moneys>', ur'<number> <money>( et dimid%| (et )?<number> <money>)*( minus)?')
-                        
                         ret = ret.replace(ur'<title>', ur'\b(abbas|comes|capellanus|episcopus|frater|mater|presbiter|regina|rex|tagn%|taigni|tainn%|tangi|tangn%|tani|tanni%|tanorum|tanus|tegn%|teign%|teinorum|tenus|thesaurarius|uicecomes|uxor)\b')
                         ret = ret.replace(ur'<hide>', ur'\b(hid%|uirg%|urig%|fer.i%|agr%|car%c%)\b')
                         ret = ret.replace(ur'<peasant>', ur'\b(uillan%|bordar%|cott?ar%|costcet%|seru%)\b')
@@ -570,32 +627,33 @@ class PatternAnalyser(object):
                         ret = ret.replace(ur'<name>', ur'\w+(( et)? [A-Z]\w*)*')
 
                     # LOW LEVEL SYNTACTIC SUGAR
-
-                    #  e.g. x (<number>)? y
-                    while True:
-                        ret2 = ret
-                        ret = re.sub(ur'( |^)(\([^)]+\))\?( |$)', ur'(\1\2)?\3', ret2)
-                        if ret == ret2: break
-                    # <person> habet <number> mansionem
-                    ret = ret.replace(ur'%', ur'\w*')
-                    # aliam = another
-                    # unam = one
-                    # dimidia = half
-                    # duabus = two
-                    ret = ret.replace(ur'7', ur'et')
-                    if ret[0] not in [ur'\b', '^']:
-                        ret = ur'\b' + ret
-                    if not ret.endswith(ur'\b'):
-                        ret = ret + ur'\b'
-                    try:
-                        #pattern.pattern_converted = ret
-                        ret = re.Regex(ret)
-                    except Exception, e:
-                        pattern['error'] = unicode(e)
-                        ret = re.Regex('INVALID PATTERN')
-                    finally:
-                        self.regexs[patternid] = ret
-
+                    if not 'error' in pattern:
+                        #  e.g. x (<number>)? y
+                        while True:
+                            ret2 = ret
+                            ret = re.sub(ur'( |^)(\([^)]+\))\?( |$)', ur'(\1\2)?\3', ret2)
+                            if ret == ret2: break
+                        # <person> habet <number> mansionem
+                        ret = ret.replace(ur'%', ur'\w*')
+                        # aliam = another
+                        # unam = one
+                        # dimidia = half
+                        # duabus = two
+                        ret = ret.replace(ur'7', ur'et')
+                        if ret[0] not in [ur'\b', '^']:
+                            ret = ur'\b' + ret
+                        if not ret.endswith(ur'\b'):
+                            ret = ret + ur'\b'
+                        try:
+                            ret = re.Regex(ret)
+                        except Exception, e:
+                            pattern['error'] = unicode(e)
+                        finally:
+                            self.regexs[patternid] = ret
+                         
+                if 'error' in pattern:
+                    ret = re.Regex('INVALID PATTERN')
+        
         return ret
 
     def is_unit_in_range(self, unit, ranges):

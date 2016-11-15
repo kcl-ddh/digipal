@@ -237,6 +237,19 @@
                         <option v-bind:value="ckey" v-for="(label, ckey) in toreturn">{{ label }}</option>
                     </select>
                 </div>
+                <br/>
+                <div class="form-group">
+                    <label for="ignore_option">Ignore</label>
+                    <select class="form-control input-sm" name="p_ignore" id="p_ignore" v-model="session.options.ignore" v-on:change="save_session">
+                        <option v-bind:value="ckey" v-for="(label, ckey) in ignore">{{ label }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ignore_option">Exclude</label>
+                    <select class="form-control input-sm" name="p_exclude" id="p_exclude" v-model="session.options.exclude" v-on:change="save_session">
+                        <option v-bind:value="ckey" v-for="(label, ckey) in exclude">{{ label }}</option>
+                    </select>
+                </div>
                 <button class="form-control btn btn-primary" type="submit" v-on:click="apply_patterns" name="update">Update</button>
             </div>
             
@@ -320,6 +333,15 @@
                     'include': 'Must have',
                     'exclude': 'Must not have',
                     'ignore': 'Ignore',
+                },
+                'ignore': {
+                    '': 'Custom settings',
+                    'other_patterns': 'Other patterns',
+                    'other_groups': 'Other groups',
+                },
+                'exclude': {
+                    '': 'Custom settings',
+                    'this_group': 'Other patterns in this group',
                 },
                 'last_forced_update': Date(),
             }
@@ -453,6 +475,7 @@
                         this.save_session();
                     },
                     is_pattern_visible: function(pattern_key) {
+                        if (pattern_key.substring(pattern_key.length-1) === '_') return false;
                         var group_label = this.get_group_label(pattern_key);
                         if (pattern_key == group_label) return true;
                         if (0 && pattern_key == 'new-pattern') {
@@ -474,6 +497,8 @@
                             'ulimit': this.session.options.ulimit,
                             'urange': this.session.options.urange,
                             'hilite': this.session.selected || '',
+                            'ignore': this.session.options.ignore,
+                            'exclude': this.session.options.exclude,
                         }
                         // send this in the body as it can be too long for URL
                         var data = {'conditions': this.session.options.conditions};

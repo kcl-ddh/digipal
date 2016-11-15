@@ -201,7 +201,7 @@
                     </div>
                     <div class="form-group">
                         <label for="p_condition">Condition</label>
-                        <select class="form-control input-sm" name="p_condition" id="p_condition" v-model="session.options.conditions[pattern.id]">
+                        <select class="form-control input-sm" name="p_condition" id="p_condition" v-model="session.options.conditions[pattern.id]" v-on:change="save_session">
                             <option v-bind:value="ckey" v-for="(label, ckey) in conditions">{{ label }}</option>
                         </select>
                     </div>

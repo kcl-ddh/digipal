@@ -395,8 +395,7 @@ class PatternAnalyser(object):
             patternid = pattern['id']
             if not patternid: continue
             condition = self.get_condition(patternid)
-            # TODO: way to pass conditions in the request
-            ##if pattern.condition == 'ignore': continue
+            if condition == 'ignore': continue
 
             # get regex from pattern
             rgx = self.get_regex_from_pattern(patterns, patternid)

@@ -43,6 +43,8 @@ TextSeg 2.0:
                 . add to group
             [DONE] apply conditions
             [DONE] conflict detection
+            * generate slug automatically from the title
+                . change as long as they don't deviate
             ** expose internal patterns 
             * reorder patterns
                 . can't move group after another
@@ -56,8 +58,6 @@ TextSeg 2.0:
                 [DONE] invalid pattern expression
                 . duplicate keys
                 . wrong references
-            * generate slug automatically from the title
-                . change as long as they don't deviate
     . use namespace
     . problems:
         . avoid request each time blur... check if value actually changed

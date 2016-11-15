@@ -104,6 +104,7 @@ class PatternAnalyser(object):
                     data['updated'] = dputils.now()
                     reorder = (patterns[i]['key'] != data['key'])
                     patterns[i] = data
+                    self.auto_correct_pattern(patterns[i])
                     if reorder: self.auto_correct_pattern_orders_and_numbers()
                     modified = True
                     
@@ -149,6 +150,16 @@ class PatternAnalyser(object):
         ret['messages'] = self.messages
 
         return ret
+    
+    def auto_correct_pattern(self, pattern):
+        pattern['key'] = pattern.get('key', '').strip()
+        pattern['title'] = pattern.get('title', '').strip()
+        # if no key, slugify the title
+        pattern['key'] = pattern['key'] or slugify(unicode(pattern['title']))
+        # if no title, unslugify the key
+        pattern['title'] = pattern['title'] or pattern['key'].replace('-', '').title()
+        # trim pattern
+        pattern['pattern'] = pattern.get('pattern', '').strip()
     
     def move_pattern(self, request, root, data):
         ret = False

@@ -45,12 +45,13 @@ TextSeg 2.0:
             [DONE] conflict detection
             ** expose internal patterns 
             * reorder patterns
-                . pb1: need to move groups as well
-                . prevent dropping in the middle of a group
-                . reordering?
+                . can't move group after another
+                [DONE] pb1: need to move groups as well
+                [DONE] prevent dropping in the middle of a group
+                [DONE] reordering?
                 [DONE] pb2: need to be able to move without clicking first
                 [DONE] pb3: the li won't move to all possible places
-            . error management
+            [DONE] error management
                 [DONE] server error
                 [DONE] invalid pattern expression
                 . duplicate keys

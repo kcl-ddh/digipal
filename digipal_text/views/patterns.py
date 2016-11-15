@@ -102,7 +102,9 @@ class PatternAnalyser(object):
                     self.add_message('Change cancelled (this pattern was modified in the meantime)', 'error')
                 else: 
                     data['updated'] = dputils.now()
+                    reorder = (patterns[i]['key'] != data['key'])
                     patterns[i] = data
+                    if reorder: self.auto_correct_pattern_orders_and_numbers()
                     modified = True
                     
         if self.move_pattern(request, root, data): modified = True
@@ -228,7 +230,10 @@ class PatternAnalyser(object):
             for p in group_patterns[g]:
                 j += 1
                 self.patterns[i] = p
-                p['key'] = '%s-%s' % (g, j)
+                if len(group_patterns[g]) == 1:
+                    p['key'] = '%s' % g
+                else:
+                    p['key'] = '%s-%s' % (g, j)
                 i += 1
         
         # trim the rest of the list
@@ -313,6 +318,7 @@ class PatternAnalyser(object):
 
         # arguments
         args = self.options
+        args['hilite'] = args.get('hilite', '').split(',')
         context['ulimit'] = dputils.get_int(args.get('ulimit', 10), 10)
         #context['urange'] = args.get('urange', '') or '25a1-62b2,83a1-493b3'
         context['urange'] = args.get('urange', '')
@@ -389,11 +395,12 @@ class PatternAnalyser(object):
                 found = False
                 if 1:
                     for match in rgx.finditer(unit.plain_content):
+                        span_class = ' ms' if patternid in self.options['hilite'] else ''
                         found = True
                         unit.patterns.append([patternid, match.group(0)])
                         # mark it up
                         unit.plain_content = unit.plain_content[0:match.end()] + '</span>' + unit.plain_content[match.end():]
-                        unit.plain_content = unit.plain_content[0:match.start()] + '<span class="m">' + unit.plain_content[match.start():]
+                        unit.plain_content = unit.plain_content[0:match.start()] + '<span class="m'+span_class+'">' + unit.plain_content[match.start():]
 
                         if str(context.get('selected_patternid', 0)) == str(pattern['id']):
                             variant = match.group(0)

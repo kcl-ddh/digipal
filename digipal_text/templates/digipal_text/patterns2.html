@@ -73,6 +73,10 @@
             border: 1px solid green;
             margin-left: 0.2em;
         }
+        span.m.ms {
+            background-color: #fcffe0;
+            border-color: #807600;
+        }
         #pattern_tester {
             position: fixed;
             background-color: white;
@@ -168,16 +172,16 @@
             <div class="panel patterns">
                 <ul class="patterns-list" id="patterns_list">
                     <template v-for="pattern in response.patterns">
-                        <li v-if="is_first_in_group(pattern.key)" v-on:click="toggle_group(pattern.key)">
+                        <li v-if="is_first_in_group(pattern.key)" v-on:click="toggle_group(pattern.key)" v-bind:data-key="get_group_label(pattern.key)">
                             <span v-bind:class="'glyphicon glyphicon-resize-'+(is_pattern_visible(pattern.key) ? 'full' : 'small')"></span>
                             {{ get_group_label(pattern.key) }}
                             <span>{{ response.stats.groups ? '[' + (response.stats.groups[get_group_label(pattern.key)] || 0) + ']' : '' }}</span>
                         </li>
                         
-                        <li v-if="is_pattern_visible(pattern.key)" v-on:click.stop.prevent="select_pattern" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''">
+                        <li v-if="is_pattern_visible(pattern.key)" v-on:click.stop.prevent="select_pattern" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''"  v-bind:data-key="pattern.key">
                             <span v-bind:class="'pattern-condition pattern-condition-'+session.options.conditions[pattern.id]">
                                 <span class="glyphicon glyphicon-warning-sign pattern-error" v-if="pattern.error"></span>
-                                <span>{{pattern.key}}</span>
+                                <span class="pattern-key">{{pattern.key}}</span>
                                 <span v-if="!pattern.error">{{ response.stats.patterns ? '[' + (response.stats.patterns[pattern.id] || 0) + ']' : '' }}</span>
                             </span>
                         </li>
@@ -411,9 +415,9 @@
                     },
                     
                     changed_order: function (event, ui) {
-                        var pattern_key = ui.item.text().trim();
+                        var pattern_key = ui.item.attr('data-key').trim();
                         var prev = ui.item.prev('li');
-                        prev = prev.length ? prev.text().trim() : '';
+                        prev = prev.length ? prev.attr('data-key').trim() : '';
                         this.call_api('move_pattern', 'post', {pattern: pattern_key, previous: prev}, ['patterns']);
                     },
                     
@@ -466,6 +470,7 @@
                         var options = {
                             'ulimit': this.session.options.ulimit,
                             'urange': this.session.options.urange,
+                            'hilite': this.session.selected || '',
                         }
                         // send this in the body as it can be too long for URL
                         var data = {'conditions': this.session.options.conditions};

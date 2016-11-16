@@ -260,37 +260,29 @@
         </div>
     
         <div id="results-ui">
-            <ul class="nav nav-tabs">
-                <li class="active"><a data-toggle="tab" href="#tab-units">Units</a></li>
-                <li><a data-toggle="tab" href="#tab-variants">Variants</a></li>
-            </ul>
-    
-            <div class="tab-content">
-                <div id="tab-variants" class="tab-pane fade">
-                    <ul>
-                        <li v-for="variant in response.variants">
-                            {{ variant.hits }}: {{ variant.text }}
-                        </li>
-                    </ul>
-                </div>
-                <div id="tab-units" class="tab-pane fade in active">
-                    <div class="units" v-for="unit in response.segunits">
-                        <div class="unit">
-                            #{{ unit.unitid }}
-                            <div class="unit-content" v-html="unit.unit"></div>
-                            <br/>
-                            <div v-for="pattern in unit.patterns">
-                                <span v-bind:class="{'pattern-label': 1, 'missing-pattern': !pattern.instance}">
-                                    {{ get_pattern_key_from_id(pattern.id) }}
-                                </span>:
-                                {{ pattern.instance }}
-                            </div>
-                            <hr/>
+            <div id="tab-variants" class="tab-pane2 fade2">
+                <ul>
+                    <li v-for="variant in response.variants">
+                        {{ variant.hits }}: {{ variant.text }}
+                    </li>
+                </ul>
+            </div>
+            <div id="tab-units" class="tab-pane2 fade2 in active2">
+                <div class="units" v-for="unit in response.segunits">
+                    <div class="unit">
+                        #{{ unit.unitid }}
+                        <div class="unit-content" v-html="unit.unit"></div>
+                        <br/>
+                        <div v-for="pattern in unit.patterns">
+                            <span v-bind:class="{'pattern-label': 1, 'missing-pattern': !pattern.instance}">
+                                {{ get_pattern_key_from_id(pattern.id) }}
+                            </span>:
+                            {{ pattern.instance }}
                         </div>
+                        <hr/>
                     </div>
                 </div>
             </div>
-            
         </div>
         {% endverbatim %}
     </div>
@@ -319,14 +311,15 @@
                         'urange': '',
                         'ulimit': 10,
                         'conditions': {'woodland-4': 'ignore'},
-                        'toreturn': 'segunits.patterns,segunits.unit',
+                        'toreturn': 'segunits,segunits.patterns,segunits.unit',
                     },
                     'expanded': {
                     },
                 },
                 'toreturn': {
-                    'segunits.patterns,segunits.unit': 'Units & Patterns',
-                    'segunits.unit': 'Units',
+                    'segunits,segunits.patterns,segunits.unit': 'Units & Patterns',
+                    'segunits,segunits.unit': 'Units',
+                    'variants': 'Variants',
                 },
                 'conditions': {
                     '': 'May have',
@@ -504,7 +497,7 @@
                         var data = {'conditions': this.session.options.conditions};
                         // which means that we have to use POST (GET is not meant to carry a body)
                         // http://stackoverflow.com/q/14202257/3748764
-                        var toreturn = ['patterns', 'segunits', 'stats'];
+                        var toreturn = ['patterns', 'stats'];
                         this.session.options.toreturn.split(',').map(function(v) {toreturn.push(v);});
                         this.call_api('segunits', 'post', data, toreturn, options, function() {
                             $('#patterns-ui-screen').stop().animate({opacity: 1,});
@@ -536,7 +529,7 @@
                             for (key in data) {
                                 self.response[key] = data[key];
                             }
-                            if (data.segunits) {
+                            if (data.variants || data.segunits) {
                                 results_ui.response = data;
                             }
                         }).fail(function(jqXHR, textStatus) {

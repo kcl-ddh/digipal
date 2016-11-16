@@ -44,9 +44,11 @@ class PatternAnalyser(object):
         self.segunits = None
         self.regexs = {}
         self.stats = {}
+        self.toreturn = []
         self.messages = []
         self.namespace = 'default'
         self.options = {}
+        self.variants = {}
 
     def add_message(self, message, atype='info'):
         self.messages.append({'message': message, 'type': atype})
@@ -67,6 +69,9 @@ class PatternAnalyser(object):
         t0 = datetime.now()
         
         self.options = request.GET.copy()
+
+        # what to return?
+        self.toreturn = toreturn = request.REQUEST.get('ret', root).split(',')
 
         # make sure this is called AFTER self.options is set 
         patterns = self.get_patterns()
@@ -130,6 +135,7 @@ class PatternAnalyser(object):
             if request.method == 'POST':
                 if data:
                     self.options.update(data)
+                self.get_segunits()
         
         if modified:
             self.validate_patterns()
@@ -139,15 +145,14 @@ class PatternAnalyser(object):
         if pattern_errors:
             self.add_message('%s invalid patterns' % pattern_errors, 'warn')
 
-        # what to return?
-        toreturn = request.REQUEST.get('ret', root).split(',')
-        
         ret = {}
         
         if 'patterns' in toreturn:
             ret['patterns'] = self.get_patterns()
         if 'segunits' in toreturn:
             ret['segunits'] = self.get_json_from_segunits(toreturn)
+        if 'variants' in toreturn:
+            ret['variants'] = self.variants
         if 'stats' in toreturn:
             self.stats['duration_response'] = (datetime.now() - t0).total_seconds()
             ret['stats'] = self.stats
@@ -352,9 +357,6 @@ class PatternAnalyser(object):
         # TODO: derive the info from the faceted_search settings.py or from a new
         # settings variable.
 
-        context = {}
-        context['variants'] = {}
-
         # arguments
         args = self.options
         # unpack hilite
@@ -364,10 +366,8 @@ class PatternAnalyser(object):
         args['ignore'] = args.get('ignore', '')
         args['exclude'] = args.get('exclude', '')
         
-        context['ulimit'] = dputils.get_int(args.get('ulimit', 10), 10)
-        #context['urange'] = args.get('urange', '') or '25a1-62b2,83a1-493b3'
-        context['urange'] = args.get('urange', '')
-        context['vpatternid'] = args.get('selected_patternid', 0)
+        args['ulimit'] = dputils.get_int(args.get('ulimit', 10), 10)
+        args['urange'] = args.get('urange', '')
 
         # Get the text units
         hand_filters.chrono('units:')
@@ -382,31 +382,29 @@ class PatternAnalyser(object):
             if not types or 'F' not in types: continue
 
             # only selected range
-            if not self.is_unit_in_range(unit, context['urange']): continue
+            if not self.is_unit_in_range(unit, args['urange']): continue
 
             stats['range_size'] += 1
 
             # segment the unit
-            self.segment_unit(unit, context)
+            self.segment_unit(unit, args)
 
             if unit.match_conditions:
                 self.segunits.append(unit)
 
         hand_filters.chrono(':units')
 
-        variants = [{'text': variant, 'hits': context['variants'][variant]} for variant in sorted(context['variants'].keys())]
-        context['variants'] = variants
+        self.variants = [{'text': variant, 'hits': self.variants[variant]} for variant in sorted(self.variants.keys())]
 
         # stats
         stats['result_size'] = len(self.segunits)
         stats['result_size_pc'] = int(100.0 * stats['result_size'] / stats['range_size']) if stats['range_size'] else 'N/A'
 
         # limit size of returned result
-        if context['ulimit'] > 0:
-            self.segunits = self.segunits[0:context['ulimit']]
+        if args['ulimit'] > 0:
+            self.segunits = self.segunits[0:args['ulimit']]
 
         stats['duration_segmentation'] = (datetime.now() - t0).total_seconds()
-        context['stats'] = stats
 
     def get_condition(self, pattern):
         if pattern['key'].startswith('helper_'): return 'ignore'
@@ -425,7 +423,7 @@ class PatternAnalyser(object):
 
         return ret
 
-    def segment_unit(self, unit, context):
+    def segment_unit(self, unit, args):
         patterns = self.get_patterns()
         unit.patterns = []
         found_groups = {}
@@ -433,7 +431,7 @@ class PatternAnalyser(object):
         unit.match_conditions = True
 
         self.get_plain_content_from_unit(unit)
-
+        
         first_match_only = True
 
         for pattern in patterns:
@@ -450,18 +448,19 @@ class PatternAnalyser(object):
                 found = False
                 if 1:
                     for match in rgx.finditer(unit.plain_content):
-                        span_class = ' ms' if patternid in self.options['hilite'] else ''
+                        hilited = patternid in self.options['hilite']
+                        span_class = ' ms' if hilited else ''
                         found = True
                         unit.patterns.append([patternid, match.group(0)])
                         # mark it up
                         unit.plain_content = unit.plain_content[0:match.end()] + '</span>' + unit.plain_content[match.end():]
                         unit.plain_content = unit.plain_content[0:match.start()] + '<span class="m'+span_class+'">' + unit.plain_content[match.start():]
 
-                        if str(context.get('selected_patternid', 0)) == str(pattern['id']):
+                        if hilited and ('variants' in self.toreturn):
                             variant = match.group(0)
                             variant = re.sub(self.patterns_internal['<number>'], ur'<number>', variant)
                             variant = re.sub(ur'\b[A-Z]\w+\b', ur'<name>', variant)
-                            context['variants'][variant] = context['variants'].get(variant, 0) + 1
+                            self.variants[variant] = self.variants.get(variant, 0) + 1
 
                         if first_match_only: break
 

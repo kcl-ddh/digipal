@@ -34,11 +34,6 @@ def patterns_api_view(request, root, path):
     return ret
 
 class PatternAnalyser(object):
-
-    patterns_internal = {
-        ur'<number>': ur'\b(duabus|aliam|dimid|dimidi%|unam|[ iuxlcmdMD]+( et [ iuxlcmdMD]+)?)\b',
-    }
-    
     def __init__(self):
         self.patterns = None
         self.segunits = None
@@ -328,7 +323,7 @@ class PatternAnalyser(object):
 
         helpers = [
             ('', ur''),
-            ('number', self.patterns_internal['<number>']),
+            ('number', ur'\b(duabus|duae|duas|due|duo|duorum|duos|dve|dimid|dimidi%|dimd%|centum|mill%|decem|nonaginta|nouem|octo|octoginta|quadringentis|quattuor|quatuor|quindecim|quinquaginta|quinque|sex|tres|tribus|uiginti|unam|uno|unius|unum|unus|[iuxlcmdMD]+(( | et )[iuxlcmdMD]+)?)\b'),
             ('measurement', ur'<number> <PATTERN>( et dimid%| et <number> <PATTERN>| <number> minus| <number> <PATTERN> minus)*'),
             ('person', ur'\w\w%'),
             ('name', ur'\w+(( et)? [A-Z]\w*)*'),
@@ -427,6 +422,18 @@ class PatternAnalyser(object):
         patterns = self.get_patterns()
         unit.patterns = []
         found_groups = {}
+        
+        pattern_number = self.get_pattern_from_key('helper_number')
+        if pattern_number:
+            pattern_number = pattern_number['pattern']
+        else:
+            pattern_number = ur'NUMBER' 
+#         pattern_name = self.get_pattern_from_key('helper_name') or ur'NAME'
+#         if pattern_name:
+#             pattern_name = pattern_name['pattern']
+#         else:
+#             pattern_name = ur'NAME' 
+        pattern_name = ur'[A-Z]\w+(( et)? [A-Z]\w*)*'
 
         unit.match_conditions = True
 
@@ -458,8 +465,8 @@ class PatternAnalyser(object):
 
                         if hilited and ('variants' in self.toreturn):
                             variant = match.group(0)
-                            variant = re.sub(self.patterns_internal['<number>'], ur'<number>', variant)
-                            variant = re.sub(ur'\b[A-Z]\w+\b', ur'<name>', variant)
+                            variant = re.sub(pattern_number, ur'<number>', variant)
+                            variant = re.sub(pattern_name, ur'<name>', variant)
                             self.variants[variant] = self.variants.get(variant, 0) + 1
 
                         if first_match_only: break
@@ -611,21 +618,6 @@ class PatternAnalyser(object):
                         if ret == before:
                             break
                     
-                    if 0:
-                        for keyword in 'hide,peasant,livestock,money'.split(','):
-                            ret = ret.replace(ur'<'+keyword+ur's>', ur'<number> <'+keyword+ur'>( et dimid%| et <number> <'+keyword+ur'>| <number> minus| <number> <'+keyword+ur'> minus)*')
-                            
-                        ret = ret.replace(ur'<title>', ur'\b(abbas|comes|capellanus|episcopus|frater|mater|presbiter|regina|rex|tagn%|taigni|tainn%|tangi|tangn%|tani|tanni%|tanorum|tanus|tegn%|teign%|teinorum|tenus|thesaurarius|uicecomes|uxor)\b')
-                        ret = ret.replace(ur'<hide>', ur'\b(hid%|uirg%|urig%|fer.i%|agr%|car%c%)\b')
-                        ret = ret.replace(ur'<peasant>', ur'\b(uillan%|bordar%|cott?ar%|costcet%|seru%)\b')
-                        ret = ret.replace(ur'<livestock>', ur'\b(porc%|oues%|capra%|animal%|ronc%|runc%|uacas)\b')
-                        ret = ret.replace(ur'<money>', ur'\b(solidos|libras|obolum|obolus|numm%|denar%)\b')
-        
-                        ret = ret.replace(ur'<number>', self.patterns_internal['<number>'])
-                        ret = ret.replace(ur'<person>', ur'\w\w%')
-                        # !! How to remove Has? 28a1
-                        ret = ret.replace(ur'<name>', ur'\w+(( et)? [A-Z]\w*)*')
-
                     # LOW LEVEL SYNTACTIC SUGAR
                     if not 'error' in pattern:
                         #  e.g. x (<number>)? y

@@ -250,7 +250,8 @@
                         <option v-bind:value="ckey" v-for="(label, ckey) in exclude">{{ label }}</option>
                     </select>
                 </div>
-                <button class="form-control btn btn-primary" type="submit" v-on:click="apply_patterns" name="update">Update</button>
+                <button class="form-control btn btn-primary" type="submit" v-on:click="on_click_update_button" name="update">Update</button>
+                <button class="form-control btn btn-primary" type="submit" v-on:click="download_patterns" name="download">Download</button>
             </div>
             
             <div class="stats panel" v-if="response.stats.result_size">
@@ -481,7 +482,15 @@
                         return pattern_key.replace(/(-\d+|_[^_]*)$/, '');
                     },
                     
-                    apply_patterns: function () {
+                    download_patterns: function() {
+                        this.apply_patterns('csv');
+                    },
+                    
+                    on_click_update_button: function() {
+                        this.apply_patterns();
+                    },
+
+                    apply_patterns: function(format) {
                         $('#patterns-ui-screen').stop().animate({
                             opacity: 0.50,
                         }, 500);
@@ -492,7 +501,9 @@
                             'hilite': this.session.selected || '',
                             'ignore': this.session.options.ignore,
                             'exclude': this.session.options.exclude,
+                            'format': format,
                         }
+
                         // send this in the body as it can be too long for URL
                         var data = {'conditions': this.session.options.conditions};
                         // which means that we have to use POST (GET is not meant to carry a body)
@@ -508,29 +519,40 @@
                     	var self = this;
                         path = path.replace(/(^\/|\/$)/g, '') + '/';
                         toreturn = toreturn || [path.replace(/\/.*$/, '')];
-                        qs = qs || '';
+                        qsa = '';
                         if (qs) {
-                        	var qsa = [];
-                        	for (var k in qs) {
-                        		qsa.push(k+'='+qs[k]);
-                        	}
-                            qs = '&'+qsa.join('&');
+                            var qsa = [];
+                            for (var k in qs) {
+                                if (qs[k]) qsa.push(k+'='+qs[k]);
+                            }
+                            if (qsa) qsa = '&'+qsa.join('&');
                         }
                         var req = $.ajax({
-                            url: '/digipal_text/api/'+path+'?ret='+(toreturn.join(','))+qs,
+                            url: '/digipal_text/api/'+path+'?ret='+(toreturn.join(','))+qsa,
                             type: method,
                             data: data ? JSON.stringify(data) : null,
-                            dataType: 'json',
-                        }).success(function(data) {
-                            // merge with out previous responses.
-                            // so we can get partial response, more efficient.
-                            self.response.messages = [];
-                            // send response to our different views
-                            for (key in data) {
-                                self.response[key] = data[key];
-                            }
-                            if (data.variants || data.segunits) {
-                                results_ui.response = data;
+                            /*dataType: 'json',*/
+                        }).success(function(data, textStatus, jqXHR) {
+                            var content_type = jqXHR.getResponseHeader('content-type');
+                            if (/^text\/csv/.test(content_type)) {
+                                var $a = $('<a>link</a>');
+                                $a.attr('href', 'data:attachment/csv,' + (content_type, encodeURIComponent(data)));
+                                $a.attr('target', '_blank');
+                                $a.attr('download', 'segments.csv');
+                                $(body).append($a);
+                                $a.get(0).click();
+                                $a.remove();
+                            } else {
+                                // merge with out previous responses.
+                                // so we can get partial response, more efficient.
+                                self.response.messages = [];
+                                // send response to our different views
+                                for (key in data) {
+                                    self.response[key] = data[key];
+                                }
+                                if (data.variants || data.segunits) {
+                                    results_ui.response = data;
+                                }
                             }
                         }).fail(function(jqXHR, textStatus) {
                             self.response.messages = [{

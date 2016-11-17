@@ -908,7 +908,7 @@ def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
                 row_encoded = {}
                 #print repr(row)
                 for k,v in row.iteritems():
-                    row_encoded[k] = unicode(v).encode(encoding)
+                    row_encoded[k] = unicode(v).encode(encoding, 'replace')
                 csvwriter.writerow(row_encoded)
 
 def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=None, same_as_above=None):
@@ -1519,7 +1519,14 @@ def json_loads(data):
 def get_json_response(data):
     '''Returns a HttpResponse with the given data variable encoded as json'''
     from django.http.response import HttpResponse
-    ret = HttpResponse(json_dumps(data), content_type='application/json')
+    ret = HttpResponse(json_dumps(data), content_type='application/json; charset=utf-8', )
+    ret['Access-Control-Allow-Origin'] = '*'
+    return ret
+
+def get_csv_response(data, charset='latin-1'):
+    '''Returns a HttpResponse with the given data variable encoded as json'''
+    from django.http.response import HttpResponse
+    ret = HttpResponse(data, content_type='text/csv; charset=%s' % charset)
     ret['Access-Control-Allow-Origin'] = '*'
     return ret
 

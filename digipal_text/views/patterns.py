@@ -14,6 +14,7 @@ from digipal.templatetags import hand_filters, html_escape
 from django.http.response import HttpResponse
 from digipal.models import KeyVal
 from datetime import datetime
+from django.conf import settings
 dplog = logging.getLogger('digipal_debugger')
 
 from django.views.decorators.csrf import csrf_exempt
@@ -30,7 +31,16 @@ def patterns_view(request):
 def patterns_api_view(request, root, path):
     ana = PatternAnalyser()
     data = ana.process_request_api(request, root, path)
-    ret = dputils.get_json_response(data)
+    format = data.get('format', 'json')
+    if format in ['csv']:
+        file_name = 'patterns.csv'
+        import os
+        file_path = os.path.join(settings.MEDIA_ROOT, file_name)
+        dputils.write_rows_to_csv(file_path, data['csv'], encoding=None, headings=['unitid', 'pattern_group', 'pattern_key', 'segment', 'variant'])
+        data = dputils.read_file(file_path)
+        ret = dputils.get_csv_response(data)
+    else:
+        ret = dputils.get_json_response(data)
     return ret
 
 class PatternAnalyser(object):
@@ -64,7 +74,7 @@ class PatternAnalyser(object):
         t0 = datetime.now()
         
         self.options = request.GET.copy()
-
+        
         # what to return?
         self.toreturn = toreturn = request.REQUEST.get('ret', root).split(',')
 
@@ -152,8 +162,34 @@ class PatternAnalyser(object):
             self.stats['duration_response'] = (datetime.now() - t0).total_seconds()
             ret['stats'] = self.stats
         ret['messages'] = self.messages
+        ret['format'] = self.options.get('format', 'json')
+        
+        if ret['format'] == 'csv':
+            ret['csv'] = self.get_csv_from_segunits()
 
         return ret
+    
+    def get_csv_from_segunits(self):
+        ret = []
+        for unit in self.get_segunits():
+            for pattern in unit.patterns:
+                if pattern[1]:
+                    definition = self.get_pattern_from_id(pattern[0])
+                    row = {
+                        'unitid': unit.unitid,
+                        'pattern_group': self.get_group_key_from_pattern_key(definition['key']),
+                        'pattern_key': definition['key'],
+                        'segment': pattern[1],
+                        'variant': self.get_variant_from_segment(pattern[1]),
+                    }
+                    ret.append(row)
+        return ret
+    
+    def get_variant_from_segment(self, segment):
+        variant = segment
+        for k, rgx in self.variant_patterns.iteritems():
+            variant = rgx.sub(ur'<%s>' % k, variant)
+        return variant
     
     def auto_correct_pattern(self, pattern):
         pattern['key'] = pattern.get('key', '').strip()
@@ -344,8 +380,24 @@ class PatternAnalyser(object):
         
         return ret
 
+    def init_variant_patterns(self):
+        self.variant_patterns = {
+            'name': ur'[A-Z]\w+(( et)? [A-Z]\w*)*',
+        }
+        for k in 'number'.split(','):
+            p = self.get_pattern_from_key('helper_%s' % k)
+            if p:
+                p = p['pattern']
+            else:
+                p = k.upper()
+            self.variant_patterns[k] = p
+        for k, p in self.variant_patterns.iteritems():
+            self.variant_patterns[k] = re.compile(p)
+
     def segment_units(self):
         self.segunits = []
+        
+        self.init_variant_patterns()
 
         t0 = datetime.now()
 
@@ -422,17 +474,6 @@ class PatternAnalyser(object):
         unit.patterns = []
         found_groups = {}
         
-        pattern_number = self.get_pattern_from_key('helper_number')
-        if pattern_number:
-            pattern_number = pattern_number['pattern']
-        else:
-            pattern_number = ur'NUMBER' 
-#         pattern_name = self.get_pattern_from_key('helper_name') or ur'NAME'
-#         if pattern_name:
-#             pattern_name = pattern_name['pattern']
-#         else:
-#             pattern_name = ur'NAME' 
-        pattern_name = ur'[A-Z]\w+(( et)? [A-Z]\w*)*'
         rgx_matched = re.compile(ur'[_<>]')
 
         unit.match_conditions = True
@@ -460,9 +501,7 @@ class PatternAnalyser(object):
 
                 # add variant
                 if hilited and ('variants' in self.toreturn):
-                    variant = segment
-                    variant = re.sub(pattern_number, ur'<number>', variant)
-                    variant = re.sub(pattern_name, ur'<name>', variant)
+                    variant = self.get_variant_from_segment(segment)
                     self.variants[variant] = self.variants.get(variant, 0) + 1
 
                 return rep

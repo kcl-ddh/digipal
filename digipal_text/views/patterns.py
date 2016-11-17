@@ -35,7 +35,7 @@ def patterns_api_view(request, root, path):
     if format in ['csv']:
         file_name = 'patterns.csv'
         import os
-        file_path = os.path.join(settings.MEDIA_ROOT, file_name)
+        file_path = os.path.join(settings.MEDIA_ROOT, 'uploads', file_name)
         dputils.write_rows_to_csv(file_path, data['csv'], encoding=None, headings=['unitid', 'pattern_group', 'pattern_key', 'segment', 'variant'])
         data = dputils.read_file(file_path)
         ret = dputils.get_csv_response(data)

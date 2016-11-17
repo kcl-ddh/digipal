@@ -356,7 +356,6 @@ class PatternAnalyser(object):
         args = self.options
         # unpack hilite
         args['hilite'] = args.get('hilite', '').split(',')
-        print repr(args['hilite'])
         args['hilite_groups'] = [self.get_group_key_from_pattern_key(self.get_pattern_from_id(pid)['key']) for pid in args['hilite'] if pid and self.get_pattern_from_id(pid)]
         args['ignore'] = args.get('ignore', '')
         args['exclude'] = args.get('exclude', '')
@@ -434,13 +433,12 @@ class PatternAnalyser(object):
 #         else:
 #             pattern_name = ur'NAME' 
         pattern_name = ur'[A-Z]\w+(( et)? [A-Z]\w*)*'
+        rgx_matched = re.compile(ur'[_<>]')
 
         unit.match_conditions = True
 
         self.get_plain_content_from_unit(unit)
         
-        first_match_only = True
-
         for pattern in patterns:
             patternid = pattern['id']
             if not patternid: continue
@@ -449,27 +447,31 @@ class PatternAnalyser(object):
 
             # get regex from pattern
             rgx = self.get_regex_from_pattern(patterns, patternid)
+            hilited = patternid in self.options['hilite']
+            
+            def markup_segment(match):
+                segment = match.group(0)
+                if rgx_matched.search(segment, 1): return segment
+                
+                # mark it up
+                span = '<span class="m ms">' if hilited else '<span class="m">'
+                unit.patterns.append([patternid, segment])
+                rep = ur'%s%s</span>' % (span, segment.replace(' ', '_'))
+
+                # add variant
+                if hilited and ('variants' in self.toreturn):
+                    variant = segment
+                    variant = re.sub(pattern_number, ur'<number>', variant)
+                    variant = re.sub(pattern_name, ur'<name>', variant)
+                    self.variants[variant] = self.variants.get(variant, 0) + 1
+
+                return rep
 
             # apply regex to unit
             if rgx:
-                found = False
-                if 1:
-                    for match in rgx.finditer(unit.plain_content):
-                        hilited = patternid in self.options['hilite']
-                        span_class = ' ms' if hilited else ''
-                        found = True
-                        unit.patterns.append([patternid, match.group(0)])
-                        # mark it up
-                        unit.plain_content = unit.plain_content[0:match.end()] + '</span>' + unit.plain_content[match.end():]
-                        unit.plain_content = unit.plain_content[0:match.start()] + '<span class="m'+span_class+'">' + unit.plain_content[match.start():]
-
-                        if hilited and ('variants' in self.toreturn):
-                            variant = match.group(0)
-                            variant = re.sub(pattern_number, ur'<number>', variant)
-                            variant = re.sub(pattern_name, ur'<name>', variant)
-                            self.variants[variant] = self.variants.get(variant, 0) + 1
-
-                        if first_match_only: break
+                len_before = len(unit.plain_content)
+                unit.plain_content, found = rgx.subn(markup_segment, unit.plain_content, 1)
+                found = len(unit.plain_content) != len_before
 
                 if (condition == 'include' and not found) or (condition == 'exclude' and found):
                     unit.match_conditions = False
@@ -481,6 +483,9 @@ class PatternAnalyser(object):
         
         for group in found_groups:
             self.stats['groups'][group] += 1
+            
+        if found_groups:
+            unit.plain_content = unit.plain_content.replace('_', ' ')
 
     def get_plain_content_from_unit(self, aunit):
         from django.core.cache import cache

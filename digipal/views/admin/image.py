@@ -278,17 +278,12 @@ def image_bulk_edit(request, url=None):
                                 folio.locus = result
                                 folio.save()
                 if str(request.POST.get('hand_set', '0')) == '1':
-                    if handid == '-2':
-                        if folio.item_part:
-                            hand = Hand(item_part=folio.item_part, num=1, label=Hand.get_default_label())
-                            hand.save()
-                            handid = hand.id
-                    if handid != '0':
-                        if handid == '-1':
-                            folio.hands.through.objects.filter(image=folio).delete()
-                        else:
-                            folio.hands.add(Hand.objects.get(id=handid))
-                    modified = True
+                    if handid == '-1':
+                        folio.hands.through.objects.filter(image=folio).delete()
+                    else:
+                        assign_hand_to_folio(handid, folio)
+                        
+                    #modified = True
                 if str(request.POST.get('perm_set', '0')) == '1':
                     permid = str(request.POST.get('perm', '0'))
                     if permid != '0':
@@ -347,5 +342,28 @@ def image_bulk_edit(request, url=None):
     #return view_utils.get_template('admin/editions/folio_image/bulk_edit', context, request)
     return render(request, 'admin/page/bulk_edit.html', context)
 
+def assign_hand_to_folio(handid, folio):
+    '''Assign Hand (with id=handid) to the given folio object
+       If handid == '-2' assign a default hand (create if it doesn't already exist for the itempart)
+       Returns the hand object
+    '''
+    ret = None
+    
+    if handid == '-2':
+        # get the default hand for that item part
+        options = {'item_part': folio.item_part, 'label': Hand.get_default_label()}
+        ret = Hand.objects.filter(**options).first()
+        if not ret:
+            # create default hand for that item part
+            ret = Hand(**options)
+            # TODO: check if another hand exists with num=1
+            ret.num = 1
+            ret.save()
+    else:
+        ret = Hand.objects.get(id=handid)
 
-
+    if ret:
+        folio.hands.add(ret)
+    
+    return ret 
+    

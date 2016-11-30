@@ -39,7 +39,7 @@
     <td>
         {% for hand in folio.hands.all %}
             {% if not forloop.first %}, {% endif %}
-            {{ hand }}
+            <a href="/admin/digipal/hand/{{hand.id}}/">{{ hand }}</a>
         {% empty %}
             <span style="color:red">no hand</span>
         {% endfor %}

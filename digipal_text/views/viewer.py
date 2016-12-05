@@ -627,8 +627,6 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
 
             # add all the elements found on that page in the transcription
             # ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), location_type, location)
-#             print 'get_locus_from_location(%s, %s)' % (location_type, location)
-#             print get_locus_from_location(location_type, location)
             ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), 'locus', get_locus_from_location(location_type, location))
 
             # print ret['text_elements']
@@ -753,7 +751,7 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
     if text_info.get('status', None) == 'error' and 'location not found' in text_info['message'].lower():
         # location not found, try the whole text
         text_info = text_api_view_text(request, item_partid, content_type, 'whole', '', content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE)
-
+        
     # extract all the elements
     if text_info.get('status', '').lower() != 'error':
 #         print '-' * 80
@@ -883,10 +881,11 @@ def find_image(request, item_partid, location_type, location, get_visible_images
     return image
 
 def get_locus_from_location(location_type, location):
+    '''Returns a locus (e.g. 31r) from a (location_type, location)
+        Accepts entry numbers: e.g. ('entry', '31a5') => '31r'
+    '''
     ret = location
 
-    # e.g. location = 54b2 (entry number)
-    # => convert to 54v
     # TODO: check location_type
     # TODO: this is a customisation for EXON,
     # unlikely to be relevant for other projects
@@ -894,7 +893,7 @@ def get_locus_from_location(location_type, location):
     if parts:
         number = parts.group(1)
         side = 'r'
-        if parts.group(2) and parts.group(2) == 'b': side = 'v'
+        if parts.group(2) and parts.group(2) in ['b', 'v']: side = 'v'
         ret = number + side
 
     return ret

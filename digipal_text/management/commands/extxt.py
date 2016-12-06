@@ -41,6 +41,7 @@ Commands:
         Set the optimal order for a shire
 
     handentry
+        DEPRECATED, please see digipal_text.models#EntryHand model
         Map the hands to the entries
 
     setquire

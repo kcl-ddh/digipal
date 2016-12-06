@@ -23,6 +23,9 @@ Commands:
 
   csv2table CSV_FILE_PATH [--offset=LINE_OFFSET]
       (Re)Create a table from a CSV file. Only schema, not the data.
+      
+  table2csv TABLE_NAME
+      Write all record found in table TABLE_NAME into TABLE_NAME.csv
 
   csv2records CSV_FILE_PATH [--offset=LINE_OFFSET]
       (Re)Import the data from a CSV file. Use csv2table to create the table first.
@@ -158,6 +161,10 @@ Commands:
         if command == 'convert_exon_folio_numbers':
             known_command = True
             self.convert_exon_folio_numbers()
+
+        if command == 'table2csv':
+            known_command = True
+            self.createCSVFromTable()
 
         if command == 'csv2table':
             known_command = True
@@ -1862,6 +1869,29 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         ret = re.sub(ur'^.*?([^\\/]+)\..*?$', ur'\1', path)
         return ret
 
+    def createCSVFromTable(self):
+        options = self.options
+
+        table_name = self._args[1]
+        file_path = table_name + '.csv'
+
+        import csv
+        with open(file_path, 'wb') as csvfile:
+            csvwriter = csv.writer(csvfile)
+
+            query = 'SELECT * from %s' % table_name
+            rows = dputils.sql_select_dict(query)
+            
+            if rows:
+                cols = rows[0].keys()
+                csvwriter.writerow(cols)
+
+                for row in rows:
+                    values = [row[col] for col in cols]
+                    csvwriter.writerow(values)
+        
+        print 'Written %s (%s rows)' % (file_path, len(rows))
+        
     def createTableFromCSV(self):
         options = self.options
 
@@ -1922,9 +1952,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
     def create_table_index(self, table_name, options=None):
         # TODO: move to local_settings.py
         # EXON specific...
+        # entries_hands is DEPRECATED, replaced by digipal_text_hand
         create_table_index_data = {
             'entries_hands': ['hands', 'entry'],
-            'exon_master': ['revisedellisnos'],
+            'exon_master': ['revisedellisnos', 'hundred', 'shire', 'fief'],
         }
 
         fields = create_table_index_data.get(table_name, None)

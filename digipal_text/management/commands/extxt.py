@@ -13,6 +13,7 @@ import os
 # pandoc "exon\source\rekeyed\word\EXON-word2.html" -o "exon\source\rekeyed\word\EXON-word.docx"
 
 import unicodedata
+from exon.customisations.digipal_text.models import Entry
 #from xhtml2pdf.pisa import showLogging
 def remove_accents(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
@@ -42,6 +43,7 @@ Commands:
 
     handentry
         DEPRECATED, please see digipal_text.models#EntryHand model
+            See setentryhand command
         Map the hands to the entries
 
     setquire
@@ -173,6 +175,10 @@ Commands:
             known_command = True
             self.latinnames_command()
 
+        if command == 'test_entries':
+            known_command = True
+            self.test(command)
+
         if known_command:
             self.cm.printSummary()
             print 'done'
@@ -184,6 +190,12 @@ Commands:
         cs = CodicologicalSequence()
         cs.getContext()
         cs.sort()
+        
+    def test(self, command):
+        if command == 'test_entries':
+            for entry in Entry.objects.all().iterator():
+                x = entry.get_hand()
+                y = entry.get_entry_type()
 
     def latinnames_command(self):
         names = {}
@@ -505,6 +517,8 @@ Commands:
 
 
     def handentry_command(self):
+        raise Exception('DEPRECATED, please use setentryhand command.')
+        
         #hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')
         #entries = self.get_entries()
 

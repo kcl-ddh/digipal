@@ -489,7 +489,12 @@ def get_xml_element_text(element):
 def get_xslt_transform(source, template, error=None, remove_empty_xmlns=False):
     dom = get_xml_from_unicode(source)
     xslt = get_xml_from_unicode(template)
-    transform = ET.XSLT(xslt)
+    try:
+        transform = ET.XSLT(xslt)
+    except Exception, e:
+        for entry in e.error_log:
+            print '%s: %s (line %s, %s)' % (entry.type_name, entry.message, entry.line, entry.column)
+        raise e
     newdom = transform(dom)
     #print(ET.tostring(newdom, pretty_print=True))
     ret = newdom

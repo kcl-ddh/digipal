@@ -1585,4 +1585,16 @@ utc = UTC()
 def now():
     '''Returns UTC now datetime with time-zone'''
     return datetime.now(utc)
+
+def cmp_locus(l1, l2):
+    # compare two locuses
+    # return -1 if locus1 < locus 2
+    # 1 if >
+    # 0 if =
+    l1 = natural_sort_key(l1, 1, 1)
+    l2 = natural_sort_key(l2, 1, 1)
     
+    if l1 < l2: return -1
+    elif l1 > l2: return 1
+
+    return 0

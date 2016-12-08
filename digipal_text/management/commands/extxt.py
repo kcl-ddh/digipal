@@ -33,7 +33,11 @@ Commands:
         Test a regexp pattern on a XHTML file
 
     upload PATH_TO_XHTML CONTENTID
-        Import XHTML file
+        Import XHTML file into database XML content with given ID
+
+    uploadpart PATH_TO_XHTML CONTENTID
+        Same as 'upload' but PATH_TO_XHTML is a fragment, the rest of the
+        text will remain teh same in teh database
 
     hundorder SHIRE
         Find the best order for hundreds in a shire
@@ -150,6 +154,10 @@ Commands:
         if command == 'upload':
             known_command = True
             self.upload()
+
+        if command == 'uploadpart':
+            known_command = True
+            self.upload(is_fragment=1)
 
         if command == 'hundorder':
             known_command = True
@@ -1532,7 +1540,12 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         dputils.strip_xml_tags(xml, './/TOBEREMOVED')
 
-    def upload(self):
+    def upload(self, is_fragment=0):
+        # If is_fragment is 1 the input HTML file is considered to be a fragment,
+        # the rest of the text will remain untouched in the database.
+        # If is_framgent is 0, the whole text in the database is replaced with 
+        # input  HTML document.
+          
         input_path = self.cargs[0]
         recordid = self.cargs[1]
 
@@ -1756,15 +1769,80 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         #
         content = regex.sub(ur'</p>', u'</p>\n', content)
 
-        # import
+        self.replace_fragment(content, recordid, is_fragment=is_fragment)
+
+    def replace_fragment(self, content, recordid, is_fragment=0):
         from digipal_text.models import TextContentXML
         text_content_xml = TextContentXML.objects.get(id=recordid)
-        text_content_xml.content = content
 
-        #print repr(content)
+        start = 0
+        end = -1
+        if is_fragment:
+            # Detect the range of locuses from the new content, e.g. 5r-6r
+            locations = re.findall(ur'<span data-dpt="location" data-dpt-loctype="locus">\s*([^<]+)\s*</span>', content)
+            if len(locations) < 2:
+                raise Exception('ERROR: the input fragment should contain locuses. e.g. <span data-dpt="location" data-dpt-loctype="locus">1r</span>')
+            locations = locations[0], locations[-1]
+            #locations = '1r', '0v'
+            print 'Input fragment: %s-%s' % (locations[0], locations[1])
+            
+            # Get the matching range in the existing text.
+            # e.g. 5r-6r
+            # Complication if we have missing locuses in the existing text:
+            #     Existing text: 1,2,3, 7,8
+            #     Search for 5r-6r
+            #     We return 3v-7r
+            existing_locations = re.findall(ur'<span data-dpt="location" data-dpt-loctype="locus">\s*([^<]+)\s*</span>', text_content_xml.content or '')
+            
+            from digipal_text.views.viewer import get_fragment_extent
+            matching_locations = [None, None]
+            dir = 1
+            for i in [0, 1]:
+                for location in existing_locations[::dir]:
+                    if dputils.cmp_locus(locations[i], location) != -dir:
+                        matching_locations[i] = location
+                dir = -1
+            
+            print 'Matching fragment: %s-%s' % (matching_locations[0], matching_locations[1])
+            
+            # Get the existing fragment extent from the matching location
+            # Simple case: Search for 5r-6r, matched with 5r-6r
+            #    We return [beginning of 5r, end of 6r]
+            # Complicated case: Search for 5r-6r, matched with 3v-7r
+            #    We return [end of 3v, beginning of 7r]
+            matching_extent = [0, -1]
+            for i in [0, 1]:
+                if matching_locations[i] is not None:
+                    extent = get_fragment_extent(text_content_xml.content, 'locus', location=matching_locations[i])
+                    if extent is not None:
+                        posi = i
+                        if matching_locations[i] != locations[i]:
+                            # Complicated case:
+                            posi = 1 - posi
+                        pos = extent[posi]
+                        matching_extent[i] = pos
+            
+            print 'Matching extent: %s-%s (full extent %s-%s)' % (matching_extent[0], matching_extent[1], 0, len(text_content_xml.content))
+            
+            # replacement
+            new_content = text_content_xml.content
+            markers = ['', '']
+            if self.is_dry_run(): markers = ['[[[', ']]]']
+            text_content_xml.content = new_content[:matching_extent[0]] + markers[0] + content + markers[1] + new_content[matching_extent[1]:]
+        else:
+            # replacement
+            text_content_xml.content = content
 
-        text_content_xml.save()
-
+        if not self.is_dry_run():
+            text_content_xml.save()
+        else:
+            file_name = 'tcx%s.new.xml' % text_content_xml.id
+            dputils.write_file(file_name, text_content_xml.content)
+            print 'WARNING: nothing saved, remove --dry-run to apply changes. (Written new output in %s, look for "[[[" and "]]]").' % file_name 
+            
+    def is_dry_run(self):
+        return self.options.get('dry-run', False)
+        
     def convert_exceptions(self, content):
         '''Convert exceptions to the rules, as described by FT.'''
         # _underlined_, /italics/

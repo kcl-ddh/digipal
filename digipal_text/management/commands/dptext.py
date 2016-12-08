@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 import re
+from digipal import utils as dputils
 from optparse import make_option
 from digipal.utils import re_sub_fct, get_int
 from digipal_text.models import TextContentXML
@@ -291,17 +292,17 @@ Commands:
         xml_string = read_file(xml_path)
 
         # III get the XML into a string
-        xml = get_xml_from_unicode(xml_string)
         if xpath:
+            xml = get_xml_from_unicode(xml_string)
             els = xml.xpath(xpath)
             if len(els) > 0:
                 root = els[0]
             else:
                 raise Exception(u'No match for XPATH "%s"' % xpath)
+            from lxml import etree
+            content = etree.tostring(root, encoding="UTF-8")
         else:
-            root = xml.getroot()
-        from lxml import etree
-        content = etree.tostring(root, encoding="UTF-8")
+            content = xml_string
 #         print type(root)
 #         print dir(root)
 #         content = str(root)

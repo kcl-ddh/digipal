@@ -160,6 +160,38 @@ Commands:
             known_command = True
             self.test_mem(*args[1:])
 
+        if command =='cmp_locus':
+            known_command = True
+            from digipal import utils as dputils
+            
+            cases = [
+                ['1r', '2r', -1],
+                ['2r', '1r', 1],
+                ['1r', '1r', 0],
+                ['1r', '1v', -1],
+                ['1v', '2r', -1],
+                ['15r', '2r', 1],
+                ['15r', '20r', -1],
+                ['235r', '235br', -1],
+                ['235v', '235br', -1],
+                ['235br', '235bv', -1],
+                ['235br', '236r', -1],
+            ]
+            
+            fail_count = 0
+            for case in cases:
+                res = dputils.cmp_locus(case[0], case[1])
+                if res != case[2]:
+                    fail_count += 1 
+                    print 'FAILED: %s, got %s' % (repr(case), res)
+            
+            print '%s / %s' % (len(cases) - fail_count, len(cases))
+
+        if command == 'get_locuses':
+            from digipal.models import Image
+            existing_locations = dputils.sorted_natural(Image.objects.filter(item_part__display_label__icontains='ex').values_list('locus', flat=1), 0, 1)
+            print '\n'.join(existing_locations)
+
         if command == 'date_prob':
             known_command = True
             self.date_prob(*args[1:])

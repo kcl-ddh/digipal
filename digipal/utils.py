@@ -896,91 +896,6 @@ def add_keywords(obj, keywords='', remove=False):
 
     return ret
 
-def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
-    '''
-        rows: a list of records, each record is a dictionary with key/values
-            all records must have the same keys
-
-        output: write a csv file [file_path] with all the rows
-    '''
-    encoding = encoding or 'Latin-1'
-    import csv
-    with open(file_path, 'wb') as csvfile:
-        if len(rows):
-            csvwriter = csv.DictWriter(csvfile, headings or rows[0].keys())
-            csvwriter.writeheader()
-            for row in rows:
-                row_encoded = {}
-                #print repr(row)
-                for k,v in row.iteritems():
-                    row_encoded[k] = unicode(v).encode(encoding, 'replace')
-                csvwriter.writerow(row_encoded)
-
-def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=None, same_as_above=None):
-    '''
-        Read a CSV file and returns an ARRAY where
-        each entry correspond to a line in the file.
-        It is assumed that the first line of the CSV
-        contains the headings.
-
-        Each entry in the returned array is a DICTIONARY
-        where the keys are the column headings and the
-        values in the corresponding line in the file.
-
-        If ignore_incomplete_lines is True,
-        ignore rows which have empty values in second and all following fields
-
-        same_as_above = list of strings which mean that the value
-            should be the same as in the above row
-    '''
-    encoding = encoding or 'Latin-1'
-    ret = []
-
-    import csv
-    csv_path = file_path
-    line_index = 0
-    with open(csv_path, 'rb') as csvfile:
-        csvreader = csv.reader(csvfile)
-
-        columns = []
-
-        line_last = None
-
-        for line in csvreader:
-            line_index += 1
-
-            # skip some lines
-            if ignore_incomplete_lines and len(''.join(line[1:]).strip()) == 0:
-                continue
-
-            # -> unicode
-            line = [v.decode(encoding) for v in line]
-
-            # heading line
-            if not columns:
-                for c in line:
-                    c = re.sub(ur'[^a-z0-9]', '', c.lower())
-                    if c and re.search(ur'^\d', c):
-                        c = u'n%s' % c
-                    columns.append(c)
-                continue
-
-            # 'same as' values
-            if same_as_above and line_last:
-                for i in range(0, len(line)):
-                    if line[i] in same_as_above:
-                        line[i] = line_last[i]
-
-            # turn into dict
-            rec = dict(zip(columns, line))
-            rec['_line_index'] = line_index
-
-            ret.append(rec)
-
-            line_last = line
-
-    return ret
-
 def expand_folio_range(frange, errors=None):
     '''
         Returns an array of locus from a folio range expression
@@ -1521,6 +1436,12 @@ def json_loads(data):
     
     return ret
 
+########################
+#
+#     SERIALISATION
+#
+########################
+
 def get_json_response(data):
     '''Returns a HttpResponse with the given data variable encoded as json'''
     from django.http.response import HttpResponse
@@ -1528,12 +1449,118 @@ def get_json_response(data):
     ret['Access-Control-Allow-Origin'] = '*'
     return ret
 
-def get_csv_response(data, charset='latin-1'):
-    '''Returns a HttpResponse with the given data variable encoded as json'''
-    from django.http.response import HttpResponse
-    ret = HttpResponse(data, content_type='text/csv; charset=%s' % charset)
-    ret['Access-Control-Allow-Origin'] = '*'
+def get_csv_response_from_rows(rows, charset='latin-1', headings=None, filename='response.csv'):
+    # returns a http response with a CSV content created from rows
+    # rows is a list of dictionaries 
+    
+    from django.http import StreamingHttpResponse
+    ret = StreamingHttpResponse(generate_csv_lines_from_rows(rows, encoding=charset, headings=headings), content_type="text/csv")
+    ret['Content-Disposition'] = 'attachment; filename="%s"' % filename
+    
+    return ret 
+
+def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
+    '''
+    rows: a list of records, each record is a dictionary with key/values
+        all records must have the same keys
+
+    output: write a csv file [file_path] with all the rows
+    '''
+    with open(file_path, 'wb') as csvfile:
+        for line in generate_csv_lines_from_rows(rows, encoding=encoding, headings=headings):
+            csvfile.write(line)
+
+class Echo(object):
+    def write(self, value):
+        return value
+
+def generate_csv_lines_from_rows(rows, encoding=None, headings=None):
+    '''
+    Returns a generator of lines of comma separated values
+    from a list of rows
+    each row is a dictionary: column_name => value 
+    '''
+    encoding = encoding or 'Latin-1'
+    if len(rows):
+        import csv
+        pseudo_buffer = Echo()
+        # Can't use DictWriter b/c it .writerow() doesn't return anything.
+        # Normal csv.writer does return the buffer.
+        writer = csv.writer(pseudo_buffer)
+        
+        headings = headings or rows.keys()
+        
+        yield writer.writerow(headings)
+        for row in rows:
+            row_encoded = [unicode(row[k]).encode(encoding, 'replace') for k in headings]
+            yield writer.writerow(row_encoded)
+
+def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=None, same_as_above=None):
+    '''
+        Read a CSV file and returns an ARRAY where
+        each entry correspond to a line in the file.
+        It is assumed that the first line of the CSV
+        contains the headings.
+
+        Each entry in the returned array is a DICTIONARY
+        where the keys are the column headings and the
+        values in the corresponding line in the file.
+
+        If ignore_incomplete_lines is True,
+        ignore rows which have empty values in second and all following fields
+
+        same_as_above = list of strings which mean that the value
+            should be the same as in the above row
+    '''
+    encoding = encoding or 'Latin-1'
+    ret = []
+
+    import csv
+    csv_path = file_path
+    line_index = 0
+    with open(csv_path, 'rb') as csvfile:
+        csvreader = csv.reader(csvfile)
+
+        columns = []
+
+        line_last = None
+
+        for line in csvreader:
+            line_index += 1
+
+            # skip some lines
+            if ignore_incomplete_lines and len(''.join(line[1:]).strip()) == 0:
+                continue
+
+            # -> unicode
+            line = [v.decode(encoding) for v in line]
+
+            # heading line
+            if not columns:
+                for c in line:
+                    c = re.sub(ur'[^a-z0-9]', '', c.lower())
+                    if c and re.search(ur'^\d', c):
+                        c = u'n%s' % c
+                    columns.append(c)
+                continue
+
+            # 'same as' values
+            if same_as_above and line_last:
+                for i in range(0, len(line)):
+                    if line[i] in same_as_above:
+                        line[i] = line_last[i]
+
+            # turn into dict
+            rec = dict(zip(columns, line))
+            rec['_line_index'] = line_index
+
+            ret.append(rec)
+
+            line_last = line
+
     return ret
+
+########################
 
 def get_short_uid(adatetime=None):
     # The time in milliseconds in base 36 

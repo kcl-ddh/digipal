@@ -33,12 +33,9 @@ def patterns_api_view(request, root, path):
     data = ana.process_request_api(request, root, path)
     format = data.get('format', 'json')
     if format in ['csv']:
-        file_name = 'patterns.csv'
-        import os
-        file_path = os.path.join(settings.MEDIA_ROOT, 'uploads', file_name)
-        dputils.write_rows_to_csv(file_path, data['csv'], encoding=None, headings=['unitid', 'pattern_group', 'pattern_key', 'segment', 'variant'])
-        data = dputils.read_file(file_path)
-        ret = dputils.get_csv_response(data)
+        now = datetime.now()
+        file_name = 'segments-%s-%s-%s.csv' % (now.day, now.month, now.year)
+        ret = dputils.get_csv_response_from_rows(data['csv'], headings=['unitid', 'pattern_group', 'pattern_key', 'segment', 'variant'], filename=file_name)
     else:
         ret = dputils.get_json_response(data)
     return ret

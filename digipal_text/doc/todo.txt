@@ -1,3 +1,52 @@
+. Import revised transcription fragments
+    . Not all { are converted to interlineation:
+        e.g. 7a4: {Barones is plain {
+            {dimidia isn't 
+    . 9a7: {d <ignum> : too much margin before <
+
+. Word List
+    . http://localhost:8080/lab/wordlist/?l=full
+    [REPORT] Correct entries
+    [REPORT] fix errors with words stuck together and special chars
+        abbasSanctae, 275a1 = joint in the Word Doc
+        abstulitSancto, 258b3 =>
+        => happens with a handful of sanct* words being joint to the previous word 
+        aHas, 351a1
+    [NOT FOUND] still special chars in the expanded text
+    [?] <span data-dpt="abbr">collegert̃</span><span data-dpt="exp">colleger<i>un</i>t</span> <span data-dpt="abbr">geldũ</span><span data-dpt="exp">geldu<i>m</i></span>
+    [check] barro-|nes is encoded barro-<span MS>|</span>nes
+        . how is that indexed? => cesure is removed before indexing; see digipal_text.models#get_plain_content()
+        [OK] why is it encoded like that?
+    . Export to Excel
+    . Send to Eleonora
+
+Transcription version 2:
+    Points to Note:
+1. I have removed all occurences of [---] and […] which were used to indicate erasures and blank spaces respectively. The [---] survives to mark an erased entry after a paraph.
+** 2. The first SOM hundred list on folios 63b-64a is, as Chris has pointed out, arranged in columns. I have renumbered it and laid it out in tabular form. It will need converting and the grid removing, but it should remain in columns.
+3. I have also renumbered folio 228, after we decided that the heading CORN’ was contemporary. I will bring the corrected Ellis photocopies with me to London for the next meeting.
+4. I notice that the ÷ symbol remains in the text. It should appear as est (in italics).
+5. In a few cases an ampersand (&) begins a new sentence. I have converted these to italic Et. They appear thus in my text and need to be kept as such.
+6. All letters and words occurring in angle brackets 〈〉 should be in italic, because thay are not in the text but supplied by the editor.
+7. In Iohanne, Iohannes and Iohannis the ħ appears to have remained. It should be a plain h. Is it possible to spot and convert all such instances?
+8. Similarly, the ᵬ symbol seems to have survived in some cases, where it should have been converted to a plain b. I noted 97b1, 97b4, 98a1, 98a2 98a3 (x 2) 99a2, 103b2, 509b2, but there may be others.
+9. I noticed nem9usculi on 152a2, where the 9 should disappear and praati on 196b1 where the second a is a superscript and should disappear as it has in all (?) other cases.
+10. We are used to an ampersand being used as a word termination, thus, ten& becomes tenet. The tironian nota (7) is also used like this sometimes (ten7 becomes tenet) but I noticed that on 141a1 the 7 was not reproduced as part of the word. In my original there was: Hã[n]c ten7 Folcheram9[us].
+11. In 117a3 clamat was struck through in my original: Cũ[m] hac mansione clamat {habet} ep̃[iscopu]s, but that has not come out in the finished text.
+12. An occasional superscript 4 survives as an abbreviation sign. All should be eliminated, but not, of course the 4 in folio references etc.
+13. The hand of the GDB main scribe is found in entries 153b1-2 and 436b1-3. I have used a different type-face, but an ugly one. Can you choose something different but better?
+14. I may have failed to update you on the h-with abbreviation sign. The lower case is unicode 0127 (ħ) and the capital is unicode 0126 (Ħ)
+
+Outcomes.
+
+1. It would be good to have a new wordlist, if possible, before your work ends, and (possibly the same thing) all the information from the wordlist laid out on an Excel spreadsheet, with two blank columns on the left-hand side. These are to indicate (a) if the word is an ordinary one or a personal name or a place-name, and (b) the head form for the diverse spellings to be used in indices and lists
+2. It would be useful to have a version of the revised text.
+3. It would be surprising if there were no more corrections to be made, but if anything is noticed, I will list it for a final session, possibly done by me on the master text itself.
+
+FRT 
+6.12.2016
+
+
 TextSeg 2.0:
     . improvements:
         [DONE] concurrent editing level 1 (due to chaneg to particular patterns)
@@ -88,9 +137,6 @@ TextSeg 2.0:
          
 
 Todo:
-. word list
-    . fix errors with words stuck together and special chars
-    . export to Excel
 . navigation
     . toc above images
     . toc above text editor?
@@ -148,10 +194,6 @@ MOA
     [DONE] Ask for review -> Confluence
     Publish to Live
 EXON
-    Word List
-        Correct entries
-        Export to Excel
-        Send to Eleonora
     Patterns
         finish all patterns for first two entries
         send email with explanation and offer to meet
@@ -226,14 +268,6 @@ Duplicate transcription entries!
             . but capital is not reliable so may have to categorise based on most frequent spelling
         . Create coocurrence matrix, Markov model of degree 1 or 2
         . then what???
-
-. word list
-    . still special chars in the expanded text
-    . <span data-dpt="abbr">collegert̃</span><span data-dpt="exp">colleger<i>un</i>t</span> <span data-dpt="abbr">geldũ</span><span data-dpt="exp">geldu<i>m</i></span>
-
-    . barro-|nes is encoded barro-<span MS>|</span>nes
-        . how is that indexed?
-        . why is it encoded like that
 
 [DONE]. annotations with different coordinate systems
     [DONE] change the OL3 coordinates to be compatible with OL2

@@ -1,3 +1,6 @@
+. Word List
+    . create a form to select what we want from the Word List
+
 . Import revised transcription fragments
     . Not all { are converted to interlineation:
         e.g. 7a4: {Barones is plain {
@@ -5,14 +8,15 @@
     . 9a7: {d <ignum> : too much margin before <
 
 . Word List
-    . http://localhost:8080/lab/wordlist/?l=full
+    . http://localhost:8080/lab/wordlist/?l=full&format=csv&analysis=1
     [REPORT] Correct entries
     [REPORT] fix errors with words stuck together and special chars
         abbasSanctae, 275a1 = joint in the Word Doc
         abstulitSancto, 258b3 =>
         => happens with a handful of sanct* words being joint to the previous word 
         aHas, 351a1
-    [NOT FOUND] still special chars in the expanded text
+    . still special chars in the expanded text
+        coliƀertos, 99a2
     [?] <span data-dpt="abbr">collegert̃</span><span data-dpt="exp">colleger<i>un</i>t</span> <span data-dpt="abbr">geldũ</span><span data-dpt="exp">geldu<i>m</i></span>
     [check] barro-|nes is encoded barro-<span MS>|</span>nes
         . how is that indexed? => cesure is removed before indexing; see digipal_text.models#get_plain_content()

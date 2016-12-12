@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from django.utils.html import conditional_escape, escape
+from django.utils.html import escape
 import re, os
-from binhex import LINELEN
 import lxml.etree as ET
 from lxml.etree import XMLSyntaxError
 from django.shortcuts import render, render_to_response
@@ -14,8 +13,12 @@ except:
     pass
 
 #_nsre = re.compile(ur'(?iu)([0-9]+|(?:\b[mdclxvi]+\b))')
+REGEXP_ROMAN_NUMBER = re.compile(ur'(?iu)\b[ivxlcdm]+\b')
 _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
 _nsre = re.compile(ur'(?iu)([0-9]+)')
+
+def is_roman_number(astring):
+    return REGEXP_ROMAN_NUMBER.match(astring) is not None
 
 def sorted_natural(l, roman_numbers=False, is_locus=False):
     '''Sorts l and returns it. Natural sorting is applied.'''
@@ -1625,3 +1628,24 @@ def cmp_locus(l1, l2):
     elif l1 > l2: return 1
 
     return 0
+
+def is_unit_in_range(unitid, ranges):
+    ''' e.g. ('13a1', '1a1-10b3;45b1-45b2;60b4') => True
+    '''
+    ret = False
+
+    ranges = ranges.strip()
+
+    if not ranges: return True
+
+    unit_keys = natural_sort_key(unitid)
+
+    for range in ranges.split(','):
+        parts  = range.split('-')
+        if len(parts) == 2:
+            ret = (unit_keys >= natural_sort_key(parts[0])) and (unit_keys <= natural_sort_key(parts[1]))
+        else:
+            ret = unitid == parts[0]
+        if ret: break
+
+    return ret

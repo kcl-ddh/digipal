@@ -425,7 +425,7 @@ class PatternAnalyser(object):
             if not types or 'F' not in types: continue
 
             # only selected range
-            if not self.is_unit_in_range(unit, args['urange']): continue
+            if not dputils.is_unit_in_range(unit.unitid, args['urange']): continue
 
             stats['range_size'] += 1
 
@@ -689,21 +689,3 @@ class PatternAnalyser(object):
         
         return ret
 
-    def is_unit_in_range(self, unit, ranges):
-        ret = False
-
-        ranges = ranges.strip()
-
-        if not ranges: return True
-
-        unit_keys = dputils.natural_sort_key(unit.unitid)
-
-        for range in ranges.split(','):
-            parts  = range.split('-')
-            if len(parts) == 2:
-                ret = (unit_keys >= dputils.natural_sort_key(parts[0])) and (unit_keys <= dputils.natural_sort_key(parts[1]))
-            else:
-                ret = unit.unitid == parts[0]
-            if ret: break
-
-        return ret

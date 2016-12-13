@@ -21,7 +21,7 @@ Digipal XML management tool
 
 Commands:
 
-  convert PATH_TO_XML PATH_TO_XSLT
+  convert PATH_TO_XML PATH_TO_XSLT [OUTPUT_PATH]
 
   validate PATH_TO_XML [PATH_TO_DTD]
 
@@ -113,6 +113,7 @@ Commands:
 
         xml_path = self.cargs[1]
         xslt_path = self.cargs[2]
+        out_file = self.cargs[3] if len(self.cargs) > 3 else None 
 
         xml_string = utils.readFile(xml_path)
         xml_string = re.sub(ur'\bxmlns=', ur'xmlns2=', xml_string)
@@ -125,11 +126,14 @@ Commands:
         xslt_string = utils.readFile(xslt_path)
 
         # replacements in the XSLT
-        xslt_string = self.parse_xslt_directives(xslt_string, xml_string)
+        comments, xslt_string = self.parse_xslt_directives(xslt_string, xml_string)
 
-        ret = dputils.get_xslt_transform(xml_string, xslt_string)
+        ret = str(dputils.get_xslt_transform(xml_string, xslt_string))
 
-        print str(ret)
+        if out_file:
+            dputils.write_file(out_file, str(comments) + ret, encoding=None)
+        else:
+            print str(comments) + ret
 
         return ret
 
@@ -140,10 +144,13 @@ Commands:
         '''
 
         import regex
+        
+        meta = {'comments': []}
 
         classes_used = {}
 
         def repl(match):
+            comments = meta['comments']
             # e.g. match.group(0) = {% style italic text-line-through-type="double" %}
             unknown = True
             directive = match.group(1)
@@ -170,7 +177,7 @@ Commands:
                                 classes.append(style[0])
 
                         if not classes:
-                            print '<!-- WARNING:: style not found %s -->' % term
+                            comments.append('<!-- WARNING:: style not found %s -->' % term)
 
                         if classes_intersection is None:
                             classes_intersection = classes
@@ -181,7 +188,7 @@ Commands:
                     # now remove styles which we have already used
                     already_used_warning = set(classes_intersection).intersection(set(classes_used.keys()))
                     if already_used_warning:
-                        print '<!-- INFO: Already used classes/styles: %s (see above) -->' % ', '.join(list(already_used_warning))
+                        comments.append('<!-- INFO: Already used classes/styles: %s (see above) -->' % ', '.join(list(already_used_warning)))
                     classes_intersection = set(classes_intersection).difference(set(classes_used.keys()))
                     
                     if classes_intersection:
@@ -190,10 +197,10 @@ Commands:
                         # update the classes_used
                         for cls in classes_intersection:
                             classes_used[cls] = 1
-                        print '<!-- %s => %s -->' % (' '.join(parts), ret)
+                        comments.append('<!-- %s => %s -->' % (' '.join(parts), ret))
                     else:
                         ret = 'NOTFOUND'
-                        print '<!-- WARNING: styles not found together: %s -->' % ' '.join(parts[1:])
+                        comments.append('<!-- WARNING: styles not found together: %s -->' % ' '.join(parts[1:]))
 
             if unknown:
                 raise Exception('ERROR: unknown directive "%s"' % match.group(0))
@@ -202,7 +209,7 @@ Commands:
 
         ret = regex.sub(ur'\{%(.*?)%\}', repl, xslt_string)
 
-        return ret
+        return '\n'.join(meta['comments']), ret
 
     def html2xml(self):
         if len(self.cargs) < 2:
@@ -219,10 +226,6 @@ Commands:
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(html_string, 'html.parser')
         ret = soup.prettify()
-
-        print ret
-
-        #print str(ret)
 
         return ret
 

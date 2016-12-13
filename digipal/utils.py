@@ -1649,3 +1649,12 @@ def is_unit_in_range(unitid, ranges):
         if ret: break
 
     return ret
+
+def extract_file_from_zip(zip_path, file_path, output_path):
+    '''Extract a single file from a ZIP into the given path.'''
+    #cmd = 'unzip -p %s content.xml > %s' % (input_path, outfile)
+    import zipfile
+    
+    with open(zip_path, 'rb') as fh:
+        z = zipfile.ZipFile(fh)
+        write_file(output_path, z.read(file_path), encoding=None)

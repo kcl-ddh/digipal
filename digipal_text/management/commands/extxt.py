@@ -76,6 +76,9 @@ Commands:
 
     optcod
         Optimisation of the codicological sequence
+        
+    uploadfrag ODT_FILE [--dry-run]
+        Import a fragment of a transcription
 
 """
 
@@ -158,6 +161,10 @@ Commands:
         if command == 'uploadpart':
             known_command = True
             self.upload(is_fragment=1)
+            
+        if command == 'uploadfrag':
+            known_command = True
+            self.uploadfrag()
 
         if command == 'hundorder':
             known_command = True
@@ -1540,12 +1547,33 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         dputils.strip_xml_tags(xml, './/TOBEREMOVED')
 
+    def uploadfrag(self):
+        if len(self.cargs) != 1:
+            print 'ERROR: this command requires one argument, the path to the ODT file to import.'
+            return 
+        input_path = self.cargs[0]
+        
+        if not os.path.exists(input_path):
+            print 'ERROR: file not found: %s' % input_path
+            return
+        
+        xml_path = 'part.xml'
+        # exon/source/rekeyed/word/dec16/edb-1-24.odt
+        dputils.extract_file_from_zip(input_path, 'content.xml', xml_path)
+
+        html_path = 'part.html'
+        xslt_path = 'exon/source/rekeyed/conversion/odt2xml.xslt'
+        from django.core import management
+        management.call_command('dpxml', 'convert', xml_path, xslt_path, html_path)
+        
+        management.call_command('extxt', 'uploadpart', html_path, 4)
+    
     def upload(self, is_fragment=0):
         # If is_fragment is 1 the input HTML file is considered to be a fragment,
         # the rest of the text will remain untouched in the database.
         # If is_framgent is 0, the whole text in the database is replaced with 
         # input  HTML document.
-          
+        
         input_path = self.cargs[0]
         recordid = self.cargs[1]
 
@@ -1775,8 +1803,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         from digipal_text.models import TextContentXML
         text_content_xml = TextContentXML.objects.get(id=recordid)
 
-        start = 0
-        end = -1
         if is_fragment:
             # Detect the range of locuses from the new content, e.g. 5r-6r
             locations = re.findall(ur'<span data-dpt="location" data-dpt-loctype="locus">\s*([^<]+)\s*</span>', content)
@@ -1819,6 +1845,14 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                         if matching_locations[i] != locations[i]:
                             # Complicated case:
                             posi = 1 - posi
+                        else:
+                            if i == 0 and existing_locations and locations[i] == existing_locations[0]:
+                                # starts at the first page, shall we include the part before that as well?
+                                pre = re.sub(ur'(?musi)<span data-dpt="location" data-dpt-loctype="locus">.*', '', content)
+                                pre = re.sub(ur'(?musi)<[^>]+>', '', pre)
+                                pre = re.sub(ur'(?musi)\s+', '', pre)
+                                if len(pre) > 1:
+                                    extent[posi] = 0
                         pos = extent[posi]
                         matching_extent[i] = pos
             

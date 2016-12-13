@@ -1,3 +1,10 @@
+. pm dptext download 4
+    . download whole content exactly as it is in the database
+. pm dptext upload tcx4.xml 1 transcription
+. pm dptext download 4
+    . now a <p> at the beginning and a </p> at the end are missing. the document is no longer well-formed.
+        why? 
+
 . Word List
     . create a form to select what we want from the Word List
 

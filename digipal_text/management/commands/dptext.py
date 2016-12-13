@@ -285,6 +285,7 @@ Commands:
         # I find the TextContentXML record (or create it)
         tcx = self.get_textcontentxml(ip_id, content_type_name)
         if not tcx:
+            print 'ERROR: could not find record (%s, %s)' % (ip_id, content_type_name)
             return
 
         # II load the file and convert it
@@ -293,14 +294,15 @@ Commands:
 
         # III get the XML into a string
         if xpath:
-            xml = get_xml_from_unicode(xml_string)
+            xml = get_xml_from_unicode(xml_string, add_root=True)
             els = xml.xpath(xpath)
             if len(els) > 0:
                 root = els[0]
             else:
                 raise Exception(u'No match for XPATH "%s"' % xpath)
             from lxml import etree
-            content = etree.tostring(root, encoding="UTF-8")
+            #content = etree.tostring(root, encoding="UTF-8")
+            content = dputils.get_unicode_from_xml(etree, remove_root=True)
         else:
             content = xml_string
 #         print type(root)
@@ -310,9 +312,6 @@ Commands:
         if '&#361;' in content:
             print 'Numeric entity'
             exit()
-
-        # don't keep root element tag
-        content = re.sub(ur'(?musi)^.*?>(.*)<.*?$', ur'\1', content)
 
         # IV convert the xml tags and attribute to HTML-TEI
         # content = self.get_xhtml_from_xml(content)

@@ -1495,7 +1495,7 @@ def generate_csv_lines_from_rows(rows, encoding=None, headings=None):
         
         yield writer.writerow(headings)
         for row in rows:
-            row_encoded = [unicode(row[k]).encode(encoding, 'replace') for k in headings]
+            row_encoded = [unicode(row.get(k, '')).encode(encoding, 'replace') for k in headings]
             yield writer.writerow(row_encoded)
 
 def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=None, same_as_above=None):

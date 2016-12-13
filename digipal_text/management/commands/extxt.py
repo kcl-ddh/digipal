@@ -428,7 +428,7 @@ Commands:
         rows = {}
 
         for ctype in ['translation', 'transcription']:
-            text = TextContentXML.objects.filter(text_content__type__slug=ctype).first()
+            text = TextContentXML.objects.filter(text_content__item_part__id=1, text_content__type__slug=ctype).first()
             print text.id
             content = u'<root>%s</root>' % text.content
             units = viewer.get_all_units(content, 'entry')

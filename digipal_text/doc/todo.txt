@@ -1,11 +1,14 @@
-. pm dptext download 4
-    . download whole content exactly as it is in the database
-. pm dptext upload tcx4.xml 1 transcription
-. pm dptext download 4
-    . now a <p> at the beginning and a </p> at the end are missing. the document is no longer well-formed.
-        why? 
+1. regen index and clear caches on the stg server
+2. regen Wordlist
+    2.1 Excel
+    2.2 CSV for offline DB
+    2.3 Instruction on how to upload it in access and crosstab
+3. regen PDF of text
+4. regen plain text
+5. regen segments
 
-. Word List
+
+[DONE] Word List
     . create a form to select what we want from the Word List
 
 . Import revised transcription fragments

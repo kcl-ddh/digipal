@@ -131,6 +131,10 @@ Commands:
             known_command = True
             self.command_fixids()
 
+        if command == 'search':
+            known_command = True
+            self.command_search()
+
         if command == 'stats':
             known_command = True
             self.command_stats()
@@ -250,6 +254,21 @@ Commands:
         from digipal.utils import write_file
         write_file(file_name, ret)
         print 'Written file %s ' % file_name
+
+    def command_search(self):
+        if len(self.args) < 3:
+            raise CommandError('Convert requires 2 arguments')
+
+        from digipal.management.commands.utils import get_stats_from_xml_string
+        from digipal_text.views.viewer import get_fragment_extent, get_all_units
+
+        stats = {}
+        import regex as re
+        for tcx in TextContentXML.objects.filter(text_content__item_part_id=self.args[1], text_content__type__slug=self.args[2]):
+            units = get_all_units(tcx.content, 'entry')
+            for unit in units:
+                for match in re.findall(self.args[3], unit['content']):
+                    print unit['unitid'], repr(match)
 
     def command_stats(self):
         if len(self.args) < 2:
@@ -392,19 +411,23 @@ Commands:
             fitler = {'id': rid}
         ctx = TextContentXML.objects.filter(**fitler).first()
 
+        cnt = 0
+
         if ctx:
             print ctx
             location_type = self.get_arg(2, 'locus')
 
             location = self.get_arg(3, None)
             units = get_all_units(ctx.content, location_type)
+            
             for unit in units:
-                if location is None or unit['unitid'] == location:
+                if location is None or dputils.is_unit_in_range(unit['unitid'], location):
+                    cnt += 1
                     print '%-10s %-5s %-10s' % (unit['unitid'], len(unit['content']), repr(unit['content'][:10]))
                     if location:
                         print repr(unit['content'])
 
-            print '%s units' % len(units)
+            print '%s units' % cnt
             # fragment = get_fragment_extent(ctx.content, self.args[2], self.args[3])
 
     def get_friendly_datetime(self, dtime):

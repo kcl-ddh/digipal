@@ -1,3 +1,9 @@
+csslint --ignore=adjoining-classes,order-alphabetical $(find exon -iname 'tinymce_custom*') | less
+
+pm dptext search 1 transcription "(?i)[a-z]+7\w*"
+pm extxt uploadfrag exon/source/rekeyed/word/dec16/edb-117-155.odt
+pm dptext unit 4 entry 141a1
+
 1. regen index and clear caches on the stg server
 2. regen Wordlist
     2.1 Excel
@@ -36,20 +42,33 @@
 
 Transcription version 2:
     Points to Note:
-1. I have removed all occurences of [---] and […] which were used to indicate erasures and blank spaces respectively. The [---] survives to mark an erased entry after a paraph.
-** 2. The first SOM hundred list on folios 63b-64a is, as Chris has pointed out, arranged in columns. I have renumbered it and laid it out in tabular form. It will need converting and the grid removing, but it should remain in columns.
-3. I have also renumbered folio 228, after we decided that the heading CORN’ was contemporary. I will bring the corrected Ellis photocopies with me to London for the next meeting.
+NO 6. All letters and words occurring in angle brackets 〈〉 should be in italic, because thay are not in the text but supplied by the editor.
+NO 13. The hand of the GDB main scribe is found in entries 153b1-2 and 436b1-3. I have used a different type-face, but an ugly one. Can you choose something different but better?
+() 1. I have removed all occurences of [---] and […] which were used to indicate erasures and blank spaces respectively. The [---] survives to mark an erased entry after a paraph.
+() 2. The first SOM hundred list on folios 63b-64a is, as Chris has pointed out, arranged in columns. I have renumbered it and laid it out in tabular form. It will need converting and the grid removing, but it should remain in columns.
+() 3. I have also renumbered folio 228, after we decided that the heading CORN’ was contemporary. I will bring the corrected Ellis photocopies with me to London for the next meeting.
+
 4. I notice that the ÷ symbol remains in the text. It should appear as est (in italics).
 5. In a few cases an ampersand (&) begins a new sentence. I have converted these to italic Et. They appear thus in my text and need to be kept as such.
-6. All letters and words occurring in angle brackets 〈〉 should be in italic, because thay are not in the text but supplied by the editor.
 7. In Iohanne, Iohannes and Iohannis the ħ appears to have remained. It should be a plain h. Is it possible to spot and convert all such instances?
 8. Similarly, the ᵬ symbol seems to have survived in some cases, where it should have been converted to a plain b. I noted 97b1, 97b4, 98a1, 98a2 98a3 (x 2) 99a2, 103b2, 509b2, but there may be others.
 9. I noticed nem9usculi on 152a2, where the 9 should disappear and praati on 196b1 where the second a is a superscript and should disappear as it has in all (?) other cases.
 10. We are used to an ampersand being used as a word termination, thus, ten& becomes tenet. The tironian nota (7) is also used like this sometimes (ten7 becomes tenet) but I noticed that on 141a1 the 7 was not reproduced as part of the word. In my original there was: Hã[n]c ten7 Folcheram9[us].
+    . display et by default, display 7 as TIRONIAN if user wants it
+        54b1 u'lib7'
+        54b2 u'lib7'
+        55b1 u'lib7'
+        56a2 u'lib7'
+        141a1 u'ten7'
+        355a2 u'ti7'
+        419b1 u'lib7'
+        503a8 u'ual7'
+    . 
 11. In 117a3 clamat was struck through in my original: Cũ[m] hac mansione clamat {habet} ep̃[iscopu]s, but that has not come out in the finished text.
 12. An occasional superscript 4 survives as an abbreviation sign. All should be eliminated, but not, of course the 4 in folio references etc.
-13. The hand of the GDB main scribe is found in entries 153b1-2 and 436b1-3. I have used a different type-face, but an ugly one. Can you choose something different but better?
 14. I may have failed to update you on the h-with abbreviation sign. The lower case is unicode 0127 (ħ) and the capital is unicode 0126 (Ħ)
+
+PLAIN TEXT version: remove all italics and all brackets, underline and strikthrough
 
 Outcomes.
 

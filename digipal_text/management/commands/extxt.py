@@ -1644,7 +1644,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = regex.sub(ur'(?mus)<st>\s*LL\s*</st>', ur'ŁŁ', content)
         content = regex.sub(ur'(?mus)<st>\s*l\s*</st>', ur'ł', content)
         content = regex.sub(ur'(?mus)<st>\s*L\s*</st>', ur'Ł', content)
-
+        
+        # Tironian sign
+        content = regex.sub(ur'7(?!\[\w)', ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>', content)
+        
         # <u> =>
         content = regex.sub(ur'(?musi)</?u>', ur'', content)
 

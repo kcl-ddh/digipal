@@ -1566,8 +1566,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             return 
         input_path = self.cargs[0]
         
-        print input_path
-        
         import glob
         input_paths = glob.glob(input_path)
         
@@ -1575,6 +1573,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             if not os.path.exists(input_path):
                 print 'ERROR: file not found: %s' % input_path
                 return
+            print input_path
             
             xml_path = 'part.xml'
             # exon/source/rekeyed/word/dec16/edb-1-24.odt
@@ -1697,6 +1696,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # convert to ()
         content = regex.sub(ur'\[([^\]\[]*\s[^\[\]]*)\]', ur'(\1)', content)
 
+        # Tironian sign, special mark up. Similar to expansions. Show it as 'et' or 7. 
+        # Can have it on its own or at the end of a word (ten7 -> tenet).
+        # MUST be careful not to catch entry or folio numbers! 
+        # TODO: make it more robust. 
+        # At the mo. we convert all 7 outside of a location span 
+        content = regex.sub(ur'(?<!<span data-dpt="location"[^>]+>[\dabrv]*)7', ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>', content)
+
         # <margin></margin>
         content = content.replace('<margin>', '<span data-dpt="note" data-dpt-place="margin">')
         content = content.replace('</margin>', '</span>')
@@ -1715,11 +1721,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             # don't convert if starts with digit as it's most likely a folio or entry number
             if m[0] <= '9' and m[0] >= '0':
                 return m
-
-            # Tironian sign
-            tironian = regex.sub(ur'7', ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>', m)
-            if len(tironian) != m:
-                return tironian
 
             self.c += 1
             #if self.c > 100: exit()

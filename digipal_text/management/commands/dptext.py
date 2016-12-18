@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 import re
@@ -262,13 +263,20 @@ Commands:
         from digipal.management.commands.utils import get_stats_from_xml_string
         from digipal_text.views.viewer import get_fragment_extent, get_all_units
 
+        pattern = unicode(self.args[3])
+        #pattern = ur'.{1,30}÷.{1,30}'
+
         stats = {}
+        cnt = 0
         import regex as re
         for tcx in TextContentXML.objects.filter(text_content__item_part_id=self.args[1], text_content__type__slug=self.args[2]):
             units = get_all_units(tcx.content, 'entry')
             for unit in units:
-                for match in re.findall(self.args[3], unit['content']):
+                for match in re.findall(pattern, unit['content']):
                     print unit['unitid'], repr(match)
+                    cnt += 1
+        
+        print '%s occurences' % cnt
 
     def command_stats(self):
         if len(self.args) < 2:

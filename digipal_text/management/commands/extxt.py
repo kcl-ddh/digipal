@@ -79,6 +79,9 @@ Commands:
         
     uploadfrag ODT_FILE [--dry-run]
         Import a fragment of a transcription
+        
+    missing
+        Sow missing entries in the tarnscription
 
 """
 
@@ -141,6 +144,10 @@ Commands:
         if command == 'csv2quires':
             known_command = True
             self.csv2quires()
+
+        if command == 'missing':
+            known_command = True
+            self.command_missing()
 
         if command == 'wordpre':
             known_command = True
@@ -606,14 +613,20 @@ Commands:
 
         write_rows_to_csv(file_path, rows, headings=headings)
 
-    def get_entry_numbers_from_translation(self):
+    def get_entry_numbers_from_translation(self, ttype='translation'):
         from digipal_text.models import TextContentXML
-        tcx = TextContentXML.objects.filter(text_content__type__slug='translation').first()
+        tcx = TextContentXML.objects.filter(text_content__type__slug=ttype).first()
         content = tcx.content
 
         ret = re.findall(ur'<span data-dpt="location" data-dpt-loctype="entry">\s*(\d+[ab]\d+)\s*</span>', content)
 
         return ret
+
+    def command_missing(self):
+        tl_entries = self.get_entry_numbers_from_translation()
+        tc_entries = self.get_entry_numbers_from_translation('transcription')
+        
+        print ', '.join(dputils.sorted_natural(list(set(tl_entries).difference(set(tc_entries))), 1, 1))
 
     def find_missing_entries(self):
         '''
@@ -1553,20 +1566,26 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             return 
         input_path = self.cargs[0]
         
-        if not os.path.exists(input_path):
-            print 'ERROR: file not found: %s' % input_path
-            return
+        print input_path
         
-        xml_path = 'part.xml'
-        # exon/source/rekeyed/word/dec16/edb-1-24.odt
-        dputils.extract_file_from_zip(input_path, 'content.xml', xml_path)
-
-        html_path = 'part.html'
-        xslt_path = 'exon/source/rekeyed/conversion/odt2xml.xslt'
-        from django.core import management
-        management.call_command('dpxml', 'convert', xml_path, xslt_path, html_path)
+        import glob
+        input_paths = glob.glob(input_path)
         
-        management.call_command('extxt', 'uploadpart', html_path, 4)
+        for input_path in input_paths:
+            if not os.path.exists(input_path):
+                print 'ERROR: file not found: %s' % input_path
+                return
+            
+            xml_path = 'part.xml'
+            # exon/source/rekeyed/word/dec16/edb-1-24.odt
+            dputils.extract_file_from_zip(input_path, 'content.xml', xml_path)
+    
+            html_path = 'part.html'
+            xslt_path = 'exon/source/rekeyed/conversion/odt2xml.xslt'
+            from django.core import management
+            management.call_command('dpxml', 'convert', xml_path, xslt_path, html_path)
+            
+            management.call_command('extxt', 'uploadpart', html_path, 4)
     
     def upload(self, is_fragment=0):
         # If is_fragment is 1 the input HTML file is considered to be a fragment,
@@ -1645,8 +1664,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = regex.sub(ur'(?mus)<st>\s*l\s*</st>', ur'ł', content)
         content = regex.sub(ur'(?mus)<st>\s*L\s*</st>', ur'Ł', content)
         
-        # Tironian sign
-        content = regex.sub(ur'7(?!\[\w)', ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>', content)
+        # ÷ means ÷[est]
+        content = regex.sub(ur'÷(?!\[)', ur'÷[est]', content)
         
         # <u> =>
         content = regex.sub(ur'(?musi)</?u>', ur'', content)
@@ -1696,6 +1715,11 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             # don't convert if starts with digit as it's most likely a folio or entry number
             if m[0] <= '9' and m[0] >= '0':
                 return m
+
+            # Tironian sign
+            tironian = regex.sub(ur'7', ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>', m)
+            if len(tironian) != m:
+                return tironian
 
             self.c += 1
             #if self.c > 100: exit()

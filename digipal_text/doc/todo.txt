@@ -1,13 +1,106 @@
+Entries which are not well formed XML
+
+2a3, 2b6, 8b5, 63b42, 63b24, 64b40, 64b41, 84b4, 84b9, 85b1, 85b7, 89b2, 89b3, 106b2, 107a1, 126b2, 126b3, 
+161a2, 161a3, 170a2, 170a3, 170b1, 224a3, 224a4, 309a2, 309a3, 315a5, 315b1, 350a2, 350a3, 409a2, 409a3, 
+425a3, 434b3, 434b4, 490a3, 490a4, 499b11, 509a8, 509a9, 520a3, 520a4, 
+
+Unique tags:
+    u'</i>'
+    u'<i>'
+    u'</span>'
+
+    u'<span data-dpt="del" data-dpt-rend="underlined">'
+    u'<span data-dpt="del" data-dpt-type="supplied">'
+
+    u'<span data-dpt="note" data-dpt-place="margin">'
+    u'<span data-dpt="supplied">'
+
+    u'<span data-dpt="g" data-dpt-ref="#tironian">'
+
+    Not to be ascii formatted:
+    u'<span data-dpt="interlineation">'
+    u'<span data-dpt="exp">'
+    u'<span data-dpt="lb" data-dpt-src="ms">'
+    u'<span data-dpt="lb" data-dpt-src="prj">'
+    u'<span data-dpt="location" data-dpt-loctype="entry">'
+    u'<span data-dpt="location" data-dpt-loctype="locus">'
+    u'<span data-dpt="del" data-dpt-rend="erasure">'
+    u'<span data-dpt="abbr">'
+    u'</fn>'
+    u'<fn>'
+    u'</p>'
+    u'<p>'
+    u'</sub>'
+    u'<sub>'
+    u'</sup>'
+    u'<sup>'
+    
+
+Empty elements (104 occurrences):
+    pm dptext search 1 transcription '(?musi).{20}<[^/>]+></.{70}'
+    Mostly due to [blank]
+    [REPORT] 8a8: Malmesᵬ[er]iens̃[ is]
+    202b4: <i>ar</i></span></span>arari ab
+    238b3: ined">a</span><span data-dpt="abbr"></span><span data-dpt="exp"><i>abe</i></span><sp
+    515a5: u'pt="interlineation"><span data-dpt="abbr"></span><span data-dpt="exp"><i>ni</i></span></span>catu <span data-dpt="'
+    519a3: u'>er</i>at</span> ab <span data-dpt="abbr"></span><span data-dpt="exp"><i>a</i></span> <span data-dpt="abbr">\u0119cl 
+
+(ex) jeff@jeff-UX303UA:~/src/workspace/exon/django$ sort tags.txt | uniq
+done
+[DONE] REMOVE TAG: u'</f>'u'<f>'
+[DONE] REMOVE TAG: u'<symbol>': 438a4, 475a5
+[DONE] REMOVE TAG: u'<gildum>': 397a4
+[DONE] REMOVE TAG: u'<nsc>': 366a4
+[DONE] u'</st>': 343 occurences, first in 
+    [DONE] u'<st>P</st>', 1b4
+    [DONE] u'<st>S</st>', 8a3
+    [DONE] u'<st>B</st>', 15b8
+    [DONE] u'<st><span data-dpt="abbr">p\u0303</span><span data-dpt="exp">p</span></st>', 270b1
+    [DONE] u'<st><span data-dpt="abbr">q\u0303</span><span data-dpt="exp">q</span></st>', 399b1
+u'</fn>'
+u'<fn>'
+u'</i>'
+u'<i>'
+u'</p>'
+u'<p>'
+u'</span>'
+u'<span data-dpt="abbr">'
+u'<span data-dpt="del" data-dpt-rend="erasure">'
+u'<span data-dpt="del" data-dpt-rend="underlined">'
+u'<span data-dpt="del" data-dpt-type="supplied">'
+u'<span data-dpt="exp">'
+u'<span data-dpt="g" data-dpt-ref="#tironian">'
+u'<span data-dpt="interlineation">'
+u'<span data-dpt="lb" data-dpt-src="ms">'
+u'<span data-dpt="lb" data-dpt-src="prj">'
+u'<span data-dpt="location" data-dpt-loctype="entry">'
+u'<span data-dpt="location" data-dpt-loctype="locus">'
+u'<span data-dpt="note" data-dpt-place="margin">'
+u'<span data-dpt="supplied">'
+u'</sub>'
+u'<sub>'
+u'</sup>'
+u'<sup>'
+ 
+
 pm extxt missing
-1a7, 1b7, 2a7, 2b7, 3a7, 7a1, 7a2, 7a3, 7a4, 7b1, 7b2, 7b3, 7b4, 7b5, 7b6, 7b7, 7b8, 8a7, 
-8b7, 9a7, 13b7, 15b7, 17a1, 17a2, 17a3, 17b1, 106b1, 127a1, 127a2, 127a3, 127a4, 127b1, 
-127b2, 127b3, 127b4, 137a1, 137a2, 138a1, 147a1, 147a2, 147b1, 147b2, 147b3, 243a2, 304b4, 
-342a5, 358a4, 365b1, 453b4, 456a2, 494b4, 532b5
+    106b1, missing reference?
+    138a1, blank page, no text, no reference
+    243a2, reference mislabelled as '242a2', corrected in working doc
+    304b4, translation has a 304b4 (In WONFORD Hundred § Baldwin of Exeter, the sheriff ...) but not visible on MS
+    342a5, same, translation has an entry 342a5, In KERSWELL Hundred § Ralph of La Pommeraye has 1 manor which is called BERRY 
+    358a4, entry reference 358a3 is directly followed by 358a5. Should 358a5 be relabelled 385a4? 
+    365b1, blank page, no text, no reference
+    453b4, reference to last entry on 453v is '453b3', the same number as the previous entry. Should be changed to 453b4.
+    456a2, entry 456a2 was mislabelled as '445a2' 
+    494b4, seems correct as only one entry on that page (Consumatum est), correctly labelled 494b1, not sure why translation has an entry 494b4.
+    532b5, mislabelled as 532b6 (532b6 used twice).
 
 csslint --ignore=adjoining-classes,order-alphabetical $(find exon -iname 'tinymce_custom*') | less
 
 pm dptext search 1 transcription "(?i)[a-z]+7\w*"
 pm extxt uploadfrag exon/source/rekeyed/word/dec16/edb-117-155.odt
+pm extxt uploadfrag "exon/source/rekeyed/word/dec16/edb-*.odt"
 pm dptext unit 4 entry 141a1
 
 1. regen index and clear caches on the stg server
@@ -57,10 +150,11 @@ NO 13. The hand of the GDB main scribe is found in entries 153b1-2 and 436b1-3. 
 [DONE] 4. I notice that the ÷ symbol remains in the text. It should appear as est (in italics).
     GN: b/c/ conversion expected '[est]' to follow ÷
 [DONE] 5. In a few cases an ampersand (&) begins a new sentence. I have converted these to italic Et. They appear thus in my text and need to be kept as such.
-7. In Iohanne, Iohannes and Iohannis the ħ appears to have remained. It should be a plain h. Is it possible to spot and convert all such instances?
-8. Similarly, the ᵬ symbol seems to have survived in some cases, where it should have been converted to a plain b. I noted 97b1, 97b4, 98a1, 98a2 98a3 (x 2) 99a2, 103b2, 509b2, but there may be others.
-9. I noticed nem9usculi on 152a2, where the 9 should disappear and praati on 196b1 where the second a is a superscript and should disappear as it has in all (?) other cases.
-10. We are used to an ampersand being used as a word termination, thus, ten& becomes tenet. The tironian nota (7) is also used like this sometimes (ten7 becomes tenet) but I noticed that on 141a1 the 7 was not reproduced as part of the word. In my original there was: Hã[n]c ten7 Folcheram9[us].
+[NOT FOUND] 7. In Iohanne, Iohannes and Iohannis the ħ appears to have remained. It should be a plain h. Is it possible to spot and convert all such instances?
+[DONE] 8. Similarly, the ᵬ symbol seems to have survived in some cases, where it should have been converted to a plain b. I noted 97b1, 97b4, 98a1, 98a2 98a3 (x 2) 99a2, 103b2, 509b2, but there may be others.
+[DONE] 9a. I noticed nem9usculi on 152a2, where the 9 should disappear 
+[DONE] 9b. and praati on 196b1 where the second a is a superscript and should disappear as it has in all (?) other cases.
+[DONE] 10. We are used to an ampersand being used as a word termination, thus, ten& becomes tenet. The tironian nota (7) is also used like this sometimes (ten7 becomes tenet) but I noticed that on 141a1 the 7 was not reproduced as part of the word. In my original there was: Hã[n]c ten7 Folcheram9[us].
     . display et by default, display 7 as TIRONIAN if user wants it
         54b1 u'lib7'
         54b2 u'lib7'
@@ -71,9 +165,9 @@ NO 13. The hand of the GDB main scribe is found in entries 153b1-2 and 436b1-3. 
         419b1 u'lib7'
         503a8 u'ual7'
     . 
-11. In 117a3 clamat was struck through in my original: Cũ[m] hac mansione clamat {habet} ep̃[iscopu]s, but that has not come out in the finished text.
-12. An occasional superscript 4 survives as an abbreviation sign. All should be eliminated, but not, of course the 4 in folio references etc.
-14. I may have failed to update you on the h-with abbreviation sign. The lower case is unicode 0127 (ħ) and the capital is unicode 0126 (Ħ)
+[DONE] 11. In 117a3 clamat was struck through in my original: Cũ[m] hac mansione clamat {habet} ep̃[iscopu]s, but that has not come out in the finished text.
+[NOT FOUND] 12. An occasional superscript 4 survives as an abbreviation sign. All should be eliminated, but not, of course the 4 in folio references etc.
+[DONE] 14. I may have failed to update you on the h-with abbreviation sign. The lower case is unicode 0127 (ħ) and the capital is unicode 0126 (Ħ)
 
 PLAIN TEXT version: remove all italics and all brackets, underline and strikthrough
 

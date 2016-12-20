@@ -1617,6 +1617,16 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # unescape XML tags coming from MS Word
         # E.g. &lt;margin&gt;Д‘ mМѓ&lt;/margin&gt;
         content = regex.sub(ur'(?musi)&lt;(/?[a-z]+)(&gt;)?', ur'<\1>', content)
+        
+        nomargin = 1
+        if nomargin:
+            pass
+        
+        # Tags we don't want to keep because no longer useful or  
+        # never agreed to use them
+        tags_to_remove = ur'symbol|gildum|nsc|f'
+        content = regex.sub(ur'</?('+tags_to_remove+')/?>', '', content)
+        
         # removed the misplaced anchors. Can't convert them.
         #print len(regex.findall(ur'&gt;|&lt;', content))
         content = regex.sub(ur'&gt;|&lt;', ur'', content)
@@ -1652,11 +1662,24 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         #content = regex.sub(ur'(?musi)<br/>', ur'</p><p>', content)
 
         # Promote style constructs to special chars
+        # http://unicode-search.net/unicode-namesearch.pl?term=p
+        # http://skaldic.abdn.ac.uk/m.php?p=mufichars&i=1&v=Q
+        # http://junicode.sourceforge.net/
+        # <st>B</st> => B-
+        content = regex.sub(ur'(?mus)<st>\s*B\s*</st>', ur'Ƀ', content)
         # <st>p</st> => ṕ
         content = regex.sub(ur'(?mus)<st>\s*p\s*</st>', ur'ṕ', content)
+        content = regex.sub(ur'(?mus)<st>\s*P\s*</st>', ur'Ṕ', content)
+        # p with top tilde
+        content = regex.sub(ur'(?mus)<st>\s*p\u0303\s*</st>', ur'ꝑ\u0306', content)
+        # <st>s</st> => s
+        content = regex.sub(ur'(?mus)<st>\s*s\s*</st>', ur'ś', content)
+        content = regex.sub(ur'(?mus)<st>\s*S\s*</st>', ur'Ś', content)
         # <st>q</st> => ƣ
         content = regex.sub(ur'(?mus)<st>\s*q\s*</st>', ur'ƣ', content)
         content = regex.sub(ur'(?mus)<st>\s*Q\s*</st>', ur'Ƣ', content)
+        # q with tilde and bottom left tail (lots of them)
+        content = regex.sub(ur'(?mus)<st>\s*q\u0303\s*</st>', ur'q\u0303\u0317', content)
         # <st>L</st> => Ł
         content = regex.sub(ur'(?mus)<st>\s*ll\s*</st>', ur'łł', content)
         content = regex.sub(ur'(?mus)<st>\s*LL\s*</st>', ur'ŁŁ', content)
@@ -1700,12 +1723,19 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # Can have it on its own or at the end of a word (ten7 -> tenet).
         # MUST be careful not to catch entry or folio numbers! 
         # TODO: make it more robust. 
-        # At the mo. we convert all 7 outside of a location span 
-        content = regex.sub(ur'(?<!<span data-dpt="location"[^>]+>[\dabrv]*)7', ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>', content)
+        # At the mo. we convert all 7 outside of a location span
+        # and outside a <sup> 
+        content = regex.sub(ur'(?<!(<span data-dpt="location"[^>]+>[\dabrv]*|<sup>))7', ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>', content)
 
         # <margin></margin>
-        content = content.replace('<margin>', '<span data-dpt="note" data-dpt-place="margin">')
-        content = content.replace('</margin>', '</span>')
+        # !!!!!!!!!!!!!!! Set to 1 only temporarily.
+        remove_margins = 1
+        if remove_margins:
+            content = content.replace('<margin>', ' ')
+            content = content.replace('</margin>', ' ')
+        else:
+            content = content.replace('<margin>', '<span data-dpt="note" data-dpt-place="margin">')
+            content = content.replace('</margin>', '</span>')
 
         # to check which entities are left
         ##ocs = set(regex.findall(ur'(?musi)(&[#\w]+;)', content))
@@ -1738,30 +1768,45 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             #exp = m.replace(ur';[', ur'[')
             exp = m
             exp = regex.sub(ur'\[(.*?)\]', ur'<i>\1</i>', exp)
-            # b
-            exp = regex.sub(ur'\u1d6c', ur'b', exp)
-            # l/ -> l
-            exp = regex.sub(ur'\u0142', ur'l', exp)
-            # d- -> d
-            exp = regex.sub(ur'\u0111', ur'd', exp)
-            # h
-            exp = regex.sub(ur'\u0127', ur'h', exp)
-            exp = regex.sub(ur'Ħ', ur'H', exp)
+            
+            # Remove all digits in expansions
             # e.g. hid4as
             exp = regex.sub(ur'\d', ur'', exp)
+
+            # SPECIAL CHARS
+            # http://www.fileformat.info/info/unicode/char/1d6c/index.htm
+            # d- (latin small letter d with stroke)
+            exp = regex.sub(ur'đ', ur'd', exp)
+            exp = regex.sub(ur'Đ', ur'D', exp)
+            # h- 
+            exp = regex.sub(ur'ħ', ur'h', exp)
+            exp = regex.sub(ur'Ħ', ur'H', exp)
             # ƥ -> p (e.g. 1v super illos)
             exp = exp.replace(ur'ƥ', ur'p')
+            exp = exp.replace(ur'ꝑ', ur'p')
+            exp = exp.replace(ur'Ƥ', ur'P')
             # ƹ
             exp = exp.replace(ur'ƹ', 'r')
 
             ##exp = regex.sub(ur'ṕ', ur'p', exp)
             exp = regex.sub(ur'ƒ', ur'f', exp)
+            
+            # b~ (Latin small letter b with middle tilde)
+            exp = regex.sub(ur'ᵬ', ur'b', exp)
+            # latin capital letter b with stroke
+            exp = regex.sub(ur'ƀ', ur'b', exp)
             exp = regex.sub(ur'Ƀ', ur'B', exp)
+            # latin b with hook
+            exp = regex.sub(ur'ɓ', ur'b', exp)
             exp = regex.sub(ur'Ɓ', ur'B', exp)
-            exp = regex.sub(ur'ɓ', ur'B', exp)
-            exp = regex.sub(ur'Ƣ', ur'Q', exp)
+            # q
             exp = regex.sub(ur'ƣ', ur'q', exp)
+            exp = regex.sub(ur'Ƣ', ur'Q', exp)
+            # 
             exp = regex.sub(ur'ɋ', ur'q', exp)
+            
+            # l/ -> l
+            exp = regex.sub(ur'ł', ur'l', exp)
             exp = regex.sub(ur'Ł', ur'L', exp)
 
             # e.g. st~

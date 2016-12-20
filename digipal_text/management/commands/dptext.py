@@ -20,7 +20,7 @@ Digipal Text management tool.
 
 Commands:
 
-  download  CONTENT_XML_ID
+  download  CONTENT_XML_ID [UNITID]
 
   copies    [IP_ID]
             List copies of the texts.
@@ -221,9 +221,23 @@ Commands:
         ret = ur''
 
         recordid = self.args[1]
+        unitid = ''
+        if len(self.args) > 2: unitid = self.args[2]
         from digipal_text.models import TextContentXML
+        from digipal_text.views.viewer import get_fragment_extent, get_all_units
         text_content_xml = TextContentXML.objects.get(id=recordid)
-        ret = text_content_xml.content
+        content = text_content_xml.content
+        
+
+        suffix = ''
+        if unitid:
+            suffix = '-unit'
+            units = get_all_units(content, 'entry')
+            for unit in units:
+                if unit['unitid'] == unitid:
+                    ret = ur'<root>%s</root>' % unit['content']
+        else:
+            ret = content
 
         import regex
 
@@ -251,7 +265,7 @@ Commands:
             ret = regex.sub(ur'(?musi)<span data-dpt="exp">(.*?)</span>', ur'<exp>\1</exp>', ret)
 
         # print repr(ret)
-        file_name = 'tcx%s.xml' % text_content_xml.id
+        file_name = 'tcx%s%s.xml' % (text_content_xml.id, suffix)
         from digipal.utils import write_file
         write_file(file_name, ret)
         print 'Written file %s ' % file_name
@@ -264,7 +278,7 @@ Commands:
         from digipal_text.views.viewer import get_fragment_extent, get_all_units
 
         pattern = unicode(self.args[3])
-        #pattern = ur'.{1,30}÷.{1,30}'
+        #pattern = ur'.{1,30}ħ.{1,30}'
 
         stats = {}
         cnt = 0
@@ -273,7 +287,8 @@ Commands:
             units = get_all_units(tcx.content, 'entry')
             for unit in units:
                 for match in re.findall(pattern, unit['content']):
-                    print unit['unitid'], repr(match)
+                    #print unit['unitid'], repr(match)
+                    print repr(match)
                     cnt += 1
         
         print '%s occurences' % cnt

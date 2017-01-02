@@ -1,6 +1,4 @@
-# DigiPal
-
-###### Digital Resource for and Database of Palaeography, Manuscripts and Diplomatic.
+# The DigiPal Framework
 
 The DigiPal framework is freely-available generalised software for the online presentation of images with structured annotations and data which allows users to search for, view, and organise detailed characteristics of handwriting or other material in both verbal and visual form. Designed primarily for the palaeographical analysis of handwriting, it was first developed for the Digital Resource and Database for Palaeography, Manuscript Studies and Diplomatic (DigiPal) project, funded by the European Research Council, and has since been extended particularly through the Models of Authority and Exon Domesday projects. Examples of its use include the following:
 - [Writing in Old English from the eleventh century (DigiPal)](http://digipal.eu)

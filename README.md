@@ -2,7 +2,7 @@
 
 ###### Digital Resource for and Database of Palaeography, Manuscripts and Diplomatic.
 
-The Digital Resource and Database for Palaeography, Manuscript Studies and Diplomatic (DigiPal) was a project funded by the European Research Council to bring digital technology to bear on scholarly discussion of medieval handwriting. A large part of this work has been the development of a freely-available generalised framework for the online presentation of images with structured annotations and data which allows scholars to search for, view, and organise detailed characteristics of handwriting or other material in both verbal and visual form. This GitHub repository presents the code for that framework. To date it is being used for the following material:
+The DigiPal framework is a freely-available generalised framework for the online presentation of images with structured annotations and data which allows scholars to search for, view, and organise detailed characteristics of handwriting or other material in both verbal and visual form. Designed primarily for the palaeographical analysis of handwriting, it was first developed for the Digital Resource and Database for Palaeography, Manuscript Studies and Diplomatic (DigiPal) project, funded by the European Research Council, and has since been extended particularly through the Models of Authority and Exon Domesday projects. To date it is being used for the following material:
 - [Writing in Old English from the eleventh century (DigiPal)](http://digipal.eu)
 - Fragments of manuscripts from Scandinavia written in the eleventh century (ScandiPal)
 - The decoration and script of fifteenth-century manuscripts in Hebrew from the Iberian Peninsula (SephardiPal)
@@ -13,10 +13,6 @@ The Digital Resource and Database for Palaeography, Manuscript Studies and Diplo
 
 The DigiPal Project formally ended on 30 September 2014, but the code is still being updated and extended as part of the follow-on projects listed above.
 
-See further http://www.digipal.eu/
+For further information on using the framewor please see the [GitHub Wiki pages](https://github.com/kcl-ddh/digipal/wiki).
 
-_The research leading to these results has received funding from the European Union Seventh Framework Programme (FP7) under grant agreement no. 263751._
-
-Documentation for web site users, database editors, project owners and developers is available on the [Help section of the DigiPal web site](http://www.digipal.eu/help/), for the latest version please visit the [doc folder on GitHub](https://github.com/kcl-ddh/digipal/tree/master/digipal/doc).
-
-If you want to run the DigiPal framework on your own machine, please see the instructions on the [DigiPal Docker page](https://registry.hub.docker.com/u/gnoelddh/digipal/).
+_The research leading to these results has received funding from the European Union Seventh Framework Programme (FP7) under grant agreement no. 263751, and the Arts and Humanities Research Council (AHRC) under Grant Reference nos. AH/L013975/1 and AH/L008041/1._

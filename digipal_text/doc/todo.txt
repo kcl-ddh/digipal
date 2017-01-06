@@ -1,16 +1,26 @@
 Version 3 (Jan 17)
 
-. convert all docs to odt
-. commit repo
-. upload
-. new issues
+python manage.py extxt uploadfrag 'exon/source/rekeyed/word/jan17/edb-*.odt'
+
+[DONE] convert all docs to odt
+[DONE] commit repo
+[DONE] upload
+. new issues in wordlist
+. new issues in text
 . nested brackets
-. others
 . generate a revised Latin text;
 . generate an updated word-list;
 . generate a plain text.
 
----
+. verify plain text (indexing)
+    [DONE] e.g. liberaæ (217a2)
+        http://localhost:8080/digipal/manuscripts/1/texts/transcription/entry/217a2/?ds=&format=plain
+        [DONE] a should not be there
+        [OK] æ, how to search for it?
+    [DONE] 200b3, join up hyphenated parts, archidi-||diachonus
+--
+
+---------------
 
 7b8
 G〈isłł[eberti〉

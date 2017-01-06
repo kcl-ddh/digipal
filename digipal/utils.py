@@ -1250,20 +1250,38 @@ def get_plain_text_from_xmltext(xml_str):
         For INDEXING PURPOSE.
         Strip tags, remove some abbreviations, ...
         Strip locations
+       TODO: would be more reliable with pure XML transform
+       but the content is not always well-formed so we have to
+       resort to regexps.
     '''
-    # remove abbreviations
+    # Remove abbreviations and location elements
     import regex
     ret = xml_str
     ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', ret)
     ret = regex.sub(ur'<span data-dpt="location".*?</span>', ur'', ret)
+    
+    # Remove deleted elements 
+    # <span data-dpt="del" data-dpt-type="supplied">di</span>
+    ret = regex.sub(ur'(?musi)<span data-dpt="del"[^>]*>[^<]*</span>', '', ret)
+    
+    ret = ret.replace(u'</p>', ' ')
 
+    # Remove all tags
     import HTMLParser
     html_parser = HTMLParser.HTMLParser()
     from django.utils.html import strip_tags
     ret = html_parser.unescape(strip_tags(ret))
 
-    # remove | (line breaks) and other expansion markup <>
-    ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '').replace(u'-|', u'').replace(u'|', u'\r')
+    # remove | (editorial line breaks) and other supplied signs <>
+    ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '')
+    
+    # MS line breaks:
+    ret = regex.sub(ur'(?musi)-\s*\|', u'#HY#', ret)
+    # insert a CR to preserve rendering and also avoid joining words
+    # accross the MS line break. 
+    ret = ret.replace(u'|', u'\r')
+    # reunite hyphenated parts even when they are separated by spaces
+    ret = regex.sub(ur'\s*#HY#\s*', u'', ret)
 
     ret = regex.sub(ur'(?musi)\s+', ' ', ret)
 

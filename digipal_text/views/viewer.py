@@ -134,6 +134,10 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     if format == 'tei':
         tei = get_tei_from_text_response(response, item_partid, content_type)
         ret = HttpResponse(tei, content_type='text/xml; charset=utf-8')
+        
+    if format == 'plain':
+        plain_text = dputils.get_plain_text_from_xmltext(response.get('content', ''))
+        ret = HttpResponse(plain_text, content_type='text/plain; charset=utf-8')
 
     if not ret:
         raise Exception('Unknown output format: "%s"' % format)

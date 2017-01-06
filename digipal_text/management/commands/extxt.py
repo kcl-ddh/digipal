@@ -1618,10 +1618,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # E.g. &lt;margin&gt;Д‘ mМѓ&lt;/margin&gt;
         content = regex.sub(ur'(?musi)&lt;(/?[a-z]+)(&gt;)?', ur'<\1>', content)
         
-        nomargin = 1
-        if nomargin:
-            pass
-        
         # Tags we don't want to keep because no longer useful or  
         # never agreed to use them
         tags_to_remove = ur'symbol|gildum|nsc|f'
@@ -1729,7 +1725,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # <margin></margin>
         # !!!!!!!!!!!!!!! Set to 1 only temporarily.
-        remove_margins = 1
+        remove_margins = 0
         if remove_margins:
             content = content.replace('<margin>', ' ')
             content = content.replace('</margin>', ' ')

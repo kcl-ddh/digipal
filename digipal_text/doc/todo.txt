@@ -1,3 +1,20 @@
+Version 3 (Jan 17)
+
+. convert all docs to odt
+. commit repo
+. upload
+. new issues
+. nested brackets
+. others
+. generate a revised Latin text;
+. generate an updated word-list;
+. generate a plain text.
+
+---
+
+7b8
+G〈isłł[eberti〉
+
 Entries which are not well formed XML
 
 2a3, 2b6, 8b5, 63b42, 63b24, 64b40, 64b41, 84b4, 84b9, 85b1, 85b7, 89b2, 89b3, 106b2, 107a1, 126b2, 126b3, 

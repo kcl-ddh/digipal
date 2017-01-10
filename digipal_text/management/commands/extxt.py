@@ -1727,15 +1727,19 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # !!!!!!!!!!!!!!! Set to 1 only temporarily.
         remove_margins = 0
         if remove_margins:
-            content = content.replace('<margin>', ' ')
-            content = content.replace('</margin>', ' ')
+            content = content.replace(u'<margin>', u' ')
+            content = content.replace(u'</margin>', u' ')
         else:
-            content = content.replace('<margin>', '<span data-dpt="note" data-dpt-place="margin">')
-            content = content.replace('</margin>', '</span>')
+            content = content.replace(u'<margin>', u'<span data-dpt="note" data-dpt-place="margin">')
+            content = content.replace(u'</margin>', u'</span>')
 
         # to check which entities are left
         ##ocs = set(regex.findall(ur'(?musi)(&[#\w]+;)', content))
 
+        # Accidental fix edit
+        # SPACE</sup> => </sup>SPACE
+        content = regex.sub(ur'(\s+)(</(?:sup|sub|i)>)', ur'\2\1', content)
+        
         self.c = 0
 
         def markup_expansions(match):

@@ -22,6 +22,33 @@ python manage.py extxt uploadfrag 'exon/source/rekeyed/word/jan17/edb-*.odt'
 
 ---------------
 
+hiđ[as] đ[i]m[idiam]. {
+uirg̃[am] min9[us]} Honfrid4[us]
+
+=> hidas dimidiamuirgam minus
+
+Why space before { is lost?
+    because they are in a sub: đ[i]m[idiam]<text:span text:style-name="T10">. </text:span> 
+
+
+121b2
+die|
+ q[u]aa  rex. E
+
+(a ) are superscript
+
+=>
+
+die|<text:line-break/>
+ q[u]a</text:span><text:span text:style-name="T8">a </text:span>
+<text:span text:style-name="T1"><text:s/>rex. E</text:span>
+
+=> quarex
+
+Why are spaces lost? 
+
+------
+
 7b8
 G〈isłł[eberti〉
 

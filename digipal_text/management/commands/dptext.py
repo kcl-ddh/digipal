@@ -279,17 +279,25 @@ Commands:
 
         pattern = unicode(self.args[3])
         #pattern = ur'.{1,30}ħ.{1,30}'
+        pattern = ur'(?musi)#MSTART#(.*?)#MEND#'
 
         stats = {}
         cnt = 0
         import regex as re
         for tcx in TextContentXML.objects.filter(text_content__item_part_id=self.args[1], text_content__type__slug=self.args[2]):
-            units = get_all_units(tcx.content, 'entry')
-            for unit in units:
-                for match in re.findall(pattern, unit['content']):
-                    #print unit['unitid'], repr(match)
-                    print repr(match)
+            if 1:
+                for match in re.findall(pattern, tcx.content):
                     cnt += 1
+                    if len(re.findall(ur'<p>', match)) > 1:
+                        print '>1'
+            if 0:
+                units = get_all_units(tcx.content, 'entry')
+                for unit in units:
+                    for match in re.findall(pattern, unit['content']):
+                        #print unit['unitid'], repr(match)
+                        #print repr(match)
+                        #print re.findall(ur'<p>', match)
+                        cnt += 1
         
         print '%s occurences' % cnt
 

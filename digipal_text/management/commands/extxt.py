@@ -1725,10 +1725,12 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # <margin></margin>
         # !!!!!!!!!!!!!!! Set to 1 only temporarily.
-        remove_margins = 0
+        remove_margins = 1
         if remove_margins:
-            content = content.replace(u'<margin>', u' ')
-            content = content.replace(u'</margin>', u' ')
+            content = content.replace(u'<margin>', u'#MSTART#')
+            content = content.replace(u'</margin>', u'#MEND#')
+#             content = content.replace(u'<margin>', u' ')
+#             content = content.replace(u'</margin>', u' ')
         else:
             content = content.replace(u'<margin>', u'<span data-dpt="note" data-dpt-place="margin">')
             content = content.replace(u'</margin>', u'</span>')

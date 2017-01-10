@@ -1696,7 +1696,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = re.sub(ur'(?musi)(\s+)\]', ur']\1', content)
 
         # Folio number
-        # [fol. 1. b.] or [fol. 1.]
+        # [fol. 1. b.] or [fol. 1.] or  [fol 510. b]
         # TODO: check for false pos. or make the rule more strict
         #content = re.sub(ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', ur'</p><span data-dpt="location" data-dpt-loctype="locus">\1\3</span><p>', content)
         self.sides = {'': 'r', 'b': 'v', 'a': 'r'}
@@ -1704,7 +1704,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             side = self.sides.get(m.group(3), m.group(3))
             ret = ur'</p><p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span></p><p>' % (m.group(1), side)
             return ret
-        content = re_sub_fct(content, ur'(?musi)\[fol.\s(\d+)\.?(\s*(b?)\.?)\]', get_side, regex)
+        content = re_sub_fct(content, ur'(?musi)\[fol\.?\s(\d+)\.?(\s*(b?)\.?)\]', get_side, regex)
 
         # Entry number
         # [1a3]

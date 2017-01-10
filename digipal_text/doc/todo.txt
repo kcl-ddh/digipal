@@ -1,13 +1,14 @@
 Version 3 (Jan 17)
 
-python manage.py extxt uploadfrag 'exon/source/rekeyed/word/jan17/edb-*.odt'
+pm extxt uploadfrag 'exon/source/rekeyed/word/jan17/edb-*.odt'
 
 [DONE] convert all docs to odt
 [DONE] commit repo
 [DONE] upload
-. new issues in wordlist
+[DONE] new issues in wordlist
 . new issues in text
 . nested brackets
+. table
 . generate a revised Latin text;
 . generate an updated word-list;
 . generate a plain text.
@@ -20,32 +21,25 @@ python manage.py extxt uploadfrag 'exon/source/rekeyed/word/jan17/edb-*.odt'
     [DONE] 200b3, join up hyphenated parts, archidi-||diachonus
 --
 
----------------
+Pb:
 
-hiđ[as] đ[i]m[idiam]. {
-uirg̃[am] min9[us]} Honfrid4[us]
+Supplied:
+    http://localhost:8080/digipal/manuscripts/1/texts/transcription/entry/81b2/?ds=&format=html
+    81b2:  〈tenet Serlo de Burceio〉 
+    81b2:  〈et .i uirga〉 
+    77a1: </et/
+        => pb1: not converted into supplied, why???
+Ellipis:
+    134b4, is it an issue?
+    
 
-=> hidas dimidiamuirgam minus
-
-Why space before { is lost?
-    because they are in a sub: đ[i]m[idiam]<text:span text:style-name="T10">. </text:span> 
-
-
-121b2
-die|
- q[u]aa  rex. E
-
-(a ) are superscript
-
-=>
-
-die|<text:line-break/>
- q[u]a</text:span><text:span text:style-name="T8">a </text:span>
-<text:span text:style-name="T1"><text:s/>rex. E</text:span>
-
-=> quarex
-
-Why are spaces lost? 
+89a1
+    redd[un]t̃{ider̃[unt]}   with un]t̃ strokethrough
+        => redd[</text:span><text:span text:style-name="T10">un]t̃</text:span><text:span text:style-name="T1">{ider̃[unt]}
+        => redd[<span data-dpt="del" data-dpt-rend="underlined">un]t̃</span>{ider̃[unt]}
+        => redd(<span data-dpt="del" data-dpt-rend="underlined">un)<span data-dpt="abbr">t̃</span><span data-dpt="exp">t</span></span><span data-dpt="interlineation"><span data-dpt="abbr">ider̃</span><span data-dpt="exp">ider<i>unt</i></span></span>
+        => redd(un)tiderun with un)t strokethrough
+        why ()?
 
 ------
 

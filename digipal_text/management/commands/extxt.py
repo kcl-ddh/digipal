@@ -1704,7 +1704,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             side = self.sides.get(m.group(3), m.group(3))
             ret = ur'</p><p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span></p><p>' % (m.group(1), side)
             return ret
-        content = re_sub_fct(content, ur'(?musi)\[fol.\s(\d+)\.?(\s*(b?)\.?)\]', get_side, regex)
+        content = re_sub_fct(content, ur'(?musi)\[fol.\s(\d+)\.?(\s*([rvab]?)\.?)\]', get_side, regex)
 
         # Entry number
         # [1a3]
@@ -1778,7 +1778,11 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             # d- (latin small letter d with stroke)
             exp = regex.sub(ur'đ', ur'd', exp)
             exp = regex.sub(ur'Đ', ur'D', exp)
-            # h- 
+            # h-
+            # CYRILLIC SMALL LETTER TSHE (U+045B)
+            exp = regex.sub(ur'ћ', ur'h', exp)
+            # LATIN SMALL LETTER H WITH STROKE (U+0127)
+            # ! glyph is almost identical to previous one but stroke is thicker!
             exp = regex.sub(ur'ħ', ur'h', exp)
             exp = regex.sub(ur'Ħ', ur'H', exp)
             # ƥ -> p (e.g. 1v super illos)

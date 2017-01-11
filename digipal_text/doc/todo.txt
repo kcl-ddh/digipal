@@ -17,7 +17,9 @@ pm extxt uploadfrag 'exon/source/rekeyed/word/jan17/edb-*.odt'
         63b18, 63b28, 63b37, 
         63b19, 63b29, 63b38, 
     [DONE] display as a table if page 
-    [DONE] display as <p>s if selected individually 
+    [DONE] display as <p>s if selected individually
+
+REMAINING PB is interlineation in 63b24/42 (only one not well-formed), 63b38 not displayed properly {} 
 
 </p><p>...</td><td></p><p>...</td><td>
 

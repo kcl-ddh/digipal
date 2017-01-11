@@ -1711,6 +1711,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # TODO: check for false pos. or make the rule more strict
         content = regex.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)\s*]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
         
+        # TABLES
+        # We don't want <table> inside a <p> 
+        content = content.replace(ur'<table>', ur'</p><table>').replace(ur'</table>', ur'</table><p>')
         # E.g. if we have entries in table cells, then the previous conversions
         # will produce this:
         # <td><p></p><p>ENTRY NUMBER: ENTRY CONTENT</p></td>

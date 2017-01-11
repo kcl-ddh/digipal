@@ -2585,6 +2585,7 @@ class Graph(models.Model):
                 if key == 'allograph': r = self.idiograph.allograph
                 if key == 'hand': r = self.hand
                 if key == 'locus': r = self.annotation.image.locus
+                if key == 'public_note': r = self.annotation.display_note
                 if key == 'ip': r = self.annotation.image.item_part
                 if key == 'hi_date': r = self.annotation.image.item_part.historical_item.date
                 if key == 'desc': r = (self.get_description_as_str() or 'undescribed')

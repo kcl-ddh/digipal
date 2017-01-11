@@ -1710,6 +1710,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # [1a3]
         # TODO: check for false pos. or make the rule more strict
         content = regex.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)\s*]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
+        
+        # E.g. if we have entries in table cells, then the previous conversions
+        # will produce this:
+        # <td><p></p><p>ENTRY NUMBER: ENTRY CONTENT</p></td>
+        #     ^^^^                              
+        # remove elements with blank content
+        content = regex.sub(ur'(?mus)<(\w+)[^>]*?>(\s*)</\1>', ur'\2', content)
 
         # now all remaining [] with a space inside are notes or accidental markup
         # convert to ()
@@ -1724,21 +1731,14 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = regex.sub(ur'(?<!(<span data-dpt="location"[^>]+>[\dabrv]*|<sup>))7', ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>', content)
 
         # <margin></margin>
-        # !!!!!!!!!!!!!!! Set to 1 only temporarily.
-        remove_margins = 1
-        if remove_margins:
+        if 1:
             content = content.replace(u'<margin>', u'#MSTART#')
             content = content.replace(u'</margin>', u'#MEND#')
-#             content = content.replace(u'<margin>', u' ')
-#             content = content.replace(u'</margin>', u' ')
-        else:
-            content = content.replace(u'<margin>', u'<span data-dpt="note" data-dpt-place="margin">')
-            content = content.replace(u'</margin>', u'</span>')
-
+            
         # to check which entities are left
         ##ocs = set(regex.findall(ur'(?musi)(&[#\w]+;)', content))
 
-        # Accidental fix edit
+        # fix accidental edit
         # SPACE</sup> => </sup>SPACE
         content = regex.sub(ur'(\s+)(</(?:sup|sub|i)>)', ur'\2\1', content)
         

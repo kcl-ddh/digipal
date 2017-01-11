@@ -284,12 +284,16 @@ Commands:
         stats = {}
         cnt = 0
         import regex as re
+        all_entries = []
         for tcx in TextContentXML.objects.filter(text_content__item_part_id=self.args[1], text_content__type__slug=self.args[2]):
             if 1:
                 for match in re.findall(pattern, tcx.content):
                     cnt += 1
                     if len(re.findall(ur'<p>', match)) > 1:
                         print '>1'
+                    entries = re.findall(ur'"entry">(.*?)<', match)
+                    if entries:
+                        all_entries.extend(entries)
             if 0:
                 units = get_all_units(tcx.content, 'entry')
                 for unit in units:
@@ -298,6 +302,8 @@ Commands:
                         #print repr(match)
                         #print re.findall(ur'<p>', match)
                         cnt += 1
+        
+        print ','.join(all_entries)
         
         print '%s occurences' % cnt
 

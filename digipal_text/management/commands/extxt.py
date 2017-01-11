@@ -1873,10 +1873,46 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # Safe to assume &amp are not inside expension: [ & ]
         content = content.replace(ur'&amp;', ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>et</i></span>')
 
+        # Margin conversion
+        if 1:
+            content = regex.sub(ur'(?musi)#MSTART#(.*?)#MEND#', lambda m: self.convert_margin(m), content)
+            content = content.replace(u'#MSTART#', u'<span data-dpt="note" data-dpt-place="margin">')
+            content = content.replace(u'#MEND#', u'</span>')
+
         #
         content = regex.sub(ur'</p>', u'</p>\n', content)
 
         self.replace_fragment(content, recordid, is_fragment=is_fragment)
+        
+    def convert_margin(self, match):
+        # Move the margin WITHIN the <p>
+        # e.g. we have a lot of these: <margin><p>...</margin></p>
+        # we turn them into <p><margin>...</margin></p>
+        # This function will split all the margin elements 
+        # around the p elements. Generating new elements.
+        # We then remove all empty margin elements.
+
+        ret = match.group(0)
+
+        # split the margin around the <p>s
+        # so margins are within <p> and not the opposite
+        ret = ret.replace(ur'<p>', ur'#MEND#<p>#MSTART#')
+        ret = ret.replace(ur'</p>', ur'#MEND#</p>#MSTART#')
+        
+        if ret != match.group(0):
+            # recursive processing for newly created margins
+            ret = re.sub(ur'(?musi)#MSTART#(.*?)#MEND#', lambda m: self.convert_margin(m), ret)
+        
+        # Now remove an empty margin.
+        # This will occur when margin started just before p,
+        # that bit will now close also just before p and should
+        # be removed.
+        # Need a good definition of 'empty'
+        stripped = re.sub(ur'(?musi)\s+', ur'', dputils.get_plain_text_from_html(match.group(1)).strip())
+        if not stripped:
+            ret = ur''
+        
+        return ret
 
     def replace_fragment(self, content, recordid, is_fragment=0):
         from digipal_text.models import TextContentXML

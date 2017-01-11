@@ -41,6 +41,10 @@ Ellipis:
         => redd(un)tiderun with un)t strokethrough
         why ()?
 
+
+entry number within a <margin> element
+64b41,84b5,84b6,84b7,84b8,84b9,85b2,85b3,85b4,85b5,85b6,85b7,89b3,107a1,126b3,161a3,170a3,224a4,270a2,309a3,315b1,350a3,409a3,434b4,490a4,500a1,509a9,520a4
+
 ------
 
 7b8

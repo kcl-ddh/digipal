@@ -1648,7 +1648,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = regex.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj">¦</span>', content)
 
         # line breaks from MS (| => |)
-        content = regex.sub(ur'(?musi)\|', ur'<span data-dpt="lb" data-dpt-src="ms">|</span>', content)
+        content = regex.sub(ur'(?musi)(-?)\s*\|', ur'<span data-dpt="lb" data-dpt-src="ms">\1|</span>', content)
+
+        # line breaks from MS (| => |)
+        #content = regex.sub(ur'(?musi)-\|', ur'<span data-dpt="lb" data-dpt-src="ms">|</span>', content)
 
         # [---] Erasure
         content = regex.sub(ur'(?musi)(\[-+\])', ur'<span data-dpt="del" data-dpt-rend="erasure">\1</span>', content)

@@ -308,9 +308,9 @@ def fix_permissions(username, project_folder, options):
     print '> fix permissions %s' % with_sudo
     
     web_service_user = 'www-data'
+    puller = username
     if get_config('DJANGO_WEB_SERVER', False):
         web_service_user = username
-    
     
     # ALL files belong to PROJECT_GROUP
     system('%schgrp %s -R .' % (sudo, config.PROJECT_GROUP))
@@ -327,6 +327,7 @@ def fix_permissions(username, project_folder, options):
        get_config('BUILT_BY_WWW_DATA', False): 
         # -rw xrw x---
         default_perms = 770
+        puller = web_service_user
     system('%schmod %s -R .' % (sudo, default_perms))
 
     # some files can be written by web service
@@ -341,7 +342,8 @@ def fix_permissions(username, project_folder, options):
     if has_sudo:
         # .hg must be owned by the user pulling otherwise mercurial
         # complains.
-        system('%schown %s -R .hg' % (sudo, username))
+        
+        system('%schown %s -R .hg' % (sudo, puller))
     
     if 0:
         # See MOA-197

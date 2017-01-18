@@ -250,6 +250,7 @@ def text_api_view_location(request, item_partid, content_type, location_type, lo
                'location_type': context['master_location_type'],
                'location': context['master_location'],
                'locations': context['master_locations'],
+               'toc': context.get('master_toc', {'39a2': 'toc2', '39r': 'toc3', '39a1': 'toc1'}),
                }
     else:
         ret = {

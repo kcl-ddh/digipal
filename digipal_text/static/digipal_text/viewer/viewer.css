@@ -148,6 +148,11 @@ ul.dropdown-menu.dpbs-clicked {
     border: 0px !important;
 }
 
+.location-description {
+    padding-left: 0.5em;
+    line-height: 2em;
+}
+
 /* STATUS BAR */
 
 .status-bar {

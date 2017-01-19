@@ -35,6 +35,11 @@
 
 {% block main %}
 
+<p>
+    Use this page to re-index the database content so the search page finds recently edited data. 
+    <span><strong>Please use sparingly</strong>, some indices may take a long time and temporarly degrade the performance of the website for other users.</span>.
+</p>
+
 {% include "search/search_index_fragment.html" %}
 
 {% endblock main %}

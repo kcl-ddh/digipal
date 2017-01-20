@@ -62,6 +62,8 @@ urlpatterns += patterns('digipal.views.search',
 
 urlpatterns += patterns('',
     (r'^search/facets/$', 'digipal.views.faceted_search.faceted_search.search_whoosh_view'),
+    (r'^400/?$', 'digipal.views.errors.view_400'),
+    (r'^500/?$', 'digipal.views.errors.view_500'),
     #(r'^search/facets/$', 'digipal.views.faceted_search.faceted_search.search_haystack_view'),
     #(r'^search/facets/$', include('haystack.urls')),
     #url(r'^search/facets/$', FacetedSearchView(form_class=FacetedSearchForm, searchqueryset=sqs), name='haystack_search'),

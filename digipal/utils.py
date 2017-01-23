@@ -250,6 +250,8 @@ def get_regexp_from_terms(terms, as_list=False):
         # create a regexp
         for t in terms:
             t = re.escape(t)
+            
+            if not t: continue
 
             if t[-1] == u's':
                 t += u'?'

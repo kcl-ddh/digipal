@@ -326,6 +326,8 @@ class Overview(object):
 
             if not self.set_fields(faceted_search):
                 continue
+            
+            print repr(self.fields)
 
             # TODO: combine multiple results
             # Here we conflate the results and build data points
@@ -472,7 +474,7 @@ class Overview(object):
         # e.g. 2v => 2 * 2 + 1
         # returns 0 if not a number (e.g. unumbered)
         n = utils.get_int(re.sub(ur'^(\d+).*$', ur'\1', x), 0) * 2
-        if 'v' in x[-1]: n += 1
+        if len(x) and 'v' in x[-1]: n += 1
         return n
 
     def set_fields(self, faceted_search):
@@ -480,7 +482,6 @@ class Overview(object):
             set self.fields = array of faceted fields such that:
                 self.fields[0] = field for X dimensions (e.g. { hi_date })
                 self.fields[1] = field for bands (e.g. { hi_type } )
-                #self.fields[2] = field for conflating (e.g. { ip.id } )
                 
             Return True if the fields have been set properly.
                 E.g. False if the Content Type has no possible candidate Y field
@@ -505,21 +506,16 @@ class Overview(object):
         if category_field:
             context['vcat'] = category_field
     
-            if 0:
-                fields = [
-                    self.get_x_field_key(),
-                    category_field['key'],
-                    'CONFLATEID' if self.conflate else 'url'
-                ]
-            else:
-                fields = [
-                    self.get_x_field_key(),
-                    category_field['key']
-                ]
+            fields = [
+                self.get_x_field_key(),
+                category_field['key']
+            ]
+            
+            print repr(fields)
     
             self.fields = [faceted_search.get_field_by_key(field) for field in fields]
             
-            ret = True
+            ret = all(self.fields)
         
         return ret
 
@@ -671,6 +667,9 @@ class Overview(object):
             return
 
         drawing = self.drawing
+
+        if not(drawing['x'] and drawing['x'][0]):
+            return
 
         # TODO: remove hardcoded ID
         from digipal.models import ItemPart

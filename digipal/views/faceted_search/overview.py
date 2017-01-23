@@ -467,7 +467,10 @@ class Overview(object):
         return self.x_field_key
 
     def get_int_from_locus(self, x):
-        n = int(re.sub(ur'^(\d+).*$', ur'\1', x)) * 2
+        # returns integer from a locus,
+        # e.g. 2v => 2 * 2 + 1
+        # returns 0 if not a number (e.g. unumbered)
+        n = utils.get_int(re.sub(ur'^(\d+).*$', ur'\1', x), 0) * 2
         if 'v' in x[-1]: n += 1
         return n
 

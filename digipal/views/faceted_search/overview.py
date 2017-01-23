@@ -327,8 +327,6 @@ class Overview(object):
             if not self.set_fields(faceted_search):
                 continue
             
-            print repr(self.fields)
-
             # TODO: combine multiple results
             # Here we conflate the results and build data points
             # with all info except coordinates.
@@ -511,8 +509,6 @@ class Overview(object):
                 category_field['key']
             ]
             
-            print repr(fields)
-    
             self.fields = [faceted_search.get_field_by_key(field) for field in fields]
             
             ret = all(self.fields)

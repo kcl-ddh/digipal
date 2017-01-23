@@ -69,7 +69,7 @@ class FacetedModel(object):
         if not found:
             #raise Exception('Yo!')
             ret[0]['selected'] = True
-
+            
         return ret
     views = property(get_views)
 

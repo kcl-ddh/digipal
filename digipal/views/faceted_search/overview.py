@@ -324,7 +324,8 @@ class Overview(object):
             if query.is_hidden: continue
             faceted_search = query.faceted_search
 
-            self.set_fields(faceted_search)
+            if not self.set_fields(faceted_search):
+                continue
 
             # TODO: combine multiple results
             # Here we conflate the results and build data points
@@ -480,7 +481,11 @@ class Overview(object):
                 self.fields[0] = field for X dimensions (e.g. { hi_date })
                 self.fields[1] = field for bands (e.g. { hi_type } )
                 #self.fields[2] = field for conflating (e.g. { ip.id } )
+                
+            Return True if the fields have been set properly.
+                E.g. False if the Content Type has no possible candidate Y field
         '''
+        ret = False
         #faceted_search = self.faceted_search
         context = self.context
 
@@ -494,24 +499,29 @@ class Overview(object):
         category_field = faceted_search.get_field_by_key(self.request.REQUEST.get('vcat', 'hi_type'))
         if category_field is None: category_field = faceted_search.get_field_by_key('hi_type')
         if category_field is None: category_field = faceted_search.get_field_by_key('text_type')
-        if category_field is None:
+        if category_field is None and context['vcats']:
             category_field = context['vcats'][0]
 
-        context['vcat'] = category_field
-
-        if 0:
-            fields = [
-                self.get_x_field_key(),
-                category_field['key'],
-                'CONFLATEID' if self.conflate else 'url'
-            ]
-        else:
-            fields = [
-                self.get_x_field_key(),
-                category_field['key']
-            ]
-
-        self.fields = [faceted_search.get_field_by_key(field) for field in fields]
+        if category_field:
+            context['vcat'] = category_field
+    
+            if 0:
+                fields = [
+                    self.get_x_field_key(),
+                    category_field['key'],
+                    'CONFLATEID' if self.conflate else 'url'
+                ]
+            else:
+                fields = [
+                    self.get_x_field_key(),
+                    category_field['key']
+                ]
+    
+            self.fields = [faceted_search.get_field_by_key(field) for field in fields]
+            
+            ret = True
+        
+        return ret
 
     def init_bands(self):
         '''

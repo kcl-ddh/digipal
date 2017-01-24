@@ -62,6 +62,7 @@ class Image(digipal.models.Image):
             cache=True to cache subsequent calls
             grey=True to return a greyscale image
         '''
+        #print url
         ret = None
         from django.template.defaultfilters import slugify
         disk_path = os.path.join(settings.IMAGE_CACHE_ROOT, '%s.jpg' % slugify(url))
@@ -126,12 +127,17 @@ class Image(digipal.models.Image):
         from PIL import ImageChops
         ims = [im_big, im_small]
         best = None
+        #print '---'
         for x in range(0, ims[0].size[0] - ims[1].size[0] + 1):
             for y in range(0, ims[0].size[1] - ims[1].size[1] + 1):
                 current = [x, y, reduce(lambda a, b: a * 2 + b, ImageChops.difference(ims[0].crop((x + 0, y + 0, x + ims[1].size[0] - 1, y + ims[1].size[1] - 1)), ims[1]).histogram()[::-1])]
                 #print '%3d, %3d : %60d' % (current[0], current[1], current[2]) 
                 if (best is None) or (best[2] > current[2]):
                     best = current
+        
+        #print 'offset'
+        #print repr(best)
+        
         return best[0:2]
     
     @classmethod
@@ -282,6 +288,17 @@ class Image(digipal.models.Image):
         # Calculate the search region (region_search):
         # start from the coordinates of the annotation in the first image (region)
         region = self.get_annotation_coordinates(ann, digipal_images[annotation_image_index])
+
+        #print 'ann'        
+        # 1 is original size in pixel of the annotation
+        # But reduce to save time and not to show too big annotation on 
+        # front end and avoid exceding image server limit
+        sample_factor = 0.5
+        ann_info = ann.get_cutout_url_info(fixlen=sample_factor)
+        #print ann.geo_json
+        #print ann.get_cutout_url(fixlen=sample_factor)
+        #print region
+        
         region_search = []
         sign = 1
         if annotation_image_index == 0:
@@ -300,23 +317,35 @@ class Image(digipal.models.Image):
         safety_margin = 2.2
         search_margin = int((downsample_ratio / 2.0) * safety_margin + 0.5)
         region_search = [
-                            [region_search[0][0] - search_margin, region_search[0][1] - search_margin], 
-                            [region_search[1][0] + search_margin, region_search[1][1] + search_margin], 
-                        ]
+            [region_search[0][0] - search_margin, region_search[0][1] - search_margin], 
+            [region_search[1][0] + search_margin, region_search[1][1] + search_margin], 
+        ]
+        region_search_width = (region_search[1][0] - region_search[0][0])
+
+        #print 'region search'
+        #print region_search
         
         # iip img server only accepts relative coordinates, so convert them into relatives
         region_search_relative = digipal_images[1-annotation_image_index].get_relative_coordinates(region_search)
         
         # Get the two images (annotation and search region) as PIL objects
-        ann_im = self.get_pil_img_from_url(ann.get_cutout_url(False, True), grey=True, cache=True)
+        ann_im = self.get_pil_img_from_url(ann.get_cutout_url(fixlen=sample_factor), grey=True, cache=True)
         rgn_im = digipal_images[1-annotation_image_index].get_pil_img( 
-                            query='&RGN=%1.6f,%1.6f,%1.6f,%1.6f&QLT=100&CVT=JPG' % (region_search_relative[0][0], region_search_relative[0][1], region_search_relative[1][0], region_search_relative[1][1])
-                            , grey=True
-                            , cache=True
-                        )
+            query='&WID=%s&RGN=%1.6f,%1.6f,%1.6f,%1.6f&QLT=100&CVT=JPG' % (
+                int(sample_factor*region_search_width),
+                region_search_relative[0][0], 
+                region_search_relative[0][1], 
+                region_search_relative[1][0], 
+                region_search_relative[1][1]
+            )
+            , grey=True
+            , cache=True
+        )
         
         # Find the offsets by systematically looking for a match of the annotation within 
         # the search region
+        #print ann_im
+        #print rgn_im
         offsets = self.find_offsets_from_pil_images(rgn_im, ann_im)
         
         # Now add local offset to the global estimate
@@ -324,9 +353,16 @@ class Image(digipal.models.Image):
         
         # Get the URL of the reference annotation and the matching one in the other image 
         ret_relative = digipal_images[1-annotation_image_index].get_relative_coordinates([[region[0][0] + ret['offsets'][0], region[0][1] + ret['offsets'][1]], [region[1][0] + ret['offsets'][0], region[1][1] + ret['offsets'][1]]])
-        ann_img_2_url = digipal_images[1-annotation_image_index].iipimage.full_base_url + '&RGN=%1.6f,%1.6f,%1.6f,%1.6f&QLT=100&CVT=JPG' % (ret_relative[0][0], ret_relative[0][1], ret_relative[1][0], ret_relative[1][1])
+        ann_img_2_url = digipal_images[1-annotation_image_index].iipimage.full_base_url + \
+            '&WID=%s&RGN=%1.6f,%1.6f,%1.6f,%1.6f&QLT=100&CVT=JPG' % (
+                int(ann_info['dims'][0]),
+                ret_relative[0][0], 
+                ret_relative[0][1], 
+                ret_relative[1][0], 
+                ret_relative[1][1]
+            )
 
-        ret['annotations'] = [ann.get_cutout_url(False, True), ann_img_2_url]
+        ret['annotations'] = [ann.get_cutout_url(fixlen=sample_factor), ann_img_2_url]
         
         # Adjust the crop signs
         if not reverse_order:

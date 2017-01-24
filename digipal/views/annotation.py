@@ -577,7 +577,7 @@ def images_lightbox(request, collection_name):
                         scribe_id = 'Unknown'
                         place_name = 'Unknown'
                         date = 'Unknown'
-                    full_size = u'<img alt="%s" src="%s" />' % (annotation.graph, annotation.get_cutout_url(True, True))
+                    full_size = u'<img alt="%s" src="%s" />' % (annotation.graph, annotation.get_cutout_url(True))
                     #annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label, full_size])
                     annotations.append([html_escape.annotation_img(annotation), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label, full_size])
                 except:
@@ -599,7 +599,7 @@ def images_lightbox(request, collection_name):
             editorial_annotations_list = list(Annotation.objects.filter(id__in=graphs['editorial']))
             editorial_annotations_list.sort(key=lambda t: graphs['editorial'].index(str(t.id)))
             for _annotation in editorial_annotations_list:
-                full_size = u'<img alt="%s" src="%s" />' % (_annotation.graph, _annotation.get_cutout_url(True, True))
+                full_size = u'<img alt="%s" src="%s" />' % (_annotation.graph, _annotation.get_cutout_url(True))
                 editorial_annotations.append([_annotation.thumbnail(), _annotation.image.id, _annotation.id, _annotation.image.display_label, _annotation.display_note, full_size])
             data['editorial'] = editorial_annotations
         if 'textunits' in graphs:

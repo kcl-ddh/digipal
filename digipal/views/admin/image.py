@@ -113,6 +113,7 @@ def process_bulk_image_ajax(request):
     
     action = request.GET.get('action', '')
     if action == 'test_replace_image':
+        from digipal.images.models import Image
         iids = [request.GET.get('image1', ''), request.GET.get('image2', '')]
         if iids[0] and iids[1]:
             image = Image.objects.get(id=iids[0])

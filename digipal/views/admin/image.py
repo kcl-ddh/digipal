@@ -186,8 +186,11 @@ def image_bulk_edit(request, url=None):
     action = request.POST.get('action', '').strip()
 
     #if action == 'operations':
-
+    
+    print '-' * 80
+    
     if action == 'change_values' and context['show_duplicates']:
+        print request.POST
         # change image
         for key, val in request.POST.iteritems():
             image_id = re.sub(ur'^replace-image-(\d+)$', ur'\1', key)

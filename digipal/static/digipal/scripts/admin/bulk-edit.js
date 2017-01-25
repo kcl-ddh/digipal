@@ -55,9 +55,14 @@ jQuery(document).ready(function($) {
         
         if (data['annotations'] && data['annotations'].length) {
             $replace_row.find('.message').html('Below you can see an annotation from this image and the same annotation after replacing with the new image. If they don\'t match revert to the original image by undoing your change in the drop down. <a class="try-another-graph" href="#">Try another graph</a>');
-            $replace_row.find('.samples img.first').attr('src', data['annotations'][0]);
-            $replace_row.find('.samples img.second').attr('src', data['annotations'][1]);
-            $replace_row.find('.samples').show();
+            var $samples = $replace_row.find('.samples');
+            $samples.html('');
+            for (var i = 0; i < data['annotations'].length; i++) {
+                var $sp = $('<div class="img"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" /></div>');
+                $sp.find('img').attr('src', data['annotations'][i]);
+                $samples.append($sp);
+            }
+            $samples.show();
             $replace_row.find('.try-another-graph').click(function() { 
                $('select[name=replace-image-' + image_id + ']').change(); 
                return false;
@@ -79,7 +84,8 @@ jQuery(document).ready(function($) {
         $replace_row.toggle(different_image);
         $replace_row.find('.message').html('Please wait while the crop offsets are being calculated...');
         $replace_row.find('.samples').hide();
-        $replace_row.find('.samples img').attr('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
+        //$replace_row.find('.samples img').attr('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
+        $replace_row.find('.samples').html('&nbsp;');
         if (different_image) {
             $.getJSON('', {action: 'test_replace_image', image1: image_id, image2: new_image_id}, show_image_replace_info);
         }

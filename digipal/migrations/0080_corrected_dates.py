@@ -20,10 +20,11 @@ class Migration(DataMigration):
 
             for line in read_all_lines_from_csv(file_path):
                 if line['newdate'] and line['recordidmoahi']:
-                    hi = orm['digipal.HistoricalItem'].objects.get(id=line['recordidmoahi'])
-                    hi.date_sort = line['newdate'].strip()
-                    print 'HI #%s: %s => %s' % (hi.id, hi.date, hi.date_sort)
-                    hi.save()
+                    hi = orm['digipal.HistoricalItem'].objects.filter(id=line['recordidmoahi']).first()
+                    if hi:
+                        hi.date_sort = line['newdate'].strip()
+                        print 'HI #%s: %s => %s' % (hi.id, hi.date, hi.date_sort)
+                        hi.save()
 
         #raise Exception('rollback')
 

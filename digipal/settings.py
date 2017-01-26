@@ -204,6 +204,7 @@ INSTALLED_APPS = (
         'django.contrib.sites',
         'django.contrib.sitemaps',
         'django.contrib.staticfiles',
+        'django.contrib.humanize',
         'mezzanine.boot',
         'mezzanine.conf',
         'mezzanine.core',
@@ -616,6 +617,13 @@ CACHES = {
     'digipal_compute': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/compute/'),
+        'TIMEOUT': 60*60*24,
+        #'TIMEOUT': 1,
+        'MAX_ENTRIES': 300,
+    },
+    'digipal_text_patterns': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/text_patterns/'),
         'TIMEOUT': 60*60*24,
         #'TIMEOUT': 1,
         'MAX_ENTRIES': 300,

@@ -1,29 +1,480 @@
-. let the user resize and move the annotations on the Text Editor
-    [DONE] Had to upgrade OL3 to latest version (3.18.2) to make use of Translate interaction
-    [DONE]. Image panel broken on my laptop
-    !!!!!!!!!!!!!!
-    ****** . Impossible to select annotation nested inside the currently selected one (caused by OL3 upgrade)
-    !!!!!!!!!!!!!!
-    [DONE] The drawing interaction is broken
-    [DONE]. Add a Translation interaction
-        . Basic interaction
-        . Only one save: at the end of the translation, not many times while the shape is draged around
-    [DONE]. Add a basic Modify interaction
-    [DONE] Make the basic Modify interaction that preserves the rectangular shape
-        [DONE] Moving vertex reshape the rectangle
-            . force a change to the feature geometry in a Modify translating event handler
-            https://github.com/openlayers/ol3/issues/5095#event-601814603
-        [DONE] show resize cursor when near a vertex
-    [DONE] Add an editing mode to the image panel, similar to the editing mode on the text panel. This is to avoid accidental changes to the annotations.
+Version 3 (Jan 17)
 
-. word list
+pm extxt uploadfrag 'exon/source/rekeyed/word/jan17/edb-*.odt'
+
+[DONE] convert all docs to odt
+[DONE] commit repo
+[DONE] upload
+[DONE] new issues in wordlist
+[DONE] new issues in text
+[DONE] nested brackets
+[DONE] margins
+    64b41,84b5,84b6,84b7,84b8,84b9,85b2,85b3,85b4,85b5,85b6,85b7,89b3,107a1,126b3,161a3,170a3,224a4,270a2,309a3,315b1,350a3,409a3,434b4,490a4,500a1,509a9,520a4
+. tables
+    two table located in 63b16, fol 64 in document 63-82
+    .   63b16, 
+        63b17, 63b27, 63b36, 
+        63b18, 63b28, 63b37, 
+        63b19, 63b29, 63b38, 
+    [DONE] display as a table if page 
+    [DONE] display as <p>s if selected individually
+
+REMAINING PB is interlineation in 63b24/42 (only one not well-formed), 63b38 not displayed properly {} 
+
+</p><p>...</td><td></p><p>...</td><td>
+
+    
+63b26
+u'<p>\xa7<span data-dpt="location" data-dpt-loctype="entry">63b26</span> Sud <span data-dpt="abbr">Peretonn\u0119</span>
+<span data-dpt="exp">Peretonn<i>a</i>e</span> <span data-dpt="abbr">hun\u0111</span><span data-dpt="exp">hund<i>ret</i></span>.</td><td></p>\n'
+63b35
+u'<p>\xa7<span data-dpt="location" data-dpt-loctype="entry">63b35</span> Briytone <span data-dpt="abbr">hund<sup>4</sup></span>
+<span data-dpt="exp">hund<i>ret</i></span></td><td></p>\n'
+    
+. generate a revised Latin text;
+. generate an updated word-list;
+. generate a plain text.
+
+. verify plain text (indexing)
+    [DONE] e.g. liberaæ (217a2)
+        http://localhost:8080/digipal/manuscripts/1/texts/transcription/entry/217a2/?ds=&format=plain
+        [DONE] a should not be there
+        [OK] æ, how to search for it?
+    [DONE] 200b3, join up hyphenated parts, archidi-||diachonus
+--
+
+Pb:
+
+Supplied:
+    http://localhost:8080/digipal/manuscripts/1/texts/transcription/entry/81b2/?ds=&format=html
+    81b2:  〈tenet Serlo de Burceio〉 
+    81b2:  〈et .i uirga〉 
+    77a1: </et/
+        => pb1: not converted into supplied, why???
+Ellipis:
+    134b4, is it an issue?
+    
+
+89a1
+    redd[un]t̃{ider̃[unt]}   with un]t̃ strokethrough
+        => redd[</text:span><text:span text:style-name="T10">un]t̃</text:span><text:span text:style-name="T1">{ider̃[unt]}
+        => redd[<span data-dpt="del" data-dpt-rend="underlined">un]t̃</span>{ider̃[unt]}
+        => redd(<span data-dpt="del" data-dpt-rend="underlined">un)<span data-dpt="abbr">t̃</span><span data-dpt="exp">t</span></span><span data-dpt="interlineation"><span data-dpt="abbr">ider̃</span><span data-dpt="exp">ider<i>unt</i></span></span>
+        => redd(un)tiderun with un)t strokethrough
+        why ()?
+
+entry number within a <margin> element
+64b41,84b5,84b6,84b7,84b8,84b9,85b2,85b3,85b4,85b5,85b6,85b7,89b3,107a1,126b3,161a3,170a3,224a4,270a2,309a3,315b1,350a3,409a3,434b4,490a4,500a1,509a9,520a4
+
+------
+
+7b8
+G〈isłł[eberti〉
+
+Entries which are not well formed XML
+
+2a3, 2b6, 8b5, 63b42, 63b24, 64b40, 64b41, 84b4, 84b9, 85b1, 85b7, 89b2, 89b3, 106b2, 107a1, 126b2, 126b3, 
+161a2, 161a3, 170a2, 170a3, 170b1, 224a3, 224a4, 309a2, 309a3, 315a5, 315b1, 350a2, 350a3, 409a2, 409a3, 
+425a3, 434b3, 434b4, 490a3, 490a4, 499b11, 509a8, 509a9, 520a3, 520a4, 
+
+Unique tags:
+    u'</i>'
+    u'<i>'
+    u'</span>'
+
+    u'<span data-dpt="del" data-dpt-rend="underlined">'
+    u'<span data-dpt="del" data-dpt-type="supplied">'
+
+    u'<span data-dpt="note" data-dpt-place="margin">'
+    u'<span data-dpt="supplied">'
+
+    u'<span data-dpt="g" data-dpt-ref="#tironian">'
+
+    Not to be ascii formatted:
+    u'<span data-dpt="interlineation">'
+    u'<span data-dpt="exp">'
+    u'<span data-dpt="lb" data-dpt-src="ms">'
+    u'<span data-dpt="lb" data-dpt-src="prj">'
+    u'<span data-dpt="location" data-dpt-loctype="entry">'
+    u'<span data-dpt="location" data-dpt-loctype="locus">'
+    u'<span data-dpt="del" data-dpt-rend="erasure">'
+    u'<span data-dpt="abbr">'
+    u'</fn>'
+    u'<fn>'
+    u'</p>'
+    u'<p>'
+    u'</sub>'
+    u'<sub>'
+    u'</sup>'
+    u'<sup>'
+    
+
+Empty elements (104 occurrences):
+    pm dptext search 1 transcription '(?musi).{20}<[^/>]+></.{70}'
+    Mostly due to [blank]
+    [REPORT] 8a8: Malmesᵬ[er]iens̃[ is]
+    202b4: <i>ar</i></span></span>arari ab
+    238b3: ined">a</span><span data-dpt="abbr"></span><span data-dpt="exp"><i>abe</i></span><sp
+    515a5: u'pt="interlineation"><span data-dpt="abbr"></span><span data-dpt="exp"><i>ni</i></span></span>catu <span data-dpt="'
+    519a3: u'>er</i>at</span> ab <span data-dpt="abbr"></span><span data-dpt="exp"><i>a</i></span> <span data-dpt="abbr">\u0119cl 
+
+(ex) jeff@jeff-UX303UA:~/src/workspace/exon/django$ sort tags.txt | uniq
+done
+[DONE] REMOVE TAG: u'</f>'u'<f>'
+[DONE] REMOVE TAG: u'<symbol>': 438a4, 475a5
+[DONE] REMOVE TAG: u'<gildum>': 397a4
+[DONE] REMOVE TAG: u'<nsc>': 366a4
+[DONE] u'</st>': 343 occurences, first in 
+    [DONE] u'<st>P</st>', 1b4
+    [DONE] u'<st>S</st>', 8a3
+    [DONE] u'<st>B</st>', 15b8
+    [DONE] u'<st><span data-dpt="abbr">p\u0303</span><span data-dpt="exp">p</span></st>', 270b1
+    [DONE] u'<st><span data-dpt="abbr">q\u0303</span><span data-dpt="exp">q</span></st>', 399b1
+u'</fn>'
+u'<fn>'
+u'</i>'
+u'<i>'
+u'</p>'
+u'<p>'
+u'</span>'
+u'<span data-dpt="abbr">'
+u'<span data-dpt="del" data-dpt-rend="erasure">'
+u'<span data-dpt="del" data-dpt-rend="underlined">'
+u'<span data-dpt="del" data-dpt-type="supplied">'
+u'<span data-dpt="exp">'
+u'<span data-dpt="g" data-dpt-ref="#tironian">'
+u'<span data-dpt="interlineation">'
+u'<span data-dpt="lb" data-dpt-src="ms">'
+u'<span data-dpt="lb" data-dpt-src="prj">'
+u'<span data-dpt="location" data-dpt-loctype="entry">'
+u'<span data-dpt="location" data-dpt-loctype="locus">'
+u'<span data-dpt="note" data-dpt-place="margin">'
+u'<span data-dpt="supplied">'
+u'</sub>'
+u'<sub>'
+u'</sup>'
+u'<sup>'
+ 
+
+pm extxt missing
+    106b1, missing reference?
+    138a1, blank page, no text, no reference
+    243a2, reference mislabelled as '242a2', corrected in working doc
+    304b4, translation has a 304b4 (In WONFORD Hundred § Baldwin of Exeter, the sheriff ...) but not visible on MS
+    342a5, same, translation has an entry 342a5, In KERSWELL Hundred § Ralph of La Pommeraye has 1 manor which is called BERRY 
+    358a4, entry reference 358a3 is directly followed by 358a5. Should 358a5 be relabelled 385a4? 
+    365b1, blank page, no text, no reference
+    453b4, reference to last entry on 453v is '453b3', the same number as the previous entry. Should be changed to 453b4.
+    456a2, entry 456a2 was mislabelled as '445a2' 
+    494b4, seems correct as only one entry on that page (Consumatum est), correctly labelled 494b1, not sure why translation has an entry 494b4.
+    532b5, mislabelled as 532b6 (532b6 used twice).
+
+csslint --ignore=adjoining-classes,order-alphabetical $(find exon -iname 'tinymce_custom*') | less
+
+pm dptext search 1 transcription "(?i)[a-z]+7\w*"
+pm extxt uploadfrag exon/source/rekeyed/word/dec16/edb-117-155.odt
+pm extxt uploadfrag "exon/source/rekeyed/word/dec16/edb-*.odt"
+pm dptext unit 4 entry 141a1
+
+1. regen index and clear caches on the stg server
+2. regen Wordlist
+    2.1 Excel
+    2.2 CSV for offline DB
+    2.3 Instruction on how to upload it in access and crosstab
+3. regen PDF of text
+4. regen plain text
+5. regen segments
+
+
+[DONE] Word List
+    . create a form to select what we want from the Word List
+
+. Import revised transcription fragments
+    . Not all { are converted to interlineation:
+        e.g. 7a4: {Barones is plain {
+            {dimidia isn't 
+    . 9a7: {d <ignum> : too much margin before <
+
+. Word List
+    . http://localhost:8080/lab/wordlist/?l=full&format=csv&analysis=1
+    [REPORT] Correct entries
+    [REPORT] fix errors with words stuck together and special chars
+        abbasSanctae, 275a1 = joint in the Word Doc
+        abstulitSancto, 258b3 =>
+        => happens with a handful of sanct* words being joint to the previous word 
+        aHas, 351a1
     . still special chars in the expanded text
-    . <span data-dpt="abbr">collegert̃</span><span data-dpt="exp">colleger<i>un</i>t</span> <span data-dpt="abbr">geldũ</span><span data-dpt="exp">geldu<i>m</i></span>
+        coliƀertos, 99a2
+    [?] <span data-dpt="abbr">collegert̃</span><span data-dpt="exp">colleger<i>un</i>t</span> <span data-dpt="abbr">geldũ</span><span data-dpt="exp">geldu<i>m</i></span>
+    [check] barro-|nes is encoded barro-<span MS>|</span>nes
+        . how is that indexed? => cesure is removed before indexing; see digipal_text.models#get_plain_content()
+        [OK] why is it encoded like that?
+    . Export to Excel
+    . Send to Eleonora
 
-    . barro-|nes is encoded barro-<span MS>|</span>nes
-        . how is that indexed?
-        . why is it encoded like that
+Transcription version 2:
+    Points to Note:
+NO 6. All letters and words occurring in angle brackets 〈〉 should be in italic, because thay are not in the text but supplied by the editor.
+NO 13. The hand of the GDB main scribe is found in entries 153b1-2 and 436b1-3. I have used a different type-face, but an ugly one. Can you choose something different but better?
+() 1. I have removed all occurences of [---] and […] which were used to indicate erasures and blank spaces respectively. The [---] survives to mark an erased entry after a paraph.
+() 2. The first SOM hundred list on folios 63b-64a is, as Chris has pointed out, arranged in columns. I have renumbered it and laid it out in tabular form. It will need converting and the grid removing, but it should remain in columns.
+() 3. I have also renumbered folio 228, after we decided that the heading CORN’ was contemporary. I will bring the corrected Ellis photocopies with me to London for the next meeting.
 
+[DONE] 4. I notice that the ÷ symbol remains in the text. It should appear as est (in italics).
+    GN: b/c/ conversion expected '[est]' to follow ÷
+[DONE] 5. In a few cases an ampersand (&) begins a new sentence. I have converted these to italic Et. They appear thus in my text and need to be kept as such.
+[NOT FOUND] 7. In Iohanne, Iohannes and Iohannis the ħ appears to have remained. It should be a plain h. Is it possible to spot and convert all such instances?
+[DONE] 8. Similarly, the ᵬ symbol seems to have survived in some cases, where it should have been converted to a plain b. I noted 97b1, 97b4, 98a1, 98a2 98a3 (x 2) 99a2, 103b2, 509b2, but there may be others.
+[DONE] 9a. I noticed nem9usculi on 152a2, where the 9 should disappear 
+[DONE] 9b. and praati on 196b1 where the second a is a superscript and should disappear as it has in all (?) other cases.
+[DONE] 10. We are used to an ampersand being used as a word termination, thus, ten& becomes tenet. The tironian nota (7) is also used like this sometimes (ten7 becomes tenet) but I noticed that on 141a1 the 7 was not reproduced as part of the word. In my original there was: Hã[n]c ten7 Folcheram9[us].
+    . display et by default, display 7 as TIRONIAN if user wants it
+        54b1 u'lib7'
+        54b2 u'lib7'
+        55b1 u'lib7'
+        56a2 u'lib7'
+        141a1 u'ten7'
+        355a2 u'ti7'
+        419b1 u'lib7'
+        503a8 u'ual7'
+    . 
+[DONE] 11. In 117a3 clamat was struck through in my original: Cũ[m] hac mansione clamat {habet} ep̃[iscopu]s, but that has not come out in the finished text.
+[NOT FOUND] 12. An occasional superscript 4 survives as an abbreviation sign. All should be eliminated, but not, of course the 4 in folio references etc.
+[DONE] 14. I may have failed to update you on the h-with abbreviation sign. The lower case is unicode 0127 (ħ) and the capital is unicode 0126 (Ħ)
+
+PLAIN TEXT version: remove all italics and all brackets, underline and strikthrough
+
+Outcomes.
+
+1. It would be good to have a new wordlist, if possible, before your work ends, and (possibly the same thing) all the information from the wordlist laid out on an Excel spreadsheet, with two blank columns on the left-hand side. These are to indicate (a) if the word is an ordinary one or a personal name or a place-name, and (b) the head form for the diverse spellings to be used in indices and lists
+2. It would be useful to have a version of the revised text.
+3. It would be surprising if there were no more corrections to be made, but if anything is noticed, I will list it for a final session, possibly done by me on the master text itself.
+
+FRT 
+6.12.2016
+
+
+TextSeg 2.0:
+    . improvements:
+        [DONE] concurrent editing level 1 (due to chaneg to particular patterns)
+        [DONE] concurrent editing level 2 (due to date check)
+        [DONE] interface is up to date all the time, no need to press update
+        . name spaces
+    . refactoring
+        . JSON storage    
+            [DONE] use KeyVal to store the patterns in the database
+            [DONE] convert legacy data structure
+            [DONE] id:
+                generate new id if none
+                more compact? recordid-relid (relid is a counter)
+            [DONE] decide array or hash?
+            . order?
+            (). data structure version?
+            [DONE] session data:
+                . conditions
+                . search options
+                . selection
+        . rest API
+            . improve API: get, set, search
+            [DONE] get all patterns
+            (). set all patterns
+            [DONE] set a pattern
+            [DONE] apply patterns
+        . new UI with vue.js
+            [DONE] show list of patterns
+            [DONE] show a pattern
+            [DONE] select pattern
+            [DONE] edit a pattern
+            [DONE] save session, directly
+            [DONE] save changes to server
+            [DONE] delete a pattern
+            [DONE] add new pattern
+            [DONE] Show results
+            [DONE] message
+            [DONE] validate patterns on the fly
+            [DONE] use compact form
+            ** Grouping
+                [DONE] expand-collapse
+                [DONE] show stats per group
+                . add to group
+            [DONE] apply conditions
+            [DONE] conflict detection
+            * generate slug automatically from the title
+                . change as long as they don't deviate
+            ** expose internal patterns
+                [DONE] add when loading from legacy
+                    . helper_P
+                . recognise _ as group separator
+                    [DONE] in UI
+                    . server side
+                [DONE] convert references <P> -> helper_P 
+                [DONE] validate references 
+                [DONE] special pattern: <Ps>
+                [DONE] don't apply helpers
+            * reorder patterns
+                . can't move group after another
+                [DONE] pb1: need to move groups as well
+                [DONE] prevent dropping in the middle of a group
+                [DONE] reordering?
+                [DONE] pb2: need to be able to move without clicking first
+                [DONE] pb3: the li won't move to all possible places
+            . bulk conditions:
+                . exclude other|all pattern in group
+                . ignore other goups
+            * add ad-hoc segments to group
+            [DONE] error management
+                [DONE] server error
+                [DONE] invalid pattern expression
+                . duplicate keys
+                . wrong references
+    . use namespace
+    . problems:
+        . avoid request each time blur... check if value actually changed
+        . conditions change not immediatelly reflected in the the patetrn list
+        . GET may actually add a new pattern, not very restful behaviour
+        . the way the changes are transfered to the server has some issues:
+            . lots of small requests
+            . data is updated twice: by the user action and then the response
+                from the server. Make sure this doesn't cause two redraw. 
+        . expansion of groups of patterns and change in conditions don't 
+            trigger a redraw -> vue.js not listening to new items added to object
+            under data. <- not listening to those changes?
+        . very slow rendering of long list of results
+            . due to adblock plugin!
+         
+
+Todo:
+. navigation
+    . toc above images
+    . toc above text editor?
+. UI
+    [DONE] remove rekeyed text
+. patterns:
+    . detect concurrent changes
+
+
+These are probably matters for the next team meeting but I wanted to record my thoughts now before I forget them.
+
+1. How do I edit the scribal profiles? They are currently in draft form and will need tidying up, amplifying and aligning with the rest of the database (e.g. name-forms) before the website is ready for general release.
+
+Next, please see the screenshot attached.
+
+2. The Codicology tab links straight through to the 3-screen view of image/text/translation. You probably are aware of this already but I thought I should mention it.
+
+3.  I suggest that we think seriously about the TEXTS tab. I imagine that that's a simple matter of typing in a box,
+so not an issue for you at all. `Texts' here means something like `view', but to most of the users of the website
+the word`text' means something equivalent to `type of entry'. They will expect it to refer to the original contents
+of the manuscript, not to supplementary information which we have provided. Version/information/source/resource/view
+might be less confusing.
+
+. patterns:
+    . detect concurrent changes
+    . fix bug with the creation of a new pattern
+
+--
+Pattern analysis
+--
+
+Problems:
+    Quality TEXT: e.g. et dimidia et dimidia, htenuit, [---]
+Question:
+    Where should the categorisation into variants occur? the patterns or subsequently with database query about the pattern content?
+    Related question: how strict are the patterns and what is the logic for having multiple patterns that cover similar type of formulas
+
+qua Eduuardus rex fuit uiuus et mortuus
+qua rex Eduuardus fuit uiuus et mortuus
+reddidit gildum pro hida et dimidia
+
+#232b3
+
+
+TRE Holder: do we separate them off?
+
+
+
+BNF
+    Upgrade
+    Time estimates
+    Send email
+MOA
+    [DONE] Publish to STG
+    [DONE] Ask for review -> Confluence
+    Publish to Live
+EXON
+    Patterns
+        finish all patterns for first two entries
+        send email with explanation and offer to meet
+
+<person> (habet|habuit) <number> mansionem
+
+Guides:
+use et not 7
+use u not v
+
+Duplicate transcription entries!
+226a5
+230b4
+242a2
+263b3
+264b4
+345a3
+445a2
+453b3
+
+
+. Pattern detection
+    . UI
+        [DONE] Show patterns
+        [DONE] Edit patterns
+        [DONE] add drop down with condition about the pattern: |ignore|include|exclude
+        [DONE] show the units
+        [DONE] show the formulas
+        [DONE] highlight formulas in text? (pb if overlap!)
+        [DONE]. stats: show % for each pattern
+        . Compact Pattern List:
+            [DONE] expand only one selected pattern in the list
+            [DONE] show condition in the collapsed view
+            . edit condition in the collapsed view
+            . change all conditions in one go
+        [DONE] reorder patterns
+    . Server
+        [DONE] Define the rule model
+        [DONE] select only transcription and specific range
+        [DONE] basic segmentation
+        [DONE] pattern error management
+        [DONE] apply pattern conditions
+        [DONE] cache the entry extra data instead of querying the DB for each record
+        ** expose facility patterns
+        . detect matches which are too long
+        . detect overlaps
+            . apply smaller patterns first? 
+        [DONE] numbers: et dimidia: #232b3 "reddidit gildum pro i ferlino et dimidia"
+        . save patterns as a single json object: easier to update
+    . General
+        . add pattern types
+        !!!! Find all variants of a pattern with stats
+    . Bugs
+        [DONE] why does cache.get return None? Because default cache is dummy and forgetful.
+        [DONE] . why does Entry.objects.all() go through each unit twice?! Translation and Transcription units!
+        [DONE] . why does plain_contents[unit.unitid] return the wrong entry? See above
+        !!!! Prevent overwriting old patterns
+        . conditions are easily lost
+    . Xtras:
+        [DONE] Ajax load to speed up iterations
+        ! state transition matrix/Markov Chain
+        . API
+        . Dockerise (separate instance for API and Client)
+        . Vue.js
+
+. Pattern discovery:
+    Aim: we have a very formulaic corupus and want to semi-automatically discover frequent patterns and their occurences
+    Methodology:
+        . normalise spelling and word variants in the text to have broader patterns
+        . replace pattern variables with label: numbers, dates, names (places, person)
+            . using regexp for numbers, capitals for names
+            . but capital is not reliable so may have to categorise based on most frequent spelling
+        . Create coocurrence matrix, Markov model of degree 1 or 2
+        . then what???
 
 [DONE]. annotations with different coordinate systems
     [DONE] change the OL3 coordinates to be compatible with OL2
@@ -917,4 +1368,30 @@ Maybe
         -89 [span data-dpt="supplied" data-dpt-cat="chars"] TCX #10 (IP #598)
     . for each one find a way to express it in TEI
     . then test them all
+
+[DONE]. let the user resize and move the annotations on the Text Editor
+    [DONE] Had to upgrade OL3 to latest version (3.18.2) to make use of Translate interaction
+    [DONE]. Image panel broken on my laptop
+    [DONE]. Impossible to select annotation nested inside the currently selected one (caused by OL3 upgrade)
+    [DONE] The drawing interaction is broken
+    [DONE]. Add a Translation interaction
+        . Basic interaction
+        . Only one save: at the end of the translation, not many times while the shape is draged around
+    [DONE]. Add a basic Modify interaction
+    [DONE] Make the basic Modify interaction that preserves the rectangular shape
+        [DONE] Moving vertex reshape the rectangle
+            . force a change to the feature geometry in a Modify translating event handler
+            https://github.com/openlayers/ol3/issues/5095#event-601814603
+        [DONE] show resize cursor when near a vertex
+    [DONE] Add an editing mode to the image panel, similar to the editing mode on the text panel. This is to avoid accidental changes to the annotations.
+
+
+http://localhost/digipal/patterns/?p_1_order=1&p_1_key=trw-holder&p_1_title=TRW+holder&p_1_condition=ignore&p_1_pattern=%5E.*%3F+(habet%7Chabuit%7Ctenet%7Ctenuit)+(%3Cnumber%3E)%3F+(mansionem%7Cmanerium)&p_3_order=2&p_3_key=tre-holder2&p_3_title=TRE+Holder2&p_3_condition=ignore&p_3_pattern=quam+(tenuit%7Ctenetuit%7Ctenuerunt)+(mater)%3F+%3Cperson%3E+(tegni+pariter%7Cpariter%7Ccomes%7Ccomitis)%3F+ea+die+qua+rex+(Eduuardus%7CEdwardus)+fuit+uiuus+et+mortuus&p_2_order=3&p_2_key=manor-name&p_2_title=Manor+name&p_2_condition=ignore&p_2_pattern=(q%7Cque%7Cquae%7Cqui%7Cquo%7Cquod%7Cqu%C3%A6)+(uocat%7Cuocatur)+%3Cname%3E&p_4_order=4&p_4_key=tre-holder&p_4_title=TRE+Holder&p_4_condition=ignore&p_4_pattern=(quam%7Chas)+(tenuit%7Ctenetuit%7Ctenuerunt)+.*%3F+(Eduuardus%7CEdwardus)+.*%3F+(mortuus%7Cdominum)&p_5_order=5&p_5_key=hidage&p_5_title=Hidage&p_5_condition=&p_5_pattern=reddi%25+(geldum%7Cgildum%7Cghildum%7Cgeuldum%7Cgueldum)+(tempore)%3F+(regis+Ea%3Fduuardi)%3F+pro+%3Chide%3E&p_None_order=10000&p_None_key=new-pattern&p_None_title=New+pattern&p_None_condition=&p_None_pattern=&units_range=&units_limit=800&action=update&jx=1
+
+http://localhost/digipal/patterns/?p_1_order=1&p_1_key=trw-holder&p_1_title=TRW+holder&p_1_condition=&p_1_pattern=%5E.*%3F+(habet%7Chabuit%7Ctenet%7Ctenuit)+(%3Cnumber%3E)%3F+(mansionem%7Cmanerium)&p_3_order=2&p_3_key=tre-holder&p_3_title=TRE+Holder&p_3_condition=&p_3_pattern=quam+(tenuit%7Ctenetuit%7Ctenuerunt)+(mater)%3F+%3Cperson%3E+(tegni+pariter%7Cpariter%7Ccomes%7Ccomitis)%3F+ea+die+qua+rex+(Eduuardus%7CEdwardus)+fuit+uiuus+et+mortuus&p_2_order=3&p_2_key=manor-name&p_2_title=Manor+name&p_2_condition=&p_2_pattern=(q%7Cque%7Cquae%7Cqui%7Cquo%7Cquod%7Cqu%C3%A6)+(uocat%7Cuocatur)+%3Cname%3E&p_4_order=4&p_4_key=tre-holder-general&p_4_title=TRE+Holder+(too+general%3F)&p_4_condition=&p_4_pattern=(quam%7Chas)+(tenuit%7Ctenetuit%7Ctenuerunt)+.*%3F+(Eduuardus%7CEdwardus)+.*%3F+(mortuus%7Cdominum)&p_5_order=5&p_5_key=hidage&p_5_title=Hidage&p_5_condition=&p_5_pattern=reddi%25+(geldum%7Cgildum%7Cghildum%7Cgeuldum%7Cgueldum)+(tempore)%3F+(regis+Ea%3Fduuardi)%3F+pro+%3Chide%3E&p_None_order=6&p_None_key=new-pattern&p_None_title=New+pattern&p_None_condition=&p_None_pattern=&units_range=&units_limit=10&action=update&jx=1
+
+xinput --set-prop 9 263 0.5
+
+
+habet .*? <hide> (in dominio)? et uillani <hide>
 

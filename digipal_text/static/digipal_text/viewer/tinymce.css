@@ -69,7 +69,6 @@ div.mce-content-body.preview {
     border-left1: 1px solid blue;
     border-right1: 1px solid blue;
     padding: 0 2px;
-    background-color:
 }
 
 span[data-dpt] span[data-dpt]:before {
@@ -445,6 +444,10 @@ span[data-dpt] > span[data-dpt] {
     display: table-column;
 }
 .preview.line-breaks-as-pipes.mce-content-body span[data-dpt=lb] {
+    /* LB displayed as | */
+    display: inline;
+}
+.preview.ms-lb-pipe.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
     /* MS LB displayed as | */
     display: inline;
 }

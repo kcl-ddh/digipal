@@ -14,7 +14,6 @@ class ExecutionError(Exception):
         self.title = title
         self.message = message
 
-
 '''
 Repository management tool.
 
@@ -32,6 +31,9 @@ def show_help():
          Runs South migrations.
          Validates the code.
          Touches wsgi.
+    
+     perms
+          Fix file permissions
 
      diff
          Lists the difference across all repos
@@ -70,10 +72,20 @@ def get_allowed_branch_names_as_str():
 def get_hg_folder_name():
     ret = ''
     for root, dirs, files in os.walk('.'):
-        if 'settings.py' in files:
+        if 'local_settings.py' in files:
             ret = root
             break
     return ret
+
+def get_github_dir():
+    github_dir = ''
+    for ghpath in ['digipal_github/digipal/digipal', 'digipal_github/digipal']:
+        if os.path.exists(ghpath + '/repo_cfg.py'):
+            github_dir = ghpath
+            break
+    if not github_dir:
+        github_dir = os.path.dirname(config.__file__)
+    return github_dir
 
 def process_commands():
     original_dir = os.getcwd()
@@ -108,17 +120,18 @@ def process_commands_main_dir():
     if len(args):
         command = args[0]
         original_dir = os.getcwd()
-        github_dir = ''
-        for ghpath in ['digipal_github/digipal/digipal', 'digipal_github/digipal']:
-            if os.path.exists(ghpath + '/repo_cfg.py'):
-                github_dir = ghpath
-                break
-        if not github_dir:
-            github_dir = os.path.dirname(config.__file__)
+
+        github_dir = get_github_dir()
+        project_folder = get_hg_folder_name()
 
         username = get_terminal_username()
 
+        print 'Project folder: %s' % project_folder
         print 'GitHub folder: %s' % github_dir
+
+        if command == 'perms':
+            known_command = True
+            fix_permissions(username, project_folder, options)
 
         if command == 'g':
             known_command = True
@@ -201,10 +214,8 @@ def process_commands_main_dir():
         if command == 'pull':
             known_command = True
             try:
-                project_folder = get_hg_folder_name()
                 print 'Main app folder: %s' % project_folder
 
-                has_sudo = not options.automatic and username == 'gnoel'
                 print '> check configuration (symlinks, repo branches, etc.)'
 #                 if not os.path.exists('iipimage') and os.path.exists('django-iipimage'):
 #                     if os.name == 'nt':
@@ -247,35 +258,9 @@ def process_commands_main_dir():
                     else:
                         system('hg update', validation_hg)
 
-                if os.name != 'nt':
-                    with_sudo = ''
-                    sudo = ''
-                    if has_sudo:
-                        with_sudo = '(with sudo)'
-                        sudo = 'sudo '
-                    print '> fix permissions %s' % with_sudo
-
-                    # See MOA-197
-                    if username == 'www-data' or username == config.PROJECT_GROUP:
-                        # -rw xrw x---
-                        system('%schmod 770 -R .' % sudo)
-                        #system('%schgrp -R %s .' % (sudo, config.PROJECT_GROUP))
-                    else:
-                        if has_sudo:
-                            system('%schown www-data:%s -R .' % (sudo, config.PROJECT_GROUP))
-                            system('%schown gnoel:%s -R .hg' % (sudo, config.PROJECT_GROUP))
-                            system('%schown gnoel:%s -R %s/.git' % (sudo, config.PROJECT_GROUP, github_dir))
-                        # -r- xrw x---
-                        system('%schmod 570 -R .' % sudo)
-                        dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
-                        # -rw xrw x---
-                        system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
-
-                    # we do this because the cron job to reindex the content
-                    # recreate the dirs with owner = gnoel:ddh-research
-                    system('%schmod o+r -R %s/search' % (sudo, project_folder))
-                    system('%schmod o+x -R %s/search/*' % (sudo, project_folder))
-
+                # FIX PERMISSIONS
+                fix_permissions(username, project_folder, options)
+                
                 print '> South migrations'
                 system('python manage.py migrate --noinput', r'(?i)!|exception|error')
 
@@ -293,7 +278,7 @@ def process_commands_main_dir():
 
                 if os.name != 'nt':
                     print '> Touch WSGI'
-                    run_shell_command(['touch', '%s/wsgi.py' % get_hg_folder_name()])
+                    run_shell_command(['touch', '%s/wsgi.py' % project_folder])
 
             except ExecutionError as e:
                 email = options.email
@@ -309,6 +294,91 @@ def process_commands_main_dir():
 
     if not known_command:
         show_help()
+
+def fix_permissions(username, project_folder, options):
+    if os.name == 'nt': return
+    
+    sudo_users = get_config('SUDO_USERS', ['gnoel', 'jeff'])
+    has_sudo = not options.automatic and username in sudo_users
+    
+    sudo = with_sudo = ''
+    if has_sudo:
+        with_sudo = '(with sudo)'
+        sudo = 'sudo '
+    print '> fix permissions %s' % with_sudo
+    
+    web_service_user = 'www-data'
+    puller = username
+    if get_config('DJANGO_WEB_SERVER', False):
+        web_service_user = username
+    
+    # ALL files belong to PROJECT_GROUP
+    system('%schgrp %s -R .' % (sudo, config.PROJECT_GROUP))
+    
+    # ALL files belong to www-data or current user
+    if has_sudo:
+        system('%schown %s -R .' % (sudo, web_service_user))
+    
+    # -r- xrw x---
+    default_perms = 570
+    # eclipse need owner write
+    # builder need to modify code
+    if get_config('ECLIPSE_EDITABLE', False) or \
+       get_config('BUILT_BY_WWW_DATA', False): 
+        # -rw xrw x---
+        default_perms = 770
+        puller = web_service_user
+    system('%schmod %s -R .' % (sudo, default_perms))
+
+    # some files can be written by web service
+    dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
+    system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
+    
+    # prevent user from rewriting the indexes if they are managed by web service
+    if not get_config('DJANGO_WEB_SERVER', False):
+        dirs = [d for d in ('%(p)s/search' % {'p': project_folder}).split(';') if os.path.exists(d)]
+        system('%schmod 750 -R %s' % (sudo, ' '.join(dirs)))
+        
+    if has_sudo:
+        # .hg must be owned by the user pulling otherwise mercurial
+        # complains.
+        
+        system('%schown %s -R .hg' % (sudo, puller))
+    
+    if 0:
+        # See MOA-197
+        if username == 'www-data' or username == config.PROJECT_GROUP:
+            # -rw xrw x---
+            system('%schown :%s -R .' % (sudo, config.PROJECT_GROUP))
+            system('%schmod 770 -R .' % sudo)
+            #system('%schgrp -R %s .' % (sudo, config.PROJECT_GROUP))
+        else:
+            if has_sudo:
+                # all files belong to www-data:PROJECT_GROUP
+                system('%schown www-data:%s -R .' % (sudo, config.PROJECT_GROUP))
+                
+                # Except repos metadata
+                # (to avoid repos complaining about wrong owner)
+                ##system('%schown %s:%s -R .hg' % (sudo, username, config.PROJECT_GROUP))
+                ##system('%schown %s:%s -R %s/.git' % (sudo, username, config.PROJECT_GROUP, github_dir))
+            
+            # -r- xrw x---
+            default_perms = 570
+            if get_config('ECLIPSE_EDITABLE', False) or get_config('BUILT_BY_WWW_DATA', False): 
+                default_perms = 770
+            system('%schmod %s -R .' % (sudo, default_perms))
+            # -rw xrw x---
+            dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
+            system('%schmod 770 -R %s' % (sudo, ' '.join(dirs)))
+            dirs = [d for d in ('%(p)s/static/CACHE;%(p)s/django_cache;%(p)s/search;%(p)s/logs;%(p)s/media/uploads;.hg' % {'p': project_folder}).split(';') if os.path.exists(d)]
+            system('%schmod u-w -R %s' % (sudo, ' '.join(dirs)))
+
+    # we do this because the cron job to reindex the content
+    # recreate the dirs with owner = gnoel:ddh-research
+    #system('%schmod o+r -R %s/search' % (sudo, project_folder))
+    #system('%schmod o+x -R %s/search/*' % (sudo, project_folder))
+
+    
 
 def get_terminal_username():
     # not working on all systems...

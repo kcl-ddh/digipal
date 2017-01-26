@@ -16,6 +16,7 @@ from django.contrib.auth.models import User
 #dplog = logging.getLogger('digipal_debugger')
 from digipal.utils import dplog
 from django.utils.datastructures import SortedDict
+from django.utils.text import slugify
 
 class ClassProperty(property):
     def __get__(self, cls, owner):
@@ -44,6 +45,7 @@ class TextUnits(object):
         # We need to implement lazy loading instead
         self.options = {'select_related': [], 'prefetch_related': []}
         # this is our result cache, not always used (e.g. .iterator() bypasses it)
+        self.filters = {}
         self.recs = None
         self.all()
 
@@ -130,9 +132,29 @@ class TextUnits(object):
         self.options['ais'] = None
         return self
 
+    def get_content_xmls(self):
+        # returns content_xml objects the units can be drawn from
+        # can apply filters passed to the filter() method
+        # e.g. .filter(content_xml__id=4)
+        ret = TextContentXML.objects.all()
+        filters = {}
+        for path, value in self.filters.iteritems():
+            if path.startswith('content_xml'):
+                filters[re.sub(ur'content_xml_*', '', path)] = value
+        if filters:
+            ret = ret.filter(**filters)
+        return ret
+
     def filter(self, *args, **kwargs):
+        # kwarg = {'content_xml__id': 4}
         if args or kwargs:
-            raise Exception('filter() is not yet supported')
+            if args:
+                raise Exception('filter(args) is not yet supported')
+            unrecognised_paths = [path for path in kwargs.keys() if not path.startswith('content_xml')]
+            if unrecognised_paths:
+                raise Exception('filter() is not yet supported for following filters: %s' % ', '.join(unrecognised_paths))
+            else:
+                self.filters.update(kwargs)
         return self
 
     def order_by(self, *args, **kwargs):
@@ -168,6 +190,10 @@ class TextUnit(object):
             ret = None
 
         return ret
+
+    def get_plain_content(self):
+        from digipal import utils as dputils
+        return dputils.get_plain_text_from_xmltext(self.content)
 
     def get_label(self):
         return 'Text unit %s' % self.unitid
@@ -425,6 +451,40 @@ class EntryHand(models.Model):
             ret = 'correct'
         return ret
 
+class TextPattern(models.Model):
+    title = models.CharField(max_length=100, unique=True, blank=False, null=False)
+    key = models.SlugField(max_length=100, unique=True, blank=False, null=False)
+    pattern = models.CharField(max_length=1000, blank=True, null=True)
+    order = models.IntegerField(blank=False, null=False, default=0, db_index=True)
+    description = models.TextField(blank=True, null=True)
+
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        unique_together = ['key']
+        ordering = ['order', 'key']
+
+    def __unicode__(self):
+        return u'%s' % (self.title)
+
+    def save(self, *args, **kwargs):
+        if not self.key.strip():
+            self.key = self.title
+        self.key = slugify(unicode(self.key))
+
+        if not self.created:
+            from datetime import datetime
+            self.created = datetime.now()
+
+        super(TextPattern, self).save(*args, **kwargs)
+
+    @classmethod
+    def get_empty_pattern(cls, aid=None):
+        options = {'title': 'New pattern', 'key': 'new-pattern', 'pattern': '', 'order': 10000}
+        if aid: options['id'] = aid
+        ret = cls(**options)
+        return ret
 
 from digipal.models import set_additional_models_methods
 set_additional_models_methods()

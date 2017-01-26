@@ -1,0 +1,571 @@
+{% extends "base.html" %}
+{% load html_escape mezzanine_tags  %}
+
+{% block meta_title %}Patterns detection{% endblock %}
+{% block meta_title_site %}
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.css"/>
+    <style>
+        .dragging {
+            background-color: yellow;
+        }
+        .panel.patterns {
+            margin-bottom: 0;
+        }
+        div.form-group-full-width {
+            display:table;
+            width: 100%;
+            margin-top: 0.2em;
+        }
+        div.form-group-full-width label {
+            display:table-cell;
+            width: 1px;
+            padding-right: 0.5em;
+        }
+        div.form-group-full-width .form-control {
+            display:table-cell;
+            width: 100%;
+        }
+        div.pattern {
+            /*display: none;*/
+            /*border-top: 2px solid lightgrey;*/
+            border-bottom: 2px solid lightgrey;
+            padding-top: 0.2em;
+            margin-top: 0.2em;
+            padding-bottom: 0.2em;
+            margin-bottom: 0.2em;
+        }
+        input.pattern-title {
+            min-width: 30em;
+        }
+        .pattern-error {
+            color: red;
+        }
+        .messages {
+            border: 1px solid lightgrey;
+            border-radius: 0.5em;
+            background-color: floralwhite;
+            padding: 0.2em;
+            margin: 0.2em;
+        }
+        .messages.ul {
+            padding-left: 1.5em;
+        }
+        .message-error {
+            color: red;
+        }
+        .message-warn {
+            color: orange;
+        }
+        .message-success {
+            color: green;
+        }
+        .message-info {
+        }
+        .missing-pattern {
+            color: red;
+        }
+        .pattern-label {
+            font-weight: bold;
+        }
+        span.m {
+            background-color: #e0ffe0;
+            border: 1px solid green;
+            margin-left: 0.2em;
+        }
+        span.m.ms {
+            background-color: #fcffe0;
+            border-color: #807600;
+        }
+        #pattern_tester {
+            position: fixed;
+            background-color: white;
+            width: 80%;
+            border: 1px solid grey;
+            top: 2em;
+            left: 2em;
+            z-index: 10000;
+            padding: 0.5em;
+            display: none;
+        }
+        #pattern_tester input {
+            width: 90%;
+        }
+        ul.patterns-list {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            margin-bottom: 0.5em;
+            display: table;
+        }
+        ul.patterns-list li {
+            float: left;
+            margin: 0 0.4em 0.1em 0;
+            border: 1px solid lightgrey;
+            padding: 0.05em;
+            /* display: inline-block; */
+        }
+        ul.patterns-list li a {
+            /* display: inline-block; */
+        }
+        ul.patterns-list li.picked {
+            background-color: yellow;
+        }
+        ul.patterns-list li:hover {
+            cursor: pointer;
+            background-color: lightyellow;
+        }
+        .ui-state-highlight {
+            height: 1.4em;
+            /* line-height: 1.4em; */
+            width: 8em;
+            background: yellow;
+            border: 1px dashed orange;
+        }
+        .pattern-condition:before, .pattern-condition:after {
+            position: relative;
+            top: 1px;
+            display: inline-block;
+            font-family: 'Glyphicons Halflings';
+            font-style: normal;
+            font-weight: 400;
+            line-height: 1;
+            -webkit-font-smoothing: antialiased;
+            margin: 1px;
+        }
+        .pattern-condition-include:before {
+            /* + */
+            content: "\002b";
+        }
+        .pattern-condition-exclude:before {
+            /* + */
+            content: "\e082";
+        }
+        .pattern-condition-ignore:before {
+            font-family: inherit;
+            content: '(';
+        }
+        .pattern-condition-ignore:after {
+            font-family: inherit;
+            content: ')';
+        }
+        .pattern-condition-ignore {
+            color: #888;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <a href="https://confluence.dighum.kcl.ac.uk/display/EXON/Text+Segmentation+Tool">Help about this tool</a>
+
+    <div id="patterns-ui-screen">
+        {% verbatim %}
+        <div id="patterns-ui" class="form-inline">
+            <div class="messages" v-if="response.messages && response.messages.length">
+                <ul v-for="message in response.messages">
+                    <li v-bind:class="'message message-'+message.type">
+                        {{ message.message }}
+                    </li>
+                </ul>
+            </div>
+        
+            <div class="panel patterns">
+                <ul class="patterns-list" id="patterns_list">
+                    <template v-for="pattern in response.patterns">
+                        <li v-if="is_first_in_group(pattern.key)" v-on:click="toggle_group(pattern.key)" v-bind:data-key="get_group_label(pattern.key)">
+                            <span v-bind:class="'glyphicon glyphicon-resize-'+(is_pattern_visible(pattern.key) ? 'full' : 'small')"></span>
+                            {{ get_group_label(pattern.key) }}
+                            <span>{{ response.stats.groups ? '[' + (response.stats.groups[get_group_label(pattern.key)] || 0) + ']' : '' }}</span>
+                        </li>
+                        
+                        <li v-if="is_pattern_visible(pattern.key)" v-on:click.stop.prevent="select_pattern" v-bind:data-patternid="pattern.id" v-bind:class="(session.selected == pattern.id) ? 'picked' : ''"  v-bind:data-key="pattern.key">
+                            <span v-bind:class="'pattern-condition pattern-condition-'+session.options.conditions[pattern.id]">
+                                <span class="glyphicon glyphicon-warning-sign pattern-error" v-if="pattern.error"></span>
+                                <span class="pattern-key">{{pattern.key}}</span>
+                                <span v-if="!pattern.error">{{ response.stats.patterns ? '[' + (response.stats.patterns[pattern.id] || 0) + ']' : '' }}</span>
+                            </span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        
+            <div v-for="pattern in response.patterns">
+                <div v-if="(pattern.id == session.selected)"  class="pattern" v-bind:data-patternid="pattern.id">
+                    <div class="form-group">
+                        <label for="p_key">Key</label>
+                        <input class="form-control input-sm" type="text" name="p_key" id="p_key" v-on:change="save_pattern(pattern.id)" v-model="pattern.key" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    </div>
+                    <div class="form-group">
+                        <label for="p_title">Title</label>
+                        <input class="form-control input-sm pattern-title" type="text" name="p_title" id="p_title" v-on:change="save_pattern(pattern.id)" v-model="pattern.title" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    </div>
+                    <div class="form-group">
+                        <label for="p_condition">Condition</label>
+                        <select class="form-control input-sm" name="p_condition" id="p_condition" v-model="session.options.conditions[pattern.id]" v-on:change="save_session">
+                            <option v-bind:value="ckey" v-for="(label, ckey) in conditions">{{ label }}</option>
+                        </select>
+                    </div>
+                    <span class="small legend" title="number of units NOT matching this pattern" data-toggle="tooltip" v-if="session.options.conditions[pattern.id] != 'ignore'">
+                        {{ pattern.unhits }}
+                    </span>
+                    <a class="pull-right btn btn-xs btn-danger delete-pattern" v-on:click="delete_pattern(pattern.id)" href="#" data-target="managed" title="Remove this pattern" data-toggle="tooltip">X</a>
+                    <br/>
+                    <div class="form-group form-group-full-width" style="display:table">
+                        <label for="p_pattern">Pattern</label>
+                        <input class="form-control pattern-input input-sm" type="text" name="p_pattern" id="p_pattern" v-on:change="save_pattern(pattern.id)" v-model="pattern.pattern" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                    </div>
+                    <div v-if="pattern.error" class="pattern-error">Syntax error: {{ pattern.error }}</div>
+                </div>
+            </div>
+        
+            <div class="actions">
+                <div class="form-group ">
+                    <label for="units_range">Text range</label>
+                    <input class="form-control input-sm" type="text" name="units_range" id="units_range" v-on:change="save_session" v-model="session.options.urange" autocomplete="off" autocorrect="off" autocapitalize="off" />
+                </div>
+            
+                <div class="form-group ">
+                    <label for="units_limit">Show first</label>
+                    <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" v-on:change="save_session" v-model="session.options.ulimit"  autocomplete="off" autocorrect="off" autocapitalize="off" />
+                </div>
+                <div class="form-group">
+                    <label for="units_limit">Show</label>
+                    <select class="form-control input-sm" name="p_toreturn" id="p_toreturn" v-model="session.options.toreturn" v-on:change="save_session">
+                        <option v-bind:value="ckey" v-for="(label, ckey) in toreturn">{{ label }}</option>
+                    </select>
+                </div>
+                <br/>
+                <div class="form-group">
+                    <label for="ignore_option">Ignore</label>
+                    <select class="form-control input-sm" name="p_ignore" id="p_ignore" v-model="session.options.ignore" v-on:change="save_session">
+                        <option v-bind:value="ckey" v-for="(label, ckey) in ignore">{{ label }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ignore_option">Exclude</label>
+                    <select class="form-control input-sm" name="p_exclude" id="p_exclude" v-model="session.options.exclude" v-on:change="save_session">
+                        <option v-bind:value="ckey" v-for="(label, ckey) in exclude">{{ label }}</option>
+                    </select>
+                </div>
+                <button class="form-control btn btn-primary" type="submit" v-on:click="on_click_update_button" name="update">Update</button>
+                <button class="form-control btn btn-primary" type="submit" v-on:click="download_patterns" name="download">Download</button>
+            </div>
+            
+            <div class="stats panel" v-if="response.stats.result_size">
+                {{response.stats.result_size}} units found among {{response.stats.range_size}} in the selected range ({{ response.stats.result_size_pc }}%).
+                <span class="pull-right small legend">{{ response.stats.duration_response }} s.</span>
+            </div>
+        </div>
+    
+        <div id="results-ui">
+            <div id="tab-variants" class="tab-pane2 fade2">
+                <ul>
+                    <li v-for="variant in response.variants">
+                        {{ variant.hits }}: {{ variant.text }}
+                    </li>
+                </ul>
+            </div>
+            <div id="tab-units" class="tab-pane2 fade2 in active2">
+                <div class="units" v-for="unit in response.segunits">
+                    <div class="unit">
+                        #{{ unit.unitid }}
+                        <div class="unit-content" v-html="unit.unit"></div>
+                        <br/>
+                        <div v-for="pattern in unit.patterns">
+                            <span v-bind:class="{'pattern-label': 1, 'missing-pattern': !pattern.instance}">
+                                {{ get_pattern_key_from_id(pattern.id) }}
+                            </span>:
+                            {{ pattern.instance }}
+                        </div>
+                        <hr/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endverbatim %}
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    {# TODO: include min on production #}
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/dpbootstrap.js"></script>
+    {% compress js %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+        <script src="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.min.js"></script>
+    {% endcompress %}
+    
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+
+    <script type="text/javascript">
+        //enum: ["patterns", "stats", "units", "variants"]
+        (function() {
+            var model = {
+                'response': {{ context_js|safe }},
+                'session': {
+                    'selected': 'woodland-4',
+                    'options': {
+                        'urange': '',
+                        'ulimit': 10,
+                        'conditions': {'woodland-4': 'ignore'},
+                        'toreturn': 'segunits,segunits.patterns,segunits.unit',
+                    },
+                    'expanded': {
+                    },
+                },
+                'toreturn': {
+                    'segunits,segunits.patterns,segunits.unit': 'Units & Patterns',
+                    'segunits,segunits.unit': 'Units',
+                    'variants': 'Variants',
+                },
+                'conditions': {
+                    '': 'May have',
+                    'include': 'Must have',
+                    'exclude': 'Must not have',
+                    'ignore': 'Ignore',
+                },
+                'ignore': {
+                    '': 'Custom settings',
+                    'other_patterns': 'Other patterns',
+                    'other_groups': 'Other groups',
+                },
+                'exclude': {
+                    '': 'Custom settings',
+                    'this_group': 'Other patterns in this group',
+                },
+                'last_forced_update': Date(),
+            }
+            
+            // Load user settings from the locaStorage
+            var namespace = 'default';
+            var storage_key = 'textseg.'+namespace;
+            var session = window.localStorage.getItem(storage_key);
+            if (session) {
+                model.session = JSON.parse(session);
+                if (!model.session.expanded) {
+                	model.session.expanded = {};
+                }
+            }
+            ['messages', 'patterns', 'segunits', 'stats', 'variants'].map(function(val) {
+                model.response[val] = model.response[val] || [];
+            });
+            
+            // inputs and outputs are managed by two separate views to prevent 
+            // huge lags when typing above long results.
+            // TODO: try to optimise the long result rendering.
+            var results_ui = new Vue({
+                el: '#results-ui',
+                
+                data: {
+                    'response': {},
+                },
+                
+                methods: {
+                    get_pattern_key_from_id: function(patternid) {
+                        for (i in this.response.patterns) {
+                            if (this.response.patterns[i].id != patternid) continue; 
+                            return this.response.patterns[i].key; 
+                        }
+                        return '?';
+                    },
+                }
+            });
+
+            var patterns_ui = new Vue({
+                el: '#patterns-ui',
+                
+                data: model,
+                
+                watch: {
+                },
+                
+                mounted: function() {
+                    var self = this;
+                    $('#patterns_list').sortable({
+                        placeholder: 'ui-state-highlight',
+                        stop: function(event, ui) { 
+                            self.changed_order(event, ui);
+                            // have to cancel operation otherwise it messes up the
+                            // order enforced by the server when the api returns.
+                            $(this).sortable("cancel");
+                        },
+                    });
+                    this.rendered();
+                },
+                
+                updated: function() {
+                    this.rendered();
+                },
+
+                computed: {
+                },
+                
+                methods: {
+                	
+                    rendered: function() {
+                        //console.log('rendered');
+                        // Dragging the selected li is managed outside the Vue.
+                        // Just make sure the selected li is draggable after each rendering.
+                        // Remember that selection can happen without a click.
+                        var self = this;
+                        var li = this.$el.querySelector('.picked');
+                        //window.lisort(li, function(ul) {self.change_order(ul)});
+                    },
+                    
+                    save_session: function() {
+                        window.localStorage.setItem(storage_key, JSON.stringify(this.session));
+                    },
+                    
+                    select_pattern: function(event) {
+                        var li = event.currentTarget;
+                        this.session.selected = li.getAttribute('data-patternid');
+                        
+                        // make sure vue.js listens to the condition
+                        // problem = conditions[id] doesn't exist in advance
+                        // so vue.js doesn't detect change and therefore doesn't
+                        // redraw after the first time a condition is added.
+                        this.$set(this.session.options.conditions, this.session.selected, this.session.options.conditions[this.session.selected] || '');
+                        
+                        this.save_session();
+                    },
+                    
+                    changed_order: function (event, ui) {
+                        var pattern_key = ui.item.attr('data-key').trim();
+                        var prev = ui.item.prev('li');
+                        prev = prev.length ? prev.attr('data-key').trim() : '';
+                        this.call_api('move_pattern', 'post', {pattern: pattern_key, previous: prev}, ['patterns']);
+                    },
+                    
+                    delete_pattern: function (patternid) {
+                    	this.change_pattern(patternid, 'delete')
+                    },
+                    
+                    save_pattern: function (patternid) {
+                        this.change_pattern(patternid, 'put')
+                    },
+                    
+                    change_pattern: function (patternid, method) {
+                        var pattern = null;
+                        $(this.response.patterns).each(function(i, apattern) {
+                            if (apattern.id == patternid) {
+                                pattern = apattern;
+                            }
+                        });
+                        if (pattern) {
+                            this.call_api('patterns/'+pattern.id, method, pattern);
+                        }
+                    },
+                    
+                    is_first_in_group: function(pattern_key) {
+                        return (pattern_key.substring(pattern_key.length-2) === '-1' || pattern_key.substring(pattern_key.length-1) === '_'); 
+                    },
+                    toggle_group: function(pattern_key) {
+                        var group_key = this.get_group_label(pattern_key);
+                        this.$set(this.session.expanded, group_key, !(this.session.expanded[group_key]));
+                        this.save_session();
+                    },
+                    is_pattern_visible: function(pattern_key) {
+                        if (pattern_key.substring(pattern_key.length-1) === '_') return false;
+                        var group_label = this.get_group_label(pattern_key);
+                        if (pattern_key == group_label) return true;
+                        if (0 && pattern_key == 'new-pattern') {
+                            console.log(Date());
+                        }
+                        var ret = !!(this.session.expanded[group_label]);
+                        return ret;
+                    },
+                    get_group_label: function(pattern_key) {
+                        return pattern_key.replace(/(-\d+|_[^_]*)$/, '');
+                    },
+                    
+                    download_patterns: function() {
+                        this.apply_patterns('csv');
+                    },
+                    
+                    on_click_update_button: function() {
+                        this.apply_patterns();
+                    },
+
+                    apply_patterns: function(format) {
+                        $('#patterns-ui-screen').stop().animate({
+                            opacity: 0.50,
+                        }, 500);
+
+                        var options = {
+                            'ulimit': this.session.options.ulimit,
+                            'urange': this.session.options.urange,
+                            'hilite': this.session.selected || '',
+                            'ignore': this.session.options.ignore,
+                            'exclude': this.session.options.exclude,
+                            'format': format,
+                        }
+
+                        // send this in the body as it can be too long for URL
+                        var data = {'conditions': this.session.options.conditions};
+                        // which means that we have to use POST (GET is not meant to carry a body)
+                        // http://stackoverflow.com/q/14202257/3748764
+                        var toreturn = ['patterns', 'stats'];
+                        this.session.options.toreturn.split(',').map(function(v) {toreturn.push(v);});
+                        this.call_api('segunits', 'post', data, toreturn, options, function() {
+                            $('#patterns-ui-screen').stop().animate({opacity: 1,});
+                        });
+                    },
+
+                    call_api: function (path, method, data, toreturn, qs, after) {
+                    	var self = this;
+                        path = path.replace(/(^\/|\/$)/g, '') + '/';
+                        toreturn = toreturn || [path.replace(/\/.*$/, '')];
+                        qsa = '';
+                        if (qs) {
+                            var qsa = [];
+                            for (var k in qs) {
+                                if (qs[k]) qsa.push(k+'='+qs[k]);
+                            }
+                            if (qsa) qsa = '&'+qsa.join('&');
+                        }
+                        var req = $.ajax({
+                            url: '/digipal_text/api/'+path+'?ret='+(toreturn.join(','))+qsa,
+                            type: method,
+                            data: data ? JSON.stringify(data) : null,
+                            /*dataType: 'json',*/
+                        }).success(function(data, textStatus, jqXHR) {
+                            var content_type = jqXHR.getResponseHeader('content-type');
+                            if (/^text\/csv/.test(content_type)) {
+                                var $a = $('<a>link</a>');
+                                $a.attr('href', 'data:attachment/csv,' + (content_type, encodeURIComponent(data)));
+                                $a.attr('target', '_blank');
+                                $a.attr('download', 'segments.csv');
+                                $(body).append($a);
+                                $a.get(0).click();
+                                $a.remove();
+                            } else {
+                                // merge with out previous responses.
+                                // so we can get partial response, more efficient.
+                                self.response.messages = [];
+                                // send response to our different views
+                                for (key in data) {
+                                    self.response[key] = data[key];
+                                }
+                                if (data.variants || data.segunits) {
+                                    results_ui.response = data;
+                                }
+                            }
+                        }).fail(function(jqXHR, textStatus) {
+                            self.response.messages = [{
+                                'type': 'error',
+                                'message': 'Request failed: ' + textStatus,
+                            }];
+                        });
+                        if (after) {
+                            req.always(after);
+                        }
+                    },
+                }
+            });
+        })();
+    </script>
+{% endblock %}

@@ -13,6 +13,7 @@ import os
 # pandoc "exon\source\rekeyed\word\EXON-word2.html" -o "exon\source\rekeyed\word\EXON-word.docx"
 
 import unicodedata
+from exon.customisations.digipal_text.models import Entry
 #from xhtml2pdf.pisa import showLogging
 def remove_accents(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
@@ -32,7 +33,11 @@ Commands:
         Test a regexp pattern on a XHTML file
 
     upload PATH_TO_XHTML CONTENTID
-        Import XHTML file
+        Import XHTML file into database XML content with given ID
+
+    uploadpart PATH_TO_XHTML CONTENTID
+        Same as 'upload' but PATH_TO_XHTML is a fragment, the rest of the
+        text will remain teh same in teh database
 
     hundorder SHIRE
         Find the best order for hundreds in a shire
@@ -41,6 +46,8 @@ Commands:
         Set the optimal order for a shire
 
     handentry
+        DEPRECATED, please see digipal_text.models#EntryHand model
+            See setentryhand command
         Map the hands to the entries
 
     setquire
@@ -69,6 +76,12 @@ Commands:
 
     optcod
         Optimisation of the codicological sequence
+        
+    uploadfrag ODT_FILE [--dry-run]
+        Import a fragment of a transcription
+        
+    missing
+        Sow missing entries in the tarnscription
 
 """
 
@@ -115,7 +128,7 @@ Commands:
         if command == 'trefs2csv':
             known_command = True
             self.trefs2csv()
-            
+
         if command == 'setentryhand':
             known_command = True
             self.setentryhand()
@@ -132,6 +145,10 @@ Commands:
             known_command = True
             self.csv2quires()
 
+        if command == 'missing':
+            known_command = True
+            self.command_missing()
+
         if command == 'wordpre':
             known_command = True
             self.word_preprocess()
@@ -147,6 +164,14 @@ Commands:
         if command == 'upload':
             known_command = True
             self.upload()
+
+        if command == 'uploadpart':
+            known_command = True
+            self.upload(is_fragment=1)
+            
+        if command == 'uploadfrag':
+            known_command = True
+            self.uploadfrag()
 
         if command == 'hundorder':
             known_command = True
@@ -172,6 +197,10 @@ Commands:
             known_command = True
             self.latinnames_command()
 
+        if command == 'test_entries':
+            known_command = True
+            self.test(command)
+
         if known_command:
             self.cm.printSummary()
             print 'done'
@@ -183,6 +212,12 @@ Commands:
         cs = CodicologicalSequence()
         cs.getContext()
         cs.sort()
+        
+    def test(self, command):
+        if command == 'test_entries':
+            for entry in Entry.objects.all().iterator():
+                x = entry.get_hand()
+                y = entry.get_entry_type()
 
     def latinnames_command(self):
         names = {}
@@ -258,7 +293,7 @@ Commands:
 
     def setentryhand(self):
         # populate digipal_text.entryhand from exon_reference_system
-    
+
         print 'delete all records'
         from digipal_text.models import EntryHand
         [r.delete() for r in EntryHand.objects.all()]
@@ -269,13 +304,13 @@ Commands:
             from exon_reference_system
             ;
         '''
-        
+
         recs = dputils.sql_select_dict(query)
-        
+
         def add_entryhand(rec, scribe_column_number):
             # add one record in EntryHand from a scribe column in exon_reference_system record
             scribes = [s.strip().lower() for s in (rec['scribe%s' % scribe_column_number] or '').split(',')]
-            
+
             for scribe in scribes:
                 if scribe:
                     rec['order'] = rec.get('order', -1) + 1
@@ -290,18 +325,18 @@ Commands:
                         hand_label = 'unknown'
                         certainty = 0
                     EntryHand(entry_number=rec['entry_number'], item_part_id=1, hand_label=hand_label, order=rec['order'], correction=correction, certainty=certainty).save()
-        
+
         print 'insert EntryHand records'
         for rec in recs:
             rec = {k: (v or '').strip() for k, v in rec.iteritems()}
             if rec['entry_number']:
                 for i in [1, 2, 3]:
                     add_entryhand(rec, i)
-        
+
         # Use this query to find all hands with labels not found in digipal_hand
         '''
         select eh.hand_label, count(*), min(entry_number), max(entry_number)
-        from digipal_text_entryhand eh 
+        from digipal_text_entryhand eh
         left join digipal_hand ha on eh.hand_label = lower(ha.label)
         where ha.label is null
         --order by entry_number, hand_label, "order"
@@ -309,9 +344,9 @@ Commands:
         order by eh.hand_label
         ;
         '''
-                    
+
         print '%s EntryHand inserted' % EntryHand.objects.count()
-        
+
     def trefs2csv(self):
 
         file_path = 'trefs.csv'
@@ -391,7 +426,7 @@ Commands:
         #for ref in re.findall(ur'(?musi)<span data-dpt="supplied" data-dpt-type="reference" data-dpt-cat="chars">()</span>', text.content):
 
     def entries2csv_command(self):
-        headings = ['entry', 'translation', 'transcription-sample']
+        headings = ['entry', 'translation', 'transcription']
         file_path = 'entries-text.csv'
 
         from digipal_text.models import TextContentXML
@@ -399,8 +434,8 @@ Commands:
 
         rows = {}
 
-        for ctype in ['translation', 'transcription-sample']:
-            text = TextContentXML.objects.filter(text_content__type__slug=ctype).first()
+        for ctype in ['translation', 'transcription']:
+            text = TextContentXML.objects.filter(text_content__item_part__id=1, text_content__type__slug=ctype).first()
             print text.id
             content = u'<root>%s</root>' % text.content
             units = viewer.get_all_units(content, 'entry')
@@ -488,7 +523,7 @@ Commands:
         from digipal_text.models import TextContentXML
 
         #text = TextContentXML.objects.filter(text_content__type__slug='translation').first()
-        text = TextContentXML.objects.filter(text_content__type__slug='transcription-sample').first()
+        text = TextContentXML.objects.filter(text_content__type__slug='transcription').first()
         content = u'<root>%s</root>' % text.content
         from digipal import utils
         xml = utils.get_xml_from_unicode(content, True)
@@ -504,6 +539,8 @@ Commands:
 
 
     def handentry_command(self):
+        raise Exception('DEPRECATED, please use setentryhand command.')
+        
         #hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')
         #entries = self.get_entries()
 
@@ -576,14 +613,20 @@ Commands:
 
         write_rows_to_csv(file_path, rows, headings=headings)
 
-    def get_entry_numbers_from_translation(self):
+    def get_entry_numbers_from_translation(self, ttype='translation'):
         from digipal_text.models import TextContentXML
-        tcx = TextContentXML.objects.filter(text_content__type__slug='translation').first()
+        tcx = TextContentXML.objects.filter(text_content__type__slug=ttype).first()
         content = tcx.content
 
         ret = re.findall(ur'<span data-dpt="location" data-dpt-loctype="entry">\s*(\d+[ab]\d+)\s*</span>', content)
 
         return ret
+
+    def command_missing(self):
+        tl_entries = self.get_entry_numbers_from_translation()
+        tc_entries = self.get_entry_numbers_from_translation('transcription')
+        
+        print ', '.join(dputils.sorted_natural(list(set(tl_entries).difference(set(tc_entries))), 1, 1))
 
     def find_missing_entries(self):
         '''
@@ -1338,13 +1381,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 self.REQUEST = request
 
         context = get_hundreds_view_context(MyRequest({'oc': ''}))
-        
+
         info = {}
         for shire_data in context['shires']:
             if shire_data['name'].lower() == shire:
                 info = shire_data
                 break
-            
+
 
         print 'optimise... %s' % shire
 
@@ -1517,7 +1560,38 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         dputils.strip_xml_tags(xml, './/TOBEREMOVED')
 
-    def upload(self):
+    def uploadfrag(self):
+        if len(self.cargs) != 1:
+            print 'ERROR: this command requires one argument, the path to the ODT file to import.'
+            return 
+        input_path = self.cargs[0]
+        
+        import glob
+        input_paths = glob.glob(input_path)
+        
+        for input_path in input_paths:
+            if not os.path.exists(input_path):
+                print 'ERROR: file not found: %s' % input_path
+                return
+            print input_path
+            
+            xml_path = 'part.xml'
+            # exon/source/rekeyed/word/dec16/edb-1-24.odt
+            dputils.extract_file_from_zip(input_path, 'content.xml', xml_path)
+    
+            html_path = 'part.html'
+            xslt_path = 'exon/source/rekeyed/conversion/odt2xml.xslt'
+            from django.core import management
+            management.call_command('dpxml', 'convert', xml_path, xslt_path, html_path)
+            
+            management.call_command('extxt', 'uploadpart', html_path, 4)
+    
+    def upload(self, is_fragment=0):
+        # If is_fragment is 1 the input HTML file is considered to be a fragment,
+        # the rest of the text will remain untouched in the database.
+        # If is_framgent is 0, the whole text in the database is replaced with 
+        # input  HTML document.
+        
         input_path = self.cargs[0]
         recordid = self.cargs[1]
 
@@ -1543,6 +1617,12 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # unescape XML tags coming from MS Word
         # E.g. &lt;margin&gt;Д‘ mМѓ&lt;/margin&gt;
         content = regex.sub(ur'(?musi)&lt;(/?[a-z]+)(&gt;)?', ur'<\1>', content)
+        
+        # Tags we don't want to keep because no longer useful or  
+        # never agreed to use them
+        tags_to_remove = ur'symbol|gildum|nsc|f'
+        content = regex.sub(ur'</?('+tags_to_remove+')/?>', '', content)
+        
         # removed the misplaced anchors. Can't convert them.
         #print len(regex.findall(ur'&gt;|&lt;', content))
         content = regex.sub(ur'&gt;|&lt;', ur'', content)
@@ -1568,7 +1648,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = regex.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj">¦</span>', content)
 
         # line breaks from MS (| => |)
-        content = regex.sub(ur'(?musi)\|', ur'<span data-dpt="lb" data-dpt-src="ms">|</span>', content)
+        content = regex.sub(ur'(?musi)(-?)\s*\|', ur'<span data-dpt="lb" data-dpt-src="ms">\1|</span>', content)
+
+        # line breaks from MS (| => |)
+        #content = regex.sub(ur'(?musi)-\|', ur'<span data-dpt="lb" data-dpt-src="ms">|</span>', content)
 
         # [---] Erasure
         content = regex.sub(ur'(?musi)(\[-+\])', ur'<span data-dpt="del" data-dpt-rend="erasure">\1</span>', content)
@@ -1578,17 +1661,33 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         #content = regex.sub(ur'(?musi)<br/>', ur'</p><p>', content)
 
         # Promote style constructs to special chars
+        # http://unicode-search.net/unicode-namesearch.pl?term=p
+        # http://skaldic.abdn.ac.uk/m.php?p=mufichars&i=1&v=Q
+        # http://junicode.sourceforge.net/
+        # <st>B</st> => B-
+        content = regex.sub(ur'(?mus)<st>\s*B\s*</st>', ur'Ƀ', content)
         # <st>p</st> => ṕ
         content = regex.sub(ur'(?mus)<st>\s*p\s*</st>', ur'ṕ', content)
+        content = regex.sub(ur'(?mus)<st>\s*P\s*</st>', ur'Ṕ', content)
+        # p with top tilde
+        content = regex.sub(ur'(?mus)<st>\s*p\u0303\s*</st>', ur'ꝑ\u0306', content)
+        # <st>s</st> => s
+        content = regex.sub(ur'(?mus)<st>\s*s\s*</st>', ur'ś', content)
+        content = regex.sub(ur'(?mus)<st>\s*S\s*</st>', ur'Ś', content)
         # <st>q</st> => ƣ
         content = regex.sub(ur'(?mus)<st>\s*q\s*</st>', ur'ƣ', content)
         content = regex.sub(ur'(?mus)<st>\s*Q\s*</st>', ur'Ƣ', content)
+        # q with tilde and bottom left tail (lots of them)
+        content = regex.sub(ur'(?mus)<st>\s*q\u0303\s*</st>', ur'q\u0303\u0317', content)
         # <st>L</st> => Ł
         content = regex.sub(ur'(?mus)<st>\s*ll\s*</st>', ur'łł', content)
         content = regex.sub(ur'(?mus)<st>\s*LL\s*</st>', ur'ŁŁ', content)
         content = regex.sub(ur'(?mus)<st>\s*l\s*</st>', ur'ł', content)
         content = regex.sub(ur'(?mus)<st>\s*L\s*</st>', ur'Ł', content)
-
+        
+        # ÷ means ÷[est]
+        content = regex.sub(ur'÷(?!\[)', ur'÷[est]', content)
+        
         # <u> =>
         content = regex.sub(ur'(?musi)</?u>', ur'', content)
 
@@ -1600,7 +1699,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = re.sub(ur'(?musi)(\s+)\]', ur']\1', content)
 
         # Folio number
-        # [fol. 1. b.] or [fol. 1.]
+        # [fol. 1. b.] or [fol. 1.] or  [fol 510. b]
         # TODO: check for false pos. or make the rule more strict
         #content = re.sub(ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', ur'</p><span data-dpt="location" data-dpt-loctype="locus">\1\3</span><p>', content)
         self.sides = {'': 'r', 'b': 'v', 'a': 'r'}
@@ -1608,24 +1707,47 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             side = self.sides.get(m.group(3), m.group(3))
             ret = ur'</p><p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span></p><p>' % (m.group(1), side)
             return ret
-        content = re_sub_fct(content, ur'(?musi)\[fol.\s(\d+)\.?(\s*(b?)\.?)\]', get_side, regex)
+        content = re_sub_fct(content, ur'(?musi)\[fol\.?\s(\d+)\.?(\s*([rvab]?)\.?)\]', get_side, regex)
 
         # Entry number
         # [1a3]
         # TODO: check for false pos. or make the rule more strict
         content = regex.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)\s*]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
+        
+        # TABLES
+        # We don't want <table> inside a <p> 
+        content = content.replace(ur'<table>', ur'</p><table>').replace(ur'</table>', ur'</table><p>')
+        # E.g. if we have entries in table cells, then the previous conversions
+        # will produce this:
+        # <td><p></p><p>ENTRY NUMBER: ENTRY CONTENT</p></td>
+        #     ^^^^                              
+        # remove elements with blank content
+        content = regex.sub(ur'(?mus)<(\w+)[^>]*?>(\s*)</\1>', ur'\2', content)
 
         # now all remaining [] with a space inside are notes or accidental markup
         # convert to ()
         content = regex.sub(ur'\[([^\]\[]*\s[^\[\]]*)\]', ur'(\1)', content)
 
-        # <margin></margin>
-        content = content.replace('<margin>', '<span data-dpt="note" data-dpt-place="margin">')
-        content = content.replace('</margin>', '</span>')
+        # Tironian sign, special mark up. Similar to expansions. Show it as 'et' or 7. 
+        # Can have it on its own or at the end of a word (ten7 -> tenet).
+        # MUST be careful not to catch entry or folio numbers! 
+        # TODO: make it more robust. 
+        # At the mo. we convert all 7 outside of a location span
+        # and outside a <sup> 
+        content = regex.sub(ur'(?<!(<span data-dpt="location"[^>]+>[\dabrv]*|<sup>))7', ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>', content)
 
+        # <margin></margin>
+        if 1:
+            content = content.replace(u'<margin>', u'#MSTART#')
+            content = content.replace(u'</margin>', u'#MEND#')
+            
         # to check which entities are left
         ##ocs = set(regex.findall(ur'(?musi)(&[#\w]+;)', content))
 
+        # fix accidental edit
+        # SPACE</sup> => </sup>SPACE
+        content = regex.sub(ur'(\s+)(</(?:sup|sub|i)>)', ur'\2\1', content)
+        
         self.c = 0
 
         def markup_expansions(match):
@@ -1654,30 +1776,49 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             #exp = m.replace(ur';[', ur'[')
             exp = m
             exp = regex.sub(ur'\[(.*?)\]', ur'<i>\1</i>', exp)
-            # b
-            exp = regex.sub(ur'\u1d6c', ur'b', exp)
-            # l/ -> l
-            exp = regex.sub(ur'\u0142', ur'l', exp)
-            # d- -> d
-            exp = regex.sub(ur'\u0111', ur'd', exp)
-            # h
-            exp = regex.sub(ur'\u0127', ur'h', exp)
-            exp = regex.sub(ur'Ħ', ur'H', exp)
+            
+            # Remove all digits in expansions
             # e.g. hid4as
             exp = regex.sub(ur'\d', ur'', exp)
+
+            # SPECIAL CHARS
+            # http://www.fileformat.info/info/unicode/char/1d6c/index.htm
+            # d- (latin small letter d with stroke)
+            exp = regex.sub(ur'đ', ur'd', exp)
+            exp = regex.sub(ur'Đ', ur'D', exp)
+            # h-
+            # CYRILLIC SMALL LETTER TSHE (U+045B)
+            exp = regex.sub(ur'ћ', ur'h', exp)
+            # LATIN SMALL LETTER H WITH STROKE (U+0127)
+            # ! glyph is almost identical to previous one but stroke is thicker!
+            exp = regex.sub(ur'ħ', ur'h', exp)
+            exp = regex.sub(ur'Ħ', ur'H', exp)
             # ƥ -> p (e.g. 1v super illos)
             exp = exp.replace(ur'ƥ', ur'p')
+            exp = exp.replace(ur'ꝑ', ur'p')
+            exp = exp.replace(ur'Ƥ', ur'P')
             # ƹ
             exp = exp.replace(ur'ƹ', 'r')
 
             ##exp = regex.sub(ur'ṕ', ur'p', exp)
             exp = regex.sub(ur'ƒ', ur'f', exp)
+            
+            # b~ (Latin small letter b with middle tilde)
+            exp = regex.sub(ur'ᵬ', ur'b', exp)
+            # latin capital letter b with stroke
+            exp = regex.sub(ur'ƀ', ur'b', exp)
             exp = regex.sub(ur'Ƀ', ur'B', exp)
+            # latin b with hook
+            exp = regex.sub(ur'ɓ', ur'b', exp)
             exp = regex.sub(ur'Ɓ', ur'B', exp)
-            exp = regex.sub(ur'ɓ', ur'B', exp)
-            exp = regex.sub(ur'Ƣ', ur'Q', exp)
+            # q
             exp = regex.sub(ur'ƣ', ur'q', exp)
+            exp = regex.sub(ur'Ƣ', ur'Q', exp)
+            # 
             exp = regex.sub(ur'ɋ', ur'q', exp)
+            
+            # l/ -> l
+            exp = regex.sub(ur'ł', ur'l', exp)
             exp = regex.sub(ur'Ł', ur'L', exp)
 
             # e.g. st~
@@ -1738,18 +1879,125 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # Safe to assume &amp are not inside expension: [ & ]
         content = content.replace(ur'&amp;', ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>et</i></span>')
 
+        # Margin conversion
+        if 1:
+            content = regex.sub(ur'(?musi)#MSTART#(.*?)#MEND#', lambda m: self.convert_margin(m), content)
+            content = content.replace(u'#MSTART#', u'<span data-dpt="note" data-dpt-place="margin">')
+            content = content.replace(u'#MEND#', u'</span>')
+
         #
         content = regex.sub(ur'</p>', u'</p>\n', content)
 
-        # import
+        self.replace_fragment(content, recordid, is_fragment=is_fragment)
+        
+    def convert_margin(self, match):
+        # Move the margin WITHIN the <p>
+        # e.g. we have a lot of these: <margin><p>...</margin></p>
+        # we turn them into <p><margin>...</margin></p>
+        # This function will split all the margin elements 
+        # around the p elements. Generating new elements.
+        # We then remove all empty margin elements.
+
+        ret = match.group(0)
+
+        # split the margin around the <p>s
+        # so margins are within <p> and not the opposite
+        ret = ret.replace(ur'<p>', ur'#MEND#<p>#MSTART#')
+        ret = ret.replace(ur'</p>', ur'#MEND#</p>#MSTART#')
+        
+        if ret != match.group(0):
+            # recursive processing for newly created margins
+            ret = re.sub(ur'(?musi)#MSTART#(.*?)#MEND#', lambda m: self.convert_margin(m), ret)
+        
+        # Now remove an empty margin.
+        # This will occur when margin started just before p,
+        # that bit will now close also just before p and should
+        # be removed.
+        # Need a good definition of 'empty'
+        stripped = re.sub(ur'(?musi)\s+', ur'', dputils.get_plain_text_from_html(match.group(1)).strip())
+        if not stripped:
+            ret = ur''
+        
+        return ret
+
+    def replace_fragment(self, content, recordid, is_fragment=0):
         from digipal_text.models import TextContentXML
         text_content_xml = TextContentXML.objects.get(id=recordid)
-        text_content_xml.content = content
 
-        #print repr(content)
+        if is_fragment:
+            # Detect the range of locuses from the new content, e.g. 5r-6r
+            locations = re.findall(ur'<span data-dpt="location" data-dpt-loctype="locus">\s*([^<]+)\s*</span>', content)
+            if len(locations) < 2:
+                raise Exception('ERROR: the input fragment should contain locuses. e.g. <span data-dpt="location" data-dpt-loctype="locus">1r</span>')
+            locations = locations[0], locations[-1]
+            #locations = '1r', '0v'
+            print 'Input fragment: %s-%s' % (locations[0], locations[1])
+            
+            # Get the matching range in the existing text.
+            # e.g. 5r-6r
+            # Complication if we have missing locuses in the existing text:
+            #     Existing text: 1,2,3, 7,8
+            #     Search for 5r-6r
+            #     We return 3v-7r
+            existing_locations = re.findall(ur'<span data-dpt="location" data-dpt-loctype="locus">\s*([^<]+)\s*</span>', text_content_xml.content or '')
+            
+            from digipal_text.views.viewer import get_fragment_extent
+            matching_locations = [None, None]
+            dir = 1
+            for i in [0, 1]:
+                for location in existing_locations[::dir]:
+                    if dputils.cmp_locus(locations[i], location) != -dir:
+                        matching_locations[i] = location
+                dir = -1
+            
+            print 'Matching fragment: %s-%s' % (matching_locations[0], matching_locations[1])
+            
+            # Get the existing fragment extent from the matching location
+            # Simple case: Search for 5r-6r, matched with 5r-6r
+            #    We return [beginning of 5r, end of 6r]
+            # Complicated case: Search for 5r-6r, matched with 3v-7r
+            #    We return [end of 3v, beginning of 7r]
+            matching_extent = [0, -1]
+            for i in [0, 1]:
+                if matching_locations[i] is not None:
+                    extent = get_fragment_extent(text_content_xml.content, 'locus', location=matching_locations[i])
+                    if extent is not None:
+                        posi = i
+                        if matching_locations[i] != locations[i]:
+                            # Complicated case:
+                            posi = 1 - posi
+                        else:
+                            if i == 0 and existing_locations and locations[i] == existing_locations[0]:
+                                # starts at the first page, shall we include the part before that as well?
+                                pre = re.sub(ur'(?musi)<span data-dpt="location" data-dpt-loctype="locus">.*', '', content)
+                                pre = re.sub(ur'(?musi)<[^>]+>', '', pre)
+                                pre = re.sub(ur'(?musi)\s+', '', pre)
+                                if len(pre) > 1:
+                                    extent[posi] = 0
+                        pos = extent[posi]
+                        matching_extent[i] = pos
+            
+            print 'Matching extent: %s-%s (full extent %s-%s)' % (matching_extent[0], matching_extent[1], 0, len(text_content_xml.content))
+            
+            # replacement
+            new_content = text_content_xml.content
+            markers = ['', '']
+            if self.is_dry_run(): markers = ['[[[', ']]]']
+            text_content_xml.content = new_content[:matching_extent[0]] + markers[0] + content + markers[1] + new_content[matching_extent[1]:]
+        else:
+            # replacement
+            text_content_xml.content = content
 
-        text_content_xml.save()
-
+        if not self.is_dry_run():
+            text_content_xml.save()
+        else:
+            file_name = 'tcx%s.new.xml' % text_content_xml.id
+            dputils.write_file(file_name, text_content_xml.content)
+            print 'WARNING: nothing saved, remove --dry-run to apply changes. (Written new output in %s, look for "[[[" and "]]]").' % file_name 
+            
+    def is_dry_run(self):
+        return self.options.get('dry-run', False)
+        
     def convert_exceptions(self, content):
         '''Convert exceptions to the rules, as described by FT.'''
         # _underlined_, /italics/

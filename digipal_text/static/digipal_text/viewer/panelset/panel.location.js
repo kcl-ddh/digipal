@@ -7,6 +7,9 @@
 (function(TextViewer, $, undefined) {
 
     var PanelLocation = TextViewer.PanelLocation = function($root, contentType, options) {
+    	// table of content
+    	this.toc = {};
+    	
         TextViewer.Panel.call(this, $root, contentType, 'Location', options);
     };
 
@@ -23,6 +26,8 @@
 
         // enable the prev/next
         $buttons.find('.btn-page-nav').addClass('enabled');
+        
+        this.$location_description = this.$root.find('.location-description');
     };
 
     PanelLocation.prototype.loadContentCustom = function(loadLocations, address, subLocation) {
@@ -50,4 +55,14 @@
         }
     };
 
+    PanelLocation.prototype.onContentLoaded = function(data) {
+    	if (data.toc) this.toc = data.toc;
+
+        TextViewer.Panel.prototype.onContentLoaded.call(this, data);
+
+        // display the Table of Content entries for the current location
+        var toc_entries = this.toc[this.getLocation()] || '';
+    	this.$location_description.html(toc_entries);
+    };
+    
 }( window.TextViewer = window.TextViewer || {}, jQuery ));

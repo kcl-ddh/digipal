@@ -21,7 +21,7 @@ Digipal XML management tool
 
 Commands:
 
-  convert PATH_TO_XML PATH_TO_XSLT
+  convert PATH_TO_XML PATH_TO_XSLT [OUTPUT_PATH]
 
   validate PATH_TO_XML [PATH_TO_DTD]
 
@@ -113,6 +113,7 @@ Commands:
 
         xml_path = self.cargs[1]
         xslt_path = self.cargs[2]
+        out_file = self.cargs[3] if len(self.cargs) > 3 else None 
 
         xml_string = utils.readFile(xml_path)
         xml_string = re.sub(ur'\bxmlns=', ur'xmlns2=', xml_string)
@@ -125,11 +126,14 @@ Commands:
         xslt_string = utils.readFile(xslt_path)
 
         # replacements in the XSLT
-        xslt_string = self.parse_xslt_directives(xslt_string, xml_string)
+        comments, xslt_string = self.parse_xslt_directives(xslt_string, xml_string)
 
-        ret = dputils.get_xslt_transform(xml_string, xslt_string)
+        ret = str(dputils.get_xslt_transform(xml_string, xslt_string))
 
-        print str(ret)
+        if out_file:
+            dputils.write_file(out_file, str(comments) + ret, encoding=None)
+        else:
+            print str(comments) + ret
 
         return ret
 
@@ -140,11 +144,14 @@ Commands:
         '''
 
         import regex
+        
+        meta = {'comments': []}
 
         classes_used = {}
 
         def repl(match):
-            # e.g. match.group(0) = {% class super %}
+            comments = meta['comments']
+            # e.g. match.group(0) = {% style italic text-line-through-type="double" %}
             unknown = True
             directive = match.group(1)
             ret = match.group(0)
@@ -155,68 +162,45 @@ Commands:
 
                     classes_intersection = None
                     for term in parts[1:]:
+                        # e.g. term = 'italic'
+                        # e.g. term = 'text-line-through-type="double"'
                         classes = []
-                        if term == 'STRUCKTWICE':
-                            # <span class="T33">aiulfus</span>
-                            classes = regex.findall(ur'<text:span text:style-name="([^"]+)">(?:aiulfus|7 dim)</text:span>', xml_string)
-                            classes = list(set(classes))
-                        elif term == 'PRO':
-                            classes = regex.findall(ur'\s<text:span text:style-name="([^"]+)">p</text:span>\[ro\]\s', xml_string)
-                            classes = list(set(classes))
-                        else:
-                            # find the class with the term <term> (e.g. super)
-                            # <style:style style:name="T3" style:family="text">
-                            #     <style:text-properties
-                            #         style:text-position="super 58%" />
-                            # </style:style>
-                            for style in regex.findall(ur'(?musi)<style:style style:name="(.*?)"[^>]*>(.*?)</style:style>', xml_string):
-                                if term in style[1]:
-                                    classes.append(style[0])
+                        # Find the name of the styles that contains <term> (e.g. super).
+                        # <style:style style:name="T3" style:family="text">
+                        #     <style:text-properties
+                        #         style:text-position="super 58%" />
+                        # </style:style>
+                        #
+                        # => T3
+                        for style in regex.findall(ur'(?musi)<style:style style:name="(.*?)"[^>]*>(.*?)</style:style>', xml_string):
+                            if term in style[1]:
+                                classes.append(style[0])
 
                         if not classes:
-                            raise Exception('ERROR: style not found "%s"' % term)
+                            comments.append('<!-- WARNING:: style not found %s -->' % term)
 
                         if classes_intersection is None:
                             classes_intersection = classes
                         else:
-                            # only keep the classes/styles that meet all keywords (AND)
+                            # only keep the classes/styles that contains all keywords (AND)
                             classes_intersection = set(classes).intersection(set(classes_intersection))
 
-                    # now remove classes which we have already used
+                    # now remove styles which we have already used
                     already_used_warning = set(classes_intersection).intersection(set(classes_used.keys()))
                     if already_used_warning:
-                        print '<!-- Already used classes/styles: %s (see above) -->' % ', '.join(list(already_used_warning))
+                        comments.append('<!-- INFO: Already used classes/styles: %s (see above) -->' % ', '.join(list(already_used_warning)))
                     classes_intersection = set(classes_intersection).difference(set(classes_used.keys()))
-                    # update the classes_used
-                    for cls in classes_intersection:
-                        classes_used[cls] = 1
-
-                    ret = ' or '.join([ur"@text:style-name='%s'" % cls for cls in classes_intersection])
-
-                    print '<!-- %s => %s -->' % (parts, ret)
-
-                if parts[0] == 'class':
-                    unknown = False
-
-                    classes = []
-                    term = parts[1]
-                    if term == 'STRUCKTWICE':
-                        # <span class="T33">aiulfus</span>
-                        classes = regex.findall(ur'<span class="([^"]+)">(?:aiulfus|7 dim)</span>', xml_string)
-                        classes = list(set(classes))
-                    elif term == 'PRO':
-                        classes = regex.findall(ur'\s<span class="([^"]+)">p</span>\[ro\]\s', xml_string)
-                        classes = list(set(classes))
+                    
+                    if classes_intersection:
+                        # Generate the XPATH (e.g. @text:style-name='T3' or @text:style-name='T6')
+                        ret = ' or '.join([ur"@text:style-name='%s'" % cls for cls in classes_intersection])
+                        # update the classes_used
+                        for cls in classes_intersection:
+                            classes_used[cls] = 1
+                        comments.append('<!-- %s => %s -->' % (' '.join(parts), ret))
                     else:
-                        # find the class with the term <term> (e.g. super)
-                        # e.g. .T6 { vertical-align:super; font-size:58%;} => T6
-                        classes = regex.findall(ur'\.(\S+)\s*{[^}]*'+regex.escape(term)+'[^}]*}', xml_string)
-
-                    if not classes:
-                        raise Exception('ERROR: class not found "%s"' % term)
-                    ret = ' or '.join([ur"@class='%s'" % cls for cls in classes])
-
-                    print '<!-- %s => %s -->' % (parts, ret)
+                        ret = 'NOTFOUND'
+                        comments.append('<!-- WARNING: styles not found together: %s -->' % ' '.join(parts[1:]))
 
             if unknown:
                 raise Exception('ERROR: unknown directive "%s"' % match.group(0))
@@ -225,7 +209,7 @@ Commands:
 
         ret = regex.sub(ur'\{%(.*?)%\}', repl, xslt_string)
 
-        return ret
+        return '\n'.join(meta['comments']), ret
 
     def html2xml(self):
         if len(self.cargs) < 2:
@@ -242,10 +226,6 @@ Commands:
         from BeautifulSoup import BeautifulSoup
         soup = BeautifulSoup(html_string, 'html.parser')
         ret = soup.prettify()
-
-        print ret
-
-        #print str(ret)
 
         return ret
 

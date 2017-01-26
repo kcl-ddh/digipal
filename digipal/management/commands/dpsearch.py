@@ -9,6 +9,7 @@ from optparse import make_option
 import utils
 from utils import Logger
 from django.utils.datastructures import SortedDict
+from digipal.views.faceted_search.search_indexer import SearchIndexer
 from __builtin__ import True
 
 
@@ -95,7 +96,6 @@ Options:
         )
 
     def handle(self, *args, **options):
-
         self.logger = utils.Logger()
 
         self.log_level = 3
@@ -314,9 +314,9 @@ Options:
 
         info['results'] = ret
         info['result_size'] = len(res)
-        
+
         ret += '\n\n%s documents found' % len(res)
-        
+
         return ret
 
     def test(self, options):
@@ -423,8 +423,8 @@ Options:
                     print record.id, repr(record)
 
     def index_facets(self, options):
-        from digipal.views.faceted_search import faceted_search
-        faceted_search.rebuild_index(self.get_filtered_indexes())
+        indexer = SearchIndexer()
+        indexer.build_indexes(self.get_filtered_indexes())
 
     def index(self, index_name='unified'):
         types = self.get_requested_content_types()
@@ -512,8 +512,7 @@ Options:
         writer.commit()
 
     def recreate_index(self, index_name, schema):
-        from digipal.utils import recreate_whoosh_index
-        ret = recreate_whoosh_index(settings.SEARCH_INDEX_PATH, index_name, schema)
+        ret = SearchIndexer.recreate_whoosh_index(settings.SEARCH_INDEX_PATH, index_name, schema)
         return ret
 
     def is_dry_run(self):

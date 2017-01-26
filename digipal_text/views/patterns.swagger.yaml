@@ -1,0 +1,183 @@
+swagger: '2.0'
+info:
+  title: DigiPal Text
+  description: >
+    Define patterns and extract segments from text. TODO: document all input and out parameters.
+    TODO: develop POST /patterns
+  contact:
+    name: DigiPal Framework
+    url: https://github.com/kcl-ddh/digipal
+    email: geoffroy.noel@kcl.ac.uk
+  version: "1.0.0"
+host: localhost:8080
+schemes:
+  - http
+basePath: /digipal_text/api
+produces:
+  - application/json
+paths:
+  /patterns:
+    get:
+      summary: All pattern definitions
+      description: |
+        The Pattern endpoint returns all patterns (for the default namespace).
+      parameters:
+        - name: legacy
+          in: query
+          description: load patterns from legacy table (internal use only)
+          required: false
+          type: boolean
+      tags:
+        - Pattern
+      responses:
+        200:
+          description: An array of patterns
+          schema:
+            $ref: '#/definitions/SegResponse'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /patterns/:id:
+    put:
+      summary: Update one pattern definition
+      description: |
+        Update a particular pattern definition
+      parameters:
+        - $ref: '#/parameters/PatternId'
+      tags:
+        - Pattern
+        - Segmentation
+      responses:
+        200:
+          description: An array of patterns
+          schema:
+            $ref: '#/definitions/SegResponse'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete a pattern definition
+      description: |
+        Completely delete a patetrn definition
+      parameters:
+        - $ref: '#/parameters/PatternId'
+      tags:
+        - Pattern
+      responses:
+        200:
+          description: An array of patterns
+          schema:
+            $ref: '#/definitions/SegResponse'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /move_pattern:
+    post:
+      summary: change the position of a pattern in a list
+      description: |
+        Change the position of a pattern in a list
+      parameters:
+        - name: pattern
+          in: query
+          description: the key of a pattern to move
+          required: true
+          type: string
+        - name: previous
+          in: query
+          description: the key of the pattern that will precede patter. Empty string means beginning of the list.
+          required: true
+          type: string
+      tags:
+        - Pattern
+      responses:
+        200:
+          description: An array of patterns
+          schema:
+            $ref: '#/definitions/SegResponse'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /segunits:
+    post:
+      summary: segment the text units with the patterns and returns marked up units with the found segments
+      description: |
+        Selects a range of text units and apply the patterns selectively to them.
+        Returns an array of text units. For each one there is a text in XML with marked up segments and a list of patterns and their occurences.
+      parameters:
+        - name: ulimit
+          in: query
+          description: maximum number of units to return
+          required: false
+          type: number
+          format: integer
+        - name: urange
+          in: query
+          description: range of units to be segmented
+          required: false
+          type: string
+        - name: hilite
+          in: query
+          description: a pattern id to track
+          type: string
+          required: false
+      tags:
+        - Pattern
+      responses:
+        200:
+          description: An array of patterns
+          schema:
+            $ref: '#/definitions/SegResponse'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+parameters:
+  PatternId:
+    name: patternid
+    in: query
+    type: string
+    description: Unique identifier of the pattern
+    required: true
+definitions:
+  SegResponse:
+    type: object
+    properties:
+      patterns:
+        type: array
+        description: pattern definitions.
+        items: 
+          $ref: '#/definitions/Pattern'
+  Pattern:
+    type: object
+    description: pattern definition
+    properties:
+      id:
+        type: string
+        description: Unique identifier representing a specific pattern definition. It should never change.
+      key:
+        type: string
+        description: A short and convenient way to reference a pattern, should be unique but it can change over time. Only use a-z and '-'. Keys can be grouped by finishing the key with -NUMBER. E.g. land-1, land-2.
+      title:
+        type: string
+        description: A label 
+      pattern:
+        type: string
+        description: the actual pattern expression to be matched in the texts
+      updated:
+        type: string
+        description: last time the pattern was modified.
+        format: date-time
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string

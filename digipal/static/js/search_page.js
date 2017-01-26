@@ -183,16 +183,18 @@ function init_search_page(options) {
         // Set focus on the search box. Place the cursor at the end.
         // Add a whitespace after the last search term.
         var search_box = $('#search-terms');
-        var search_terms = $('#search-terms').val().replace(/^\s+|\s+$/g, '') + ' ';
-        if (search_terms == ' ') search_terms = '';
+        if (search_box.length > 0) {
+            var search_terms = $('#search-terms').val().replace(/^\s+|\s+$/g, '') + ' ';
+            if (search_terms == ' ') search_terms = '';
 
-        var page = dputils.get_query_string_param('page');
-        if (!page || (page == '1')) {
-            // GN: 2015/08/19: disabled focus on page load
-            // because on small screens the text box is below the result
-            // and the user, when they arrive to the search page for the
-            // first time will be disoriented.
-            //search_box.val(search_terms).focus();
+            var page = dputils.get_query_string_param('page');
+            if (!page || (page == '1')) {
+                // GN: 2015/08/19: disabled focus on page load
+                // because on small screens the text box is below the result
+                // and the user, when they arrive to the search page for the
+                // first time will be disoriented.
+                //search_box.val(search_terms).focus();
+            }
         }
     }
 
@@ -274,12 +276,14 @@ function init_search_page(options) {
         // Any click on a link is intercepted and sent as an ajax request
         // the html fragment returned is re-injected into the page.
         // TODO: error management
-        $('body').on('click', '#search-ajax-fragment a:not([data-target]), #search-ajax-fragment form button:not([data-target]):not([data-toggle])', function(ev) {
+        $('body').on('click', '#search-ajax-fragment a:not([data-target]):not([data-toggle]), #search-ajax-fragment form button:not([data-target]):not([data-toggle])', function(ev) {
             var $element = $(this);
 
             var page_url = dputils.get_page_url($(location).attr('href'));
             // ! we use this.href instead of $element.attr('href') as the first one returns the absolute URL
-            var url = this.hasAttribute('href') ? this.href : page_url + '?' + $element.parents('form').serialize();
+            $form = $element.parents('form');
+            //var url = this.hasAttribute('href') ? this.href : page_url + '?' + $form.serialize();
+            var url = this.hasAttribute('href') ? this.href : page_url;
             var $focus_selector = $element.data('focus');
 
             // check if the href is for this page
@@ -294,64 +298,78 @@ function init_search_page(options) {
             // Without this if you move away from the page and then click back
             // it will show only the last Ajax response instead of the full HTML page.
             var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
-            $.get(url_ajax)
-                .success(function(data) {
-                    var $data = $(data);
-                    var $fragment = $('#search-ajax-fragment');
-                    
-                    // get rid of opened tooltip to avoid ghosts
-                    if ($.fn.tooltip) {
-                        $fragment.find('[data-toggle="tooltip"]').tooltip('destroy');
-                    }
-                    
-                    // insert the new HTML content
-                    $fragment.html($data.html());
+            var is_post = ($form.attr('method') === 'POST');
+            $.ajax({
+                url: url_ajax,
+                type: is_post ? 'post' : 'get',
+                async: true,
+                data: this.href ? {} : $form.serializeArray().reduce(function(obj, item) {obj[item.name] = item.value; return obj;}, {})
+            })
+            .success(function(data) {
+                var $data = $(data);
+                var $fragment = $('#search-ajax-fragment');
 
-                    dputils.update_address_bar(url, false, true);
+                // get rid of opened tooltip to avoid ghosts
+                if ($.fn.tooltip) {
+                    $fragment.find('[data-toggle="tooltip"]').tooltip('destroy');
+                }
 
-                    $fragment.stop().animate({
-                        'background-color': 'white',
-                        opacity: 1,
-                        'border': 'none'
-                    }, 50);
+                // insert the new HTML content
+                $fragment.html($data.html());
 
-                    // TODO: find a way to pass title via the pushState/update_address_bar?
-                    var new_title = $('#search_page_title').val();
-                    if (document.title != new_title) {
-                        document.title = $('#search_page_title').val();
-                        // scroll to top of the search div
+                if (!is_post) dputils.update_address_bar(url, false, true);
+
+                $fragment.stop().animate({
+                    'background-color': 'white',
+                    opacity: 1,
+                    'border': 'none'
+                }, 50);
+
+                // TODO: find a way to pass title via the pushState/update_address_bar?
+                var new_title = $('#search_page_title').val();
+                if (document.title != new_title) {
+                    document.title = $('#search_page_title').val();
+                    // scroll to top of the search div
+                    var $search_top = $('#search-top');
+                    if ($search_top.length) {
                         $('html, body').animate({
-                            scrollTop: $('#search-top').offset().top
+                            scrollTop: $search_top.offset().top
                         }, 500);
                     }
+                }
 
-                    // make sure visible thumbnails are loaded
-                    document.load_lazy_images();
-                    init_sliders();
-                    init_suggestions();
-                    if ($.fn.tooltip) {
-                        $fragment.find('[data-toggle="tooltip"]').tooltip();
-                    }
-                    if ($focus_selector) {
-                        var v = $($focus_selector).val();
-                        $($focus_selector).val('').val(v).focus();
-                    }
-                    // enable the collection stars on the images
-                    if (window.collection_star) {
-                        window.collection_star.init();
-                    }
-                })
-                .fail(function(data) {
-                    $("#search-ajax-fragment").stop().css({
-                        'opacity': 1
-                    }).animate({
-                        'background-color': '#FFA0A0'
-                    }, 250, function() {
-                        $("#search-ajax-fragment").animate({
-                            'background-color': 'white'
-                        }, 250);
-                    });
+                // make sure visible thumbnails are loaded
+                document.load_lazy_images();
+                init_sliders();
+                init_suggestions();
+                if ($.fn.tooltip) {
+                    $fragment.find('[data-toggle="tooltip"]').tooltip();
+                }
+                if ($.fn.sortable) {
+                    $fragment.find('.sortable').sortable();
+                }
+                if ($focus_selector) {
+                    var v = $($focus_selector).val();
+                    $($focus_selector).val('').val(v).focus();
+                }
+                // enable the collection stars on the images
+                if (window.collection_star) {
+                    window.collection_star.init();
+                }
+
+                $(window).trigger('dploaded');
+            })
+            .fail(function(data) {
+                $("#search-ajax-fragment").stop().css({
+                    'opacity': 1
+                }).animate({
+                    'background-color': '#FFA0A0'
+                }, 250, function() {
+                    $("#search-ajax-fragment").animate({
+                        'background-color': 'white'
+                    }, 250);
                 });
+            });
             return false;
         });
 

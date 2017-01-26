@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load html_escape mezzanine_tags  %}
+
+{% block meta_title %}Patterns detection{% endblock %}
+{% block meta_title_site %}
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.css"/>
+    <style>
+        div.form-group-full-width {
+            display:table;
+            width: 100%;
+            margin-top: 0.2em;
+        }
+        div.form-group-full-width label {
+            display:table-cell;
+            width: 1px;
+            padding-right: 0.5em;
+        }
+        div.form-group-full-width .form-control {
+            display:table-cell;
+            width: 100%;
+        }
+        div.pattern {
+            display: none;
+            border-top: 2px solid lightgrey;
+            border-bottom: 2px solid lightgrey;
+            padding-top: 0.2em;
+            margin-top: 0.2em;
+            padding-bottom: 0.2em;
+            margin-bottom: 0.2em;
+        }
+        input.pattern-title {
+            min-width: 30em;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+        .missing-pattern {
+            color: red;
+        }
+        .pattern-label {
+            font-weight: bold;
+        }
+        span.m {
+            background-color: #e0ffe0;
+            border: 1px solid green;
+            margin-left: 0.2em;
+        }
+        #pattern_tester {
+            position: fixed;
+            background-color: white;
+            width: 80%;
+            border: 1px solid grey;
+            top: 2em;
+            left: 2em;
+            z-index: 10000;
+            padding: 0.5em;
+            display: none;
+        }
+        #pattern_tester input {
+            width: 90%;
+        }
+        ul.patterns-list {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            margin-bottom: 0.5em;
+            display: table;
+        }
+        ul.patterns-list li {
+            float: left;
+            margin: 0 0.4em 0 0;
+            border: 1px solid lightgrey;
+            padding: 0.05em;
+            /* display: inline-block; */
+        }
+        ul.patterns-list li a {
+            /* display: inline-block; */
+        }
+        ul.patterns-list li.picked {
+            background-color: yellow;
+        }
+        .ui-state-highlight {
+            height: 1.4em;
+            /* line-height: 1.4em; */
+            width: 8em;
+            background: yellow;
+            border: 1px dashed orange;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <a href="https://confluence.dighum.kcl.ac.uk/display/EXON/Text+Segmentation+Tool">Help about this tool</a>
+
+    {% include "digipal_text/patterns_fragment.html" %}
+
+    <div id="pattern_tester">
+        <input type="hidden" name="input" value="" />
+        Pattern: <input type="text" name="pattern" value="pattern" /> <br/>
+        Match: <input type="text" name="match" value="match" />
+        <a class="close-btn" href="#">Close</a>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    {# TODO: include min on production #}
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/dpbootstrap.js"></script>
+    {% compress js %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+        <script src="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.min.js"></script>
+    {% endcompress %}
+
+    <script>
+        jQuery(document).ready(function($) {
+            $('body').on('click', '.delete-pattern', function() {
+                $btn = $(this);
+                $btn.parent().find('.pattern-input').val('');
+                $btn.parent().hide();
+                return false;
+            });
+
+            window.init_search_page();
+
+            function showPatternForm(patternid) {
+                // hide all patterns
+                $('div.pattern').hide();
+                // show selected pattern
+                $('div.pattern[data-patternid='+patternid+']').show();
+                localStorage.selected_patternid = patternid;
+                //
+                $('li[data-patternid]').removeClass('picked');
+                $('li[data-patternid='+patternid+']').addClass('picked');
+                //
+                $('input[name=selected_patternid]').val(patternid);
+            }
+
+            $('body').on('click', 'li[data-patternid] a', function(evt) {
+                showPatternForm($(this).parent().attr('data-patternid'));
+                return false;
+            });
+
+            $('#pattern_tester .close-btn').on('click', function() {
+                $(this).parent().hide();
+                return false;
+            });
+            $('#pattern_tester input[name=pattern]').on('change keyup', function() {
+                var $tester = $(this).parent();
+                var rgx = new RegExp($(this).val());
+                var match = rgx.exec($tester.find('input[name=input]').val());
+                $tester.find('input[name=match]').val(match && match[0] ? match[0] : '');
+            });
+
+            $('body').on('click', 'span.pattern-label', function(evt) {
+                // move pattern tester next to pattern label
+                var $pattern_label = $(this);
+                var $tester = $('#pattern_tester');
+                $tester.show();
+                // fill in the real regexp
+                var pattern_converted = $('span[data-patternkey='+$pattern_label.attr('data-patternkey')+']').attr('data-patternconverted');
+                $tester.find('input[name=pattern]').val(pattern_converted);
+                var input = $pattern_label.parent().find('.unit-content').html().trim();
+                $tester.find('input[name=input]').val(input.replace(/<[^>]+>/g, ''));
+            });
+            
+            $('body').on('click', 'a[data-toggle="tab"]', function() {
+                $('input[name="active_tab"]').val($(this).attr('href').substring(1));
+            });
+
+            // called each time the ajax content is refreshed
+            $(window).on('dploaded', function() {
+                // show selected pattern
+                showPatternForm(localStorage.selected_patternid);
+                var $sortable = $(".sortable2").sortable({
+                    placeholder: 'ui-state-highlight',
+                    /* handle: '.handle', */
+                    stop: function(e, ui) {
+                        //<input type="hidden" name="p_{{ pattern.id }}_order" value="{{ pattern.order }}" />
+                        $('li[data-patternid]').each(function(index, element) {
+                            $('[name=p_' + $(this).attr('data-patternid') + '_order]').val(index+1);
+                            //console.log('[name=p_' + $(this).attr('data-patternid') + '_order] = ' + (index+1));
+                        });
+                    }
+                });
+                return false;
+            });
+        });
+    </script>
+{% endblock %}

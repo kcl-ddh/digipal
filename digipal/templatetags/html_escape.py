@@ -105,7 +105,14 @@ def plural(value, count=2):
 
 @register.filter
 def dictget(content, key=''):
-    return content.get(key, None)
+    ret = None
+    if content:
+        if hasattr(content, 'get'):
+            ret = content.get(key, None)
+        else:
+            if hasattr(content, key):
+                ret = getattr(content, key, None)
+    return ret
 
 @register.filter
 def json(value):

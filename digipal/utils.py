@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from django.utils.html import conditional_escape, escape
+from django.utils.html import escape
 import re, os
-from binhex import LINELEN
 import lxml.etree as ET
 from lxml.etree import XMLSyntaxError
-from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, render_to_response
+from django.utils.datastructures import SortedDict
+import base64
 psutil = None
 try:
     import psutil
@@ -13,8 +13,12 @@ except:
     pass
 
 #_nsre = re.compile(ur'(?iu)([0-9]+|(?:\b[mdclxvi]+\b))')
+REGEXP_ROMAN_NUMBER = re.compile(ur'(?iu)\b[ivxlcdm]+\b')
 _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
 _nsre = re.compile(ur'(?iu)([0-9]+)')
+
+def is_roman_number(astring):
+    return REGEXP_ROMAN_NUMBER.match(astring) is not None
 
 def sorted_natural(l, roman_numbers=False, is_locus=False):
     '''Sorts l and returns it. Natural sorting is applied.'''
@@ -199,12 +203,6 @@ def urlencode(dict, doseq=0):
     ret = urllib.urlencode(d, doseq)
     return ret
 
-def get_json_response(data):
-    '''Returns a HttpResponse with the given data variable encoded as json'''
-    import json
-    from django.http import HttpResponse
-    return HttpResponse(json.dumps(data), mimetype="application/json")
-
 def get_tokens_from_phrase(phrase, lowercase=False):
     ''' Returns a list of tokens from a query phrase.
 
@@ -252,6 +250,8 @@ def get_regexp_from_terms(terms, as_list=False):
         # create a regexp
         for t in terms:
             t = re.escape(t)
+            
+            if not t: continue
 
             if t[-1] == u's':
                 t += u'?'
@@ -494,7 +494,12 @@ def get_xml_element_text(element):
 def get_xslt_transform(source, template, error=None, remove_empty_xmlns=False):
     dom = get_xml_from_unicode(source)
     xslt = get_xml_from_unicode(template)
-    transform = ET.XSLT(xslt)
+    try:
+        transform = ET.XSLT(xslt)
+    except Exception, e:
+        for entry in e.error_log:
+            print '%s: %s (line %s, %s)' % (entry.type_name, entry.message, entry.line, entry.column)
+        raise e
     newdom = transform(dom)
     #print(ET.tostring(newdom, pretty_print=True))
     ret = newdom
@@ -530,25 +535,9 @@ def remove_xml_elements(xml, xpath):
 
 #-------------------------------------
 #
-#             WHOOSH
+#             INT & DATES
 #
 #-------------------------------------
-
-def recreate_whoosh_index(path, index_name, schema):
-    import os.path
-    from whoosh.index import create_in
-    if not os.path.exists(path):
-        os.mkdir(path)
-    path = os.path.join(path, index_name)
-    if os.path.exists(path):
-        import shutil
-        shutil.rmtree(path)
-    os.mkdir(path)
-    print '\tCreated index under "%s"' % path
-    # TODO: check if this REcreate the existing index
-    index = create_in(path, schema)
-
-    return index
 
 def get_int(obj, default=0):
     '''Returns an int from an obj (e.g. string)
@@ -912,91 +901,6 @@ def add_keywords(obj, keywords='', remove=False):
 
     return ret
 
-def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
-    '''
-        rows: a list of records, each record is a dictionary with key/values
-            all records must have the same keys
-
-        output: write a csv file [file_path] with all the rows
-    '''
-    encoding = encoding or 'Latin-1'
-    import csv
-    with open(file_path, 'wb') as csvfile:
-        if len(rows):
-            csvwriter = csv.DictWriter(csvfile, headings or rows[0].keys())
-            csvwriter.writeheader()
-            for row in rows:
-                row_encoded = {}
-                #print repr(row)
-                for k,v in row.iteritems():
-                    row_encoded[k] = unicode(v).encode(encoding)
-                csvwriter.writerow(row_encoded)
-
-def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=None, same_as_above=None):
-    '''
-        Read a CSV file and returns an ARRAY where
-        each entry correspond to a line in the file.
-        It is assumed that the first line of the CSV
-        contains the headings.
-
-        Each entry in the returned array is a DICTIONARY
-        where the keys are the column headings and the
-        values in the corresponding line in the file.
-
-        If ignore_incomplete_lines is True,
-        ignore rows which have empty values in second and all following fields
-
-        same_as_above = list of strings which mean that the value
-            should be the same as in the above row
-    '''
-    encoding = encoding or 'Latin-1'
-    ret = []
-
-    import csv
-    csv_path = file_path
-    line_index = 0
-    with open(csv_path, 'rb') as csvfile:
-        csvreader = csv.reader(csvfile)
-
-        columns = []
-
-        line_last = None
-
-        for line in csvreader:
-            line_index += 1
-
-            # skip some lines
-            if ignore_incomplete_lines and len(''.join(line[1:]).strip()) == 0:
-                continue
-
-            # -> unicode
-            line = [v.decode(encoding) for v in line]
-
-            # heading line
-            if not columns:
-                for c in line:
-                    c = re.sub(ur'[^a-z0-9]', '', c.lower())
-                    if c and re.search(ur'^\d', c):
-                        c = u'n%s' % c
-                    columns.append(c)
-                continue
-
-            # 'same as' values
-            if same_as_above and line_last:
-                for i in range(0, len(line)):
-                    if line[i] in same_as_above:
-                        line[i] = line_last[i]
-
-            # turn into dict
-            rec = dict(zip(columns, line))
-            rec['_line_index'] = line_index
-
-            ret.append(rec)
-
-            line_last = line
-
-    return ret
-
 def expand_folio_range(frange, errors=None):
     '''
         Returns an array of locus from a folio range expression
@@ -1347,24 +1251,45 @@ def get_plain_text_from_xmltext(xml_str):
     '''Returns a plain text version of the XML <value>.
         For INDEXING PURPOSE.
         Strip tags, remove some abbreviations, ...
+        Strip locations
+       TODO: would be more reliable with pure XML transform
+       but the content is not always well-formed so we have to
+       resort to regexps.
     '''
-    # remove abbreviations
+    # Remove abbreviations and location elements
     import regex
-    ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', xml_str)
+    ret = xml_str
+    ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', ret)
+    ret = regex.sub(ur'<span data-dpt="location".*?</span>', ur'', ret)
+    
+    # Remove deleted elements 
+    # <span data-dpt="del" data-dpt-type="supplied">di</span>
+    ret = regex.sub(ur'(?musi)<span data-dpt="del"[^>]*>[^<]*</span>', '', ret)
+    
+    ret = ret.replace(u'</p>', ' ')
 
+    # Remove all tags
     import HTMLParser
     html_parser = HTMLParser.HTMLParser()
     from django.utils.html import strip_tags
     ret = html_parser.unescape(strip_tags(ret))
 
-    # remove | (line breaks) and other expansion markup <>
-    ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '').replace(u'-|', u'').replace(u'|', u'\r')
+    # remove | (editorial line breaks) and other supplied signs <>
+    ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '')
+    
+    # MS line breaks:
+    ret = regex.sub(ur'(?musi)-\s*\|', u'#HY#', ret)
+    # insert a CR to preserve rendering and also avoid joining words
+    # accross the MS line break. 
+    ret = ret.replace(u'|', u'\r')
+    # reunite hyphenated parts even when they are separated by spaces
+    ret = regex.sub(ur'\s*#HY#\s*', u'', ret)
 
     ret = regex.sub(ur'(?musi)\s+', ' ', ret)
 
     return ret
 
-def run_shell_command(self, command):
+def run_shell_command(command):
     ret = True
     try:
         os.system(command)
@@ -1374,3 +1299,382 @@ def run_shell_command(self, command):
         pass
     return ret
 
+def get_python_path():
+    # return the full path to python executable that runs this script
+    
+    # basic approach, get it directly from sys.
+    # This is technically correct.
+    # However one caveat is when systemwide python is called with the libs
+    # from a virtualenv. In that case calling that python will not be able
+    # to run django due to missing packages. 
+    import sys, os
+    python_path = sys.executable
+    
+    # TODO
+    # best approach would be to use the above and set the PYTHONPATH
+    # but not easy and cross OS to pass sys.path within Popen()
+    # If this works we don't need the code below to find virtualenv python 
+    lib_path = (os.pathsep).join(sys.path)
+    
+    # another is to find python within the virtual env
+    if 0:
+        # simple case, but again may not work if system-wide python 
+        # called with virtualenv libs... (e.g. EXON server)
+        # In that case VIRTUAL_ENV is not set.
+        virtualenv = os.environ.get('VIRTUAL_ENV')
+        if  virtualenv:
+            ppath = os.path.join(virtualenv, 'bin', 'python')
+            if os.path.exists(ppath):
+                python_path = ppath
+
+    if 1:
+        # Here we try to find the virtualenv python in a directory above
+        # the django package. This assumes that django runs from within a
+        # virtualenv
+        import django
+        path = django.__file__
+        while len(path) > 1:
+            path = os.path.dirname(path)
+            ppath = os.path.join(path, 'bin', 'python')
+            if os.path.exists(ppath):
+                python_path = ppath
+                break
+            
+    return python_path
+
+def call_management_command(command, *args, **kwargs):
+    '''
+    Execute a Django management command in a SEPARATE PROCESS.
+    
+    e.g. call_management_command('command', 'arg1', 'arg2', option1=val1, option2=val2)
+    is executed as:
+    python manage.py command arg1 arg2 --option1=val1 --option2=val2
+    
+    Note that the option names can be different from the internal names used
+    by the management command. So not exactly the same as django call_command()
+    
+    Approach:
+    We use Popen() to start another python process running the dhjango command.
+    That process seems to inherit from our virtual env settings.
+    And it will survive its parent.
+    I.e. it's like doing a 'nohup ... &' from the command line
+    
+    Alternatives:
+        * call command from this process: too long, browser will time out, web
+            worker can be killed.
+        * celery: best approach but introduces two new services (celery and redis
+            , DB and cache brokers are not reliable)
+        * p = multiprocessing.Process(fct); p.start() # fct => call_management() 
+            causes weird issues on Windows
+            probably due concurrent modification of shared resources/variables.
+        * os.fork(): not supported by Windows?. Approach is similar to previous 
+            one, anyway.
+    '''
+    
+    # django manage command line 
+    command_django = '%s %s %s' % (
+        command, 
+        ' '.join(args), 
+        (' '.join(['--%s=%s' % (k, v) for k, v in kwargs.iteritems()]))
+    )
+    
+    # shell command line
+    from django.conf import settings
+    import sys
+    
+    python_path = get_python_path()
+    
+    command_shell = '%s %s %s' % (python_path, os.path.join(settings.PROJECT_ROOT, '..', 'manage.py'), command_django)
+    
+    if 1:
+        # run the command in a child process, calling python
+        from subprocess import Popen
+        dplog('call command : %s' % command_shell)
+        child_id = Popen(command_shell.split()).pid
+        dplog('called command : %s | %s' % (child_id, command_shell))
+    else:
+        # fork doesn't work on WIndows
+        # run the command in a child process, calling command directly from this context
+        from django.core.management import call_command
+        from digipal.models import KeyVal
+        from multiprocessing import Process
+        from datetime import datetime
+        def f(reindexes_str):
+            KeyVal.set('k2.a', repr(datetime.now()))
+            KeyVal.set('k2.b', reindexes_str)
+            print 'HERE'
+            try:
+                call_command('dpsearch', 'index_facets', index_filter=reindexes_str)
+            except Exception, e:
+                KeyVal.set('k2.c', 'ERROR: %s' % repr(e))
+            else: 
+                KeyVal.set('k2.c', repr(datetime.now()))
+            exit()
+        print 'h1'
+        ##p = Process(target=f, args=(','.join(reindexes),))
+        ##p.start()
+        print 'h2'
+        ##print p
+
+def json_dumps(data):
+    from datetime import datetime
+    import json
+    def json_serial(obj):
+        """JSON serializer for objects not serializable by default json code"""
+        if isinstance(obj, datetime):
+            serial = obj.isoformat()
+            return serial
+        raise TypeError ("Type not serializable")    
+    return json.dumps(data, default=json_serial)
+
+def json_loads(data):
+    #from datetime import datetime
+    from django.utils.dateparse import parse_datetime
+    import json
+    
+    # convert all dates in a list of dictionary from string to datetime 
+    def convert_dates(dic):
+        if isinstance(dic, list):
+            for i in range(0, len(dic)):
+                if isinstance(dic[i], basestring):
+                    # 2016-10-28T13:27:38.944298+00:00
+                    v = dic[i]
+                    if re.match(ur'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.*', v):
+                        v = re.sub('(\+\d{2}):(\d{2})$', ur'\1\2', v)
+                        dic[i] = parse_datetime(v)
+                elif isinstance(dic[i], dict) or isinstance(dic[i], list):
+                    convert_dates(dic[i]) 
+        if isinstance(dic, dict):
+            for k, v in dic.iteritems():
+                if isinstance(v, basestring):
+                    # 2016-10-28T13:27:38.944298+00:00
+                    if re.match(ur'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.*', v):
+                        v = re.sub('(\+\d{2}):(\d{2})$', ur'\1\2', v)
+                        dic[k] = parse_datetime(v)
+                elif isinstance(v, dict) or isinstance(v, list):
+                    convert_dates(v) 
+                    
+    ret = json.loads(data)
+    convert_dates(ret)
+    
+    return ret
+
+########################
+#
+#     SERIALISATION
+#
+########################
+
+def get_json_response(data):
+    '''Returns a HttpResponse with the given data variable encoded as json'''
+    from django.http.response import HttpResponse
+    ret = HttpResponse(json_dumps(data), content_type='application/json; charset=utf-8', )
+    ret['Access-Control-Allow-Origin'] = '*'
+    return ret
+
+def get_csv_response_from_rows(rows, charset='latin-1', headings=None, filename='response.csv'):
+    # returns a http response with a CSV content created from rows
+    # rows is a list of dictionaries 
+    
+    from django.http import StreamingHttpResponse
+    ret = StreamingHttpResponse(generate_csv_lines_from_rows(rows, encoding=charset, headings=headings), content_type="text/csv")
+    ret['Content-Disposition'] = 'attachment; filename="%s"' % filename
+    
+    return ret 
+
+def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
+    '''
+    rows: a list of records, each record is a dictionary with key/values
+        all records must have the same keys
+
+    output: write a csv file [file_path] with all the rows
+    '''
+    with open(file_path, 'wb') as csvfile:
+        for line in generate_csv_lines_from_rows(rows, encoding=encoding, headings=headings):
+            csvfile.write(line)
+
+class Echo(object):
+    def write(self, value):
+        return value
+
+def generate_csv_lines_from_rows(rows, encoding=None, headings=None):
+    '''
+    Returns a generator of lines of comma separated values
+    from a list of rows
+    each row is a dictionary: column_name => value 
+    '''
+    encoding = encoding or 'Latin-1'
+    if len(rows):
+        import csv
+        pseudo_buffer = Echo()
+        # Can't use DictWriter b/c it .writerow() doesn't return anything.
+        # Normal csv.writer does return the buffer.
+        writer = csv.writer(pseudo_buffer)
+        
+        headings = headings or rows.keys()
+        
+        yield writer.writerow(headings)
+        for row in rows:
+            row_encoded = [unicode(row.get(k, '')).encode(encoding, 'replace') for k in headings]
+            yield writer.writerow(row_encoded)
+
+def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=None, same_as_above=None):
+    '''
+        Read a CSV file and returns an ARRAY where
+        each entry correspond to a line in the file.
+        It is assumed that the first line of the CSV
+        contains the headings.
+
+        Each entry in the returned array is a DICTIONARY
+        where the keys are the column headings and the
+        values in the corresponding line in the file.
+
+        If ignore_incomplete_lines is True,
+        ignore rows which have empty values in second and all following fields
+
+        same_as_above = list of strings which mean that the value
+            should be the same as in the above row
+    '''
+    encoding = encoding or 'Latin-1'
+    ret = []
+
+    import csv
+    csv_path = file_path
+    line_index = 0
+    with open(csv_path, 'rb') as csvfile:
+        csvreader = csv.reader(csvfile)
+
+        columns = []
+
+        line_last = None
+
+        for line in csvreader:
+            line_index += 1
+
+            # skip some lines
+            if ignore_incomplete_lines and len(''.join(line[1:]).strip()) == 0:
+                continue
+
+            # -> unicode
+            line = [v.decode(encoding) for v in line]
+
+            # heading line
+            if not columns:
+                for c in line:
+                    c = re.sub(ur'[^a-z0-9]', '', c.lower())
+                    if c and re.search(ur'^\d', c):
+                        c = u'n%s' % c
+                    columns.append(c)
+                continue
+
+            # 'same as' values
+            if same_as_above and line_last:
+                for i in range(0, len(line)):
+                    if line[i] in same_as_above:
+                        line[i] = line_last[i]
+
+            # turn into dict
+            rec = dict(zip(columns, line))
+            rec['_line_index'] = line_index
+
+            ret.append(rec)
+
+            line_last = line
+
+    return ret
+
+########################
+
+def get_short_uid(adatetime=None):
+    # The time in milliseconds in base 36 
+    # e.g. 2016-11-12 23:14:29.337677+05:00 -> LMXOd7f65 (9 chars)
+    # result is URL safe
+    # If adatetime is None, uses now()
+    from datetime import datetime
+    b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.'
+    BASE = len(b64)
+    def num_encode(n):
+        s = []
+        while True:
+            n, r = divmod(n, BASE)
+            s.append(b64[r])
+            if n == 0: break
+        return ''.join(reversed(s))
+    
+    ret = adatetime or datetime.utcnow()
+    ret = '%s%s%s%s%s%s' % (b64[ret.month], b64[ret.day], b64[ret.hour], b64[ret.minute], b64[ret.second], num_encode(long('%s%s' % (ret.year - 2000, ret.microsecond))))
+    #ret = ret.isoformat()
+    #ret = long(re.sub(ur'\D', '', ret))
+    #ret = str(ret)
+    #ret = base64.b64encode(str(ret), 'ascii')
+    #return parseInt((new Date()).toISOString().replace(/\D/g, '')).toString(36);
+    return ret
+
+from datetime import datetime, timedelta, tzinfo
+
+# A UTC class.
+# Core Python has limited support time-zone aware datetimes
+# We add UTC  
+# http://stackoverflow.com/a/2331635/3748764
+class UTC(tzinfo):
+    """UTC"""
+
+    zero_offset = timedelta(0)
+
+    def utcoffset(self, dt):
+        return self.zero_offset
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return self.zero_offset
+
+utc = UTC()
+
+def now():
+    '''Returns UTC now datetime with time-zone'''
+    return datetime.now(utc)
+
+def cmp_locus(l1, l2):
+    # compare two locuses
+    # return -1 if locus1 < locus 2
+    # 1 if >
+    # 0 if =
+    l1 = natural_sort_key(l1, 1, 1)
+    l2 = natural_sort_key(l2, 1, 1)
+    
+    if l1 < l2: return -1
+    elif l1 > l2: return 1
+
+    return 0
+
+def is_unit_in_range(unitid, ranges):
+    ''' e.g. ('13a1', '1a1-10b3;45b1-45b2;60b4') => True
+    '''
+    ret = False
+
+    ranges = ranges.strip()
+
+    if not ranges: return True
+
+    unit_keys = natural_sort_key(unitid)
+
+    for range in ranges.split(','):
+        parts  = range.split('-')
+        if len(parts) == 2:
+            ret = (unit_keys >= natural_sort_key(parts[0])) and (unit_keys <= natural_sort_key(parts[1]))
+        else:
+            ret = unitid == parts[0]
+        if ret: break
+
+    return ret
+
+def extract_file_from_zip(zip_path, file_path, output_path):
+    '''Extract a single file from a ZIP into the given path.'''
+    #cmd = 'unzip -p %s content.xml > %s' % (input_path, outfile)
+    import zipfile
+    
+    with open(zip_path, 'rb') as fh:
+        z = zipfile.ZipFile(fh)
+        write_file(output_path, z.read(file_path), encoding=None)

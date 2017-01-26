@@ -2588,7 +2588,7 @@ class Graph(models.Model):
                 if key == 'public_note': r = dputils.get_plain_text_from_html(self.annotation.display_note or '')
                 if key == 'ip': r = self.annotation.image.item_part
                 if key == 'hi_date': r = self.annotation.image.item_part.historical_item.date
-                if key == 'desc': r = (self.get_description_as_str() or 'undescribed')
+                if key == 'desc': r = (self.get_description_as_str() or u'')
             except Exception, e:
                 print 'EXCEPTION: graph.get_label() => "%s"' % e
                 r = r.upper()

@@ -1,10 +1,14 @@
 from django.template.defaultfilters import stringfilter
 from django.utils.html import conditional_escape, escape
 from django.utils.safestring import mark_safe
+from django import template
+from digipal import utils as dputils
 import re
+from inspect import getargspec
+from django.template.base import parse_bits
+from django.utils.http import urlencode
 
-from django.template import Library
-register = Library()
+register = template.Library()
 #from mezzanine import template as mezzzanine_template
 #register = mezzzanine_template.Library()
 
@@ -538,6 +542,62 @@ def record_field(content_type, record, field):
     return content_type.get_record_field_html(record, field)
 
 
+@register.tag
+def dplink(parser, token):
+    '''
+    Usage: {% dplink OBJ %}CONTENT{% enddplink %}
+    Where: 
+        OBJ is a model instance, e.g. an ItemPart
+        CONTENT is some html
+    Output:
+        If OBJ is an object, has a url and user can see it:
+        <a href="LINK TO OBJ">CONTENT</a>
+        
+        Otherwise:
+        CONTENT 
+    '''
+    
+    def get_link_from_obj(obj=None):
+        ret = {'content': '%s' % obj, 'url': ur''}
+        if obj:
+            f = getattr(obj, 'get_absolute_url')
+            if f: ret['url'] = '%s' % f()
+        return ret 
+
+    class DPLinkNode(template.base.TagHelperNode):
+        def __init__(self, nodelist, args, kwargs):
+            super(DPLinkNode, self).__init__(takes_context=False, args=args, kwargs=kwargs)
+            self.nodelist = nodelist
+    
+        def render(self, context):
+            ret = self.nodelist.render(context)
+            
+            args, kwargs = self.get_resolved_arguments(context)
+            link = get_link_from_obj(*args, **kwargs)
+            obj = args[0]
+            
+            request = context.get('request', None)
+            if request and not dputils.is_model_visible(obj, request):
+                link['url'] = None
+            
+            ret = ret.strip() or link['content']
+            if link['url']:
+                ret = u'<a href="%s">%s</a>' % (link['url'], ret)
+            
+            return ret
+            
+    nodelist = parser.parse(('enddplink',))
+    parser.delete_first_token()
+
+    bits = token.split_contents()[1:]
+
+    params, varargs, varkw, defaults = getargspec(get_link_from_obj)
+    args, kwargs = parse_bits(
+        parser, bits, params, varargs, varkw, defaults,
+        takes_context=False, name='dplink'
+    )
+    return DPLinkNode(nodelist, args, kwargs)
+
 @register.filter
 def dpfootnotes(html):
     example = u'''
@@ -600,3 +660,4 @@ def dpfootnotes(html):
 #     print ret
 #
 #     return ret
+

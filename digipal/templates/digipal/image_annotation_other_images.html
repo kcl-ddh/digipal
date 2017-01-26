@@ -6,19 +6,35 @@
 {% endcomment %}
 
 {% if images.count %}
-    {% for p in images.all %}
 
-            {% if forloop.counter0|divisibleby:4 %}
-                <div class='row'>
-            {% endif %}
+    {% captureas full_set %}
+        {% if images.count > 20 %}
+            <div>
+                <p>The first 20 other images are displayed below.</p>
+                <p><a href="{% url 'facets' %}?terms=&quot;{{images.0.item_part.current_item.shelfmark|urlencode}}&quot;&result_type=images&view=grid&pgs=30">
+                    Browse the complete set of images
+                    </a> in this document on the search page.</p>
+            </div>
+        {% endif %}
+    {% endcaptureas %}
 
-            {% include "digipal/folio_image.html" with image=p width=150 full_label=0 %}
+    {{ full_set }}
 
-            {% if forloop.counter|divisibleby:4 or forloop.last %}
-                </div>
-            {% endif %}
+    {% for p in images.all|slice:":20" %}
+
+        {% if forloop.counter0|divisibleby:4 %}
+            <div class='row'>
+        {% endif %}
+
+        {% include "digipal/folio_image.html" with image=p width=150 full_label=0 %}
+
+        {% if forloop.counter|divisibleby:4 or forloop.last %}
+            </div>
+        {% endif %}
 
     {% endfor %}
+
+    {{ full_set }}
 
     {% include "digipal/add_to_collection.html" %}
 

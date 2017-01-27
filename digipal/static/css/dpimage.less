@@ -3,6 +3,8 @@
 div.panel.panel-thumb {
     /* default padding was pushing the image out of the box on teh faceted result */
     padding: 0;
+    padding-top: 0.3em;
+    padding-bottom: 0.1em;
 }
 
 .image{
@@ -48,23 +50,6 @@ div.panel.panel-thumb {
     
 }
 
-.imageDatabase {
-    text-align: center;
-    /*
-    margin: 2.5%;
-    */
-}
-
-.imageDatabase_label {
-    display: block;
-    font-weight: bold;
-}
-
-.imageDatabase_label.one-line {
-    display: inherit;
-    font-size: large;
-}
-
 /* Open Layer Map */
 .result-ol {
     margin: 1em 0 1em;
@@ -92,6 +77,20 @@ div.panel.panel-thumb {
 
 /* Thumbnails */
 
+.imageDatabase {
+    text-align: center;
+}
+
+.imageDatabase_label {
+    display: block;
+    font-weight: bold;
+}
+
+.imageDatabase_label.one-line {
+    display: inherit;
+    font-size: large;
+}
+
 .imageDatabase .img-frame {
     padding: 4px;
     border: 1px solid #ddd;
@@ -111,7 +110,7 @@ div.panel.panel-thumb {
     -o-transition-duration:0.5s;
     transition-property:opacity;
     transition-duration:0.5s;
-    margin-bottom: 1em;
+    margin-bottom: 0.2em;
 }
 
 .img-frame {

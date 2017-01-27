@@ -943,8 +943,8 @@ def text_api_view_search(request, item_partid, content_type, location_type, loca
     ret['location_type'] = location_type
     ret['location'] = location
 
-    ret['content'] = ur'''<form class="text-search-form" method="GET">
-        <p>Query: <input type="text" name="query" value="%s"/><input type="submit" name="s" value="Search"/></p>
+    ret['content'] = ur'''<form class="text-search-form" method="GET" style="margin:0.2em">
+        <p>Query: <input type="text" class="control" name="query" value="%s"/><input type="submit" name="s" value="Search"/></p>
         <p>%s entries</p>
         <ul>
             %s
@@ -959,7 +959,7 @@ def get_entries_from_query(query):
     from django.conf import settings
     from whoosh.index import open_dir
     import os
-    index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', 'textunits'))
+    index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', 'entries'))
 
     # from whoosh.qparser import QueryParser
 
@@ -973,6 +973,7 @@ def get_entries_from_query(query):
     if search_phrase or field_queries:
         qp = get_whoosh_parser(index)
         q = qp.parse(u'%s %s' % (search_phrase, field_queries))
+        print q
     else:
         from whoosh.query.qcore import Every
         q = Every()
@@ -983,12 +984,12 @@ def get_entries_from_query(query):
         # run the query
         # facets = self.get_whoosh_facets()
 
-        hits = s.search(q, limit=1000000, sortedby='entryid_sortable')
+        hits = s.search(q, limit=1000000, sortedby='unitid_sortable')
         hits.fragmenter.charlimit = None
 
         # get highlights from the hits
         for hit in hits:
-            ret.append({'entryid': hit['entryid'], 'snippets': hit.highlights('content', top=10)})
+            ret.append({'entryid': hit['unitid'], 'snippets': hit.highlights('content', top=10)})
         # print '%s hits.' % len(hits)
 
     return ret
@@ -997,7 +998,7 @@ def get_whoosh_parser(index):
     from whoosh.qparser import MultifieldParser, GtLtPlugin
 
     # TODO: only active columns
-    term_fields = ['content', 'entryid']
+    term_fields = ['content', 'unitid']
     parser = MultifieldParser(term_fields, index.schema)
     parser.add_plugin(GtLtPlugin)
     return parser

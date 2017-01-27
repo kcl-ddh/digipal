@@ -22,10 +22,15 @@ def text_viewer_view(request, item_partid=0, master_location_type='', master_loc
 
     from digipal.utils import is_model_visible
     if not is_model_visible('textcontentxml', request):
-        raise Http404('Text view not enabled')
+        raise Http404('The Text Viewer is not enabled on this site')
 
     from digipal.models import ItemPart
     context = {'item_partid': item_partid, 'item_part': ItemPart.objects.filter(id=item_partid).first()}
+    
+    if not context['item_part']:
+        raise Http404('This document doesn\'t exist')
+    if not dputils.is_model_visible(context['item_part'], request):
+        raise Http404('This document is not publicly accessible')
 
     # Define the content of content type and location type drop downs
     # on top of each panel

@@ -973,7 +973,6 @@ def get_entries_from_query(query):
     if search_phrase or field_queries:
         qp = get_whoosh_parser(index)
         q = qp.parse(u'%s %s' % (search_phrase, field_queries))
-        print q
     else:
         from whoosh.query.qcore import Every
         q = Every()

@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+'''
+Repository management tool.
+
+Please try to keep the code cross-OS compatible: Windows and Linux.
+'''
 from optparse import OptionParser
 import os, sys, re
 import subprocess
@@ -14,53 +19,49 @@ class ExecutionError(Exception):
         self.title = title
         self.message = message
 
-'''
-Repository management tool.
-
-Please try to keep the code cross-OS compatible: Windows and Linux.
-'''
-
 def show_help():
     print '''Usage: python %s [OPTIONS] COMMAND
 
- Commands:
+Commands:
 
-     pull
-         Pulls the content from the hg and github repositories
-         Fixes the file permissions.
-         Runs South migrations.
-         Validates the code.
-         Touches wsgi.
+  pull
+    Upgrade code from repositories
+    Database upgrade
+    Django validation
+    Fixes file permissions
+    Collect static files
+    Reload site
     
-     perms
-          Fix file permissions
+  perms
+    Fix file permissions
 
-     diff
-         Lists the difference across all repos
+  diff
+    Lists the difference across all repos
 
-     hgsub
-         Update .hgsubstate
+  cs
+    Collectstatic
+    
+  st
+    Show repos status
+    
+  nc
+    No cache; remove all cached data
 
-     cs
-         Collectstatic
-
-     st
-         status
-
-     g [...]
-         from the git folder, executes git [...]
+  g [...]
+    from the git folder, executes git [...]
 
 Options:
 
-     -a --automatic
-         no interaction or user input required
+  -a --automatic
+     no interaction or user input required
 
-     -e --email=EMAIL_ADDRESS
-         send error message to EMAIL_ADDRESS
+  -e --email=EMAIL_ADDRESS
+     send error message to EMAIL_ADDRESS
 
-    --nohg
-         pull command ignores hg repo
-    ''' % os.path.basename(__file__)
+  --nohg
+     pull command ignores hg repo
+     
+''' % os.path.basename(__file__)
     exit
 
 def get_allowed_branch_names():
@@ -128,6 +129,20 @@ def process_commands_main_dir():
 
         print 'Project folder: %s' % project_folder
         print 'GitHub folder: %s' % github_dir
+        
+        if command == 'nc':
+            known_command = True
+            dirs = ['django_cache', 'static/CACHE']
+            for adir in dirs:
+                dir = os.path.join(project_folder, adir)
+                print 'Empty %s' % dir
+                if not os.path.isdir(dir):
+                    print 'WARNING: path not found.'
+                else:
+                    # TODO: windows command 
+                    cmd = 'sudo rm -r %s/*' % dir
+                    res = system(cmd)
+            print 'done'
 
         if command == 'perms':
             known_command = True
@@ -426,7 +441,7 @@ def system(command, validity_pattern='', pattern_must_be_found=False, error_mess
 
     return is_valid
 
-def run_shell_command(command, sudo=False):
+def run_shell_command(command, sudo=False, aout=None):
     ret = True
 
     if sudo:

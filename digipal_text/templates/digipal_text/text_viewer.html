@@ -194,6 +194,15 @@
             panelset.setPanelSize('north', 0.6);
             panelset.setPanelSize('east', 0.5);
 
+            // if narrow (992 is bootstrap threshold for medium display)
+            if ($(window).width() <= 800) {
+                $.each(panelset.layout.panes, function(pane) {
+                    if (pane !== false) {
+                    	panelset.layout[pane == 'center' ? 'open' : 'close'](pane);
+                    }
+                });
+            }
+            
             //panelset.setPanelSize('center', 0);
             //panelset.setPanelSize('west', 0);
             //panelset.setPanelSize('south', 0);

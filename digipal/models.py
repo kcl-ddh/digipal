@@ -3181,12 +3181,6 @@ class CarouselItem(models.Model):
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
 
-    class Meta:
-        ordering = ['sort_order', 'title']
-
-    def __unicode__(self):
-        return u'%s' % (self.title)
-
     @staticmethod
     def get_visible_items():
         '''Returns the visible carousel slides/items in the correct display order'''
@@ -3534,6 +3528,12 @@ class KeyVal(models.Model):
     val = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        ordering = ['key',]
+
+    def __unicode__(self):
+        return u'%s' % (self.key)
 
     @classmethod
     def getjs(cls, key, default=None):

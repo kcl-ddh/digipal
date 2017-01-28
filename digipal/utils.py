@@ -1453,9 +1453,11 @@ def json_loads(data):
                         dic[k] = parse_datetime(v)
                 elif isinstance(v, dict) or isinstance(v, list):
                     convert_dates(v) 
-                    
-    ret = json.loads(data)
-    convert_dates(ret)
+
+    ret = None    
+    if data and data.strip():
+        ret = json.loads(data)
+        convert_dates(ret)
     
     return ret
 

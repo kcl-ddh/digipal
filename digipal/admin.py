@@ -21,7 +21,7 @@ from digipal.models import Allograph, AllographComponent, Alphabet, Annotation, 
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
         StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
-        CarouselItem, ApiTransform, AuthenticityCategory
+        CarouselItem, ApiTransform, AuthenticityCategory, KeyVal
 from django.conf import settings
 import reversion
 import django_admin_customisations
@@ -1051,6 +1051,14 @@ class AuthenticityCategoryAdmin(DigiPalModelAdmin):
     search_fields = ['id', 'name', 'slug']
     ordering = ['name']
 
+class KeyValAdmin(DigiPalModelAdmin):
+    model = KeyVal
+
+    list_display = ['id', 'key', 'modified', 'created']
+    list_display_links = list_display
+    search_fields = ['id', 'key']
+    ordering = ['key']
+
 #     fieldsets = (
 #                 (None, {'fields': ('title', 'template', 'description', 'sample_request', 'mimetype', 'webpage')}),
 #                 )
@@ -1117,6 +1125,7 @@ admin.site.register(RequestLog, RequestLogAdmin)
 admin.site.register(ApiTransform, ApiTransformAdmin)
 admin.site.register(Text, TextAdmin)
 admin.site.register(AuthenticityCategory, AuthenticityCategoryAdmin)
+admin.site.register(KeyVal, KeyValAdmin)
 
 # Let's add the Keywords to the admin interface
 try:

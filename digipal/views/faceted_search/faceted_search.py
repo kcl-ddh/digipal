@@ -84,6 +84,10 @@ class FacetedModel(object):
             if view.get('selected', False):
                 ret = view.get('template', view.get('key', 'table'))
                 break
+        
+        mobile = 1
+        if ret == 'list' and mobile:
+            ret += '_narrow'
 
         ret = 'search/faceted/views/' + ret + '.html'
         return ret

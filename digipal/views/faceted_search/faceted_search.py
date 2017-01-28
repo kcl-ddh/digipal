@@ -85,7 +85,7 @@ class FacetedModel(object):
                 ret = view.get('template', view.get('key', 'table'))
                 break
         
-        mobile = 1
+        mobile = utils.is_display_narrow(self.request)
         if ret == 'list' and mobile:
             ret += '_narrow'
 

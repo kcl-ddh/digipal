@@ -1680,3 +1680,12 @@ def extract_file_from_zip(zip_path, file_path, output_path):
     with open(zip_path, 'rb') as fh:
         z = zipfile.ZipFile(fh)
         write_file(output_path, z.read(file_path), encoding=None)
+
+def is_display_narrow(request):
+    ret = False
+    
+    # TODO: test and make it more robust
+    #print u'\n'.join([ur'%s = %s' % (k,v) for k,v in request.META.iteritems()])
+    ret = bool(re.search(ur'(?i)\b(mobile|opera mini|android|iphone|webos)\b', request.META.get('HTTP_USER_AGENT')))
+    
+    return ret

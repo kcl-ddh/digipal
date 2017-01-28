@@ -387,6 +387,8 @@
         this.$toggleEdit = this.$root.find('.toggle-edit');
 
         this.$downloadButton = this.$root.find('.action-download');
+        
+        this.$root.find('[data-toggle=tooltip]').tooltip();
     };
 
     Panel.prototype.setPresentationOptions = function(presentationOptions) {
@@ -642,8 +644,6 @@
 
     Panel.prototype.initEditingModeIcon = function() {
         if (this.$toggleEdit) {
-            this.$toggleEdit.tooltip();
-            
             this.updateEditingModeIcon();
 
             var me = this;

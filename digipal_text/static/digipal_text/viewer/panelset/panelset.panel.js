@@ -286,6 +286,11 @@
             this.itemPartid = itemPartid;
         };
 
+        // Returns a web path from (locationType, location)  
+        // If no argument, from locationType and location drop downs
+        // Note that this can be /sync/...
+        // This is different from the loaded address
+        // see getLoadedAddress()
         this.getContentAddress = function(locationType, location) {
             return this.panelSet.getBaseAddress() + this.getContentAddressRelative(locationType, location);
         };
@@ -342,7 +347,8 @@
             TextViewer.unhide(this.$downloadButton, this.isDownloadable());
             this.$downloadButton.on('click', function() {
                 // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
-                var url = me.getContentAddress('whole', '');
+                //var url = me.getContentAddress('whole', '');
+                var url = me.getLoadedAddress();
                 url += '?ds=' + (me.getListFromPresentationOptions()).join(',');
                 window.open(url, '_blank');
             });

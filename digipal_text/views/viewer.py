@@ -46,6 +46,11 @@ def text_viewer_view(request, item_partid=0, master_location_type='', master_loc
         {'key': 'section', 'label': 'Section', 'icon': 'section'},
         {'key': 'sync', 'label': 'Synchronise with', 'icon': 'link'},
     ]
+    context['dd_download_formats'] = [
+        {'key': 'html', 'label': 'HTML', 'icon': 'download'},
+        {'key': 'tei', 'label': 'TEI', 'icon': 'download'},
+        {'key': 'plain', 'label': 'Plain Text', 'icon': 'download'},
+    ]
     context['statuses'] = TextContentXMLStatus.objects.all().order_by('sort_order')
 
     context['body_class'] = 'page-text-viewer'

@@ -343,15 +343,8 @@
             });
         }
 
-        if (this.$downloadButton) {
-            TextViewer.unhide(this.$downloadButton, this.isDownloadable());
-            this.$downloadButton.on('click', function() {
-                // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
-                //var url = me.getContentAddress('whole', '');
-                var url = me.getLoadedAddress();
-                url += '?ds=' + (me.getListFromPresentationOptions()).join(',');
-                window.open(url, '_blank');
-            });
+        if (this.$downloadFormats) {
+            TextViewer.unhide(this.$downloadFormats, this.isDownloadable());
         }
 
         if (this.$linkerText) {
@@ -367,6 +360,16 @@
         }
     };
     
+    Panel.prototype.onSelectDownloadFormat = function(format) {
+        var me = this;
+        //me.onLocationChanged();
+        // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
+        //var url = me.getContentAddress('whole', '');
+        var url = me.getLoadedAddress();
+        url += '?ds=' + (me.getListFromPresentationOptions()).join(',')+'&format='+format;
+        window.open(url, '_blank');
+    };
+    		
     Panel.prototype.createUserInterface = function() {
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
@@ -392,7 +395,12 @@
 
         this.$toggleEdit = this.$root.find('.toggle-edit');
 
-        this.$downloadButton = this.$root.find('.action-download');
+        //this.$downloadButton = this.$root.find('.action-download');
+        this.$downloadFormats = this.$root.find('.dropdown-download-formats');
+        var me = this;
+        this.$downloadFormats.dpbsdropdown({
+            onSelect: function($el, key) { me.onSelectDownloadFormat(key); },
+        });
         
         this.$root.find('[data-toggle=tooltip]').tooltip();
     };

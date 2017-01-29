@@ -428,11 +428,20 @@ span[data-dpt] > span[data-dpt] {
     content: "";
 }
 
+/* Works for both:
+    <del rend=underlined : scribe marked it as deleted
+    <del type=supplied : editor thinks this should have been marked as deleted
+   Hidden by default
+*/
 .preview.mce-content-body span[data-dpt=del] {
+    display: none;
     text-decoration: line-through;
 }
 .preview.mce-content-body span[data-dpt=del][data-dpt-type=supplied] {
     text-decoration: underline;
+}
+.preview.deleted.mce-content-body span[data-dpt=del] {
+    display: inline;
 }
 .preview.mce-content-body span[data-dpt=del][data-dpt-rend=erasure] {
     text-decoration: none;

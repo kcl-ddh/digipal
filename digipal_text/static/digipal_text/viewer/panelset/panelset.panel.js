@@ -400,6 +400,7 @@
         var me = this;
         this.$downloadFormats.dpbsdropdown({
             onSelect: function($el, key) { me.onSelectDownloadFormat(key); },
+            selectIfSame: true,
         });
         
         this.$root.find('[data-toggle=tooltip]').tooltip();

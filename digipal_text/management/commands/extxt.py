@@ -1643,11 +1643,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # Line breaks from editor (<br/> => ¦)
         # Hyphenation: remove the line break after <br/> (see EXON-87)
         # e.g. Turche-| tillus => Turche-|tillus (8b2)
+        # Che-|<br/>\nneuuel 
+        # Turche-|<br/>\ntillus
         content = regex.sub(ur'(?mui)(-\|?<br/>)\s+', ur'\1', content)
-        # No hyphenation
+        # Editorial LB, no hyphenation
         content = regex.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj">¦</span>', content)
 
-        # line breaks from MS (| => |)
+        # line breaks from MS (| => |) (-| => -|)
         content = regex.sub(ur'(?musi)(-?)\s*\|', ur'<span data-dpt="lb" data-dpt-src="ms">\1|</span>', content)
 
         # line breaks from MS (| => |)

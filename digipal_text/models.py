@@ -1,22 +1,16 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
-from django.utils.safestring import mark_safe
 from django.db.models import Q
 import os, re, string, unicodedata, cgi
 from django.utils.html import conditional_escape, escape
-from tinymce.models import HTMLField
-from django.db import transaction
-from mezzanine.generic.fields import KeywordsField
 import logging
 import digipal.models
 from django.contrib.auth.models import User
-#dplog = logging.getLogger('digipal_debugger')
 from digipal.utils import dplog
-from django.utils.datastructures import SortedDict
 from django.utils.text import slugify
+
+#dplog = logging.getLogger('digipal_debugger')
 
 class ClassProperty(property):
     def __get__(self, cls, owner):
@@ -384,20 +378,17 @@ class TextContentXML(models.Model):
 
     # TODO: make this function overridable
     def convert(self):
+        '''
+        This method MUST remain idempotent, that is, converting a second or more
+        times produces doesn't change the result from the previous conversion.
+        
+        It is called by the auto-convert button on the Text Editor to
+        clean and mark-up editorial conventions. E.g. | => <br/>
+        
+        For specific projects, inherit this class and override this method. 
+        Keep generic conversion here.
+        '''
         content = self.content
-
-        # convert () into expansions
-        content = re.sub(ur'\(([^)<>]{1,50})\)', ur'<span data-dpt="ex" data-dpt-cat="chars">\1</span>', content)
-
-        # convert <> into supplied
-        content = re.sub(ur'&lt;(.*?)&gt;', ur'<span data-dpt="supplied" data-dpt-cat="chars">\1</span>', content)
-
-        # convert 7 into tironian sign
-        content = re.sub(ur'\b7\b', u'\u204a', content)
-
-        # convert | into spans
-        content = re.sub(ur'\|+', u'<span data-dpt="lb" data-dpt-cat="sep">|</span>', content)
-        #content = re.sub(ur'(<br\s*/?>\s*)+', u'<br/>', content)
 
         self.content = content
 

@@ -244,26 +244,6 @@ Commands:
         if ret is None:
             ret = u''
 
-        # ret = regex.sub(ur'(?musi)<span data-dpt="abbr">.*?</span>(<span data-dpt="exp">)', ur'\1', ret)
-
-        # ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="su[pb]">(.*?)</span>', ur'\1', ret)
-        # ret = regex.sub(ur'(?musi)<i>(.*?)</i>', ur'\1', ret)
-
-        # print repr(ret)
-
-#         for it in regex.findall('<span data-dpt="hi" data-dpt-rend="su[pb]">.*?</span>', ret):
-#             print repr(it)
-
-        # for it in regex.findall(ur'(?musi)qu[i1][i1]', ret):
-        #    print repr(it)
-        if 0:
-            ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sup">([^<]+)</span>', ur'<sup>\1</sup>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sub">([^<]+)</span>', ur'<sub>\1</sub>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="ms"></span>', ur'<br/>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="prj"></span>', ur'<lb/>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="abbr">(.*?)</span>', ur'<abbr>\1</abbr>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="exp">(.*?)</span>', ur'<exp>\1</exp>', ret)
-
         # print repr(ret)
         file_name = 'tcx%s%s.xml' % (text_content_xml.id, suffix)
         from digipal.utils import write_file

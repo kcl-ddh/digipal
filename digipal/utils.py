@@ -1277,6 +1277,9 @@ def get_plain_text_from_xmltext(xml_str):
     # remove | (editorial line breaks) and other supplied signs <>
     ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '')
     
+    # used between words in MOA
+    ret = ret.replace(ur'', ';')
+    
     # MS line breaks:
     ret = regex.sub(ur'(?musi)-\s*\|', u'#HY#', ret)
     # insert a CR to preserve rendering and also avoid joining words

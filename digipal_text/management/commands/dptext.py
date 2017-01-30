@@ -6,6 +6,7 @@ from digipal import utils as dputils
 from optparse import make_option
 from digipal.utils import re_sub_fct, get_int
 from digipal_text.models import TextContentXML
+from lib2to3.pgen2.tokenize import tabsize
 
 # Apply project specific patches
 try:
@@ -52,6 +53,9 @@ Commands:
   stats CONTENT_TYPE
             Returns number of XML tags and attributes used in all the text of type
             CONTENT_TYPE (e.g. translation)
+            
+  autoconvert [--dry-run]
+            Auto markup of all the texts, PLEASE TEST CAREFULLY before running.
 """
 
     args = 'reformat|importtags'
@@ -91,6 +95,10 @@ Commands:
         command = args[0]
 
         known_command = False
+
+        if command == 'autoconvert':
+            known_command = True
+            self.command_autoconvert()
 
         if command == 'list':
             known_command = True
@@ -147,6 +155,59 @@ Commands:
             print self.help
         else:
             print 'done'
+
+    def command_autoconvert(self):
+        dry = self.is_dry_run()
+        
+        from digipal_text.models import TextContentXML, TextAnnotation
+        from digipal_text.views import viewer
+        before = ur''
+        after = ur''
+        total = 0
+        converted = 0
+        for tcx in TextContentXML.objects.filter(text_content__type__slug='transcription').order_by('id'):
+            total += 1
+            content = tcx.content
+            if not content: continue
+            tcx.convert()
+            if content != tcx.content:
+                converted += 1
+                text_name = u'#%s: %s [length diff = %s]' % (tcx.id, tcx, abs(len(content) - len(tcx.content)))
+                print text_name
+                
+                before += u'\n\n'
+                before += text_name
+                before += u'\n\n'
+                before += content.replace('\r', '\n')
+                
+                after += u'\n\n'
+                after += text_name
+                after += u'\n\n'
+                after += tcx.content.replace('\r', '\n')
+
+                if 0:
+                    html = ''
+                    from difflib import HtmlDiff
+                    diff = HtmlDiff(tabsize=2)
+                    d = diff.make_table([content], [tcx.content])
+                    
+                    html += u'<h2>%s</h2>' % text_name
+                    html += d
+                    
+                if not dry:
+                    tcx.save()
+ 
+                #break
+                
+            #tcx.save()
+        
+        dputils.write_file('before.txt', before)
+        dputils.write_file('after.txt', after)
+        
+        print '%s converted out of %s texts' % (converted, total)
+        
+        if dry:
+            print 'DRY RUN: no data was changed in the database.'
 
     def command_fixids(self):
         from digipal_text.models import TextContentXML, TextAnnotation
@@ -243,26 +304,6 @@ Commands:
 
         if ret is None:
             ret = u''
-
-        # ret = regex.sub(ur'(?musi)<span data-dpt="abbr">.*?</span>(<span data-dpt="exp">)', ur'\1', ret)
-
-        # ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="su[pb]">(.*?)</span>', ur'\1', ret)
-        # ret = regex.sub(ur'(?musi)<i>(.*?)</i>', ur'\1', ret)
-
-        # print repr(ret)
-
-#         for it in regex.findall('<span data-dpt="hi" data-dpt-rend="su[pb]">.*?</span>', ret):
-#             print repr(it)
-
-        # for it in regex.findall(ur'(?musi)qu[i1][i1]', ret):
-        #    print repr(it)
-        if 0:
-            ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sup">([^<]+)</span>', ur'<sup>\1</sup>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sub">([^<]+)</span>', ur'<sub>\1</sub>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="ms"></span>', ur'<br/>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="prj"></span>', ur'<lb/>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="abbr">(.*?)</span>', ur'<abbr>\1</abbr>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="exp">(.*?)</span>', ur'<exp>\1</exp>', ret)
 
         # print repr(ret)
         file_name = 'tcx%s%s.xml' % (text_content_xml.id, suffix)
@@ -647,4 +688,6 @@ Commands:
 
         return content
 
+    def is_dry_run(self):
+        return self.options.get('dry-run', False)
 

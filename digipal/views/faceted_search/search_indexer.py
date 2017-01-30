@@ -218,7 +218,8 @@ class SearchIndexer(object):
             # A code (e.g. K. 402, Royal 7.C.xii)
             # Accepts partial but exact search (e.g. royal)
             # See JIRA 358
-            ret = TEXT(analyzer=SimpleAnalyzer(ur'[/.\s()\u2013\u2014-]', True), stored=True, sortable=sortable)
+            # | is NECESSARY for multivalued fields
+            ret = TEXT(analyzer=SimpleAnalyzer(ur'[/.\s()\u2013\u2014|-]', True), stored=True, sortable=sortable)
         elif field_type == 'title':
             # A title (e.g. British Library)
             # Accepts variants and partial search (e.g. 'libraries')
@@ -227,7 +228,7 @@ class SearchIndexer(object):
             # A few words.
             ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
         elif field_type == 'xml':
-            # xml document.
+            # plain text derived from XML document
             ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
         elif field_type == 'boolean':
             # 0|1

@@ -18,6 +18,22 @@ dplog = logging.getLogger('digipal_debugger')
 
 MAX_FRAGMENT_SIZE = 60000
 
+def can_user_see_main_text(itempart, request):
+    '''Returns True if the user is staff or the main text for this IP is public'''
+    ret = False
+    
+    if request.user and request.user.is_active and request.user.is_staff:
+        return True
+    
+    tcx = TextContentXML.objects.filter(
+            text_content__item_part=itempart, 
+            text_content__type__slug=settings.TEXT_IMAGE_MASTER_CONTENT_TYPE,
+        ).first()
+    
+    ret = tcx and not tcx.is_private() and len(tcx.content) > 1
+    
+    return ret
+
 def text_viewer_view(request, item_partid=0, master_location_type='', master_location=''):
 
     from digipal.utils import is_model_visible
@@ -29,7 +45,7 @@ def text_viewer_view(request, item_partid=0, master_location_type='', master_loc
     
     if not context['item_part']:
         raise Http404('This document doesn\'t exist')
-    if not dputils.is_model_visible(context['item_part'], request):
+    if not can_user_see_main_text(context['item_part'], request):
         raise Http404('This document is not publicly accessible')
 
     # Define the content of content type and location type drop downs

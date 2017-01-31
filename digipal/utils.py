@@ -954,10 +954,12 @@ def expand_folio_range(frange, errors=None):
     return ret
 
 def is_model_visible(model, request):
-    # Returns True if <model> is visible to the user
-    # See setting.py:MODELS_PUBLIC and MODELS_PRIVATE
-    # If request is not provided we assume public user
-    # If request == True, returns true
+    ''' Returns True if <model> is visible to the user.
+    Based on setting.py:MODELS_PUBLIC and MODELS_PRIVATE.
+    Note that it is NOT based on user/group permissions.
+    If request is not provided we assume public user
+    If request == True, returns true
+    '''
 
     if request == True:
         return True
@@ -980,7 +982,10 @@ def is_model_visible(model, request):
 
     # check permissions from settings.py MODELS_PUBLIC|PRIVATE
     from django.conf import settings
-    ret = (model in settings.MODELS_PUBLIC) or (request and request.user and request.user.is_staff and (model in settings.MODELS_PRIVATE))
+    ret = (model in settings.MODELS_PUBLIC) or (
+                (model in settings.MODELS_PRIVATE) and
+                request and request.user and request.user.is_staff
+            )
 
     return ret
 

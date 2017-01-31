@@ -145,9 +145,10 @@ class TextContentXMLAdmin(reversion.VersionAdmin):
     model = TextContentXML
 
     list_display = ['id', 'text_content', 'get_type_name', 'status', 'get_length', 'modified', 'created']
-    list_display_links = ['id', 'text_content', 'status', 'modified', 'created']
+    list_display_links = ['id', 'text_content', 'modified', 'created']
     search_fields = ['id', 'text_content__item_part__display_label']
     list_filter = ['status', 'text_content__languages', 'text_content__type', FilterCTXEmpty, FilterCTXDuplicate]
+    list_editable = ['status']
 
     def queryset(self, request):
         qs = super(TextContentXMLAdmin, self).queryset(request)

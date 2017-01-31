@@ -259,8 +259,11 @@ function EditGraphsSearch() {
                     /* setting dialog label */
                     var allograph_label = self.dialog.selector.find('.allograph_form option:selected').text();
                     self.dialog.set_label(allograph_label);
-                    self.dialog.selector.find('.allograph_form').val(allographs.allograph_id);
-                    self.dialog.selector.find('.hand_form').val(allographs.hand_id);
+                    if (0) {
+                        // G: don't do that, it's already done better in common_allographs()
+                        self.dialog.selector.find('.allograph_form').val(allographs.allograph_id);
+                        self.dialog.selector.find('.hand_form').val(allographs.hand_id);
+                    }
                     summary.html(string_summary);
                     /* applying delete event to selected feature */
                     var delete_button = self.dialog.selector.find('#delete');
@@ -341,14 +344,19 @@ function EditGraphsSearch() {
                 var summary = $('#summary');
                 rewriteHands(select_hand, graph.hands);
                 detect_common_features(self.selectedAnnotations, checkboxes, cache);
+                // this will set common items in hand and allograph <select>s
+                // --- if no common item.
                 common_allographs(self.selectedAnnotations, cache, graph);
                 self.dialog.selector.find('#dialog_aspects').html(aspects_list);
                 summary.html(string_summary);
                 /* setting dialog label */
                 var allograph_label = self.dialog.selector.find('.allograph_form option:selected').text();
                 self.dialog.set_label(allograph_label);
-                self.dialog.selector.find('.allograph_form').val(allographs.allograph_id);
-                self.dialog.selector.find('.hand_form').val(allographs.hand_id);
+                if (0) {
+                    // G: don't do that, it's already done better in common_allographs()
+                    self.dialog.selector.find('.allograph_form').val(allographs.allograph_id);
+                    self.dialog.selector.find('.hand_form').val(allographs.hand_id);
+                }
 
                 /* updating selected annotations count */
 

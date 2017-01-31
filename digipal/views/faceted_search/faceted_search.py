@@ -128,6 +128,8 @@ class FacetedModel(object):
         reverse = key.startswith('-')
         if reverse:
             key = key[1:]
+        if key == '0':
+            key = ''
         return key, reverse
 
     def get_model_from_field(self, field):

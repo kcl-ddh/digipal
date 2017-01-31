@@ -125,15 +125,27 @@ def json(value):
 
 @register.filter
 def tag_phrase_terms(value, phrase=''):
-    '''Wrap all occurrences of the terms of [phrase] found in value with a <span class="found-term">.'''
+    '''Wrap all occurrences of the terms of [phrase] found in value with a <span class="found-term">.
+        Highlight terms in html.
+    '''
+    from digipal.utils import get_regexp_from_terms, get_tokens_from_phrase, remove_combining_marks, remove_accents
+
+    terms = get_tokens_from_phrase(remove_accents(phrase))
+    
+    return tag_terms(value, terms)
+
+@register.filter
+def tag_terms(value, terms=None):
+    '''Wrap all occurrences of the terms found in value with a <span class="found-term">.
+        Highlight terms in html.
+        Terms is an array of words.
+    '''
     from digipal.utils import get_regexp_from_terms, get_tokens_from_phrase, remove_combining_marks, remove_accents
 
     # not nice but we have to do this for the matching below to work
     # we loose *some* the accents, e.g. u'r\u0305'
     value = remove_combining_marks(value)
     value_no_accent = remove_accents(value)
-
-    terms = get_tokens_from_phrase(remove_accents(phrase))
 
     if terms:
         # Surround the occurrences of those terms in the value with a span (class="found-term")

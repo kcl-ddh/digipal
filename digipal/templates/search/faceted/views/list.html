@@ -23,7 +23,7 @@ Arguments:
             {% endif %}
         {% endfor %}
     </tr>
-    {% filter tag_phrase_terms:terms %}
+    {% filter tag_terms:matched_terms %}
         {% for record in result %}
             <!-- {% cycle 'even' 'odd' as rowcolors %} -->
             {% for line in lines %}

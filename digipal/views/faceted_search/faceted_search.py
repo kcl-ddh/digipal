@@ -217,7 +217,6 @@ class FacetedModel(object):
         for k, v in field.get('mapping', {}).iteritems():
             value_rankings[v] = v
 
-        ##print 'h2'
         ##print model, path
         i = 0
         #print repr(model), utils.get_mem()
@@ -668,6 +667,7 @@ class FacetedModel(object):
         if self.is_user_agent_banned(request):
             return []
 
+        self.matched_terms = []
         self.request = request
 
         # run the query with Whoosh
@@ -743,7 +743,7 @@ class FacetedModel(object):
             
             # ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
 
-            ret = self.cached_search(searcher, q, groupedby=facets, sortedby=sortedby, limit=1000000, get_matched_terms=return_snippets)
+            ret = self.cached_search(searcher, q, groupedby=facets, sortedby=sortedby, limit=1000000, get_matched_terms=bool(search_phrase))
             
             ##ret.fragmenter.charlimit = None
 
@@ -835,7 +835,7 @@ class FacetedModel(object):
                     # raise Exception("DB query didn't retrieve all Whoosh results.")
                     pass
 
-                matched_terms = ret.get('matched_terms', [])
+                self.matched_terms = ret.get('matched_terms', [])
                 
                 ret = []
                 if records:
@@ -849,7 +849,7 @@ class FacetedModel(object):
 
                     # highlight snippets. Only for snippet
                     if return_snippets and hasattr(ret[0], 'content'):
-                        terms = matched_terms
+                        terms = self.matched_terms
                         for record in ret:
                             record.snippets = self.get_snippets_from_record(record, terms)
 
@@ -927,6 +927,9 @@ class FacetedModel(object):
                 for hit in res:
                     # list of pairs: (fieldname, term)
                     for term in hit.matched_terms():
+                        # Note that these terms are STEMMED!
+                        # Whoosh highlighter will resolve them but not our
+                        # own tagger.
                         # Private contains binary and cause errors later
                         if term[0] != 'PRIVATE':
                             match_terms.add(term[1])
@@ -1112,6 +1115,8 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     # run the search
     hand_filters.chrono('get requested records')
     records = ct.get_requested_records(request)
+    
+    context['matched_terms'] = ct.matched_terms
 
     # add the search parameters to the template
     hand_filters.chrono('get facets')

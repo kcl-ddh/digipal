@@ -245,28 +245,35 @@ def get_regexp_from_terms(terms, as_list=False):
         output: a regexp, e.g. '\bab\b|\bcd\b...
                 if as_list is True: ['\bab\b', '\bcd\b']
     '''
+    from whoosh.lang.morph_en import variations
     ret = []
     if terms:
-        # create a regexp
-        for t in terms:
-            t = re.escape(t)
-            
-            if not t: continue
-
-            if t[-1] == u's':
-                t += u'?'
-            else:
-                t += u's?'
-#             if len(t) > 1:
-#                 t += ur'?'
-#             t = ur'\b%ss?\b' % t
-            t = ur'\b%s\b' % t
-
-            # convert all \* into \W*
-            # * is for searches like 'digi*'
-            t = t.replace(ur'\*', ur'\w*')
-
-            ret.append(t)
+        # create a regex
+        for t2 in terms:
+            for t in variations(t2):
+                t = re.escape(t)
+                
+                if not t: continue
+    
+                if 1:
+                    if t[-1] in ['i', 'y']:
+                        t = t[:-1] + '(y|i|ie|ies)'
+    
+                if 0:
+                    if t[-1] == u's':
+                        t += u'?'
+                    else:
+                        t += u's?'
+        #             if len(t) > 1:
+        #                 t += ur'?'
+        #             t = ur'\b%ss?\b' % t
+                t = ur'\b%s\b' % t
+    
+                # convert all \* into \W*
+                # * is for searches like 'digi*'
+                t = t.replace(ur'\*', ur'\w*')
+    
+                ret.append(t)
 
     if not as_list:
         ret = ur'|'.join(ret)
@@ -1405,7 +1412,6 @@ def call_management_command(command, *args, **kwargs):
         def f(reindexes_str):
             KeyVal.set('k2.a', repr(datetime.now()))
             KeyVal.set('k2.b', reindexes_str)
-            print 'HERE'
             try:
                 call_command('dpsearch', 'index_facets', index_filter=reindexes_str)
             except Exception, e:
@@ -1413,10 +1419,8 @@ def call_management_command(command, *args, **kwargs):
             else: 
                 KeyVal.set('k2.c', repr(datetime.now()))
             exit()
-        print 'h1'
         ##p = Process(target=f, args=(','.join(reindexes),))
         ##p.start()
-        print 'h2'
         ##print p
 
 def json_dumps(data):

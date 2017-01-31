@@ -736,11 +736,15 @@ class FacetedModel(object):
             hand_filters.chrono('whoosh:')
 
             hand_filters.chrono('whoosh.search:')
+            
+            view = self.get_selected_view()
+            return_snippets = view and view.get('type', '') == 'snippets' and search_phrase
 
+            
             # ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
 
-            ret = self.cached_search(searcher, q, groupedby=facets, sortedby=sortedby, limit=1000000)
-
+            ret = self.cached_search(searcher, q, groupedby=facets, sortedby=sortedby, limit=1000000, get_matched_terms=return_snippets)
+            
             ##ret.fragmenter.charlimit = None
 
             # ret = s.search(q, groupedby=facets, limit=1000000)
@@ -831,6 +835,8 @@ class FacetedModel(object):
                     # raise Exception("DB query didn't retrieve all Whoosh results.")
                     pass
 
+                matched_terms = ret.get('matched_terms', [])
+                
                 ret = []
                 if records:
                     # 'item_part__historical_items'
@@ -842,20 +848,27 @@ class FacetedModel(object):
                     ret = [records[id_type(id)] for id in ids if id_type(id) in records]
 
                     # highlight snippets. Only for snippet
-                    view = self.get_selected_view()
-                    if view and view.get('type', '') == 'snippets' and ret and hasattr(ret[0], 'content') and search_phrase:
-                        print 'extract snippets'
-                        #terms = search_phrase.split(' ')
-                        terms = self.get_tokens_from_search_phrase(search_phrase)
+                    if return_snippets and hasattr(ret[0], 'content'):
+                        terms = matched_terms
                         for record in ret:
                             record.snippets = self.get_snippets_from_record(record, terms)
-                            #print repr(record.snippets)
 
                 self.overview_records = ret
 
             hand_filters.chrono(':sql')
 
         return ret
+
+    def get_snippets_from_record(self, record, terms):
+        from whoosh import highlight
+        tools = self.get_snippets_tools()
+        content = self.get_plain_text_from_xml(record.content)
+        excerpts = highlight.highlight(content, terms=terms, analyzer=tools['analyzer'],
+            fragmenter=tools['fragmenter'], formatter=tools['formatter'], top=100)
+        if excerpts:
+            excerpts = tools['template'](excerpts)
+
+        return excerpts
 
     def get_snippets_tools(self):
         if getattr(self, 'snippets_tools', None) is None:
@@ -872,26 +885,6 @@ class FacetedModel(object):
             }
         return self.snippets_tools
 
-    def get_tokens_from_search_phrase(self, phrase):
-        tools = self.get_snippets_tools()
-
-        # TODO: pre-process special contructs from the search phrase (e.g. content:word* AND)
-        ret = [token.text for token in tools['analyzer'](phrase)]
-
-        return ret
-
-    def get_snippets_from_record(self, record, terms):
-        print terms
-        from whoosh import highlight
-        tools = self.get_snippets_tools()
-        content = self.get_plain_text_from_xml(record.content)
-        excerpts = highlight.highlight(content, terms=terms, analyzer=tools['analyzer'],
-            fragmenter=tools['fragmenter'], formatter=tools['formatter'], top=3)
-        if excerpts:
-            excerpts = tools['template'](excerpts)
-
-        return excerpts
-
     def is_full_search(self):
         return self.get_summary(self.request, True).strip().lower() == 'all'
 
@@ -901,11 +894,13 @@ class FacetedModel(object):
         ret = get_cache('digipal_faceted_search')
         return ret
 
-    def cached_search(self, searcher, q, groupedby, sortedby, limit=1000000):
+    def cached_search(self, searcher, q, groupedby, sortedby, limit=1000000, get_matched_terms=False):
         # pm dpsearch search --if=images --user=gnoel --qs="terms=seal2"
-        search_key = 'query=%s|groups=%s|sorts=%s' % (q,
+        search_key = 'query=%s|groups=%s|sorts=%s|terms=%s' % (q,
             ','.join([f.default_name() for f in groupedby]),
-            ','.join(['%s%s' % ('-' if f.reverse else '', f.default_name()) for f in sortedby]))
+            ','.join(['%s%s' % ('-' if f.reverse else '', f.default_name()) for f in sortedby]),
+            1 if get_matched_terms else 0, 
+        )
         utils.dplog('Faceted Cache GET: %s' % search_key)
 
         search_key = utils.get_cache_key_from_string(search_key)
@@ -919,12 +914,23 @@ class FacetedModel(object):
         self.cache_hit = False
         if ret is None:
             #utils.dplog('Cache MISS')
-            res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
+            res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit, terms=get_matched_terms)
 
             ret = {
-                   'ids': [hit['id'] for hit in res],
-                   'facets': {},
-                   }
+               'ids': [hit['id'] for hit in res],
+               'facets': {},
+               'matched_terms': [],
+            }
+
+            if get_matched_terms:
+                match_terms = set() 
+                for hit in res:
+                    # list of pairs: (fieldname, term)
+                    for term in hit.matched_terms():
+                        # Private contains binary and cause errors later
+                        if term[0] != 'PRIVATE':
+                            match_terms.add(term[1])
+                ret['matched_terms'] = list(match_terms)
 
             for field in self.fields:
                 if self.settings.areFieldOptionsShown(field):

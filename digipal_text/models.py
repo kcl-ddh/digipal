@@ -484,7 +484,6 @@ set_additional_models_methods()
 os.path.basename(settings.PROJECT_ROOT)
 module_path = os.path.basename(settings.PROJECT_ROOT) + '.customisations.digipal_text.models'
 from importlib import import_module
-import_module(module_path)
 try:
     import_module(module_path)
 except ImportError, e:

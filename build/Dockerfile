@@ -29,9 +29,9 @@ RUN apt-get update -y && apt-get install -y \
 && rm -rf /var/lib/apt/lists/*
 
 ########################
-# LESSC
+# LESSC & TYPESCRIPT
 
-RUN npm install -g less; ln -s /usr/bin/nodejs /usr/bin/node
+RUN npm install -g less typescript; ln -s /usr/bin/nodejs /usr/bin/node
 
 ########################
 # IMAGE PROCESSING

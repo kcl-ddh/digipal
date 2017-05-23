@@ -25,7 +25,7 @@ RUN apt-get update -y && apt-get install -y \
     postgresql \
     python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev \
     nginx uwsgi-plugin-python \
-    supervisor \
+    supervisor wget \
 && rm -rf /var/lib/apt/lists/*
 
 ########################
@@ -76,7 +76,7 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "2" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
+RUN echo "3" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
 RUN echo "1" && pip install -r build/requirements.txt
 
 # Configure it
@@ -110,10 +110,10 @@ EXPOSE 80
 ########################
 # TEST SITE
 
-RUN bash /home/digipal/build/test-site.sh
+#RUN bash /home/digipal/build/test-site.sh
 
 ########################
 # START-UP
 
-#CMD ["/bin/bash", "/home/digipal/build/startup.sh"]
-CMD ["/usr/bin/supervisord", "-c", "/home/digipal/build/supervisord.conf"]
+CMD ["/bin/bash", "/home/digipal/build/startup.sh"]
+#CMD ["/usr/bin/supervisord", "-c", "/home/digipal/build/supervisord.conf"]

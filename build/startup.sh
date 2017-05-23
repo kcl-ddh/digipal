@@ -1,18 +1,20 @@
-# DEPRECATED - REPLACED BY SUPERVISORD
-# SEE build/supervisord.conf
-#
 # Docker CMD startup script
 # Starts services (DB, Web, Image server)
+# Wait until site is running
 
-cd /home/digipal
+/usr/bin/supervisord -c /home/digipal/build/supervisord.conf &
+for i in {1..200}
+do
+  echo "try to connect to the site ($i)"
+  wget http://localhost:80 -t 1 -qO- &> /dev/null
+  if [ "$?" -eq "0" ]; then
+    echo "=================="
+    echo "WEBSITE IS RUNNING"
+    echo "=================="
+    sleep infinity
+    break
+  fi
+  sleep 1
+done
 
-/etc/init.d/postgresql start
-
-sh /home/digipal/build/iipsrv.sh
-
-# RUN echo "nohup python manage.py runserver 0.0.0.0:$DP_WS_PORT &" >> startup.sh
-uwsgi --ini /home/digipal/digipal/wsgi.template.ini
-
-/etc/init.d/nginx start
-
-/bin/bash
+echo "WEBSITE IS *NOT* RUNNING"

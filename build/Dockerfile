@@ -108,6 +108,11 @@ RUN mkdir -p /var/log/supervisor
 EXPOSE 80
 
 ########################
+# TEST SITE
+
+RUN bash /home/digipal/build/test-site.sh
+
+########################
 # START-UP
 
 #CMD ["/bin/bash", "/home/digipal/build/startup.sh"]

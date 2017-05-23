@@ -1,0 +1,90 @@
+{% load html_escape %}
+{% comment %}
+Arguments:
+    hide_image_cols, boolean: if True, the list will hide thumbnails
+{% endcomment %}
+
+<table class="table table-condensed table-striped table-bordered table-hover">
+    <tr class="notsortable">
+        <th>{{ result_type.label_plural }}
+        </th>
+        {% if 0 %}
+            {% for col in cols %}
+                {% if col.type == 'image' and not hide_image_cols %}
+                    <th>Thumb.</th>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </tr>
+    {% filter tag_terms:matched_terms %}
+        {% for record in result %}
+            <tr>
+                <td>
+                    <!-- {% cycle 'even' 'odd' as rowcolors %} -->
+                    {# images #}
+                    {% for col in cols %}
+                        {% if col.type == 'image' and not hide_image_cols %}
+                            {% if col.link == True %}
+                                <a href="{{record.get_absolute_url}}">
+                            {% endif %}
+                            {% record_field result_type record col.key %}
+                            {% if col.link == True %}
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {# fields #}
+                    {% for line in lines %}
+                        {% for col in cols %}
+                            {% if col.line == line %}
+                                <div class="{% if col.type == 'text' %} text {% endif %} {{col.classes}} {{ record.classes }} ">
+                                    {% if col.type == 'image' %}
+                                    {% else %}
+                                        {% if col.link == True %}
+                                            <a href="{{record.get_absolute_url}}">
+                                        {% endif %}
+                                        {% record_field result_type record col.key %}
+                                        {% if col.link == True %}
+                                            </a>
+                                        {% endif %}
+
+                                        {% if col.label_col %}
+                                            {% if col.label_col != ' ' %}({{ col.label_col }}){% endif %}
+                                        {% else %}
+                                            {% if col.label %}
+                                                ({{ col.label }})
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    
+                    {# snippets #}
+                    {% if snippets and record.snippets %}
+                        <div class="text" >
+                            {{ record.snippets|safe }}
+                        </div>
+                    {% endif %}
+                </td>
+                {% if 0 %}
+                    {% for col in cols %}
+                        {% if col.type == 'image' and not hide_image_cols %}
+                            <td>
+                                {% if col.link == True %}
+                                    <a href="{{record.get_absolute_url}}">
+                                {% endif %}
+                                {% record_field result_type record col.key %}
+                                {% if col.link == True %}
+                                    </a>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </tr>
+        {% endfor %}
+    {% endfilter %}
+</table>

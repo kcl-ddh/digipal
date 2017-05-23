@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% comment %}
+################################
+#    SEARCH INDEXES            #
+################################
+{% endcomment%}
+{% load pages_tags mezzanine_tags i18n humanize %}
+{% load mezzanine_tags pagination_tags html_escape %}
+
+{% block meta_title %}
+    Search Indexer
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style type="text/css">
+        input.big-checkbox {width: 1.5em; height: 1.5em;}
+        .message {
+            margin: 0.5em 0;
+            border-radius: 5px;
+            border: 1px solid grey;
+            background: lightgrey;
+            padding: 0.5em;
+        }
+        .message-info {
+            border: 1px solid orange;
+            background: wheat;
+        }
+        .message-success {
+            border: 1px solid green;
+            background: lightgreen;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+
+<p>
+    Use this page to re-index the database content so the search page finds recently edited data. 
+    <span><strong>Please use sparingly</strong>, some indices may take a long time and temporarly degrade the performance of the website for other users.</span>.
+</p>
+
+{% include "search/search_index_fragment.html" %}
+
+{% endblock main %}
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        jQuery(document).ready(function($) {
+            window.init_search_page();
+            
+            var refresh_rate = 2;
+
+            // called each time the ajax content is refreshed
+            $(window).on('dploaded', function() {
+                if ($('.is_running').val() == '1') {
+                    setTimeout(function(){ $('#search-ajax-fragment a.action-refresh').click(); }, refresh_rate*1000);
+                }
+            });
+            $(window).trigger('dploaded');
+            
+            $('body').on('click', '[name=select-0]', function() {
+            	var checked = $(this).is(':checked');
+            	$('.index-selector').prop('checked', checked);
+            });
+            $('body').on('change', 'form input[type=checkbox]', function() {
+            	$('.action-reindex').prop('disabled', ($('form input:checked').length == 0) ? 'disabled' : false);
+            });
+        });
+    </script>
+{% endblock %}

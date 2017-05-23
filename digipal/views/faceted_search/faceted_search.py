@@ -69,7 +69,7 @@ class FacetedModel(object):
         if not found:
             #raise Exception('Yo!')
             ret[0]['selected'] = True
-
+            
         return ret
     views = property(get_views)
 
@@ -84,6 +84,10 @@ class FacetedModel(object):
             if view.get('selected', False):
                 ret = view.get('template', view.get('key', 'table'))
                 break
+        
+        mobile = utils.is_display_narrow(self.request)
+        if ret == 'list' and mobile:
+            ret += '_narrow'
 
         ret = 'search/faceted/views/' + ret + '.html'
         return ret
@@ -124,6 +128,8 @@ class FacetedModel(object):
         reverse = key.startswith('-')
         if reverse:
             key = key[1:]
+        if key == '0':
+            key = ''
         return key, reverse
 
     def get_model_from_field(self, field):
@@ -154,10 +160,13 @@ class FacetedModel(object):
         self.value_rankings = {}
         utils.gc_collect()
 
-    def prepare_value_rankings(self):
+    def prepare_value_rankings(self, callback=None):
         ''' populate self.value_rankings dict
             It generates a ranking number for each value in each sortable field
             This will be stored in the index as a separate field to allow sorting by any column
+            
+            callback = a function that takes a value between 0.0 and 1.0,
+                representing the progress
         '''
         self.clear_value_rankings()
 
@@ -165,16 +174,24 @@ class FacetedModel(object):
         #records = self.get_all_records(True).order_by('id')
         #print '\t\t%d records' % records.count()
 
+        indexable_fields = []
         for field in self.fields:
             if self.is_field_indexable(field):
-                whoosh_sortable_field = self._get_sortable_whoosh_field(field)
-                if whoosh_sortable_field and whoosh_sortable_field != field['key']:
+                indexable_fields.append(field)
 
-                    print '\t\t' + field['key']
+        i = 0
+        for field in indexable_fields:
+            i += 1
+            whoosh_sortable_field = self._get_sortable_whoosh_field(field)
+            if whoosh_sortable_field and whoosh_sortable_field != field['key']:
 
-                    # get all the values for that field in the table
-                    self.value_rankings[whoosh_sortable_field], sorted_values = self.get_field_value_ranking(field)
-                    ##self.get_field_value_ranking(field)
+                print '\t\t' + field['key']
+
+                # get all the values for that field in the table
+                self.value_rankings[whoosh_sortable_field], sorted_values = self.get_field_value_ranking(field)
+                
+                if callback:
+                    callback(1.0*i/len(indexable_fields))
 
     def get_field_value_ranking(self, field):
         # get all the values for that field in the table
@@ -200,7 +217,6 @@ class FacetedModel(object):
         for k, v in field.get('mapping', {}).iteritems():
             value_rankings[v] = v
 
-        ##print 'h2'
         ##print model, path
         i = 0
         #print repr(model), utils.get_mem()
@@ -638,16 +654,20 @@ class FacetedModel(object):
         m = re.search(ur'(?i)baiduspider|AhrefsBot', user_agent)
         return m
 
+    def get_whoosh_index_path(self):
+        import os
+        return os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', self.key)
+
     def get_whoosh_index(self):
         from whoosh.index import open_dir
-        import os
-        index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', self.key))
+        index = open_dir(self.get_whoosh_index_path())
         return index
 
     def get_requested_records(self, request):
         if self.is_user_agent_banned(request):
             return []
 
+        self.matched_terms = []
         self.request = request
 
         # run the query with Whoosh
@@ -716,11 +736,15 @@ class FacetedModel(object):
             hand_filters.chrono('whoosh:')
 
             hand_filters.chrono('whoosh.search:')
+            
+            view = self.get_selected_view()
+            return_snippets = view and view.get('type', '') == 'snippets' and search_phrase
 
+            
             # ret = s.search(q, groupedby=facets, sortedby=sortedby, limit=1000000)
 
-            ret = self.cached_search(searcher, q, groupedby=facets, sortedby=sortedby, limit=1000000)
-
+            ret = self.cached_search(searcher, q, groupedby=facets, sortedby=sortedby, limit=1000000, get_matched_terms=bool(search_phrase))
+            
             ##ret.fragmenter.charlimit = None
 
             # ret = s.search(q, groupedby=facets, limit=1000000)
@@ -800,7 +824,7 @@ class FacetedModel(object):
 #                     self.ids = []
 #                     if str(record.id) in ids and (search_phrase or field_queries):
 #                         record.found = True
-            
+
             if 1:
             #else:
                 hand_filters.chrono('bulk:')
@@ -811,6 +835,8 @@ class FacetedModel(object):
                     # raise Exception("DB query didn't retrieve all Whoosh results.")
                     pass
 
+                self.matched_terms = ret.get('matched_terms', [])
+                
                 ret = []
                 if records:
                     # 'item_part__historical_items'
@@ -822,21 +848,28 @@ class FacetedModel(object):
                     ret = [records[id_type(id)] for id in ids if id_type(id) in records]
 
                     # highlight snippets. Only for snippet
-                    view = self.get_selected_view()
-                    if view and view.get('type', '') == 'snippets' and ret and hasattr(ret[0], 'content') and search_phrase:
-                        print 'extract snippets'
-                        #terms = search_phrase.split(' ')
-                        terms = self.get_tokens_from_search_phrase(search_phrase)
+                    if return_snippets and hasattr(ret[0], 'content'):
+                        terms = self.matched_terms
                         for record in ret:
                             record.snippets = self.get_snippets_from_record(record, terms)
-                            #print repr(record.snippets)
 
                 self.overview_records = ret
 
             hand_filters.chrono(':sql')
 
         return ret
-    
+
+    def get_snippets_from_record(self, record, terms):
+        from whoosh import highlight
+        tools = self.get_snippets_tools()
+        content = self.get_plain_text_from_xml(record.content)
+        excerpts = highlight.highlight(content, terms=terms, analyzer=tools['analyzer'],
+            fragmenter=tools['fragmenter'], formatter=tools['formatter'], top=100)
+        if excerpts:
+            excerpts = tools['template'](excerpts)
+
+        return excerpts
+
     def get_snippets_tools(self):
         if getattr(self, 'snippets_tools', None) is None:
             # TODO: get that from the existing field type function used for Whoosh schema creation
@@ -852,26 +885,6 @@ class FacetedModel(object):
             }
         return self.snippets_tools
 
-    def get_tokens_from_search_phrase(self, phrase):
-        tools = self.get_snippets_tools()
-        
-        # TODO: pre-process special contructs from the search phrase (e.g. content:word* AND)
-        ret = [token.text for token in tools['analyzer'](phrase)]
-        
-        return ret
-
-    def get_snippets_from_record(self, record, terms):
-        print terms
-        from whoosh import highlight
-        tools = self.get_snippets_tools()
-        content = self.get_plain_text_from_xml(record.content)
-        excerpts = highlight.highlight(content, terms=terms, analyzer=tools['analyzer'], 
-            fragmenter=tools['fragmenter'], formatter=tools['formatter'], top=3)
-        if excerpts:
-            excerpts = tools['template'](excerpts)
-        
-        return excerpts
-
     def is_full_search(self):
         return self.get_summary(self.request, True).strip().lower() == 'all'
 
@@ -881,11 +894,13 @@ class FacetedModel(object):
         ret = get_cache('digipal_faceted_search')
         return ret
 
-    def cached_search(self, searcher, q, groupedby, sortedby, limit=1000000):
+    def cached_search(self, searcher, q, groupedby, sortedby, limit=1000000, get_matched_terms=False):
         # pm dpsearch search --if=images --user=gnoel --qs="terms=seal2"
-        search_key = 'query=%s|groups=%s|sorts=%s' % (q,
+        search_key = 'query=%s|groups=%s|sorts=%s|terms=%s' % (q,
             ','.join([f.default_name() for f in groupedby]),
-            ','.join(['%s%s' % ('-' if f.reverse else '', f.default_name()) for f in sortedby]))
+            ','.join(['%s%s' % ('-' if f.reverse else '', f.default_name()) for f in sortedby]),
+            1 if get_matched_terms else 0, 
+        )
         utils.dplog('Faceted Cache GET: %s' % search_key)
 
         search_key = utils.get_cache_key_from_string(search_key)
@@ -898,13 +913,27 @@ class FacetedModel(object):
 
         self.cache_hit = False
         if ret is None:
-            utils.dplog('Cache MISS')
-            res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit)
+            #utils.dplog('Cache MISS')
+            res = searcher.search(q, groupedby=groupedby, sortedby=sortedby, limit=limit, terms=get_matched_terms)
 
             ret = {
-                   'ids': [hit['id'] for hit in res],
-                   'facets': {},
-                   }
+               'ids': [hit['id'] for hit in res],
+               'facets': {},
+               'matched_terms': [],
+            }
+
+            if get_matched_terms:
+                match_terms = set() 
+                for hit in res:
+                    # list of pairs: (fieldname, term)
+                    for term in hit.matched_terms():
+                        # Note that these terms are STEMMED!
+                        # Whoosh highlighter will resolve them but not our
+                        # own tagger.
+                        # Private contains binary and cause errors later
+                        if term[0] != 'PRIVATE':
+                            match_terms.add(term[1])
+                ret['matched_terms'] = list(match_terms)
 
             for field in self.fields:
                 if self.settings.areFieldOptionsShown(field):
@@ -913,7 +942,7 @@ class FacetedModel(object):
             cache.set(search_key, json.dumps(ret))
         else:
             self.cache_hit = True
-            utils.dplog('Cache HIT')
+            #utils.dplog('Cache HIT')
             ret = json.loads(ret)
 
         return ret
@@ -1086,6 +1115,8 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     # run the search
     hand_filters.chrono('get requested records')
     records = ct.get_requested_records(request)
+    
+    context['matched_terms'] = ct.matched_terms
 
     # add the search parameters to the template
     hand_filters.chrono('get facets')
@@ -1155,199 +1186,4 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     hand_filters.chrono(':VIEW')
 
     return ret
-
-def rebuild_index(index_filter=[]):
-    ''' Rebuild the indexes which key is in index_filter. All if index_filter is empty'''
-    for ct in get_types(True):
-        if not index_filter or ct.key in index_filter:
-            #index = create_index_schema(ct)
-            create_index_schema(ct)
-#             if index:
-            if 1:
-                #populate_index(ct, index)
-                populate_index(ct)
-                #index = None
-                optimize_index(ct)
-
-def optimize_index(ct):
-    utils.gc_collect()
-    index = ct.get_whoosh_index()
-    print '\toptimize index'
-    writer = index.writer()
-    writer.commit(optimize=True)
-
-def create_index_schema(ct):
-    print '%s' % ct.key
-
-    print '\tcreate schema'
-
-    # create schema
-    from whoosh.fields import TEXT, ID, NGRAM, NUMERIC, KEYWORD
-    fields = {'id': ID(stored=True)}
-    for field in ct.fields:
-        if ct.is_field_indexable(field):
-            for suffix, whoosh_type in get_whoosh_field_types(field).iteritems():
-                fields[field['key'] + suffix] = whoosh_type
-
-    print '\t' + ', '.join(key for key in fields.keys())
-
-    print '\trecreate empty index'
-
-    # recreate an empty index
-    import os
-    from whoosh.fields import Schema
-    from digipal.utils import recreate_whoosh_index
-    ret = recreate_whoosh_index(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted'), ct.key, Schema(**fields))
-    return ret
-
-def get_whoosh_field_types(field):
-    ret = {}
-
-    whoosh_sortable_field = FacetedModel._get_sortable_whoosh_field(field)
-    sortable = (whoosh_sortable_field == field['key'])
-
-    if field['type'] == 'date':
-        ret[''] = get_whoosh_field_type({'type': 'code'})
-        ret['_min'] = get_whoosh_field_type({'type': 'int'}, True)
-        ret['_max'] = get_whoosh_field_type({'type': 'int'}, True)
-        ret['_diff'] = get_whoosh_field_type({'type': 'int'}, True)
-    else:
-        ret[''] = get_whoosh_field_type(field)
-
-    if whoosh_sortable_field and not sortable:
-        ret['_sortable'] = get_whoosh_field_type({'type': 'int'}, True)
-
-    return ret
-
-def get_whoosh_field_type(field, sortable=False):
-    '''
-    Defines Whoosh field types used to define the schemas.
-    See get_field_infos().
-    '''
-
-    # see http://pythonhosted.org/Whoosh/api/analysis.html#analyzers
-    # see JIRA 165
-
-    from whoosh.fields import TEXT, ID, NUMERIC, BOOLEAN
-    # TODO: shall we use stop words? e.g. 'A and B' won't work?
-    from whoosh.analysis import SimpleAnalyzer, StandardAnalyzer, StemmingAnalyzer, CharsetFilter, RegexTokenizer
-    from whoosh.support.charset import accent_map
-    # ID: as is; SimpleAnalyzer: break into lowercase terms, ignores punctuations; StandardAnalyzer: + stop words + minsize=2; StemmingAnalyzer: + stemming
-    # minsize=1 because we want to search for 'Scribe 2'
-
-    # A paragraph or more.
-    field_type = field['type']
-    if field_type == 'id':
-        # An ID (e.g. 708-AB)
-        # EXACT search only
-        analyzer = None
-        if field.get('multivalued', False):
-            analyzer = RegexTokenizer(ur'\|', gaps=True)
-        ret = ID(stored=True, sortable=sortable, analyzer=analyzer)
-    elif field_type in ['int']:
-        ret = NUMERIC(sortable=sortable)
-    elif field_type in ['code']:
-        # A code (e.g. K. 402, Royal 7.C.xii)
-        # Accepts partial but exact search (e.g. royal)
-        # See JIRA 358
-        ret = TEXT(analyzer=SimpleAnalyzer(ur'[.\s()\u2013\u2014-]', True), stored=True, sortable=sortable)
-    elif field_type == 'title':
-        # A title (e.g. British Library)
-        # Accepts variants and partial search (e.g. 'libraries')
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=1, stoplist=None) | CharsetFilter(accent_map), stored=True, sortable=sortable)
-    elif field_type == 'short_text':
-        # A few words.
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
-    elif field_type == 'xml':
-        # xml document.
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
-    elif field_type == 'boolean':
-        # 0|1
-        ret = NUMERIC(stored=True, sortable=sortable)
-    else:
-        ret = TEXT(analyzer=StemmingAnalyzer(minsize=2) | CharsetFilter(accent_map), stored=True, sortable=sortable)
-
-    return ret
-
-def populate_index(ct, index=None):
-    chrono('POPULATE_INDEX:')
-
-    # Add documents to the index
-    print '\tgenerate sort rankings'
-
-    chrono('RANK_VALUES:')
-    ct.prepare_value_rankings()
-    chrono(':RANK_VALUES')
-
-    chrono('INDEXING QUERY:')
-    print '\tretrieve all records'
-    utils.gc_collect()
-
-    from whoosh.writing import BufferedWriter
-    # writer = BufferedWriter(index, period=None, limit=20)
-    rcs = ct.get_all_records(True)
-    record_count = rcs.count()
-
-    #writer = index.writer()
-    writer = None
-
-    chrono(':INDEXING QUERY')
-
-    print '\tadd records to index'
-
-    i = 0
-    #commit_size = 1000000
-    commit_size = 500
-
-    # settings.DEV_SERVER = True
-    chrono('INDEXING:')
-    chrono('First record:')
-
-    record_condition = ct.get_option('condition', None)
-
-    pbar = utils.ProgressBar(record_count)
-
-    # Indexing can use n x 100 MB
-    # Which can be excessive for small VMs
-    # One technique is to create small, independent index segments
-    # Then optimise them outside this fct on a separate index
-    for record in rcs.iterator():
-        if i == 0:
-            chrono(':First record')
-        pbar.update(i+1)
-
-        if (i % commit_size) == 0:
-            # we have to commit every x document otherwise the memory saturates on the VM
-            # BufferedWriter is buggy and will crash after a few 100x docs
-            if writer:
-                writer.commit(merge=False)
-
-            # we have to recreate after commit because commit unlock index
-            writer = None
-            index = None
-            utils.gc_collect()
-
-            index = ct.get_whoosh_index()
-            writer = index.writer()
-
-        i += 1
-
-        if record_condition and not record_condition(record):
-            continue
-
-        writer.add_document(**ct.get_document_from_record(record))
-
-    if writer:
-        writer.commit(merge=False)
-    #rcs = None
-    #ct.clear_value_rankings()
-
-    pbar.complete()
-    chrono(':INDEXING')
-
-    print '\n'
-
-    chrono(':POPULATE_INDEX')
-
-    print '\tdone (%s records)' % record_count
 

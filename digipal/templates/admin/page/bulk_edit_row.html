@@ -39,7 +39,7 @@
     <td>
         {% for hand in folio.hands.all %}
             {% if not forloop.first %}, {% endif %}
-            {{ hand }}
+            <a href="/admin/digipal/hand/{{hand.id}}/">{{ hand }}</a>
         {% empty %}
             <span style="color:red">no hand</span>
         {% endfor %}
@@ -73,12 +73,6 @@
             <p class="message"></p>
             <div class="samples">
                 &nbsp;
-                <span class="img">
-                    <img class="first" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />
-                </span>
-                <span class="img">
-                    <img class="second" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />
-                </span>
             </div>
         </td>
     </tr>

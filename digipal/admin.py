@@ -21,7 +21,7 @@ from digipal.models import Allograph, AllographComponent, Alphabet, Annotation, 
         Reference, Region, Repository, \
         Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
         StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
-        CarouselItem, ApiTransform, AuthenticityCategory
+        CarouselItem, ApiTransform, AuthenticityCategory, KeyVal
 from django.conf import settings
 import reversion
 import django_admin_customisations
@@ -405,13 +405,16 @@ class HandAdmin(DigiPalModelAdmin):
     list_display = ['id', 'item_part', 'label', 'num', 'scragg', 'script', 'scribe',
             'assigned_date', 'assigned_place', 'legacy_id', 'created',
             'modified']
-    list_display_links = list_display
+    list_display_links = ['id', 'item_part', 'label', 'scragg', 'script', 'scribe',
+            'assigned_date', 'assigned_place', 'legacy_id', 'created',
+            'modified']
     search_fields = ['id', 'legacy_id', 'scragg', 'label', 'num',
             'em_title', 'label', 'item_part__display_label',
             'display_note', 'internal_note']
     list_filter = ['latin_only', admin_filters.HandItempPartFilter,
                     admin_filters.HandFilterSurrogates, admin_filters.HandGlossNumFilter,
                     admin_filters.HandGlossTextFilter, admin_filters.HandImageNumberFilter]
+    list_editable = ['num']
 
     fieldsets = admin_forms.fieldsets_hand
 
@@ -1048,6 +1051,14 @@ class AuthenticityCategoryAdmin(DigiPalModelAdmin):
     search_fields = ['id', 'name', 'slug']
     ordering = ['name']
 
+class KeyValAdmin(DigiPalModelAdmin):
+    model = KeyVal
+
+    list_display = ['id', 'key', 'modified', 'created']
+    list_display_links = list_display
+    search_fields = ['id', 'key']
+    ordering = ['key']
+
 #     fieldsets = (
 #                 (None, {'fields': ('title', 'template', 'description', 'sample_request', 'mimetype', 'webpage')}),
 #                 )
@@ -1114,6 +1125,7 @@ admin.site.register(RequestLog, RequestLogAdmin)
 admin.site.register(ApiTransform, ApiTransformAdmin)
 admin.site.register(Text, TextAdmin)
 admin.site.register(AuthenticityCategory, AuthenticityCategoryAdmin)
+admin.site.register(KeyVal, KeyValAdmin)
 
 # Let's add the Keywords to the admin interface
 try:

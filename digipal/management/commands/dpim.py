@@ -251,6 +251,10 @@ class Command(BaseCommand):
         if command == 'update_dimensions':
             known_command = True
             self.update_dimensions(*args)
+            
+        if command == 'move_annotations':
+            known_command = True
+            self.move_annotations()
 
         if command in ('list', 'upload', 'unstage', 'update', 'remove', 'crop'):
             known_command = True
@@ -359,6 +363,32 @@ class Command(BaseCommand):
 
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
+
+    def move_annotations(self):
+        if len(self.args) != 3:
+            print 'Error: please prove two image ids, SOURCE and TARGET of the annotation migrations.'
+            return
+        
+        import digipal.images.models
+        ims = [digipal.images.models.Image.objects.get(id=v) for v in self.args[1:3]]
+        ans = ims[0].annotation_set.filter()
+        print 'Move %s annotations from %s to %s' % (ans.count(), ims[0], ims[1])
+        
+        diff = ims[0].compare_with(ims[1])
+        print diff
+        for an in ans:
+            print '#%s, %s' % (an.id, an)
+            info = ims[0].get_annotation_offset(an, ims[1], diff)
+            if info and info['offsets']:
+                an.image = ims[1]
+                an.geo_json = ims[0].get_uncropped_geo_json(an, info['offsets'], image_size=ims[1].get_img_size(), old_image_size=ims[0].get_img_size())
+                print an.geo_json
+                an.save()
+#             if sum(offset_info['offsets']) > 0:
+#                 im1.replace_image_and_update_annotations(offset_info['offsets'], im2)
+            
+
+        #if self.is_dry_run():
 
     def is_filtered_in(self, file_info):
         '''e.g. "ab cd, ef gh"

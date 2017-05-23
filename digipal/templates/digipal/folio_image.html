@@ -11,10 +11,10 @@
 {% endcomment %}
 <div class='col-md-{{ img_col|default:3 }} col-xs-12 centered'>
     <div class="panel panel-thumb">
-        <p class='annotations_count_images'>
+        <div class='annotations_count_images'>
             {# {% with annotation_count=image.annotation_set.all.publicly_visible.count %} #}
             {% include 'digipal/folio_image_counts.html' %}
-        </p>
+        </div>
 
         {% spaceless %}
             <span class="folio-image-wrapper">

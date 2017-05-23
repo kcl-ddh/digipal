@@ -31,10 +31,11 @@ while getopts ":p:g:e:i" opt; do
       ;;
     i)
       python manage.py dpsearch index
-      python manage.py dpsearch index_facets --if=manuscripts,images,scribes,hands,texts
+      python manage.py dpsearch index_facets
 
       # This takes 1 hour!
-      python manage.py dpsearch index_facets --if=graphs
+      #python manage.py dpsearch index_facets --if=manuscripts,images,scribes,hands,texts
+      #python manage.py dpsearch index_facets --if=graphs
       SHOW_HELP=0
       ;;
     \?)

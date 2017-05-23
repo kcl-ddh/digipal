@@ -147,7 +147,7 @@
                             
                         </td>
                     </tr>
-                    {% if can_set_hand %}
+                    {% if 1 %}
                         <tr  class="section_last">
                             <td>
                                 <input type="checkbox" name="hand_set" id="hand_set_id" value="1" />
@@ -166,7 +166,9 @@
                                             value="{{ hand.id }}">{{ hand }}</option>
                                     {% endfor %}
                                 </select>
-                                <a id="hand-link" href="#">[edit]</a>
+                                {% if hands %}
+                                    <a id="hand-link" href="#">[edit]</a>
+                                {% endif %}
                             </td>
                         </tr>
                     {% endif %}
@@ -250,7 +252,7 @@
                                                 <option value="{{ folio.id }}"  class="wide-input">{{ folio.iipimage }}</option>    
                                             {% endfor %}
                                             
-                                        </select
+                                        </select>
                                         
                                     </td>
                                 </tr>

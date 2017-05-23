@@ -276,13 +276,14 @@ function init_search_page(options) {
         // Any click on a link is intercepted and sent as an ajax request
         // the html fragment returned is re-injected into the page.
         // TODO: error management
-        $('body').on('click', '#search-ajax-fragment a:not([data-target]), #search-ajax-fragment form button:not([data-target]):not([data-toggle])', function(ev) {
+        $('body').on('click', '#search-ajax-fragment a:not([data-target]):not([data-toggle]), #search-ajax-fragment form button:not([data-target]):not([data-toggle])', function(ev) {
             var $element = $(this);
 
             var page_url = dputils.get_page_url($(location).attr('href'));
             // ! we use this.href instead of $element.attr('href') as the first one returns the absolute URL
             $form = $element.parents('form');
-            var url = this.hasAttribute('href') ? this.href : page_url + '?' + $form.serialize();
+            //var url = this.hasAttribute('href') ? this.href : page_url + '?' + $form.serialize();
+            var url = this.hasAttribute('href') ? this.href : page_url;
             var $focus_selector = $element.data('focus');
 
             // check if the href is for this page
@@ -298,72 +299,77 @@ function init_search_page(options) {
             // it will show only the last Ajax response instead of the full HTML page.
             var url_ajax = url + ((url.indexOf('?') === -1) ? '?' : '&') + 'jx=1';
             var is_post = ($form.attr('method') === 'POST');
-            $[is_post ? 'post' : 'get'](url_ajax)
-                .success(function(data) {
-                    var $data = $(data);
-                    var $fragment = $('#search-ajax-fragment');
+            $.ajax({
+                url: url_ajax,
+                type: is_post ? 'post' : 'get',
+                async: true,
+                data: this.href ? {} : $form.serializeArray().reduce(function(obj, item) {obj[item.name] = item.value; return obj;}, {})
+            })
+            .success(function(data) {
+                var $data = $(data);
+                var $fragment = $('#search-ajax-fragment');
 
-                    // get rid of opened tooltip to avoid ghosts
-                    if ($.fn.tooltip) {
-                        $fragment.find('[data-toggle="tooltip"]').tooltip('destroy');
+                // get rid of opened tooltip to avoid ghosts
+                if ($.fn.tooltip) {
+                    $fragment.find('[data-toggle="tooltip"]').tooltip('destroy');
+                }
+
+                // insert the new HTML content
+                $fragment.html($data.html());
+
+                if (!is_post) dputils.update_address_bar(url, false, true);
+
+                $fragment.stop().animate({
+                    'background-color': 'white',
+                    opacity: 1,
+                    'border': 'none'
+                }, 50);
+
+                // TODO: find a way to pass title via the pushState/update_address_bar?
+                var new_title = $('#search_page_title').val();
+                if (document.title != new_title) {
+                    document.title = $('#search_page_title').val();
+                    // scroll to top of the search div
+                    var $search_top = $('#search-top');
+                    if ($search_top.length) {
+                        $('html, body').animate({
+                            scrollTop: $search_top.offset().top
+                        }, 500);
                     }
+                }
 
-                    // insert the new HTML content
-                    $fragment.html($data.html());
+                // make sure visible thumbnails are loaded
+                document.load_lazy_images();
+                init_sliders();
+                init_suggestions();
+                if ($.fn.tooltip) {
+                    $fragment.find('[data-toggle="tooltip"]').tooltip();
+                }
+                if ($.fn.sortable) {
+                    $fragment.find('.sortable').sortable();
+                }
+                if ($focus_selector) {
+                    var v = $($focus_selector).val();
+                    $($focus_selector).val('').val(v).focus();
+                }
+                // enable the collection stars on the images
+                if (window.collection_star) {
+                    window.collection_star.init();
+                }
 
-                    if (!is_post) dputils.update_address_bar(url, false, true);
-
-                    $fragment.stop().animate({
-                        'background-color': 'white',
-                        opacity: 1,
-                        'border': 'none'
-                    }, 50);
-
-                    // TODO: find a way to pass title via the pushState/update_address_bar?
-                    var new_title = $('#search_page_title').val();
-                    if (document.title != new_title) {
-                        document.title = $('#search_page_title').val();
-                        // scroll to top of the search div
-                        var $search_top = $('#search-top');
-                        if ($search_top.length) {
-                            $('html, body').animate({
-                                scrollTop: $search_top.offset().top
-                            }, 500);
-                        }
-                    }
-
-                    // make sure visible thumbnails are loaded
-                    document.load_lazy_images();
-                    init_sliders();
-                    init_suggestions();
-                    if ($.fn.tooltip) {
-                        $fragment.find('[data-toggle="tooltip"]').tooltip();
-                    }
-                    if ($.fn.sortable) {
-                        $fragment.find('.sortable').sortable();
-                    }
-                    if ($focus_selector) {
-                        var v = $($focus_selector).val();
-                        $($focus_selector).val('').val(v).focus();
-                    }
-                    // enable the collection stars on the images
-                    if (window.collection_star) {
-                        window.collection_star.init();
-                    }
-
-                    $(window).trigger('dploaded');
-                })
-                .fail(function(data) {
-                    $("#search-ajax-fragment").stop().css({
-                        'opacity': 1
-                    }).animate({
-                        'background-color': '#FFA0A0'
-                    }, 250, function() {
-                        $("#search-ajax-fragment").animate({
-                            'background-color': 'white'
-                        }, 250);
-                    });
+                $(window).trigger('dploaded');
+            })
+            .fail(function(data) {
+                $("#search-ajax-fragment").stop().css({
+                    'opacity': 1
+                }).animate({
+                    'background-color': '#FFA0A0'
+                }, 250, function() {
+                    $("#search-ajax-fragment").animate({
+                        'background-color': 'white'
+                    }, 250);
                 });
+            });
             return false;
         });
 

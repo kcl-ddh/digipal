@@ -1,3 +1,7 @@
+http://localhost:8080/digipal/search/facets/?view=grid&page=1&result_type=images
+http://localhost:8080/digipal/search/facets/?sort=-&result_type=images&page=1&view=grid
+http://localhost:8080/digipal/search/facets/?sort=-&view=grid&result_type=images&page=1
+
 Apply visualisation to EXON.
 
 Example: point, x,y

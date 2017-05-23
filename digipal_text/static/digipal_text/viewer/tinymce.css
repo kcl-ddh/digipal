@@ -69,7 +69,6 @@ div.mce-content-body.preview {
     border-left1: 1px solid blue;
     border-right1: 1px solid blue;
     padding: 0 2px;
-    background-color:
 }
 
 span[data-dpt] span[data-dpt]:before {
@@ -429,25 +428,78 @@ span[data-dpt] > span[data-dpt] {
     content: "";
 }
 
+/* Works for both:
+    <del rend=underlined : scribe marked it as deleted
+    <del type=supplied : editor thinks this should have been marked as deleted
+   Hidden by default
+*/
 .preview.mce-content-body span[data-dpt=del] {
+    display: none;
     text-decoration: line-through;
 }
 .preview.mce-content-body span[data-dpt=del][data-dpt-type=supplied] {
     text-decoration: underline;
 }
+.preview.deleted.mce-content-body span[data-dpt=del] {
+    display: inline;
+}
 .preview.mce-content-body span[data-dpt=del][data-dpt-rend=erasure] {
     text-decoration: none;
 }
 
-.preview.line-breaks.mce-content-body span[data-dpt=lb],
-.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
+/* LINE BREAKS */
+
+.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms],
+.DEPRECATED.preview.line-breaks.mce-content-body span[data-dpt=lb] {
     /* MS LB displayed as line breaks */
     display: table-column;
 }
-.preview.line-breaks-as-pipes.mce-content-body span[data-dpt=lb] {
+.DEPRECATED.preview.line-breaks-as-pipes.mce-content-body span[data-dpt=lb] {
+    /* LB displayed as | */
+    display: inline;
+}
+.preview.ms-lb-pipe.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
     /* MS LB displayed as | */
     display: inline;
 }
+
+/* LINE BREAKS */
+.preview.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
+    /* hide LB by default */
+    display: inline;
+    visibility: hidden;
+    /* won't take space */
+    position: absolute;
+    background: none;
+}
+.preview.ms-lb-pipe.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
+    position: inherit;
+    visibility: visible;
+}
+.preview.ms-lb-lb.mce-content-body span[data-dpt=lb][data-dpt-src=ms] {
+    /* MS LB displayed as line breaks */
+    /*display: table-column;*/
+    position: inherit;
+    display: block;
+    line-height: 0;
+}
+
+.preview.ms-lb-lb.mce-content-body {
+    /* no word-wrap */
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+.preview.ms-lb-lb.mce-content-body p:before {
+    /* make sure there is a space */
+    content: " ";
+}
+/* not a block anymore because we want line breaks created only by
+LB spans or by unit markers */
+.preview.ms-lb-lb.mce-content-body p {
+    display: inline;
+}
+
+/* OTHERS */
 
 .preview.mce-content-body span[data-dpt]:before,
 .preview.mce-content-body span[data-dpt]:after {

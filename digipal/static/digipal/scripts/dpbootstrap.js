@@ -22,6 +22,9 @@
     var pluginName = "dpbsdropdown";
     var defaults = {
         onSelect: function() {},
+        // if true, a click will always trigger select()
+        // if false, only a change triggers select()
+        selectIfSame: false,
     };
 
     function Plugin( el, opts ) {
@@ -101,7 +104,7 @@
             }
             
             var currentOption = this.$el.parent().data('value');
-            if (currentOption != key) {
+            if (this.opts.selectIfSame || (currentOption != key)) {
                 var $selectedA = this.$el.find('a[href=#'+key+']');
                 // Replace the dropdown heading label by the selected option
                 if ($selectedA.length) {

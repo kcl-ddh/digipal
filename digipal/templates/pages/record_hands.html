@@ -15,7 +15,7 @@
 {% block meta_title %}Hand: {{ result }}, {{ result.item_part }}{% endblock %}
 {% block record_title %}
     Hand: {{ result }},
-    <small><a href="{{ result.item_part.get_absolute_url }}"> {{ result.item_part }}</a></small>
+    <small>{% dplink result.item_part %}{% enddplink %}</small>
     {% include "digipal/admin_edit.html" with instance=result %}
 {% endblock %}
 
@@ -49,7 +49,7 @@
                     <dt>Name</dt>
                     <dd>{{ result.label }}</dd>
                     <dt>Manuscript</dt>
-                    <dd><a href="{{result.item_part.get_absolute_url}}">{{ result.item_part }}</a></dd>
+                    <dd>{% dplink result.item_part %}{% enddplink %}</dd>
                     {% if result.locus %}
                         <dt>Locus</dt>
                         <dd>{{ result.locus }}</dd>
@@ -65,7 +65,7 @@
                     <dt>Scribe</dt>
                     <dd>
                         {% if result.scribe %}
-                            <a href="{{ result.scribe.get_absolute_url }}">{{ result.scribe }}</a>
+                            {% dplink result.scribe %}{% enddplink %}
                         {% else %}
                             Unspecified
                         {% endif %}

@@ -28,11 +28,11 @@
                             New Pattern:
                         {% endif %}
                         <label for="p_{{ pattern.id }}_key">Key</label>
-                        <input class="form-control input-sm" type="text" name="p_{{ pattern.id }}_key" id="p_{{ pattern.id }}_key" value="{{ pattern.key }}" autocomplete="off" />
+                        <input class="form-control input-sm" type="text" name="p_{{ pattern.id }}_key" id="p_{{ pattern.id }}_key" value="{{ pattern.key }}" autocomplete="off" autocorrect="off" autocapitalize="off" />
                     </div>
                     <div class="form-group">
                         <label for="p_{{ pattern.id }}_title">Title</label>
-                        <input class="form-control input-sm pattern-title" type="text" name="p_{{ pattern.id }}_title" id="p_{{ pattern.id }}_title" value="{{ pattern.title }}" autocomplete="off" />
+                        <input class="form-control input-sm pattern-title" type="text" name="p_{{ pattern.id }}_title" id="p_{{ pattern.id }}_title" value="{{ pattern.title }}" autocomplete="off" autocorrect="off" autocapitalize="off" />
                     </div>
                     <div class="form-group">
                         <label for="p_{{ pattern.id }}_condition">Condition</label>
@@ -53,7 +53,7 @@
                     <br/>
                     <div class="form-group form-group-full-width" style="display:table">
                         <label for="p_{{ pattern.id }}_pattern">Pattern</label>
-                        <input class="form-control pattern-input input-sm" type="text" name="p_{{ pattern.id }}_pattern" id="p_{{ pattern.id }}_pattern" value="{{ pattern.pattern }}" autocomplete="off" />
+                        <input class="form-control pattern-input input-sm" type="text" name="p_{{ pattern.id }}_pattern" id="p_{{ pattern.id }}_pattern" value="{{ pattern.pattern }}" autocomplete="off" autocorrect="off" autocapitalize="off" />
                     </div>
                     {% if pattern.error %}
                     <div class="error-message">Syntax error: {{ pattern.error }}</div>
@@ -65,12 +65,12 @@
             <div class="actions">
                 <div class="form-group ">
                     <label for="units_range">Text range</label>
-                    <input class="form-control input-sm" type="text" name="units_range" id="units_range" value="{{ units_range }}" autocomplete="off" />
+                    <input class="form-control input-sm" type="text" name="units_range" id="units_range" value="{{ units_range }}"  autocomplete="off" autocorrect="off" autocapitalize="off" />
                 </div>
 
                 <div class="form-group ">
                     <label for="units_limit">Show first</label>
-                    <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" value="{{ units_limit }}" autocomplete="off" />
+                    <input class="form-control input-sm" type="text" name="units_limit" id="units_limit" value="{{ units_limit }}"  autocomplete="off" autocorrect="off" autocapitalize="off" />
                 </div>
                 <input type="hidden" name="action" value="update" />
                 <button class="form-control btn btn-primary" type="submit" name="update">Update</button>
@@ -82,36 +82,44 @@
             <span class="pull-right small legend">{{ stats.response_time }} s.</span>
         </div>
 
-        {% if 0 %}
-            <div>
-                {% for variant, c in variants.iteritems %}
-                    {{ c }}: {{ variant }}
-                    <br/>
-                {% endfor %}
-            </div>
-        {% endif %}
+        <ul class="nav nav-tabs">
+            <li {%if active_tab = "tab-units" %}class="active"{%endif%}><a data-toggle="tab" href="#tab-units">Units</a></li>
+            <li {%if active_tab = "tab-variants" %}class="active"{%endif%}><a data-toggle="tab" href="#tab-variants">Variants</a></li>
+            <input type="hidden" name="active_tab" value="{{active_tab}}" />
+        </ul>
 
-        <div class="units">
-            {% for unit in units %}
-                <div class="unit">
-                    #{{ unit.unitid }}
-                    <div class="unit-content">
-                        {{ unit.plain_content|safe }}
-                    </div>
-                    <br/><br/>
-                    {% for pattern in unit.patterns %}
-                        <span data-patternkey="{{pattern.0}}" class="pattern-label {% if not pattern.1 %}missing-pattern{% endif %}">{{ pattern.0 }}</span>:
-                        {% if pattern.1 %}
-                            {{ pattern.1 }}
-                        {% else %}
-                            <span style="color: orange">{{ patterns|dictget:pattern.0|dictget:'pattern' }}</span>
-                        {% endif %}
+        <div class="tab-content">
+            <div id="tab-units" class="tab-pane fade {%if active_tab = "tab-units" %}in active{%endif%}">
+                <div class="units">
+                    {% for unit in units %}
+                        <div class="unit">
+                            #{{ unit.unitid }}
+                            <div class="unit-content">
+                                {{ unit.plain_content|safe }}
+                            </div>
+                            <br/><br/>
+                            {% for pattern in unit.patterns %}
+                                <span data-patternkey="{{pattern.0}}" class="pattern-label {% if not pattern.1 %}missing-pattern{% endif %}">{{ pattern.0 }}</span>:
+                                {% if pattern.1 %}
+                                    {{ pattern.1 }}
+                                {% else %}
+                                    <span style="color: orange">{{ patterns|dictget:pattern.0|dictget:'pattern' }}</span>
+                                {% endif %}
+                                <br/>
+                            {% endfor %}
+                            <hr/>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div id="tab-variants" class="tab-pane fade {%if active_tab = "tab-variants" %}in active{%endif%}">
+                <div>
+                    {% for variant in variants %}
+                        {{ variant.hits }}: {{ variant.text }}
                         <br/>
                     {% endfor %}
-                    <hr/>
                 </div>
-            {% endfor %}
+            </div>
         </div>
-
     </form>
 </div>

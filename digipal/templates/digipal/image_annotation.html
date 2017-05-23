@@ -21,7 +21,7 @@
     <h2 class='header1' id="annotator_heading">
         {% comment %}{% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:{% endcomment %}
         Manuscript Image:
-        <a href="{{ image.item_part.get_absolute_url }}">{{ image.item_part|capfirst }}</a>: {{ image.locus }}
+        {% dplink image.item_part %}{{ image.item_part|capfirst }}{% enddplink %}: {{ image.locus }}
         {% if image.item_part.is_suspect %}(Suspect){% endif %}
         {% include "digipal/admin_edit.html" with instance=image %}
         {% if show_image %}
@@ -72,7 +72,7 @@
                     </li>
                 {% endif %}
                 <li {% if not images.count %} class='disabled' {% endif %}  {% if url == 'pages' %} class='active in' {% endif %}>
-                    <a data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Manuscript Images ({{ images.count }})</a>
+                    <a data-toggle="tab" data-target="#pages" href='/digipal/page/{{ image.id }}/pages/'>Other Images ({{ images.count }})</a>
                 </li>
                 {% if cansee.itempart %}
                     <li {% if not image.item_part %} class='disabled' {% endif %}>
@@ -102,7 +102,7 @@
                         {% include "digipal/image_annotation_settings.html" %}
                         <div id='annotations'></div>
                         <div class='row' id='allographs_filtersBox'></div>
-                        <p><a href="{{ image.get_absolute_url }}copyright">Image copyright and license.</a></p>
+                        <p><a href="{{ image.get_absolute_url }}copyright/">Image copyright and license.</a></p>
                     {% endif %}
                 </div>
 

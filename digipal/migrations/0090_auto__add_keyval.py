@@ -1,35 +1,28 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        "Write your forwards methods here."
-        # Note: Don't use "from appname.models import ModelName".
-        # Use orm.ModelName to refer to models in this application,
-        # and orm['appname.ModelName'] for models in other applications.
+        # Adding model 'KeyVal'
+        db.create_table(u'digipal_keyval', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('key', self.gf('django.db.models.fields.CharField')(unique=True, max_length=300)),
+            ('val', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
+        ))
+        db.send_create_signal(u'digipal', ['KeyVal'])
 
-        file_path = 'mofa/sources/hi_dates_corrected.csv'
-
-        from os.path import isfile
-        if isfile(file_path):
-            from digipal.utils import read_all_lines_from_csv
-
-            for line in read_all_lines_from_csv(file_path):
-                if line['newdate'] and line['recordidmoahi']:
-                    hi = orm['digipal.HistoricalItem'].objects.filter(id=line['recordidmoahi']).first()
-                    if hi:
-                        hi.date_sort = line['newdate'].strip()
-                        print 'HI #%s: %s => %s' % (hi.id, hi.date, hi.date_sort)
-                        hi.save()
-
-        #raise Exception('rollback')
 
     def backwards(self, orm):
-        "Write your backwards methods here."
+        # Deleting model 'KeyVal'
+        db.delete_table(u'digipal_keyval')
+
 
     models = {
         u'auth.group': {
@@ -104,7 +97,7 @@ class Migration(DataMigration):
             'before': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'allograph_before'", 'null': 'True', 'to': u"orm['digipal.Allograph']"}),
             'clientid': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '24', 'null': 'True', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'cutout': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
+            'cutout': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '256', 'null': 'True', 'blank': 'True'}),
             'display_note': ('tinymce.models.HTMLField', [], {'null': 'True', 'blank': 'True'}),
             'geo_json': ('django.db.models.fields.TextField', [], {}),
             'graph': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['digipal.Graph']", 'unique': 'True', 'null': 'True', 'blank': 'True'}),
@@ -115,6 +108,7 @@ class Migration(DataMigration):
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'rotation': ('django.db.models.fields.FloatField', [], {'default': '0.0'}),
             'status': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.Status']", 'null': 'True', 'blank': 'True'}),
+            'type': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '15', 'null': 'True', 'db_index': 'True', 'blank': 'True'}),
             'vector_id': ('django.db.models.fields.TextField', [], {'default': "u''", 'blank': 'True'})
         },
         u'digipal.apitransform': {
@@ -159,6 +153,14 @@ class Migration(DataMigration):
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
         },
+        u'digipal.authenticitycategory': {
+            'Meta': {'ordering': "['name']", 'object_name': 'AuthenticityCategory'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
+            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '100'})
+        },
         u'digipal.carouselitem': {
             'Meta': {'ordering': "['sort_order', 'title']", 'object_name': 'CarouselItem'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
@@ -179,6 +181,7 @@ class Migration(DataMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'number': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'number_slug': ('django.db.models.fields.SlugField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'source': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.Source']"}),
             'text': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'catalogue_numbers'", 'null': 'True', 'to': u"orm['digipal.Text']"}),
             'url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'})
@@ -486,6 +489,8 @@ class Migration(DataMigration):
             'locus': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '64', 'blank': 'True'}),
             'media_permission': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': u"orm['digipal.MediaPermission']", 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
+            'page_boundaries': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'quire': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '10', 'null': 'True', 'blank': 'True'}),
             'size': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'transcription': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'width': ('django.db.models.fields.IntegerField', [], {'default': '0'})
@@ -548,6 +553,16 @@ class Migration(DataMigration):
             'pagination': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['digipal.ItemPartType']", 'null': 'True', 'blank': 'True'})
         },
+        u'digipal.itempartauthenticity': {
+            'Meta': {'unique_together': "(['item_part', 'category', 'source'],)", 'object_name': 'ItemPartAuthenticity'},
+            'category': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'itempart_authenticity'", 'to': u"orm['digipal.AuthenticityCategory']"}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'item_part': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'authenticities'", 'to': u"orm['digipal.ItemPart']"}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
+            'note': ('django.db.models.fields.TextField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
+            'source': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'itempart_authenticity'", 'null': 'True', 'to': u"orm['digipal.Source']"})
+        },
         u'digipal.itempartitem': {
             'Meta': {'ordering': "['historical_item__id']", 'object_name': 'ItemPartItem'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
@@ -563,6 +578,14 @@ class Migration(DataMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
+        },
+        u'digipal.keyval': {
+            'Meta': {'object_name': 'KeyVal'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'key': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '300'}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
+            'val': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
         },
         u'digipal.language': {
             'Meta': {'ordering': "['name']", 'object_name': 'Language'},
@@ -790,6 +813,7 @@ class Migration(DataMigration):
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'label': ('django.db.models.fields.CharField', [], {'max_length': '30', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'label_slug': ('django.db.models.fields.SlugField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
             'label_styled': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'}),
@@ -857,4 +881,3 @@ class Migration(DataMigration):
     }
 
     complete_apps = ['digipal']
-    symmetrical = True

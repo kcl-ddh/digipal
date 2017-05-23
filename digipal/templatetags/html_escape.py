@@ -1,10 +1,14 @@
 from django.template.defaultfilters import stringfilter
 from django.utils.html import conditional_escape, escape
 from django.utils.safestring import mark_safe
+from django import template
+from digipal import utils as dputils
 import re
+from inspect import getargspec
+from django.template.base import parse_bits
+from django.utils.http import urlencode
 
-from django.template import Library
-register = Library()
+register = template.Library()
 #from mezzanine import template as mezzzanine_template
 #register = mezzzanine_template.Library()
 
@@ -121,15 +125,27 @@ def json(value):
 
 @register.filter
 def tag_phrase_terms(value, phrase=''):
-    '''Wrap all occurrences of the terms of [phrase] found in value with a <span class="found-term">.'''
+    '''Wrap all occurrences of the terms of [phrase] found in value with a <span class="found-term">.
+        Highlight terms in html.
+    '''
+    from digipal.utils import get_regexp_from_terms, get_tokens_from_phrase, remove_combining_marks, remove_accents
+
+    terms = get_tokens_from_phrase(remove_accents(phrase))
+    
+    return tag_terms(value, terms)
+
+@register.filter
+def tag_terms(value, terms=None):
+    '''Wrap all occurrences of the terms found in value with a <span class="found-term">.
+        Highlight terms in html.
+        Terms is an array of words.
+    '''
     from digipal.utils import get_regexp_from_terms, get_tokens_from_phrase, remove_combining_marks, remove_accents
 
     # not nice but we have to do this for the matching below to work
     # we loose *some* the accents, e.g. u'r\u0305'
     value = remove_combining_marks(value)
     value_no_accent = remove_accents(value)
-
-    terms = get_tokens_from_phrase(remove_accents(phrase))
 
     if terms:
         # Surround the occurrences of those terms in the value with a span (class="found-term")
@@ -538,6 +554,62 @@ def record_field(content_type, record, field):
     return content_type.get_record_field_html(record, field)
 
 
+@register.tag
+def dplink(parser, token):
+    '''
+    Usage: {% dplink OBJ %}CONTENT{% enddplink %}
+    Where: 
+        OBJ is a model instance, e.g. an ItemPart
+        CONTENT is some html
+    Output:
+        If OBJ is an object, has a url and user can see it:
+        <a href="LINK TO OBJ">CONTENT</a>
+        
+        Otherwise:
+        CONTENT 
+    '''
+    
+    def get_link_from_obj(obj=None):
+        ret = {'content': '%s' % obj, 'url': ur''}
+        if obj:
+            f = getattr(obj, 'get_absolute_url')
+            if f: ret['url'] = '%s' % f()
+        return ret 
+
+    class DPLinkNode(template.base.TagHelperNode):
+        def __init__(self, nodelist, args, kwargs):
+            super(DPLinkNode, self).__init__(takes_context=False, args=args, kwargs=kwargs)
+            self.nodelist = nodelist
+    
+        def render(self, context):
+            ret = self.nodelist.render(context)
+            
+            args, kwargs = self.get_resolved_arguments(context)
+            link = get_link_from_obj(*args, **kwargs)
+            obj = args[0]
+            
+            request = context.get('request', None)
+            if request and not dputils.is_model_visible(obj, request):
+                link['url'] = None
+            
+            ret = ret.strip() or link['content']
+            if link['url']:
+                ret = u'<a href="%s">%s</a>' % (link['url'], ret)
+            
+            return ret
+            
+    nodelist = parser.parse(('enddplink',))
+    parser.delete_first_token()
+
+    bits = token.split_contents()[1:]
+
+    params, varargs, varkw, defaults = getargspec(get_link_from_obj)
+    args, kwargs = parse_bits(
+        parser, bits, params, varargs, varkw, defaults,
+        takes_context=False, name='dplink'
+    )
+    return DPLinkNode(nodelist, args, kwargs)
+
 @register.filter
 def dpfootnotes(html):
     example = u'''
@@ -600,3 +672,29 @@ def dpfootnotes(html):
 #     print ret
 #
 #     return ret
+
+
+
+# see https://djangosnippets.org/snippets/545/
+# {% captureas VAR %}...{% endcaptureas %}
+
+@register.tag(name='captureas')
+def do_captureas(parser, token):
+    try:
+        tag_name, args = token.contents.split(None, 1)
+    except ValueError:
+        raise template.TemplateSyntaxError("'captureas' node requires a variable name.")
+    nodelist = parser.parse(('endcaptureas',))
+    parser.delete_first_token()
+    return CaptureasNode(nodelist, args)
+
+class CaptureasNode(template.Node):
+    def __init__(self, nodelist, varname):
+        self.nodelist = nodelist
+        self.varname = varname
+
+    def render(self, context):
+        output = self.nodelist.render(context)
+        context[self.varname] = output
+        return ''
+    

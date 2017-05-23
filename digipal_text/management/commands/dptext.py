@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 import re
+from digipal import utils as dputils
 from optparse import make_option
 from digipal.utils import re_sub_fct, get_int
 from digipal_text.models import TextContentXML
+from lib2to3.pgen2.tokenize import tabsize
 
 # Apply project specific patches
 try:
@@ -18,7 +21,7 @@ Digipal Text management tool.
 
 Commands:
 
-  download  CONTENT_XML_ID
+  download  CONTENT_XML_ID [UNITID]
 
   copies    [IP_ID]
             List copies of the texts.
@@ -50,6 +53,9 @@ Commands:
   stats CONTENT_TYPE
             Returns number of XML tags and attributes used in all the text of type
             CONTENT_TYPE (e.g. translation)
+            
+  autoconvert [--dry-run]
+            Auto markup of all the texts, PLEASE TEST CAREFULLY before running.
 """
 
     args = 'reformat|importtags'
@@ -89,6 +95,10 @@ Commands:
         command = args[0]
 
         known_command = False
+
+        if command == 'autoconvert':
+            known_command = True
+            self.command_autoconvert()
 
         if command == 'list':
             known_command = True
@@ -130,6 +140,10 @@ Commands:
             known_command = True
             self.command_fixids()
 
+        if command == 'search':
+            known_command = True
+            self.command_search()
+
         if command == 'stats':
             known_command = True
             self.command_stats()
@@ -141,6 +155,59 @@ Commands:
             print self.help
         else:
             print 'done'
+
+    def command_autoconvert(self):
+        dry = self.is_dry_run()
+        
+        from digipal_text.models import TextContentXML, TextAnnotation
+        from digipal_text.views import viewer
+        before = ur''
+        after = ur''
+        total = 0
+        converted = 0
+        for tcx in TextContentXML.objects.filter(text_content__type__slug='transcription').order_by('id'):
+            total += 1
+            content = tcx.content
+            if not content: continue
+            tcx.convert()
+            if content != tcx.content:
+                converted += 1
+                text_name = u'#%s: %s [length diff = %s]' % (tcx.id, tcx, abs(len(content) - len(tcx.content)))
+                print text_name
+                
+                before += u'\n\n'
+                before += text_name
+                before += u'\n\n'
+                before += content.replace('\r', '\n')
+                
+                after += u'\n\n'
+                after += text_name
+                after += u'\n\n'
+                after += tcx.content.replace('\r', '\n')
+
+                if 0:
+                    html = ''
+                    from difflib import HtmlDiff
+                    diff = HtmlDiff(tabsize=2)
+                    d = diff.make_table([content], [tcx.content])
+                    
+                    html += u'<h2>%s</h2>' % text_name
+                    html += d
+                    
+                if not dry:
+                    tcx.save()
+ 
+                #break
+                
+            #tcx.save()
+        
+        dputils.write_file('before.txt', before)
+        dputils.write_file('after.txt', after)
+        
+        print '%s converted out of %s texts' % (converted, total)
+        
+        if dry:
+            print 'DRY RUN: no data was changed in the database.'
 
     def command_fixids(self):
         from digipal_text.models import TextContentXML, TextAnnotation
@@ -215,40 +282,71 @@ Commands:
         ret = ur''
 
         recordid = self.args[1]
+        unitid = ''
+        if len(self.args) > 2: unitid = self.args[2]
         from digipal_text.models import TextContentXML
+        from digipal_text.views.viewer import get_fragment_extent, get_all_units
         text_content_xml = TextContentXML.objects.get(id=recordid)
-        ret = text_content_xml.content
+        content = text_content_xml.content
+        
+
+        suffix = ''
+        if unitid:
+            suffix = '-unit'
+            units = get_all_units(content, 'entry')
+            for unit in units:
+                if unit['unitid'] == unitid:
+                    ret = ur'<root>%s</root>' % unit['content']
+        else:
+            ret = content
 
         import regex
 
         if ret is None:
             ret = u''
 
-        # ret = regex.sub(ur'(?musi)<span data-dpt="abbr">.*?</span>(<span data-dpt="exp">)', ur'\1', ret)
-
-        # ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="su[pb]">(.*?)</span>', ur'\1', ret)
-        # ret = regex.sub(ur'(?musi)<i>(.*?)</i>', ur'\1', ret)
-
         # print repr(ret)
-
-#         for it in regex.findall('<span data-dpt="hi" data-dpt-rend="su[pb]">.*?</span>', ret):
-#             print repr(it)
-
-        # for it in regex.findall(ur'(?musi)qu[i1][i1]', ret):
-        #    print repr(it)
-        if 0:
-            ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sup">([^<]+)</span>', ur'<sup>\1</sup>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="hi" data-dpt-rend="sub">([^<]+)</span>', ur'<sub>\1</sub>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="ms"></span>', ur'<br/>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="lb" data-dpt-src="prj"></span>', ur'<lb/>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="abbr">(.*?)</span>', ur'<abbr>\1</abbr>', ret)
-            ret = regex.sub(ur'(?musi)<span data-dpt="exp">(.*?)</span>', ur'<exp>\1</exp>', ret)
-
-        # print repr(ret)
-        file_name = 'tcx%s.xml' % text_content_xml.id
+        file_name = 'tcx%s%s.xml' % (text_content_xml.id, suffix)
         from digipal.utils import write_file
         write_file(file_name, ret)
         print 'Written file %s ' % file_name
+
+    def command_search(self):
+        if len(self.args) < 3:
+            raise CommandError('Convert requires 2 arguments')
+
+        from digipal.management.commands.utils import get_stats_from_xml_string
+        from digipal_text.views.viewer import get_fragment_extent, get_all_units
+
+        pattern = unicode(self.args[3])
+        #pattern = ur'.{1,30}ħ.{1,30}'
+        pattern = ur'(?musi)#MSTART#(.*?)#MEND#'
+
+        stats = {}
+        cnt = 0
+        import regex as re
+        all_entries = []
+        for tcx in TextContentXML.objects.filter(text_content__item_part_id=self.args[1], text_content__type__slug=self.args[2]):
+            if 1:
+                for match in re.findall(pattern, tcx.content):
+                    cnt += 1
+                    if len(re.findall(ur'<p>', match)) > 1:
+                        print '>1'
+                    entries = re.findall(ur'"entry">(.*?)<', match)
+                    if entries:
+                        all_entries.extend(entries)
+            if 0:
+                units = get_all_units(tcx.content, 'entry')
+                for unit in units:
+                    for match in re.findall(pattern, unit['content']):
+                        #print unit['unitid'], repr(match)
+                        #print repr(match)
+                        #print re.findall(ur'<p>', match)
+                        cnt += 1
+        
+        print ','.join(all_entries)
+        
+        print '%s occurences' % cnt
 
     def command_stats(self):
         if len(self.args) < 2:
@@ -284,6 +382,7 @@ Commands:
         # I find the TextContentXML record (or create it)
         tcx = self.get_textcontentxml(ip_id, content_type_name)
         if not tcx:
+            print 'ERROR: could not find record (%s, %s)' % (ip_id, content_type_name)
             return
 
         # II load the file and convert it
@@ -291,17 +390,18 @@ Commands:
         xml_string = read_file(xml_path)
 
         # III get the XML into a string
-        xml = get_xml_from_unicode(xml_string)
         if xpath:
+            xml = get_xml_from_unicode(xml_string, add_root=True)
             els = xml.xpath(xpath)
             if len(els) > 0:
                 root = els[0]
             else:
                 raise Exception(u'No match for XPATH "%s"' % xpath)
+            from lxml import etree
+            #content = etree.tostring(root, encoding="UTF-8")
+            content = dputils.get_unicode_from_xml(etree, remove_root=True)
         else:
-            root = xml.getroot()
-        from lxml import etree
-        content = etree.tostring(root, encoding="UTF-8")
+            content = xml_string
 #         print type(root)
 #         print dir(root)
 #         content = str(root)
@@ -309,9 +409,6 @@ Commands:
         if '&#361;' in content:
             print 'Numeric entity'
             exit()
-
-        # don't keep root element tag
-        content = re.sub(ur'(?musi)^.*?>(.*)<.*?$', ur'\1', content)
 
         # IV convert the xml tags and attribute to HTML-TEI
         # content = self.get_xhtml_from_xml(content)
@@ -392,19 +489,23 @@ Commands:
             fitler = {'id': rid}
         ctx = TextContentXML.objects.filter(**fitler).first()
 
+        cnt = 0
+
         if ctx:
             print ctx
             location_type = self.get_arg(2, 'locus')
 
             location = self.get_arg(3, None)
             units = get_all_units(ctx.content, location_type)
+            
             for unit in units:
-                if location is None or unit['unitid'] == location:
+                if location is None or dputils.is_unit_in_range(unit['unitid'], location):
+                    cnt += 1
                     print '%-10s %-5s %-10s' % (unit['unitid'], len(unit['content']), repr(unit['content'][:10]))
                     if location:
                         print repr(unit['content'])
 
-            print '%s units' % len(units)
+            print '%s units' % cnt
             # fragment = get_fragment_extent(ctx.content, self.args[2], self.args[3])
 
     def get_friendly_datetime(self, dtime):
@@ -587,4 +688,6 @@ Commands:
 
         return content
 
+    def is_dry_run(self):
+        return self.options.get('dry-run', False)
 

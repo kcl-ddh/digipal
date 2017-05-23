@@ -2585,9 +2585,10 @@ class Graph(models.Model):
                 if key == 'allograph': r = self.idiograph.allograph
                 if key == 'hand': r = self.hand
                 if key == 'locus': r = self.annotation.image.locus
+                if key == 'public_note': r = dputils.get_plain_text_from_html(self.annotation.display_note or '')
                 if key == 'ip': r = self.annotation.image.item_part
                 if key == 'hi_date': r = self.annotation.image.item_part.historical_item.date
-                if key == 'desc': r = (self.get_description_as_str() or 'undescribed')
+                if key == 'desc': r = (self.get_description_as_str() or u'')
             except Exception, e:
                 print 'EXCEPTION: graph.get_label() => "%s"' % e
                 r = r.upper()
@@ -3008,6 +3009,12 @@ class Annotation(models.Model):
         super(Annotation, self).save(*args, **kwargs)
 
     def get_cutout_url_info(self, esc=False, rotated=False, fixlen=None):
+        # Returns cutout info about this annotation
+        # as a dictionary.
+        # If fixlen is None, the length is 
+        #  !!! between settings.MIN_THUMB_LENGTH and settings.MAX_THUMB_LENGTH
+        # if fixlen is between 0 and 1, the length is fixlen * orginal size
+        #
         ret = {'url': '', 'dims': [0, 0], 'frame_dims': [0, 0]}
 
         # get the rectangle surrounding the shape
@@ -3047,7 +3054,10 @@ class Annotation(models.Model):
         # turn it into a thumbnail (max len is settings.MAX_THUMB_LENGTH)
         #factor = min(1.0, float(settings.MAX_THUMB_LENGTH) / float(max(ret['frame_dims'])))
         if fixlen:
-            max_len = fixlen
+            if fixlen > 0 and fixlen <= 1:
+                max_len = fixlen * max(ret['frame_dims'])
+            else:
+                max_len = fixlen
         else:
             max_len = float(settings.MAX_THUMB_LENGTH)
             if getattr(settings, 'MIN_THUMB_LENGTH', settings.MAX_THUMB_LENGTH) < settings.MAX_THUMB_LENGTH:
@@ -3079,34 +3089,13 @@ class Annotation(models.Model):
 
         return ret
 
-    def get_cutout_url(self, esc=False, full_size=False):
+    def get_cutout_url(self, esc=False, full_size=False, fixlen=None):
         ''' Returns the URL of the cutout.
             Call this function instead of self.cutout, see JIRA 149.
             If esc is True, special chars are turned into entities (e.g. & -> &amp;)
+            full_size: deprecated
         '''
-        return self.get_cutout_url_info(esc=esc, rotated=False)['url']
-
-        # TODO: remove dead code:
-
-        # graft the query string of self.cutout to self.image.thumbnail_url
-        # See JIRA 149: Annotation cutouts should be stored as coordinates only not as a full URL
-        #return mark_safe(u'<img alt="%s" src="%s" />' % (self.image, cgi.escape(self.cutout)))
-        #from utils import update_query_string
-        cutout_qs = re.sub(ur'^(.*)\?(.*)$', ur'\2', self.cutout)
-        # This technique doesn't work because of the encoding:
-        # cutout_url = update_query_string(self.image.thumbnail_url(), cutout_qs)
-        # Just concatenate things together instead
-        image_url = re.sub(ur'^(.*)\?(.*)$', ur'\1', self.image.thumbnail_url())
-        ret = u'%s?%s' % (image_url, cutout_qs)
-        ret = re.sub(ur'FIF=[^&]+', 'FIF='+unicode(self.image.path()), ret)
-        if full_size:
-            # for some resson a HEI value is included within the cutout_url
-            # we remove this and ask for full quality for the full_size version
-            ret = re.sub(ur'HEI=[^&]+', ur'', ret)
-            ret = re.sub(ur'WID=[^&]+', ur'', ret)
-            ret = re.sub(ur'CVT=', ur'QLT=100&CVT=', ret)
-        if esc: ret = escape(ret)
-        return ret
+        return self.get_cutout_url_info(esc=esc, rotated=False, fixlen=fixlen)['url']
 
     def thumbnail(self):
         ''' returns HTML of an image inside a span'''
@@ -3117,7 +3106,6 @@ class Annotation(models.Model):
     thumbnail.allow_tags = True
 
     def thumbnail_with_link(self):
-        #return mark_safe(u'<a href="%s">%s</a>' % (self.get_cutout_url(True), self.thumbnail()))
         return mark_safe(u'<a href="%s">%s</a>' % (self.get_absolute_url(), self.thumbnail()))
 
     thumbnail_with_link.short_description = 'Thumbnail'
@@ -3192,12 +3180,6 @@ class CarouselItem(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, auto_now_add=True,
             editable=False)
-
-    class Meta:
-        ordering = ['sort_order', 'title']
-
-    def __unicode__(self):
-        return u'%s' % (self.title)
 
     @staticmethod
     def get_visible_items():
@@ -3535,6 +3517,53 @@ class RequestLog(models.Model):
             path = request.build_absolute_uri()
             rl = cls(result_count=count, request=path)
             rl.save()
+
+import json
+class KeyVal(models.Model):
+    #
+    # A simple key-value table for ad hoc data that don't need their own dedicated table
+    # use get() and set() class methods to access entries
+    #
+    key = models.CharField(max_length=300, null=False, blank=False, unique=True)
+    val = models.TextField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, auto_now_add=True, editable=False)
+
+    class Meta:
+        ordering = ['key',]
+
+    def __unicode__(self):
+        return u'%s' % (self.key)
+
+    @classmethod
+    def getjs(cls, key, default=None):
+        notfound = '##NOTFOUND##'
+        ret = cls.get(key, notfound)
+        if ret == notfound:
+            ret = default
+        else:
+            ret = dputils.json_loads(ret)
+            
+        return ret
+
+    @classmethod
+    def setjs(cls, key, val):
+        cls.set(key, dputils.json_dumps(val))
+    
+    @classmethod
+    def get(cls, key, default=None):
+        ret = default
+        keyval = cls.objects.filter(key=key).first()
+        if keyval:
+            ret = keyval.val
+        return ret
+        
+    @classmethod
+    def set(cls, key, val):
+        keyval, created = cls.objects.get_or_create(key=key)
+        if val != keyval.val:
+            keyval.val = val
+            keyval.save()
 
 class ApiTransform(models.Model):
     title = models.CharField(max_length=30, blank=False, null=False, help_text='A unique title for this XSLT template.', unique=True)

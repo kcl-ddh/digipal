@@ -18,14 +18,35 @@ dplog = logging.getLogger('digipal_debugger')
 
 MAX_FRAGMENT_SIZE = 60000
 
+def can_user_see_main_text(itempart, request):
+    '''Returns True if the user is staff or the main text for this IP is public'''
+    ret = False
+    
+    if request.user and request.user.is_active and request.user.is_staff:
+        return True
+    
+    tcx = TextContentXML.objects.filter(
+            text_content__item_part=itempart, 
+            text_content__type__slug=settings.TEXT_IMAGE_MASTER_CONTENT_TYPE,
+        ).first()
+    
+    ret = tcx and not tcx.is_private() and len(tcx.content) > 1
+    
+    return ret
+
 def text_viewer_view(request, item_partid=0, master_location_type='', master_location=''):
 
     from digipal.utils import is_model_visible
     if not is_model_visible('textcontentxml', request):
-        raise Http404('Text view not enabled')
+        raise Http404('The Text Viewer is not enabled on this site')
 
     from digipal.models import ItemPart
     context = {'item_partid': item_partid, 'item_part': ItemPart.objects.filter(id=item_partid).first()}
+    
+    if not context['item_part']:
+        raise Http404('This document doesn\'t exist')
+    if not can_user_see_main_text(context['item_part'], request):
+        raise Http404('This document is not publicly accessible')
 
     # Define the content of content type and location type drop downs
     # on top of each panel
@@ -40,6 +61,11 @@ def text_viewer_view(request, item_partid=0, master_location_type='', master_loc
         {'key': 'entry', 'label': 'Entry', 'icon': 'entry'},
         {'key': 'section', 'label': 'Section', 'icon': 'section'},
         {'key': 'sync', 'label': 'Synchronise with', 'icon': 'link'},
+    ]
+    context['dd_download_formats'] = [
+        {'key': 'html', 'label': 'HTML', 'icon': 'download'},
+        {'key': 'tei', 'label': 'TEI', 'icon': 'download'},
+        {'key': 'plain', 'label': 'Plain Text', 'icon': 'download'},
     ]
     context['statuses'] = TextContentXMLStatus.objects.all().order_by('sort_order')
 
@@ -134,6 +160,10 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     if format == 'tei':
         tei = get_tei_from_text_response(response, item_partid, content_type)
         ret = HttpResponse(tei, content_type='text/xml; charset=utf-8')
+        
+    if format == 'plain':
+        plain_text = dputils.get_plain_text_from_xmltext(response.get('content', ''))
+        ret = HttpResponse(plain_text, content_type='text/plain; charset=utf-8')
 
     if not ret:
         raise Exception('Unknown output format: "%s"' % format)
@@ -246,6 +276,7 @@ def text_api_view_location(request, item_partid, content_type, location_type, lo
                'location_type': context['master_location_type'],
                'location': context['master_location'],
                'locations': context['master_locations'],
+               'toc': context.get('master_toc', {'39a2': 'toc2', '39r': 'toc3', '39a1': 'toc1'}),
                }
     else:
         ret = {
@@ -627,8 +658,6 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
 
             # add all the elements found on that page in the transcription
             # ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), location_type, location)
-#             print 'get_locus_from_location(%s, %s)' % (location_type, location)
-#             print get_locus_from_location(location_type, location)
             ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), 'locus', get_locus_from_location(location_type, location))
 
             # print ret['text_elements']
@@ -753,7 +782,7 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
     if text_info.get('status', None) == 'error' and 'location not found' in text_info['message'].lower():
         # location not found, try the whole text
         text_info = text_api_view_text(request, item_partid, content_type, 'whole', '', content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE)
-
+        
     # extract all the elements
     if text_info.get('status', '').lower() != 'error':
 #         print '-' * 80
@@ -883,10 +912,11 @@ def find_image(request, item_partid, location_type, location, get_visible_images
     return image
 
 def get_locus_from_location(location_type, location):
+    '''Returns a locus (e.g. 31r) from a (location_type, location)
+        Accepts entry numbers: e.g. ('entry', '31a5') => '31r'
+    '''
     ret = location
 
-    # e.g. location = 54b2 (entry number)
-    # => convert to 54v
     # TODO: check location_type
     # TODO: this is a customisation for EXON,
     # unlikely to be relevant for other projects
@@ -894,7 +924,7 @@ def get_locus_from_location(location_type, location):
     if parts:
         number = parts.group(1)
         side = 'r'
-        if parts.group(2) and parts.group(2) == 'b': side = 'v'
+        if parts.group(2) and parts.group(2) in ['b', 'v']: side = 'v'
         ret = number + side
 
     return ret
@@ -939,8 +969,8 @@ def text_api_view_search(request, item_partid, content_type, location_type, loca
     ret['location_type'] = location_type
     ret['location'] = location
 
-    ret['content'] = ur'''<form class="text-search-form" method="GET">
-        <p>Query: <input type="text" name="query" value="%s"/><input type="submit" name="s" value="Search"/></p>
+    ret['content'] = ur'''<form class="text-search-form" method="GET" style="margin:0.2em">
+        <p>Query: <input type="text" class="control" name="query" value="%s"/><input type="submit" name="s" value="Search"/></p>
         <p>%s entries</p>
         <ul>
             %s
@@ -955,7 +985,7 @@ def get_entries_from_query(query):
     from django.conf import settings
     from whoosh.index import open_dir
     import os
-    index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', 'textunits'))
+    index = open_dir(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted', 'entries'))
 
     # from whoosh.qparser import QueryParser
 
@@ -979,12 +1009,12 @@ def get_entries_from_query(query):
         # run the query
         # facets = self.get_whoosh_facets()
 
-        hits = s.search(q, limit=1000000, sortedby='entryid_sortable')
+        hits = s.search(q, limit=1000000, sortedby='unitid_sortable')
         hits.fragmenter.charlimit = None
 
         # get highlights from the hits
         for hit in hits:
-            ret.append({'entryid': hit['entryid'], 'snippets': hit.highlights('content', top=10)})
+            ret.append({'entryid': hit['unitid'], 'snippets': hit.highlights('content', top=10)})
         # print '%s hits.' % len(hits)
 
     return ret
@@ -993,7 +1023,7 @@ def get_whoosh_parser(index):
     from whoosh.qparser import MultifieldParser, GtLtPlugin
 
     # TODO: only active columns
-    term_fields = ['content', 'entryid']
+    term_fields = ['content', 'unitid']
     parser = MultifieldParser(term_fields, index.schema)
     parser.add_plugin(GtLtPlugin)
     return parser

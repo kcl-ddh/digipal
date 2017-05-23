@@ -2,6 +2,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.db.models import Q
 import json
+import os
 from digipal.models import *
 from digipal.forms import SearchPageForm
 from django.http import HttpResponse, Http404, HttpResponseBadRequest
@@ -10,6 +11,9 @@ from django.conf import settings
 from digipal.templatetags import hand_filters
 
 import logging
+from subprocess import Popen
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.views.decorators import staff_member_required
 dplog = logging.getLogger('digipal_debugger')
 
 def get_search_types(request=None):
@@ -35,6 +39,75 @@ def get_search_types_display(content_types):
             else:
                 ret += ', '
         ret += '\'%s\'' % type.label
+    return ret
+
+@staff_member_required
+@csrf_exempt
+def search_index_view(request):
+    context = {'indexes': SortedDict()}
+
+    '''
+    todo
+    DONE reindex selected indexes in background
+    . show when indexer is working
+    . lock form (if working)
+    . show last time indexer started (if working)
+    . ajaxify
+    . vue.js?
+    '''
+
+    from digipal.views.faceted_search import faceted_search
+    from digipal.utils import get_all_files_under
+    from datetime import datetime
+    from digipal.views.faceted_search.search_indexer import SearchIndexer
+
+    indexer = SearchIndexer()
+
+    content_types = faceted_search.get_types(True)
+    
+    # process request
+    action = request.POST.get('action', '')
+    reindexes = []
+    if action == 'reindex':
+        for ct in content_types:
+            if request.POST.get('select-%s' % ct.key):
+                reindexes.append(ct.key)
+        
+        if reindexes:
+            dputils.call_management_command('dpsearch', 'index_facets', **{'if': ','.join(reindexes)})
+            context['indexing'] = indexer.get_state_initial(reindexes)
+    if not 'indexing' in context:
+        context['indexing'] = indexer.read_state()
+    
+    context['running'] = context['indexing'] and context['indexing']['progress'] < 1.0
+    now = datetime.now()
+    if context['indexing'] and\
+        (not context['running'] and ((now - context['indexing']['updated']).total_seconds() > (60 * 10))):
+        context['indexing'] = None
+    
+    # read the index stats
+    for ct in content_types:
+        info = {'date': 0, 'size': 0}
+        context['indexes'][ct.key] = {
+            'object': ct, 
+            'info': info,
+            'indexing': context['indexing']['indexes'].get(ct.key, None) if context['indexing'] else None,
+        }
+        
+        for afile in get_all_files_under(ct.get_whoosh_index_path(), file_types='f'):
+            info['size'] += os.path.getsize(afile)
+            info['date'] = max(info['date'], os.path.getmtime(afile))
+
+        info['date'] = datetime.fromtimestamp(info['date'])
+        info['size'] = int(info['size'])
+
+    context['title'] = 'Search Indexer'
+        
+    template = 'search/search_index.html'
+    if request.is_ajax():
+        template = 'search/search_index_fragment.html'
+            
+    ret = render_to_response(template, context, context_instance=RequestContext(request))
     return ret
 
 def catalogue_number_view(request, source='', number=''):
@@ -95,7 +168,7 @@ def index_view(request, content_type=''):
             type.set_index_view_context(context, request)
             break
     t1 = datetime.now()
-    #print '%s' % (t1 - t0)
+    # print '%s' % (t1 - t0)
 
     # pagination
     page_letter = request.GET.get('pl', '').lower()
@@ -139,33 +212,33 @@ def search_ms_image_view(request):
 
     # Applying filters
     if town_or_city:
-        images = images.filter(item_part__current_item__repository__place__name = town_or_city)
+        images = images.filter(item_part__current_item__repository__place__name=town_or_city)
     if repository:
         # repo is in two parts: repo place, repo name (e.g. cambridge, corpus christi college)
         # but we also support old style URL which have only the name of the repo
         # if we don't, crawlers like Googlebot could receive a 500 error (see JIRA DIGIPAL-483)
         repo_parts = [p.strip() for p in repository.split(',')]
         if repo_parts:
-            images = images.filter(item_part__current_item__repository__name = repo_parts[-1])
+            images = images.filter(item_part__current_item__repository__name=repo_parts[-1])
         if len(repo_parts) > 1:
-            images = images.filter(item_part__current_item__repository__place__name = repo_parts[0])
+            images = images.filter(item_part__current_item__repository__place__name=repo_parts[0])
     if date:
-        images = images.filter(hands__assigned_date__date = date)
+        images = images.filter(hands__assigned_date__date=date)
 
-    images = images.filter(item_part_id__gt = 0)
+    images = images.filter(item_part_id__gt=0)
     # not sufficient, see JIRA #552
-    #images = Image.sort_query_set_by_locus(images)
+    # images = Image.sort_query_set_by_locus(images)
 
-    #images = list(images.order_by('id'))
-    #from digipal.utils import natural_sort_key
-    #images = sorted(images, key=lambda im: natural_sort_key(im.display_label, True))
-    #context['images'] = Image.sort_query_set_by_locus(images.prefetch_related('hands', 'annotation_set'))
+    # images = list(images.order_by('id'))
+    # from digipal.utils import natural_sort_key
+    # images = sorted(images, key=lambda im: natural_sort_key(im.display_label, True))
+    # context['images'] = Image.sort_query_set_by_locus(images.prefetch_related('hands', 'annotation_set'))
 
     # permission filter
     # OPT: on DigiPal prefetch_related of annotation_set takes 20s and it retrieves all the fields even
     # related to linked tables (allograph, character, etc.)
     # Same with hands which takes around 2/3 s.
-    #images = Image.filter_permissions_from_request(images.prefetch_related('hands', 'annotation_set'), request)
+    # images = Image.filter_permissions_from_request(images.prefetch_related('hands', 'annotation_set'), request)
     images = Image.filter_permissions_from_request(images, request)
 
     hand_filters.chrono(':search')
@@ -191,7 +264,7 @@ def search_ms_image_view(request):
 def reroute_to_static_search(request):
     ret = None
     # Rerouting to the blog/news search result page
-    scope =  request.GET.get('scp', '')
+    scope = request.GET.get('scp', '')
     if scope == 'st':
         from django.shortcuts import redirect
         redirect_url = '/blog/search/?q=%s' % request.GET.get('terms')
@@ -273,7 +346,7 @@ def search_record_view(request):
     context['search_help_url'] = utils.get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
 
     # Initialise the advanced search forms
-    #context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
+    # context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
 
     page_options = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'), request)
     context['expanded_custom_filters'] = page_options['advanced_search_expanded']
@@ -321,8 +394,8 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     # allowed_type: this variable is used to restrict the search to one content type only.
     # This is useful when we display a specific record page and we only
     # have to search for the related content type to show the previous/next links.
-    #allowed_type = kwargs.get('allowed_type', None)
-    #context = kwargs.get('context', {})
+    # allowed_type = kwargs.get('allowed_type', None)
+    # context = kwargs.get('context', {})
 
     context['terms'] = ''
 
@@ -398,7 +471,7 @@ def get_query_summary(request, term, submitted, forms):
     from django.utils.html import strip_tags
 
     def get_filter_html(val, param, label=''):
-        ret = u'<a href="%s">' % update_query_params(u'?'+request.META['QUERY_STRING'], '%s=' % param)
+        ret = u'<a href="%s">' % update_query_params(u'?' + request.META['QUERY_STRING'], '%s=' % param)
         if label:
             ret += u'%s: ' % label
         ret += u'"%s" <span class="glyphicon glyphicon-remove"></span>' % escape(val)

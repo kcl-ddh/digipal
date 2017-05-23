@@ -245,6 +245,11 @@ function intersect(a, b) {
 }
 
 function common_allographs(selectedAnnotations, cacheAnn, graph) {
+    // Reset allograph and hand <select>s
+    // so that their current value is a common allograph/hand among all
+    // selected annotations.
+    // If nothing in common, select ---- .
+	
     var allographs = [],
         hands = [],
         item_parts = [];
@@ -262,6 +267,7 @@ function common_allographs(selectedAnnotations, cacheAnn, graph) {
         item_parts.push(item_part);
     }
 
+	// Set flag_X = 0 if more than one X associated to the selected annotations 
     var flag_allograph = 1,
         flag_hand = 1,
         flag_ip = 1;
@@ -287,12 +293,14 @@ function common_allographs(selectedAnnotations, cacheAnn, graph) {
         }
     }
 
+	// Change <select> to common allograph (if single one) 
     if (!flag_allograph) {
         select_allograph.val('------');
     } else {
         select_allograph.val(graph.allograph_id);
     }
 
+	// Change <hand> to common hand (if single one) 
     if (!flag_hand && flag_ip) {
         select_hand.text('------');
         select_hand.val('');

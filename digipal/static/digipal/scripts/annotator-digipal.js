@@ -3364,7 +3364,7 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 
         //if (event.shiftKey && annotator.isAdmin == 'True') {
         if (annotator.isAdmin == 'True') {
-            var isFocus = $('input').is(':focus') || $('textarea').is(':focus');
+            var isFocus = $('input').is(':focus') || $('textarea').is(':focus') || $('div.editor').is(':focus');
             //var focused_tag = $(':focus').first().prop('tagName');
             if (!isFocus) {
                 switch (code) {

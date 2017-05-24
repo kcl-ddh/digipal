@@ -76,7 +76,7 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "3" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
+RUN echo "4" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
 RUN echo "1" && pip install -r build/requirements.txt
 
 # Configure it

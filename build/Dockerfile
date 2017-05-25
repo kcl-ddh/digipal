@@ -26,7 +26,11 @@ RUN apt-get update -y && apt-get install -y \
     python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev \
     nginx uwsgi-plugin-python \
     supervisor wget \
+&& apt remove -y python3.5 \
+&& apt-get clean \
 && rm -rf /var/lib/apt/lists/*
+
+#&& apt autoremove -y \
 
 ########################
 # LESSC & TYPESCRIPT
@@ -40,11 +44,10 @@ RUN npm install -g less typescript; ln -s /usr/bin/nodejs /usr/bin/node
 # see https://github.com/ruven/iipsrv
 # install dependencies (see above)
 
-WORKDIR /root
-RUN git clone https://github.com/ruven/iipsrv.git
-WORKDIR /root/iipsrv
-# Deployed in /root/iipsrv/src/iipsrv.fcgi
-RUN ./autogen.sh && ./configure && make
+USER root
+
+COPY build-iipsrv.sh /tmp/build-iipsrv.sh
+RUN bash /tmp/build-iipsrv.sh
 
 ########################
 # DATABASE
@@ -76,11 +79,13 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "4" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
-RUN echo "1" && pip install -r build/requirements.txt
+RUN echo "4" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal &&\
+    chown -R www-data:www-data ../digipal &&\
+    ln -s local_settings.template.py digipal/local_settings.py
 
-# Configure it
-RUN ln -s local_settings.template.py digipal/local_settings.py
+COPY * /home/digipal/build/
+
+RUN echo "1" && pip install -r build/requirements.txt
 
 # Create tables, admin and site records, indexes
 RUN /etc/init.d/postgresql start &&\
@@ -91,14 +96,13 @@ RUN /etc/init.d/postgresql start &&\
         python manage.py dpsearch index_facets &&\
         python manage.py collectstatic --noinput
 
+# give files to www-data
+RUN chmod -R ug+rw ../digipal && chmod -R o-rw ../digipal &&\
+
 ########################
 # WEB SERVER
 
 RUN rm /etc/nginx/sites-enabled/default && ln -s /home/digipal/build/nginx.conf /etc/nginx/sites-enabled/digipal.conf
-
-# give files to www-data
-WORKDIR /home/
-RUN chown -R www-data:www-data digipal && chmod -R ug+rw digipal && chmod -R o-rw digipal
 
 ########################
 # SUPERVISOR

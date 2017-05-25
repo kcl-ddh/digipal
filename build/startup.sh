@@ -14,10 +14,7 @@ do
     sleep infinity
     break
   fi
-  sleep 1
-  if [ "$?" -neq "0" ]; then
-      break
-  fi
+  sleep 1 || break
 done
 
 echo "WEBSITE IS *NOT* RUNNING"

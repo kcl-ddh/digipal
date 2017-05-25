@@ -80,7 +80,6 @@ WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
 RUN echo "4" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal &&\
-    chown -R www-data:www-data ../digipal &&\
     ln -s local_settings.template.py digipal/local_settings.py
 
 COPY * /home/digipal/build/
@@ -97,7 +96,9 @@ RUN /etc/init.d/postgresql start &&\
         python manage.py collectstatic --noinput
 
 # give files to www-data
-RUN chmod -R ug+rw ../digipal && chmod -R o-rw ../digipal &&\
+RUN chown -R www-data:www-data ../digipal && \
+    chmod -R ug+rw ../digipal && \
+    chmod -R o-rw ../digipal
 
 ########################
 # WEB SERVER
@@ -112,12 +113,6 @@ RUN mkdir -p /var/log/supervisor
 EXPOSE 80
 
 ########################
-# TEST SITE
-
-#RUN bash /home/digipal/build/test-site.sh
-
-########################
 # START-UP
 
 CMD ["/bin/bash", "/home/digipal/build/startup.sh"]
-#CMD ["/usr/bin/supervisord", "-c", "/home/digipal/build/supervisord.conf"]

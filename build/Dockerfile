@@ -25,7 +25,7 @@ RUN apt-get update -y && apt-get install -y \
     postgresql \
     python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev \
     nginx uwsgi-plugin-python \
-    supervisor wget \
+    supervisor wget vim \
 && apt remove -y python3.5 \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
@@ -114,5 +114,7 @@ EXPOSE 80
 
 ########################
 # START-UP
+
+ENV SHELL /bin/bash
 
 CMD ["/bin/bash", "/home/digipal/build/startup.sh"]

@@ -1,7 +1,7 @@
 . Upload new upgraded image of DP on Dockerhub
     WIP. reorganise the Dockerfile
     . main issues:
-        *. indexing using backend interface
+        [done] indexing using backend interface
     . better architecture:
         [done]. only one port for all web services: image server and web
             [done] nginx for django

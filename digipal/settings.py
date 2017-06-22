@@ -8,7 +8,9 @@
 import os
 import sys
 
-gettext = lambda s: s
+
+def gettext(s): return s
+
 
 def make_path(path):
     if not os.path.exists(path):
@@ -17,6 +19,7 @@ def make_path(path):
 ########################
 # MAIN DJANGO SETTINGS #
 ########################
+
 
 # Emails will be sent on server errors if DEBUG=False
 # Add admin email addresses in your local_settings.py
@@ -66,15 +69,15 @@ INTERNAL_IPS = ('127.0.0.1',)
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
-        'django.template.loaders.filesystem.Loader',
-        'django.template.loaders.app_directories.Loader',
-        )
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+)
 
 AUTHENTICATION_BACKENDS = (
-        'django.contrib.auth.backends.ModelBackend',
-        # Authentication using REMOTE_USER
-        'django.contrib.auth.backends.RemoteUserBackend',
-        )
+    'django.contrib.auth.backends.ModelBackend',
+    # Authentication using REMOTE_USER
+    'django.contrib.auth.backends.RemoteUserBackend',
+)
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
@@ -83,15 +86,15 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 #############
 
 DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.',
-            'NAME': '',
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': '',
-            },
-        }
+    'default': {
+        'ENGINE': 'django.db.backends.',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+    },
+}
 
 #########
 # PATHS #
@@ -104,7 +107,8 @@ LOGIN_URL = PROJECT_URL + 'account/'
 LOGOUT_URL = PROJECT_URL + 'account/logout/'
 
 # Full filesystem path to the project.
-PROJECT_ROOT = os.path.dirname(os.path.abspath(sys.modules[os.environ['DJANGO_SETTINGS_MODULE']].__file__))
+PROJECT_ROOT = os.path.dirname(os.path.abspath(
+    sys.modules[os.environ['DJANGO_SETTINGS_MODULE']].__file__))
 sys.path.append(os.path.join(PROJECT_ROOT, 'apps'))
 
 # Name of the directory for the project.
@@ -137,21 +141,21 @@ MEDIA_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'))
 # Annotations
 ANNOTATIONS_URL = 'uploads/annotations/'
 ANNOTATIONS_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
-        ANNOTATIONS_URL.strip('/'))
+                                ANNOTATIONS_URL.strip('/'))
 
 make_path(ANNOTATIONS_ROOT)
 
 # Images uploads
 UPLOAD_IMAGES_URL = 'uploads/images/'
 UPLOAD_IMAGES_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
-        UPLOAD_IMAGES_URL.strip('/'))
+                                  UPLOAD_IMAGES_URL.strip('/'))
 
 make_path(UPLOAD_IMAGES_ROOT)
 
 # Image cache
 IMAGE_CACHE_URL = 'uploads/images/tmp/'
 IMAGE_CACHE_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
-        IMAGE_CACHE_URL.strip('/'))
+                                IMAGE_CACHE_URL.strip('/'))
 
 make_path(IMAGE_CACHE_ROOT)
 
@@ -167,18 +171,19 @@ ROOT_URLCONF = '%s.urls' % PROJECT_DIRNAME
 # or 'C:/www/django/templates'.
 # Always use forward slashes, even on Windows.
 # Don't forget to use absolute paths, not relative paths.
-TEMPLATE_DIRS = [os.path.join(PROJECT_ROOT, 'templates'), os.path.join(PROJECT_ROOT, '../digipal/templates'),]
+TEMPLATE_DIRS = [os.path.join(PROJECT_ROOT, 'templates'), os.path.join(
+    PROJECT_ROOT, '../digipal/templates'), ]
 
 CUSTOM_STATIC_PATH = os.path.join(PROJECT_ROOT, 'customisations', 'static')
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-        # Put strings here, like '/home/html/static' or 'C:/www/django/static'.
-        # Always use forward slashes, even on Windows.
-        # Don't forget to use absolute paths, not relative paths.
-            # use this for your project customisations of digipal
-            os.path.join(CUSTOM_STATIC_PATH).replace('\\', '/'),
-        )
+    # Put strings here, like '/home/html/static' or 'C:/www/django/static'.
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    # use this for your project customisations of digipal
+    os.path.join(CUSTOM_STATIC_PATH).replace('\\', '/'),
+)
 
 make_path(os.path.join(PROJECT_ROOT, 'customisations'))
 make_path(CUSTOM_STATIC_PATH)
@@ -186,37 +191,37 @@ make_path(CUSTOM_STATIC_PATH)
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
-        'django.contrib.staticfiles.finders.FileSystemFinder',
-        'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#        'django.contrib.staticfiles.finders.DefaultStorageFinder',
-        )
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    #        'django.contrib.staticfiles.finders.DefaultStorageFinder',
+)
 
 ################
 # APPLICATIONS #
 ################
 
 INSTALLED_APPS = (
-        'django.contrib.admin',
-        'django.contrib.auth',
-        'django.contrib.contenttypes',
-        'django.contrib.redirects',
-        'django.contrib.sessions',
-        'django.contrib.sites',
-        'django.contrib.sitemaps',
-        'django.contrib.staticfiles',
-        'django.contrib.humanize',
-        'mezzanine.boot',
-        'mezzanine.conf',
-        'mezzanine.core',
-        'mezzanine.generic',
-        'mezzanine.blog',
-        'mezzanine.forms',
-        'mezzanine.pages',
-        'mezzanine.galleries',
-        'mezzanine.twitter',
-        'pagination',
-        'tinymce',
-        )
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.redirects',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
+    'django.contrib.staticfiles',
+    'django.contrib.humanize',
+    'mezzanine.boot',
+    'mezzanine.conf',
+    'mezzanine.core',
+    'mezzanine.generic',
+    'mezzanine.blog',
+    'mezzanine.forms',
+    'mezzanine.pages',
+    'mezzanine.galleries',
+    'mezzanine.twitter',
+    'pagination',
+    'tinymce',
+)
 
 # SOUTH_MIGRATION_MODULES = {
 #     'taggit': 'taggit.south_migrations',
@@ -230,72 +235,81 @@ INSTALLED_APPS = (
 # Each one should be a callable that takes the request object as its
 # only parameter and returns a dictionary to add to the context.
 TEMPLATE_CONTEXT_PROCESSORS = (
-        'django.contrib.auth.context_processors.auth',
-        'django.contrib.messages.context_processors.messages',
-        # Only add this if you want the sql queries and debug variables in your template
-        # Only activated in debug mode
-        'django.core.context_processors.debug',
-        'django.core.context_processors.i18n',
-        'django.core.context_processors.static',
-        'django.core.context_processors.media',
-        'django.core.context_processors.request',
-        "django.core.context_processors.tz",
-        'mezzanine.conf.context_processors.settings',
-        'digipal.processor.quick_search',
-        'mezzanine.pages.context_processors.page',
-        )
+    'django.contrib.auth.context_processors.auth',
+    'django.contrib.messages.context_processors.messages',
+    # Only add this if you want the sql queries and debug variables in your template
+    # Only activated in debug mode
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.static',
+    'django.core.context_processors.media',
+    'django.core.context_processors.request',
+    "django.core.context_processors.tz",
+    'mezzanine.conf.context_processors.settings',
+    'digipal.processor.quick_search',
+    'mezzanine.pages.context_processors.page',
+)
 
 # List of middleware classes to use. Order is important; in the request phase,
 # this middleware classes will be applied in the order given, and in the
 # response phase the middleware will be applied in reverse order.
 MIDDLEWARE_CLASSES = (
-        'digipal.middleware.HttpsAdminMiddleware',
-        'mezzanine.core.middleware.UpdateCacheMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.locale.LocaleMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'digipal.middleware.HttpsAdminMiddleware',
+    'mezzanine.core.middleware.UpdateCacheMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
 
-        # Authentication using REMOTE_USER
-        # GN 09/05/13: Commented out, see Mantis #5585
-        # This was preventing us from testing the site as a non-staff user
-        # or log in as a different staff user.
-        #'django.contrib.auth.middleware.RemoteUserMiddleware',
+    # Authentication using REMOTE_USER
+    # GN 09/05/13: Commented out, see Mantis #5585
+    # This was preventing us from testing the site as a non-staff user
+    # or log in as a different staff user.
+    #'django.contrib.auth.middleware.RemoteUserMiddleware',
 
-        'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
-        'django.middleware.common.CommonMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'mezzanine.core.request.CurrentRequestMiddleware',
-        'mezzanine.core.middleware.RedirectFallbackMiddleware',
-        'mezzanine.core.middleware.TemplateForDeviceMiddleware',
-        'mezzanine.core.middleware.TemplateForHostMiddleware',
-        'mezzanine.core.middleware.AdminLoginInterfaceSelectorMiddleware',
-        'mezzanine.core.middleware.SitePermissionMiddleware',
-        'mezzanine.pages.middleware.PageMiddleware',
-        'mezzanine.core.middleware.FetchFromCacheMiddleware',
-        'pagination.middleware.PaginationMiddleware',
-        # Uncomment the following if using any of the SSL settings:
-        # 'mezzanine.core.middleware.SSLRedirectMiddleware',
-        "django.middleware.gzip.GZipMiddleware",
-        'digipal.middleware.ErrorMiddleware',
-        )
+    'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'mezzanine.core.request.CurrentRequestMiddleware',
+    'mezzanine.core.middleware.RedirectFallbackMiddleware',
+    'mezzanine.core.middleware.TemplateForDeviceMiddleware',
+    'mezzanine.core.middleware.TemplateForHostMiddleware',
+    'mezzanine.core.middleware.AdminLoginInterfaceSelectorMiddleware',
+    'mezzanine.core.middleware.SitePermissionMiddleware',
+    'mezzanine.pages.middleware.PageMiddleware',
+    'mezzanine.core.middleware.FetchFromCacheMiddleware',
+    'pagination.middleware.PaginationMiddleware',
+    # Uncomment the following if using any of the SSL settings:
+    # 'mezzanine.core.middleware.SSLRedirectMiddleware',
+    "django.middleware.gzip.GZipMiddleware",
+    'digipal.middleware.ErrorMiddleware',
+)
 
 ###################
 # ADMIN DASHBOARD #
 ###################
 
 ADMIN_MENU_ORDER = (
-    ('Web Content', ('blog.BlogPost', 'pages.Page', 'digipal.CarouselItem', 'generic.Keyword', 'generic.ThreadedComment', ('Media Library', 'fb_browse'))),
+    ('Web Content', ('blog.BlogPost', 'pages.Page', 'digipal.CarouselItem',
+                     'generic.Keyword', 'generic.ThreadedComment', ('Media Library', 'fb_browse'))),
     ('Image', ('digipal.Image', 'digipal.MediaPermission')),
-    ('Text', ('digipal_text.TextContentXML', 'digipal_text.TextContent', 'digipal_text.TextContentType', 'digipal_text.TextContentXMLStatus', 'digipal.Text')),
-    ('Item', ('digipal.HistoricalItem', 'digipal.CurrentItem', 'digipal.ItemPart', 'digipal.HistoricalItemType', 'digipal.Format', 'digipal.Category', 'digipal.ItemPartType', )),
+    ('Text', ('digipal_text.TextContentXML', 'digipal_text.TextContent',
+              'digipal_text.TextContentType', 'digipal_text.TextContentXMLStatus', 'digipal.Text')),
+    ('Item', ('digipal.HistoricalItem', 'digipal.CurrentItem', 'digipal.ItemPart',
+              'digipal.HistoricalItemType', 'digipal.Format', 'digipal.Category', 'digipal.ItemPartType', )),
     ('Hand', ('digipal.Hand', 'digipal.Scribe', 'digipal.Script')),
-    ('Annotation', ('digipal.Annotation', 'digipal.Graph', 'digipal.ImageAnnotationStatus')),
-    ('Symbol', ('digipal.Ontograph', 'digipal.OntographType', 'digipal.Character', 'digipal.Allograph', 'digipal.Idiograph', 'digipal.Language', 'digipal.LatinStyle', 'digipal.Alphabet', 'digipal.CharacterForm')),
-    ('Descriptor', ('digipal.Component', 'digipal.Feature', 'digipal.ComponentFeature', 'digipal.Aspect', 'digipal.Appearance')),
-    ('Actor', ('digipal.Person', 'digipal.Owner', 'digipal.OwnerType', 'digipal.Repository', 'digipal.Institution', 'digipal.InstitutionType')),
-    ('Location', ('digipal.Place', 'digipal.PlaceType', 'digipal.Region', 'digipal.County')),
-    ('Admin', ('auth.User', 'auth.Group', 'conf.Setting', 'sites.Site', 'redirects.Redirect', 'digipal.RequestLog', 'admin.LogEntry')),
+    ('Annotation', ('digipal.Annotation',
+                    'digipal.Graph', 'digipal.ImageAnnotationStatus')),
+    ('Symbol', ('digipal.Ontograph', 'digipal.OntographType', 'digipal.Character', 'digipal.Allograph',
+                'digipal.Idiograph', 'digipal.Language', 'digipal.LatinStyle', 'digipal.Alphabet', 'digipal.CharacterForm')),
+    ('Descriptor', ('digipal.Component', 'digipal.Feature',
+                    'digipal.ComponentFeature', 'digipal.Aspect', 'digipal.Appearance')),
+    ('Actor', ('digipal.Person', 'digipal.Owner', 'digipal.OwnerType',
+               'digipal.Repository', 'digipal.Institution', 'digipal.InstitutionType')),
+    ('Location', ('digipal.Place', 'digipal.PlaceType',
+                  'digipal.Region', 'digipal.County')),
+    ('Admin', ('auth.User', 'auth.Group', 'conf.Setting', 'sites.Site',
+               'redirects.Redirect', 'digipal.RequestLog', 'admin.LogEntry')),
 )
 
 ADMIN_MENU_COLLAPSED = True
@@ -324,11 +338,11 @@ PACKAGE_NAME_GRAPPELLI = 'grappelli_safe'
 
 # DigiPal Applications
 INSTALLED_APPS = INSTALLED_APPS + (
-        'digipal',
-        'digipal_text',
-        'reversion',
-        'south',
-        )
+    'digipal',
+    'digipal_text',
+    'reversion',
+    'south',
+)
 
 # Grappelli
 GRAPPELLI_ADMIN_TITLE = 'DigiPal'
@@ -373,11 +387,11 @@ CHOPPER_EXPORTS = os.path.join(MEDIA_ROOT, 'chopper')
 CHOPPER_NAMESPACE = {'c': 'http://idp.bl.uk/chopper/standalone'}
 CHOPPER_SOURCES = {'G': SOURCE_GNEUSS, 'S': SOURCE_SAWYER}
 CHOPPER_CHARACTER_MAPPING = {u'Ã°': 'eth', u'Ã¾': 'thorn', '(punctus)': '.',
-        '(punctus elevatus)': './', '(punctus versus)': ';',
-        '(punctus uersus)': ';', '(abbrev)': CHARACTER_ABBREV_STROKE,
-        '(accent)': 'accent', '(ligature)': 'ligature', '(wynn)': 'wynn',
-        'w': 'wynn', 'asc': u'Ã¦', 'll': 'l', 'rr': 'r', 'v': 'u',
-        'nasal': CHARACTER_ABBREV_STROKE, ':-': ';'}
+                             '(punctus elevatus)': './', '(punctus versus)': ';',
+                             '(punctus uersus)': ';', '(abbrev)': CHARACTER_ABBREV_STROKE,
+                             '(accent)': 'accent', '(ligature)': 'ligature', '(wynn)': 'wynn',
+                             'w': 'wynn', 'asc': u'Ã¦', 'll': 'l', 'rr': 'r', 'v': 'u',
+                             'nasal': CHARACTER_ABBREV_STROKE, ':-': ';'}
 CHOPPER_ABBREV_STROKE_MARKER = '['
 
 ITEM_PART_DEFAULT_LOCUS = 'face'
@@ -422,20 +436,24 @@ IMAGE_URLS_RELATIVE = False
 
 # DJANGO-IIPIMAGE
 
-# The URL of the IIP image server (e.g. http://www.mydomain.com/iip/iipsrv.fcgi)
-IMAGE_SERVER_URL  = 'http://%s%s' % (IMAGE_SERVER_HOST, IMAGE_SERVER_PATH)
+# The URL of the IIP image server (e.g.
+# http://www.mydomain.com/iip/iipsrv.fcgi)
+IMAGE_SERVER_URL = 'http://%s%s' % (IMAGE_SERVER_HOST, IMAGE_SERVER_PATH)
 # The absolute filesystem path of the images served by the image server (e.g. /home/myimages)
 # It should match iipserver FILESYSTEM_PREFIX parameter
 IMAGE_SERVER_ROOT = '/vol/digipal2/images'
-# python manage.py dpim will look under IMAGE_SERVER_ROOT + IMAGE_SERVER_UPLOAD_ROOT for new images to upload
+# python manage.py dpim will look under IMAGE_SERVER_ROOT +
+# IMAGE_SERVER_UPLOAD_ROOT for new images to upload
 IMAGE_SERVER_UPLOAD_ROOT = 'jp2'
-# python manage.py dpim will look under IMAGE_SERVER_ROOT + IMAGE_SERVER_ORIGINALS_ROOT for original images
+# python manage.py dpim will look under IMAGE_SERVER_ROOT +
+# IMAGE_SERVER_ORIGINALS_ROOT for original images
 IMAGE_SERVER_ORIGINALS_ROOT = 'originals'
 # file extensions eligible for upload
 IMAGE_SERVER_UPLOAD_EXTENSIONS = ('.jp2', '.jpg', '.tif', '.bmp', '.jpeg')
 # The path relative to IMAGE_SERVER_ROOT where the images uploaded via the
 # admin interface will be created
-IMAGE_SERVER_ADMIN_UPLOAD_DIR = os.path.join(IMAGE_SERVER_UPLOAD_ROOT, 'admin-upload')
+IMAGE_SERVER_ADMIN_UPLOAD_DIR = os.path.join(
+    IMAGE_SERVER_UPLOAD_ROOT, 'admin-upload')
 
 # Mezzanine
 SITE_TITLE = 'DigiPal'
@@ -483,15 +501,28 @@ AUTOCOMPLETE_PUBLIC_USER = True
 
 # These will be added to ``INSTALLED_APPS``, only if available.
 OPTIONAL_APPS = (
-        #'debug_toolbar',
-        'django_extensions',
-        PACKAGE_NAME_FILEBROWSER,
-        PACKAGE_NAME_GRAPPELLI,
-        'lightbox',
-        'djiwb',
-        )
+    #'debug_toolbar',
+    'django_extensions',
+    PACKAGE_NAME_FILEBROWSER,
+    PACKAGE_NAME_GRAPPELLI,
+    'lightbox',
+    'djiwb',
+)
 
 DEBUG_TOOLBAR_CONFIG = {'INTERCEPT_REDIRECTS': False}
+
+# Allowed file extensions in Filebrowser app (used by Mezzanine Gallery)
+# It is a copy of filebrowser_safe/settings.py:EXTENSIONS
+# without svg and tif (not all tif formats are supported by Chrome).
+# See AC #20 / PHDPAL-7
+FILEBROWSER_EXTENSIONS = {
+    'Folder': [''],
+    'Image': ['.jpg', '.jpeg', '.gif', '.png'],
+    'Video': ['.mov', '.wmv', '.mpeg', '.mpg', '.avi', '.rm', '.mp4'],
+    'Document': ['.pdf', '.doc', '.rtf', '.txt', '.xls', '.csv', '.docx'],
+    'Audio': ['.mp3', '.wav', '.aiff', '.midi', '.m4p'],
+    'Code': ['.html', '.py', '.js', '.css']
+}
 
 ########
 # LOGS #
@@ -515,49 +546,49 @@ DJANGO_DEBUG_LOG = False
 DEBUG_PERFORMANCE = False
 
 LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'digipal_debug': {
-                'format': '[%(asctime)s] %(levelname)s %(message)s (%(module)s)',
-                'datefmt' : "%d/%b/%Y %H:%M:%S"
-            },
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'digipal_debug': {
+            'format': '[%(asctime)s] %(levelname)s %(message)s (%(module)s)',
+            'datefmt': "%d/%b/%Y %H:%M:%S"
         },
-        'handlers': {
-            'digipal_debug': {
-                'level': 'DEBUG',
-                'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'digipal_debug',
-                'filename': os.path.join(PROJECT_ROOT, 'logs/debug.log'),
-                'backupCount': 10,
-                'maxBytes': 10*1024*1024,
-            },
-            'digipal_error': {
-                'level': 'ERROR',
-                'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'digipal_debug',
-                'filename': os.path.join(PROJECT_ROOT, 'logs/error.log'),
-                'backupCount': 10,
-                'maxBytes': 10*1024*1024,
-            },
-            'mail_admins': {
-                'level': 'ERROR',
-                'class': 'django.utils.log.AdminEmailHandler'
-            }
+    },
+    'handlers': {
+        'digipal_debug': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'digipal_debug',
+            'filename': os.path.join(PROJECT_ROOT, 'logs/debug.log'),
+            'backupCount': 10,
+            'maxBytes': 10 * 1024 * 1024,
         },
-        'loggers': {
-            'django.request': {
-                'handlers': ['digipal_error', 'mail_admins'],
-                'level': 'ERROR',
-                'propagate': True,
-            },
-            'digipal_debugger': {
-                'handlers': ['digipal_debug'],
-                'level': 'DEBUG',
-                'propagate': False,
-            },
+        'digipal_error': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'digipal_debug',
+            'filename': os.path.join(PROJECT_ROOT, 'logs/error.log'),
+            'backupCount': 10,
+            'maxBytes': 10 * 1024 * 1024,
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler'
         }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['digipal_error', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'digipal_debugger': {
+            'handlers': ['digipal_debug'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     }
+}
 
 # BACKUPS #
 
@@ -593,7 +624,8 @@ OWNABLE_MODELS_ALL_EDITABLE.append('blog.blogpost')
 COMPRESS_ENABLED = True
 
 INSTALLED_APPS = INSTALLED_APPS + ('compressor',)
-STATICFILES_FINDERS = STATICFILES_FINDERS + ('compressor.finders.CompressorFinder',)
+STATICFILES_FINDERS = STATICFILES_FINDERS + \
+    ('compressor.finders.CompressorFinder',)
 
 # CACHING (make sure it is persistent otherwise files are recompiled each time
 # the app restarts)
@@ -604,27 +636,27 @@ CACHES = {
     'django-compressor': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/django_compressor/'),
-        'TIMEOUT': 60*60*24,
+        'TIMEOUT': 60 * 60 * 24,
         'MAX_ENTRIES': 300,
     },
     'digipal_faceted_search': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/faceted_search/'),
-        'TIMEOUT': 60*60*24,
+        'TIMEOUT': 60 * 60 * 24,
         #'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     },
     'digipal_compute': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/compute/'),
-        'TIMEOUT': 60*60*24,
+        'TIMEOUT': 60 * 60 * 24,
         #'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     },
     'digipal_text_patterns': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/text_patterns/'),
-        'TIMEOUT': 60*60*24,
+        'TIMEOUT': 60 * 60 * 24,
         #'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     }
@@ -658,32 +690,32 @@ COMPRESS_PRECOMPILERS = (
 
 # TINY MCE
 TINYMCE_DEFAULT_CONFIG = {
-        'language': "en",
+    'language': "en",
 
-        'width': '700',
-        'height': '200',
-        'fix_list_elements': True,
-        'forced_root_block': "p",
-        'remove_trailing_nbsp': True,
-        'relative_urls' : False,
+    'width': '700',
+    'height': '200',
+    'fix_list_elements': True,
+    'forced_root_block': "p",
+    'remove_trailing_nbsp': True,
+    'relative_urls': False,
 
-        # theme_advanced
-        'theme_advanced_toolbar_location': "top",
-        'theme_advanced_toolbar_align': "left",
-        'theme_advanced_statusbar_location': "",
-        'theme_advanced_buttons1': "bold,italic,|,link,unlink,|,image,|,charmap,|,code,|,table,|,bullist,numlist,blockquote,|,undo,redo,|,formatselect",
-        'theme_advanced_buttons2': "",
-        'theme_advanced_buttons3': "",
-        'theme_advanced_blockformats': "p,h1,h2,h3,h4,h5,h6,pre",
+    # theme_advanced
+    'theme_advanced_toolbar_location': "top",
+    'theme_advanced_toolbar_align': "left",
+    'theme_advanced_statusbar_location': "",
+    'theme_advanced_buttons1': "bold,italic,|,link,unlink,|,image,|,charmap,|,code,|,table,|,bullist,numlist,blockquote,|,undo,redo,|,formatselect",
+    'theme_advanced_buttons2': "",
+    'theme_advanced_buttons3': "",
+    'theme_advanced_blockformats': "p,h1,h2,h3,h4,h5,h6,pre",
 
-        'plugins': "paste,table",
+    'plugins': "paste,table",
 
-        # remove MS Word's inline styles when copying and pasting.
-        'paste_remove_spans': True,
-        'paste_auto_cleanup_on_paste' : True,
-        'paste_remove_styles': True,
-        'paste_remove_styles_if_webkit': True,
-        'paste_strip_class_attributes': True
+    # remove MS Word's inline styles when copying and pasting.
+    'paste_remove_spans': True,
+    'paste_auto_cleanup_on_paste': True,
+    'paste_remove_styles': True,
+    'paste_remove_styles_if_webkit': True,
+    'paste_strip_class_attributes': True
 }
 
 # Annotator Settings
@@ -704,8 +736,10 @@ API_PERMISSIONS = [['crud', 'ALL']]
 
 # Models Exposure
 # List of models we want to show to everyone and to staff respectively
-MODELS_PUBLIC = ['itempart', 'image', 'graph', 'hand', 'scribe', 'textcontentxml']
-MODELS_PRIVATE = ['itempart', 'image', 'graph', 'hand', 'scribe', 'textcontentxml']
+MODELS_PUBLIC = ['itempart', 'image', 'graph',
+                 'hand', 'scribe', 'textcontentxml']
+MODELS_PRIVATE = ['itempart', 'image', 'graph',
+                  'hand', 'scribe', 'textcontentxml']
 
 # which text type is used as primary a reference for markup-up - image links
 TEXT_IMAGE_MASTER_CONTENT_TYPE = 'transcription'
@@ -726,7 +760,8 @@ GRAPH_TOOLTIP_LONG = u'{allograph} by {hand}\n {ip} {locus}\n ({hi_date})'
 # Where PROJECT_PACKAGE is the Django package for your project
 import importlib
 try:
-    local_settings = importlib.import_module('..local_settings', os.environ['DJANGO_SETTINGS_MODULE'])
+    local_settings = importlib.import_module(
+        '..local_settings', os.environ['DJANGO_SETTINGS_MODULE'])
     module_dict = local_settings.__dict__
     try:
         to_import = local_settings.__all__
@@ -750,7 +785,8 @@ if DJANGO_DEBUG_LOG and LOGGING:
 
 # See http://stackoverflow.com/questions/26682413/django-rotating-file-handler-stuck-when-file-is-equal-to-maxbytes/32011192#32011192
 # Deactivate log for the parent process of runserver, children will have the log
-# This is to avoid errors when the log rotates and the parent process still has a handle of the file
+# This is to avoid errors when the log rotates and the parent process
+# still has a handle of the file
 import os
 RUNNING_DEVSERVER = (len(sys.argv) > 1 and sys.argv[1] == 'runserver')
 if RUNNING_DEVSERVER and DEBUG and os.environ.get('RUN_MAIN', None) != 'true':

@@ -501,12 +501,10 @@ AUTOCOMPLETE_PUBLIC_USER = True
 
 # These will be added to ``INSTALLED_APPS``, only if available.
 OPTIONAL_APPS = (
-    #'debug_toolbar',
     'django_extensions',
     PACKAGE_NAME_FILEBROWSER,
     PACKAGE_NAME_GRAPPELLI,
     'lightbox',
-    'djiwb',
 )
 
 DEBUG_TOOLBAR_CONFIG = {'INTERCEPT_REDIRECTS': False}

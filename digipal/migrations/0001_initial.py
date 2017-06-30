@@ -1,1692 +1,1636 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
-
-
-class Migration(SchemaMigration):
-
-    def forwards(self, orm):
-        # Adding model 'Appearance'
-        db.create_table('digipal_appearance', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('text', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('sort_order', self.gf('django.db.models.fields.IntegerField')()),
-            ('description', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Appearance'])
-
-        # Adding model 'Feature'
-        db.create_table('digipal_feature', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=32)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Feature'])
-
-        # Adding model 'Component'
-        db.create_table('digipal_component', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Component'])
-
-        # Adding M2M table for field features on 'Component'
-        db.create_table('digipal_component_features', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('component', models.ForeignKey(orm['digipal.component'], null=False)),
-            ('feature', models.ForeignKey(orm['digipal.feature'], null=False))
-        ))
-        db.create_unique('digipal_component_features', ['component_id', 'feature_id'])
-
-        # Adding model 'Aspect'
-        db.create_table('digipal_aspect', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Aspect'])
-
-        # Adding M2M table for field features on 'Aspect'
-        db.create_table('digipal_aspect_features', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('aspect', models.ForeignKey(orm['digipal.aspect'], null=False)),
-            ('feature', models.ForeignKey(orm['digipal.feature'], null=False))
-        ))
-        db.create_unique('digipal_aspect_features', ['aspect_id', 'feature_id'])
-
-        # Adding model 'OntographType'
-        db.create_table('digipal_ontographtype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['OntographType'])
-
-        # Adding model 'Ontograph'
-        db.create_table('digipal_ontograph', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('ontograph_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.OntographType'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Ontograph'])
-
-        # Adding unique constraint on 'Ontograph', fields ['name', 'ontograph_type']
-        db.create_unique('digipal_ontograph', ['name', 'ontograph_type_id'])
-
-        # Adding model 'Character'
-        db.create_table('digipal_character', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('unicode_point', self.gf('django.db.models.fields.CharField')(unique=True, max_length=32)),
-            ('form', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('ontograph', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Ontograph'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Character'])
-
-        # Adding M2M table for field components on 'Character'
-        db.create_table('digipal_character_components', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('character', models.ForeignKey(orm['digipal.character'], null=False)),
-            ('component', models.ForeignKey(orm['digipal.component'], null=False))
-        ))
-        db.create_unique('digipal_character_components', ['character_id', 'component_id'])
-
-        # Adding model 'Allograph'
-        db.create_table('digipal_allograph', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Character'])),
-            ('default', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Allograph'])
-
-        # Adding unique constraint on 'Allograph', fields ['name', 'character']
-        db.create_unique('digipal_allograph', ['name', 'character_id'])
-
-        # Adding M2M table for field aspects on 'Allograph'
-        db.create_table('digipal_allograph_aspects', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('allograph', models.ForeignKey(orm['digipal.allograph'], null=False)),
-            ('aspect', models.ForeignKey(orm['digipal.aspect'], null=False))
-        ))
-        db.create_unique('digipal_allograph_aspects', ['allograph_id', 'aspect_id'])
-
-        # Adding model 'AllographComponent'
-        db.create_table('digipal_allographcomponent', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('allograph', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Allograph'])),
-            ('component', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Component'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['AllographComponent'])
-
-        # Adding M2M table for field features on 'AllographComponent'
-        db.create_table('digipal_allographcomponent_features', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('allographcomponent', models.ForeignKey(orm['digipal.allographcomponent'], null=False)),
-            ('feature', models.ForeignKey(orm['digipal.feature'], null=False))
-        ))
-        db.create_unique('digipal_allographcomponent_features', ['allographcomponent_id', 'feature_id'])
-
-        # Adding model 'Script'
-        db.create_table('digipal_script', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Script'])
-
-        # Adding M2M table for field allographs on 'Script'
-        db.create_table('digipal_script_allographs', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('script', models.ForeignKey(orm['digipal.script'], null=False)),
-            ('allograph', models.ForeignKey(orm['digipal.allograph'], null=False))
-        ))
-        db.create_unique('digipal_script_allographs', ['script_id', 'allograph_id'])
-
-        # Adding model 'ScriptComponent'
-        db.create_table('digipal_scriptcomponent', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('script', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Script'])),
-            ('component', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Component'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['ScriptComponent'])
-
-        # Adding M2M table for field features on 'ScriptComponent'
-        db.create_table('digipal_scriptcomponent_features', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('scriptcomponent', models.ForeignKey(orm['digipal.scriptcomponent'], null=False)),
-            ('feature', models.ForeignKey(orm['digipal.feature'], null=False))
-        ))
-        db.create_unique('digipal_scriptcomponent_features', ['scriptcomponent_id', 'feature_id'])
-
-        # Adding model 'Reference'
-        db.create_table('digipal_reference', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('name_index', self.gf('django.db.models.fields.CharField')(max_length=1, null=True, blank=True)),
-            ('legacy_reference', self.gf('django.db.models.fields.CharField')(max_length=128, null=True, blank=True)),
-            ('full_reference', self.gf('django.db.models.fields.TextField')()),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Reference'])
-
-        # Adding unique constraint on 'Reference', fields ['name', 'name_index']
-        db.create_unique('digipal_reference', ['name', 'name_index'])
-
-        # Adding model 'Owner'
-        db.create_table('digipal_owner', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('content_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'])),
-            ('object_id', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('date', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('evidence', self.gf('django.db.models.fields.TextField')()),
-            ('rebound', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('annotated', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('dubitable', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Owner'])
-
-        # Adding model 'Date'
-        db.create_table('digipal_date', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('date', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('sort_order', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('weight', self.gf('django.db.models.fields.FloatField')()),
-            ('band', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('additional_band', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('post_conquest', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('s_xi', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('min_weight', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('max_weight', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Date'])
-
-        # Adding model 'Category'
-        db.create_table('digipal_category', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('sort_order', self.gf('django.db.models.fields.PositiveIntegerField')(null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Category'])
-
-        # Adding model 'Format'
-        db.create_table('digipal_format', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Format'])
-
-        # Adding model 'Hair'
-        db.create_table('digipal_hair', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('label', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Hair'])
-
-        # Adding model 'HistoricalItemType'
-        db.create_table('digipal_historicalitemtype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['HistoricalItemType'])
-
-        # Adding model 'Language'
-        db.create_table('digipal_language', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Language'])
-
-        # Adding model 'HistoricalItem'
-        db.create_table('digipal_historicalitem', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('historical_item_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.HistoricalItemType'])),
-            ('historical_item_format', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Format'], null=True, blank=True)),
-            ('date', self.gf('django.db.models.fields.CharField')(max_length=128, null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
-            ('hair', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Hair'], null=True, blank=True)),
-            ('language', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Language'], null=True, blank=True)),
-            ('url', self.gf('django.db.models.fields.URLField')(max_length=200, null=True, blank=True)),
-            ('vernacular', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('neumed', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('catalogue_number', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('display_label', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['HistoricalItem'])
-
-        # Adding M2M table for field categories on 'HistoricalItem'
-        db.create_table('digipal_historicalitem_categories', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('historicalitem', models.ForeignKey(orm['digipal.historicalitem'], null=False)),
-            ('category', models.ForeignKey(orm['digipal.category'], null=False))
-        ))
-        db.create_unique('digipal_historicalitem_categories', ['historicalitem_id', 'category_id'])
-
-        # Adding M2M table for field owners on 'HistoricalItem'
-        db.create_table('digipal_historicalitem_owners', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('historicalitem', models.ForeignKey(orm['digipal.historicalitem'], null=False)),
-            ('owner', models.ForeignKey(orm['digipal.owner'], null=False))
-        ))
-        db.create_unique('digipal_historicalitem_owners', ['historicalitem_id', 'owner_id'])
-
-        # Adding model 'Source'
-        db.create_table('digipal_source', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('label', self.gf('django.db.models.fields.CharField')(max_length=12, unique=True, null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Source'])
-
-        # Adding model 'CatalogueNumber'
-        db.create_table('digipal_cataloguenumber', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('historical_item', self.gf('django.db.models.fields.related.ForeignKey')(related_name='catalogue_numbers', to=orm['digipal.HistoricalItem'])),
-            ('source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Source'])),
-            ('number', self.gf('django.db.models.fields.CharField')(max_length=32)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['CatalogueNumber'])
-
-        # Adding unique constraint on 'CatalogueNumber', fields ['source', 'number']
-        db.create_unique('digipal_cataloguenumber', ['source_id', 'number'])
-
-        # Adding model 'Collation'
-        db.create_table('digipal_collation', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('historical_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.HistoricalItem'])),
-            ('fragment', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('leaves', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('front_flyleaves', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('back_flyleaves', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Collation'])
-
-        # Adding model 'Decoration'
-        db.create_table('digipal_decoration', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('historical_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.HistoricalItem'])),
-            ('illustrated', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('decorated', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('illuminated', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('num_colours', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('colours', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
-            ('num_inks', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('inks', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
-            ('style', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('catalogue_references', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Decoration'])
-
-        # Adding model 'Description'
-        db.create_table('digipal_description', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('historical_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.HistoricalItem'])),
-            ('source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Source'])),
-            ('description', self.gf('django.db.models.fields.TextField')()),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Description'])
-
-        # Adding model 'Layout'
-        db.create_table('digipal_layout', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('historical_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.HistoricalItem'])),
-            ('page_height', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('page_width', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('frame_height', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('frame_width', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('tramline_width', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('lines', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('columns', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('on_top_line', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('multiple_sheet_rulling', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('bilinear_ruling', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('comments', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('hair_arrangement', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Hair'], null=True, blank=True)),
-            ('insular_pricking', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Layout'])
-
-        # Adding model 'ItemOrigin'
-        db.create_table('digipal_itemorigin', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('content_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'])),
-            ('object_id', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('historical_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.HistoricalItem'])),
-            ('evidence', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('dubitable', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['ItemOrigin'])
-
-        # Adding model 'Archive'
-        db.create_table('digipal_archive', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('content_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'])),
-            ('object_id', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('historical_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.HistoricalItem'])),
-            ('dubitable', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Archive'])
-
-        # Adding model 'Region'
-        db.create_table('digipal_region', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Region'])
-
-        # Adding model 'County'
-        db.create_table('digipal_county', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['County'])
-
-        # Adding model 'Place'
-        db.create_table('digipal_place', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('eastings', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('northings', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
-            ('region', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Region'], null=True, blank=True)),
-            ('current_county', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='county_current', null=True, to=orm['digipal.County'])),
-            ('historical_county', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='county_historical', null=True, to=orm['digipal.County'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Place'])
-
-        # Adding model 'Repository'
-        db.create_table('digipal_repository', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('short_name', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-            ('place', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Place'])),
-            ('url', self.gf('django.db.models.fields.URLField')(max_length=200, null=True, blank=True)),
-            ('comma', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('british_isles', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('digital_project', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Repository'])
-
-        # Adding model 'CurrentItem'
-        db.create_table('digipal_currentitem', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('repository', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Repository'])),
-            ('shelfmark', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('display_label', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['CurrentItem'])
-
-        # Adding unique constraint on 'CurrentItem', fields ['repository', 'shelfmark']
-        db.create_unique('digipal_currentitem', ['repository_id', 'shelfmark'])
-
-        # Adding model 'Person'
-        db.create_table('digipal_person', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=256)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Person'])
-
-        # Adding model 'InstitutionType'
-        db.create_table('digipal_institutiontype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['InstitutionType'])
-
-        # Adding model 'Institution'
-        db.create_table('digipal_institution', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('institution_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.InstitutionType'])),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('founder', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='person_founder', null=True, to=orm['digipal.Person'])),
-            ('reformer', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='person_reformer', null=True, to=orm['digipal.Person'])),
-            ('patron', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='person_patron', null=True, to=orm['digipal.Person'])),
-            ('place', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Place'])),
-            ('foundation', self.gf('django.db.models.fields.CharField')(max_length=128, null=True, blank=True)),
-            ('refoundation', self.gf('django.db.models.fields.CharField')(max_length=128, null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Institution'])
-
-        # Adding model 'Scribe'
-        db.create_table('digipal_scribe', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('date', self.gf('django.db.models.fields.CharField')(max_length=128, null=True, blank=True)),
-            ('scriptorium', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Institution'], null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Scribe'])
-
-        # Adding M2M table for field reference on 'Scribe'
-        db.create_table('digipal_scribe_reference', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('scribe', models.ForeignKey(orm['digipal.scribe'], null=False)),
-            ('reference', models.ForeignKey(orm['digipal.reference'], null=False))
-        ))
-        db.create_unique('digipal_scribe_reference', ['scribe_id', 'reference_id'])
-
-        # Adding model 'Idiograph'
-        db.create_table('digipal_idiograph', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('allograph', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Allograph'])),
-            ('scribe', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='idiographs', null=True, to=orm['digipal.Scribe'])),
-            ('display_label', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Idiograph'])
-
-        # Adding M2M table for field aspects on 'Idiograph'
-        db.create_table('digipal_idiograph_aspects', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('idiograph', models.ForeignKey(orm['digipal.idiograph'], null=False)),
-            ('aspect', models.ForeignKey(orm['digipal.aspect'], null=False))
-        ))
-        db.create_unique('digipal_idiograph_aspects', ['idiograph_id', 'aspect_id'])
-
-        # Adding model 'IdiographComponent'
-        db.create_table('digipal_idiographcomponent', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('idiograph', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Idiograph'])),
-            ('component', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Component'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['IdiographComponent'])
-
-        # Adding M2M table for field features on 'IdiographComponent'
-        db.create_table('digipal_idiographcomponent_features', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('idiographcomponent', models.ForeignKey(orm['digipal.idiographcomponent'], null=False)),
-            ('feature', models.ForeignKey(orm['digipal.feature'], null=False))
-        ))
-        db.create_unique('digipal_idiographcomponent_features', ['idiographcomponent_id', 'feature_id'])
-
-        # Adding model 'HistoricalItemDate'
-        db.create_table('digipal_historicalitemdate', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('historical_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.HistoricalItem'])),
-            ('date', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Date'])),
-            ('evidence', self.gf('django.db.models.fields.TextField')()),
-            ('vernacular', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('addition', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('dubitable', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['HistoricalItemDate'])
-
-        # Adding model 'ItemPart'
-        db.create_table('digipal_itempart', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('historical_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.HistoricalItem'])),
-            ('current_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.CurrentItem'])),
-            ('locus', self.gf('django.db.models.fields.CharField')(default='face', max_length=64, null=True, blank=True)),
-            ('display_label', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['ItemPart'])
-
-        # Adding unique constraint on 'ItemPart', fields ['historical_item', 'current_item', 'locus']
-        db.create_unique('digipal_itempart', ['historical_item_id', 'current_item_id', 'locus'])
-
-        # Adding model 'LatinStyle'
-        db.create_table('digipal_latinstyle', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('style', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['LatinStyle'])
-
-        # Adding model 'Page'
-        db.create_table('digipal_page', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('item_part', self.gf('django.db.models.fields.related.ForeignKey')(related_name='pages', to=orm['digipal.ItemPart'])),
-            ('locus', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('caption', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('image', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
-            ('display_label', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Page'])
-
-        # Adding model 'Hand'
-        db.create_table('digipal_hand', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('num', self.gf('django.db.models.fields.IntegerField')()),
-            ('item_part', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.ItemPart'])),
-            ('script', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Script'], null=True, blank=True)),
-            ('scribe', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Scribe'], null=True, blank=True)),
-            ('assigned_date', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Date'], null=True, blank=True)),
-            ('assigned_place', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Place'], null=True, blank=True)),
-            ('scragg', self.gf('django.db.models.fields.CharField')(max_length=6, null=True, blank=True)),
-            ('scragg_description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('em_title', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
-            ('em_description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('mancass_description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('label', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('display_note', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('internal_note', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('appearance', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Appearance'], null=True, blank=True)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('relevant', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('latin_only', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('gloss_only', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('membra_disjecta', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('num_glosses', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('num_glossing_hands', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('glossed_text', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Category'], null=True, blank=True)),
-            ('scribble_only', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('imitative', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('latin_style', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.LatinStyle'], null=True, blank=True)),
-            ('comments', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('display_label', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Hand'])
-
-        # Adding M2M table for field pages on 'Hand'
-        db.create_table('digipal_hand_pages', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('hand', models.ForeignKey(orm['digipal.hand'], null=False)),
-            ('page', models.ForeignKey(orm['digipal.page'], null=False))
-        ))
-        db.create_unique('digipal_hand_pages', ['hand_id', 'page_id'])
-
-        # Adding model 'Alphabet'
-        db.create_table('digipal_alphabet', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Alphabet'])
-
-        # Adding M2M table for field ontographs on 'Alphabet'
-        db.create_table('digipal_alphabet_ontographs', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('alphabet', models.ForeignKey(orm['digipal.alphabet'], null=False)),
-            ('ontograph', models.ForeignKey(orm['digipal.ontograph'], null=False))
-        ))
-        db.create_unique('digipal_alphabet_ontographs', ['alphabet_id', 'ontograph_id'])
-
-        # Adding M2M table for field hands on 'Alphabet'
-        db.create_table('digipal_alphabet_hands', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('alphabet', models.ForeignKey(orm['digipal.alphabet'], null=False)),
-            ('hand', models.ForeignKey(orm['digipal.hand'], null=False))
-        ))
-        db.create_unique('digipal_alphabet_hands', ['alphabet_id', 'hand_id'])
-
-        # Adding model 'DateEvidence'
-        db.create_table('digipal_dateevidence', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('hand', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Hand'])),
-            ('date', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Date'], null=True, blank=True)),
-            ('date_description', self.gf('django.db.models.fields.CharField')(max_length=128, null=True, blank=True)),
-            ('reference', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Reference'], null=True, blank=True)),
-            ('evidence', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['DateEvidence'])
-
-        # Adding model 'Graph'
-        db.create_table('digipal_graph', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('idiograph', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Idiograph'])),
-            ('hand', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Hand'])),
-            ('display_label', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Graph'])
-
-        # Adding M2M table for field aspects on 'Graph'
-        db.create_table('digipal_graph_aspects', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('graph', models.ForeignKey(orm['digipal.graph'], null=False)),
-            ('aspect', models.ForeignKey(orm['digipal.aspect'], null=False))
-        ))
-        db.create_unique('digipal_graph_aspects', ['graph_id', 'aspect_id'])
-
-        # Adding model 'GraphComponent'
-        db.create_table('digipal_graphcomponent', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('graph', self.gf('django.db.models.fields.related.ForeignKey')(related_name='graph_components', to=orm['digipal.Graph'])),
-            ('component', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Component'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['GraphComponent'])
-
-        # Adding M2M table for field features on 'GraphComponent'
-        db.create_table('digipal_graphcomponent_features', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('graphcomponent', models.ForeignKey(orm['digipal.graphcomponent'], null=False)),
-            ('feature', models.ForeignKey(orm['digipal.feature'], null=False))
-        ))
-        db.create_unique('digipal_graphcomponent_features', ['graphcomponent_id', 'feature_id'])
-
-        # Adding model 'Status'
-        db.create_table('digipal_status', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=32)),
-            ('default', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Status'])
-
-        # Adding model 'Annotation'
-        db.create_table('digipal_annotation', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('page', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Page'])),
-            ('cutout', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('status', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Status'], null=True, blank=True)),
-            ('before', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='allograph_before', null=True, to=orm['digipal.Allograph'])),
-            ('graph', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['digipal.Graph'], unique=True, null=True, blank=True)),
-            ('after', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='allograph_after', null=True, to=orm['digipal.Allograph'])),
-            ('vector_id', self.gf('django.db.models.fields.TextField')()),
-            ('geo_json', self.gf('django.db.models.fields.TextField')()),
-            ('display_note', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('internal_note', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('author', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Annotation'])
-
-        # Adding unique constraint on 'Annotation', fields ['page', 'vector_id']
-        db.create_unique('digipal_annotation', ['page_id', 'vector_id'])
-
-        # Adding model 'PlaceEvidence'
-        db.create_table('digipal_placeevidence', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('hand', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Hand'])),
-            ('place', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Place'])),
-            ('place_description', self.gf('django.db.models.fields.CharField')(max_length=128, null=True, blank=True)),
-            ('reference', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Reference'])),
-            ('evidence', self.gf('django.db.models.fields.TextField')()),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['PlaceEvidence'])
-
-        # Adding model 'Measurement'
-        db.create_table('digipal_measurement', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('label', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Measurement'])
-
-        # Adding model 'Proportion'
-        db.create_table('digipal_proportion', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('legacy_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('hand', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Hand'])),
-            ('measurement', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['digipal.Measurement'])),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('cue_height', self.gf('django.db.models.fields.FloatField')()),
-            ('value', self.gf('django.db.models.fields.FloatField')()),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('digipal', ['Proportion'])
-
-
-    def backwards(self, orm):
-        # Removing unique constraint on 'Annotation', fields ['page', 'vector_id']
-        db.delete_unique('digipal_annotation', ['page_id', 'vector_id'])
-
-        # Removing unique constraint on 'ItemPart', fields ['historical_item', 'current_item', 'locus']
-        db.delete_unique('digipal_itempart', ['historical_item_id', 'current_item_id', 'locus'])
-
-        # Removing unique constraint on 'CurrentItem', fields ['repository', 'shelfmark']
-        db.delete_unique('digipal_currentitem', ['repository_id', 'shelfmark'])
-
-        # Removing unique constraint on 'CatalogueNumber', fields ['source', 'number']
-        db.delete_unique('digipal_cataloguenumber', ['source_id', 'number'])
-
-        # Removing unique constraint on 'Reference', fields ['name', 'name_index']
-        db.delete_unique('digipal_reference', ['name', 'name_index'])
-
-        # Removing unique constraint on 'Allograph', fields ['name', 'character']
-        db.delete_unique('digipal_allograph', ['name', 'character_id'])
-
-        # Removing unique constraint on 'Ontograph', fields ['name', 'ontograph_type']
-        db.delete_unique('digipal_ontograph', ['name', 'ontograph_type_id'])
-
-        # Deleting model 'Appearance'
-        db.delete_table('digipal_appearance')
-
-        # Deleting model 'Feature'
-        db.delete_table('digipal_feature')
-
-        # Deleting model 'Component'
-        db.delete_table('digipal_component')
-
-        # Removing M2M table for field features on 'Component'
-        db.delete_table('digipal_component_features')
-
-        # Deleting model 'Aspect'
-        db.delete_table('digipal_aspect')
-
-        # Removing M2M table for field features on 'Aspect'
-        db.delete_table('digipal_aspect_features')
-
-        # Deleting model 'OntographType'
-        db.delete_table('digipal_ontographtype')
-
-        # Deleting model 'Ontograph'
-        db.delete_table('digipal_ontograph')
-
-        # Deleting model 'Character'
-        db.delete_table('digipal_character')
-
-        # Removing M2M table for field components on 'Character'
-        db.delete_table('digipal_character_components')
-
-        # Deleting model 'Allograph'
-        db.delete_table('digipal_allograph')
-
-        # Removing M2M table for field aspects on 'Allograph'
-        db.delete_table('digipal_allograph_aspects')
-
-        # Deleting model 'AllographComponent'
-        db.delete_table('digipal_allographcomponent')
-
-        # Removing M2M table for field features on 'AllographComponent'
-        db.delete_table('digipal_allographcomponent_features')
-
-        # Deleting model 'Script'
-        db.delete_table('digipal_script')
-
-        # Removing M2M table for field allographs on 'Script'
-        db.delete_table('digipal_script_allographs')
-
-        # Deleting model 'ScriptComponent'
-        db.delete_table('digipal_scriptcomponent')
-
-        # Removing M2M table for field features on 'ScriptComponent'
-        db.delete_table('digipal_scriptcomponent_features')
-
-        # Deleting model 'Reference'
-        db.delete_table('digipal_reference')
-
-        # Deleting model 'Owner'
-        db.delete_table('digipal_owner')
-
-        # Deleting model 'Date'
-        db.delete_table('digipal_date')
-
-        # Deleting model 'Category'
-        db.delete_table('digipal_category')
-
-        # Deleting model 'Format'
-        db.delete_table('digipal_format')
-
-        # Deleting model 'Hair'
-        db.delete_table('digipal_hair')
-
-        # Deleting model 'HistoricalItemType'
-        db.delete_table('digipal_historicalitemtype')
-
-        # Deleting model 'Language'
-        db.delete_table('digipal_language')
-
-        # Deleting model 'HistoricalItem'
-        db.delete_table('digipal_historicalitem')
-
-        # Removing M2M table for field categories on 'HistoricalItem'
-        db.delete_table('digipal_historicalitem_categories')
-
-        # Removing M2M table for field owners on 'HistoricalItem'
-        db.delete_table('digipal_historicalitem_owners')
-
-        # Deleting model 'Source'
-        db.delete_table('digipal_source')
-
-        # Deleting model 'CatalogueNumber'
-        db.delete_table('digipal_cataloguenumber')
-
-        # Deleting model 'Collation'
-        db.delete_table('digipal_collation')
-
-        # Deleting model 'Decoration'
-        db.delete_table('digipal_decoration')
-
-        # Deleting model 'Description'
-        db.delete_table('digipal_description')
-
-        # Deleting model 'Layout'
-        db.delete_table('digipal_layout')
-
-        # Deleting model 'ItemOrigin'
-        db.delete_table('digipal_itemorigin')
-
-        # Deleting model 'Archive'
-        db.delete_table('digipal_archive')
-
-        # Deleting model 'Region'
-        db.delete_table('digipal_region')
-
-        # Deleting model 'County'
-        db.delete_table('digipal_county')
-
-        # Deleting model 'Place'
-        db.delete_table('digipal_place')
-
-        # Deleting model 'Repository'
-        db.delete_table('digipal_repository')
-
-        # Deleting model 'CurrentItem'
-        db.delete_table('digipal_currentitem')
-
-        # Deleting model 'Person'
-        db.delete_table('digipal_person')
-
-        # Deleting model 'InstitutionType'
-        db.delete_table('digipal_institutiontype')
-
-        # Deleting model 'Institution'
-        db.delete_table('digipal_institution')
-
-        # Deleting model 'Scribe'
-        db.delete_table('digipal_scribe')
-
-        # Removing M2M table for field reference on 'Scribe'
-        db.delete_table('digipal_scribe_reference')
-
-        # Deleting model 'Idiograph'
-        db.delete_table('digipal_idiograph')
-
-        # Removing M2M table for field aspects on 'Idiograph'
-        db.delete_table('digipal_idiograph_aspects')
-
-        # Deleting model 'IdiographComponent'
-        db.delete_table('digipal_idiographcomponent')
-
-        # Removing M2M table for field features on 'IdiographComponent'
-        db.delete_table('digipal_idiographcomponent_features')
-
-        # Deleting model 'HistoricalItemDate'
-        db.delete_table('digipal_historicalitemdate')
-
-        # Deleting model 'ItemPart'
-        db.delete_table('digipal_itempart')
-
-        # Deleting model 'LatinStyle'
-        db.delete_table('digipal_latinstyle')
-
-        # Deleting model 'Page'
-        db.delete_table('digipal_page')
-
-        # Deleting model 'Hand'
-        db.delete_table('digipal_hand')
-
-        # Removing M2M table for field pages on 'Hand'
-        db.delete_table('digipal_hand_pages')
-
-        # Deleting model 'Alphabet'
-        db.delete_table('digipal_alphabet')
-
-        # Removing M2M table for field ontographs on 'Alphabet'
-        db.delete_table('digipal_alphabet_ontographs')
-
-        # Removing M2M table for field hands on 'Alphabet'
-        db.delete_table('digipal_alphabet_hands')
-
-        # Deleting model 'DateEvidence'
-        db.delete_table('digipal_dateevidence')
-
-        # Deleting model 'Graph'
-        db.delete_table('digipal_graph')
-
-        # Removing M2M table for field aspects on 'Graph'
-        db.delete_table('digipal_graph_aspects')
-
-        # Deleting model 'GraphComponent'
-        db.delete_table('digipal_graphcomponent')
-
-        # Removing M2M table for field features on 'GraphComponent'
-        db.delete_table('digipal_graphcomponent_features')
-
-        # Deleting model 'Status'
-        db.delete_table('digipal_status')
-
-        # Deleting model 'Annotation'
-        db.delete_table('digipal_annotation')
-
-        # Deleting model 'PlaceEvidence'
-        db.delete_table('digipal_placeevidence')
-
-        # Deleting model 'Measurement'
-        db.delete_table('digipal_measurement')
-
-        # Deleting model 'Proportion'
-        db.delete_table('digipal_proportion')
-
-
-    models = {
-        'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'auth.permission': {
-            'Meta': {'ordering': "('content_type__app_label', 'content_type__model', 'codename')", 'unique_together': "(('content_type', 'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'auth.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'digipal.allograph': {
-            'Meta': {'ordering': "['character__name', 'name']", 'unique_together': "(['name', 'character'],)", 'object_name': 'Allograph'},
-            'aspects': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['digipal.Aspect']", 'null': 'True', 'blank': 'True'}),
-            'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Character']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'default': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'})
-        },
-        'digipal.allographcomponent': {
-            'Meta': {'ordering': "['allograph', 'component']", 'object_name': 'AllographComponent'},
-            'allograph': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Allograph']"}),
-            'component': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Component']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'features': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['digipal.Feature']", 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'})
-        },
-        'digipal.alphabet': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Alphabet'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'hands': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['digipal.Hand']", 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'}),
-            'ontographs': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['digipal.Ontograph']", 'null': 'True', 'blank': 'True'})
-        },
-        'digipal.annotation': {
-            'Meta': {'ordering': "['graph', 'modified']", 'unique_together': "(('page', 'vector_id'),)", 'object_name': 'Annotation'},
-            'after': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'allograph_after'", 'null': 'True', 'to': "orm['digipal.Allograph']"}),
-            'author': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
-            'before': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'allograph_before'", 'null': 'True', 'to': "orm['digipal.Allograph']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'cutout': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'display_note': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'geo_json': ('django.db.models.fields.TextField', [], {}),
-            'graph': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['digipal.Graph']", 'unique': 'True', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'internal_note': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'page': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Page']"}),
-            'status': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Status']", 'null': 'True', 'blank': 'True'}),
-            'vector_id': ('django.db.models.fields.TextField', [], {})
-        },
-        'digipal.appearance': {
-            'Meta': {'ordering': "['sort_order', 'text']", 'object_name': 'Appearance'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'sort_order': ('django.db.models.fields.IntegerField', [], {}),
-            'text': ('django.db.models.fields.CharField', [], {'max_length': '128'})
-        },
-        'digipal.archive': {
-            'Meta': {'ordering': "['historical_item']", 'object_name': 'Archive'},
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'dubitable': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.HistoricalItem']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'object_id': ('django.db.models.fields.PositiveIntegerField', [], {})
-        },
-        'digipal.aspect': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Aspect'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'features': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['digipal.Feature']", 'symmetrical': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
-        },
-        'digipal.cataloguenumber': {
-            'Meta': {'ordering': "['source', 'number']", 'unique_together': "(['source', 'number'],)", 'object_name': 'CatalogueNumber'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'catalogue_numbers'", 'to': "orm['digipal.HistoricalItem']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'number': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
-            'source': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Source']"})
-        },
-        'digipal.category': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Category'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'}),
-            'sort_order': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'digipal.character': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Character'},
-            'components': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['digipal.Component']", 'symmetrical': 'False'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'form': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'}),
-            'ontograph': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Ontograph']"}),
-            'unicode_point': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '32'})
-        },
-        'digipal.collation': {
-            'Meta': {'ordering': "['historical_item']", 'object_name': 'Collation'},
-            'back_flyleaves': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'fragment': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'front_flyleaves': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.HistoricalItem']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'leaves': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'})
-        },
-        'digipal.component': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Component'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'features': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'components'", 'symmetrical': 'False', 'to': "orm['digipal.Feature']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
-        },
-        'digipal.county': {
-            'Meta': {'ordering': "['name']", 'object_name': 'County'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
-        },
-        'digipal.currentitem': {
-            'Meta': {'ordering': "['repository', 'shelfmark']", 'unique_together': "(['repository', 'shelfmark'],)", 'object_name': 'CurrentItem'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'display_label': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'repository': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Repository']"}),
-            'shelfmark': ('django.db.models.fields.CharField', [], {'max_length': '128'})
-        },
-        'digipal.date': {
-            'Meta': {'ordering': "['sort_order']", 'object_name': 'Date'},
-            'additional_band': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'band': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'date': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'max_weight': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            'min_weight': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'post_conquest': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            's_xi': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'sort_order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'weight': ('django.db.models.fields.FloatField', [], {})
-        },
-        'digipal.dateevidence': {
-            'Meta': {'ordering': "['date']", 'object_name': 'DateEvidence'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'date': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Date']", 'null': 'True', 'blank': 'True'}),
-            'date_description': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'evidence': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'hand': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Hand']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'reference': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Reference']", 'null': 'True', 'blank': 'True'})
-        },
-        'digipal.decoration': {
-            'Meta': {'ordering': "['historical_item']", 'object_name': 'Decoration'},
-            'catalogue_references': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
-            'colours': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'decorated': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.HistoricalItem']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'illuminated': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'illustrated': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'inks': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'num_colours': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'num_inks': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'style': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'})
-        },
-        'digipal.description': {
-            'Meta': {'ordering': "['historical_item']", 'object_name': 'Description'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {}),
-            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.HistoricalItem']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'source': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Source']"})
-        },
-        'digipal.feature': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Feature'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '32'})
-        },
-        'digipal.format': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Format'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
-        },
-        'digipal.graph': {
-            'Meta': {'ordering': "['idiograph']", 'object_name': 'Graph'},
-            'aspects': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['digipal.Aspect']", 'symmetrical': 'False'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'display_label': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'hand': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Hand']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'idiograph': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Idiograph']"}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'})
-        },
-        'digipal.graphcomponent': {
-            'Meta': {'ordering': "['graph', 'component']", 'object_name': 'GraphComponent'},
-            'component': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Component']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'features': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['digipal.Feature']", 'symmetrical': 'False'}),
-            'graph': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'graph_components'", 'to': "orm['digipal.Graph']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'})
-        },
-        'digipal.hair': {
-            'Meta': {'ordering': "['label']", 'object_name': 'Hair'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'label': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'})
-        },
-        'digipal.hand': {
-            'Meta': {'ordering': "['display_label']", 'object_name': 'Hand'},
-            'appearance': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Appearance']", 'null': 'True', 'blank': 'True'}),
-            'assigned_date': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Date']", 'null': 'True', 'blank': 'True'}),
-            'assigned_place': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Place']", 'null': 'True', 'blank': 'True'}),
-            'comments': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'display_label': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'display_note': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'em_description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'em_title': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
-            'gloss_only': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'glossed_text': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Category']", 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'imitative': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'internal_note': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'item_part': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.ItemPart']"}),
-            'label': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'latin_only': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'latin_style': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.LatinStyle']", 'null': 'True', 'blank': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'mancass_description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'membra_disjecta': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'num': ('django.db.models.fields.IntegerField', [], {}),
-            'num_glosses': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'num_glossing_hands': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'pages': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['digipal.Page']", 'null': 'True', 'blank': 'True'}),
-            'relevant': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'scragg': ('django.db.models.fields.CharField', [], {'max_length': '6', 'null': 'True', 'blank': 'True'}),
-            'scragg_description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'scribble_only': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'scribe': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Scribe']", 'null': 'True', 'blank': 'True'}),
-            'script': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Script']", 'null': 'True', 'blank': 'True'})
-        },
-        'digipal.historicalitem': {
-            'Meta': {'ordering': "['display_label', 'date', 'name']", 'object_name': 'HistoricalItem'},
-            'catalogue_number': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'categories': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['digipal.Category']", 'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'date': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'display_label': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'hair': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Hair']", 'null': 'True', 'blank': 'True'}),
-            'historical_item_format': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Format']", 'null': 'True', 'blank': 'True'}),
-            'historical_item_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.HistoricalItemType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'language': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Language']", 'null': 'True', 'blank': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
-            'neumed': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'owners': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['digipal.Owner']", 'null': 'True', 'blank': 'True'}),
-            'url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'vernacular': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'digipal.historicalitemdate': {
-            'Meta': {'ordering': "['date']", 'object_name': 'HistoricalItemDate'},
-            'addition': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'date': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Date']"}),
-            'dubitable': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'evidence': ('django.db.models.fields.TextField', [], {}),
-            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.HistoricalItem']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'vernacular': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'digipal.historicalitemtype': {
-            'Meta': {'ordering': "['name']", 'object_name': 'HistoricalItemType'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'})
-        },
-        'digipal.idiograph': {
-            'Meta': {'ordering': "['allograph']", 'object_name': 'Idiograph'},
-            'allograph': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Allograph']"}),
-            'aspects': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['digipal.Aspect']", 'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'display_label': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'scribe': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'idiographs'", 'null': 'True', 'to': "orm['digipal.Scribe']"})
-        },
-        'digipal.idiographcomponent': {
-            'Meta': {'ordering': "['idiograph', 'component']", 'object_name': 'IdiographComponent'},
-            'component': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Component']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'features': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['digipal.Feature']", 'symmetrical': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'idiograph': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Idiograph']"}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'})
-        },
-        'digipal.institution': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Institution'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'foundation': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'founder': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'person_founder'", 'null': 'True', 'to': "orm['digipal.Person']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'institution_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.InstitutionType']"}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'patron': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'person_patron'", 'null': 'True', 'to': "orm['digipal.Person']"}),
-            'place': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Place']"}),
-            'reformer': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'person_reformer'", 'null': 'True', 'to': "orm['digipal.Person']"}),
-            'refoundation': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'})
-        },
-        'digipal.institutiontype': {
-            'Meta': {'ordering': "['name']", 'object_name': 'InstitutionType'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '256'})
-        },
-        'digipal.itemorigin': {
-            'Meta': {'ordering': "['historical_item']", 'object_name': 'ItemOrigin'},
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'dubitable': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'evidence': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.HistoricalItem']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'object_id': ('django.db.models.fields.PositiveIntegerField', [], {})
-        },
-        'digipal.itempart': {
-            'Meta': {'ordering': "['display_label']", 'unique_together': "(['historical_item', 'current_item', 'locus'],)", 'object_name': 'ItemPart'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'current_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.CurrentItem']"}),
-            'display_label': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.HistoricalItem']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'locus': ('django.db.models.fields.CharField', [], {'default': "'face'", 'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'})
-        },
-        'digipal.language': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Language'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
-        },
-        'digipal.latinstyle': {
-            'Meta': {'ordering': "['style']", 'object_name': 'LatinStyle'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'style': ('django.db.models.fields.CharField', [], {'max_length': '128'})
-        },
-        'digipal.layout': {
-            'Meta': {'ordering': "['historical_item']", 'object_name': 'Layout'},
-            'bilinear_ruling': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'columns': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'comments': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'frame_height': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'frame_width': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'hair_arrangement': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Hair']", 'null': 'True', 'blank': 'True'}),
-            'historical_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.HistoricalItem']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'insular_pricking': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'lines': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'multiple_sheet_rulling': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'on_top_line': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'page_height': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'page_width': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'tramline_width': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'digipal.measurement': {
-            'Meta': {'ordering': "['label']", 'object_name': 'Measurement'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'label': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'})
-        },
-        'digipal.ontograph': {
-            'Meta': {'ordering': "['ontograph_type', 'name']", 'unique_together': "(['name', 'ontograph_type'],)", 'object_name': 'Ontograph'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'ontograph_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.OntographType']"})
-        },
-        'digipal.ontographtype': {
-            'Meta': {'ordering': "['name']", 'object_name': 'OntographType'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
-        },
-        'digipal.owner': {
-            'Meta': {'ordering': "['date']", 'object_name': 'Owner'},
-            'annotated': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'date': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'dubitable': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'evidence': ('django.db.models.fields.TextField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'object_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'rebound': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'digipal.page': {
-            'Meta': {'ordering': "['display_label']", 'object_name': 'Page'},
-            'caption': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'display_label': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'item_part': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'pages'", 'to': "orm['digipal.ItemPart']"}),
-            'locus': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'})
-        },
-        'digipal.person': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Person'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '256'})
-        },
-        'digipal.place': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Place'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'current_county': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'county_current'", 'null': 'True', 'to': "orm['digipal.County']"}),
-            'eastings': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            'historical_county': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'county_historical'", 'null': 'True', 'to': "orm['digipal.County']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'northings': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
-            'region': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Region']", 'null': 'True', 'blank': 'True'})
-        },
-        'digipal.placeevidence': {
-            'Meta': {'ordering': "['place']", 'object_name': 'PlaceEvidence'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'evidence': ('django.db.models.fields.TextField', [], {}),
-            'hand': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Hand']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'place': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Place']"}),
-            'place_description': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'reference': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Reference']"})
-        },
-        'digipal.proportion': {
-            'Meta': {'ordering': "['hand', 'measurement']", 'object_name': 'Proportion'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'cue_height': ('django.db.models.fields.FloatField', [], {}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'hand': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Hand']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'measurement': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Measurement']"}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'value': ('django.db.models.fields.FloatField', [], {})
-        },
-        'digipal.reference': {
-            'Meta': {'ordering': "['name']", 'unique_together': "(['name', 'name_index'],)", 'object_name': 'Reference'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'full_reference': ('django.db.models.fields.TextField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'legacy_reference': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'name_index': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'})
-        },
-        'digipal.region': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Region'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
-        },
-        'digipal.repository': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Repository'},
-            'british_isles': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'comma': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'digital_project': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'place': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Place']"}),
-            'short_name': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'})
-        },
-        'digipal.scribe': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Scribe'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'date': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'}),
-            'reference': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['digipal.Reference']", 'null': 'True', 'blank': 'True'}),
-            'scriptorium': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Institution']", 'null': 'True', 'blank': 'True'})
-        },
-        'digipal.script': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Script'},
-            'allographs': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['digipal.Allograph']", 'symmetrical': 'False'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'legacy_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'})
-        },
-        'digipal.scriptcomponent': {
-            'Meta': {'ordering': "['script', 'component']", 'object_name': 'ScriptComponent'},
-            'component': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Component']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'features': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['digipal.Feature']", 'symmetrical': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'script': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['digipal.Script']"})
-        },
-        'digipal.source': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Source'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'label': ('django.db.models.fields.CharField', [], {'max_length': '12', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '128'})
-        },
-        'digipal.status': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Status'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'default': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'auto_now_add': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '32'})
-        }
-    }
-
-    complete_apps = ['digipal']
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import iipimage.storage
+from django.conf import settings
+import tinymce.models
+import iipimage.fields
+import digipal.iipfield.storage
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('contenttypes', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Allograph',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128)),
+                ('default', models.BooleanField(default=False)),
+                ('hidden', models.BooleanField(default=False, help_text="If ticked the public users won't see this allograph on the web site.")),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['character__ontograph__sort_order', 'character__ontograph__ontograph_type__name', 'name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='AllographComponent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('allograph', models.ForeignKey(related_name=b'allograph_components', to='digipal.Allograph')),
+            ],
+            options={
+                'ordering': ['allograph', 'component'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Alphabet',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Annotation',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('cutout', models.CharField(default=None, max_length=256, null=True, blank=True)),
+                ('rotation', models.FloatField(default=0.0)),
+                ('vector_id', models.TextField(default='', blank=True)),
+                ('geo_json', models.TextField()),
+                ('display_note', tinymce.models.HTMLField(help_text=b'An optional note that will be publicly visible on the website.', null=True, blank=True)),
+                ('internal_note', tinymce.models.HTMLField(help_text=b'An optional note for internal or editorial purpose only. Will not be visible on the website.', null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('holes', models.CharField(max_length=1000, null=True, blank=True)),
+                ('clientid', models.CharField(db_index=True, max_length=24, null=True, blank=True)),
+                ('type', models.CharField(default=None, max_length=15, null=True, db_index=True, blank=True)),
+                ('after', models.ForeignKey(related_name=b'allograph_after', blank=True, to='digipal.Allograph', null=True)),
+                ('author', models.ForeignKey(editable=False, to=settings.AUTH_USER_MODEL)),
+                ('before', models.ForeignKey(related_name=b'allograph_before', blank=True, to='digipal.Allograph', null=True)),
+            ],
+            options={
+                'ordering': ['graph', 'modified'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ApiTransform',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('title', models.CharField(help_text=b'A unique title for this XSLT template.', unique=True, max_length=30)),
+                ('slug', models.SlugField(help_text=b'A unique code to refer to this template when using the web API. @xslt=slug', unique=True, max_length=30, editable=False)),
+                ('template', models.TextField(help_text=b'Your XSLT template', null=True, blank=True)),
+                ('description', models.TextField(help_text=b'A description of the transform', null=True, blank=True)),
+                ('mimetype', models.CharField(default=b'text/xml', help_text=b'The mime type of the output from the transform.', max_length=30)),
+                ('sample_request', models.CharField(default=b'graph', max_length=200, null=True, help_text=b'A sample API request this transform can be tested on. It is a API request URL without this part: http://.../digipal/api/. E.g. graph/100,101,102?@select=id,str', blank=True)),
+                ('webpage', models.BooleanField(default=False, verbose_name=b'Show as a webpage?')),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['title'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Appearance',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('text', models.CharField(max_length=128)),
+                ('sort_order', models.IntegerField()),
+                ('description', models.CharField(max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['sort_order', 'text'],
+                'verbose_name_plural': 'Appearance',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Archive',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('object_id', models.PositiveIntegerField()),
+                ('dubitable', models.NullBooleanField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType')),
+            ],
+            options={
+                'ordering': ['historical_item'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Aspect',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='AuthenticityCategory',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=100)),
+                ('slug', models.SlugField(max_length=100)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+                'abstract': False,
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CarouselItem',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('link', models.CharField(help_text=b'The URL of the page this item links to. E.g. /digipal/page/80/', max_length=200, null=True, blank=True)),
+                ('image_file', models.ImageField(default=None, upload_to=b'uploads/images/', blank=True, help_text=b'The image for this item. Not needed if you have provided a the URL of the image in the image field.', null=True)),
+                ('image', models.CharField(help_text=b'The URL of the image of this item. E.g. /static/digipal/images/Catholic_Homilies.jpg. Not needed if you have uploaded a file in the image_file field.', max_length=200, null=True, blank=True)),
+                ('image_alt', models.CharField(help_text=b'a few words describing the image content.', max_length=300, null=True, blank=True)),
+                ('image_title', models.CharField(help_text=b'the piece of text that appears when the user moved the mouse over the image (optional).', max_length=300, null=True, blank=True)),
+                ('sort_order', models.IntegerField(help_text=b'The order of this item in the carousel. 1 appears first, 2 second, etc. 0 is hidden.')),
+                ('title', models.CharField(help_text=b'The caption under the image of this item. This can contain some inline HTML. You can surround some text with just <a>...</a>.', max_length=300)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CatalogueNumber',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('number', models.CharField(max_length=100)),
+                ('number_slug', models.SlugField(max_length=100, null=True, blank=True)),
+                ('url', models.URLField(null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['source', 'number'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Category',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('sort_order', models.PositiveIntegerField(null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+                'verbose_name_plural': 'Categories',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Character',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('unicode_point', models.CharField(max_length=32, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['ontograph__sort_order', 'ontograph__ontograph_type__name', 'name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CharacterForm',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Collation',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('fragment', models.NullBooleanField()),
+                ('leaves', models.IntegerField(null=True, blank=True)),
+                ('front_flyleaves', models.IntegerField(null=True, blank=True)),
+                ('back_flyleaves', models.IntegerField(null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['historical_item'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Component',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ComponentFeature',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('set_by_default', models.BooleanField(default=False)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('component', models.ForeignKey(to='digipal.Component')),
+            ],
+            options={
+                'ordering': ['component__name', 'feature__name'],
+                'db_table': 'digipal_component_features',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='County',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+                'verbose_name_plural': 'Counties',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CurrentItem',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('shelfmark', models.CharField(max_length=128)),
+                ('description', models.TextField(null=True, blank=True)),
+                ('display_label', models.CharField(max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['repository', 'shelfmark'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Date',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('date', models.CharField(max_length=128)),
+                ('sort_order', models.IntegerField(null=True, blank=True)),
+                ('weight', models.FloatField()),
+                ('band', models.IntegerField(null=True, blank=True)),
+                ('additional_band', models.IntegerField(null=True, blank=True)),
+                ('post_conquest', models.NullBooleanField()),
+                ('s_xi', models.NullBooleanField()),
+                ('min_weight', models.FloatField(null=True, blank=True)),
+                ('max_weight', models.FloatField(null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('legacy_reference', models.CharField(default=b'', max_length=128, null=True, blank=True)),
+                ('evidence', models.CharField(default=b'', max_length=255, null=True, blank=True)),
+            ],
+            options={
+                'ordering': ['sort_order'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='DateEvidence',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('is_firm_date', models.BooleanField(default=False)),
+                ('date_description', models.CharField(max_length=128, null=True, blank=True)),
+                ('evidence', models.TextField(default=b'', max_length=255, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('date', models.ForeignKey(blank=True, to='digipal.Date', null=True)),
+            ],
+            options={
+                'ordering': ['date'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Decoration',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('illustrated', models.NullBooleanField()),
+                ('decorated', models.NullBooleanField()),
+                ('illuminated', models.NullBooleanField()),
+                ('num_colours', models.IntegerField(null=True, blank=True)),
+                ('colours', models.CharField(max_length=256, null=True, blank=True)),
+                ('num_inks', models.IntegerField(null=True, blank=True)),
+                ('inks', models.CharField(max_length=256, null=True, blank=True)),
+                ('style', models.CharField(max_length=256, null=True, blank=True)),
+                ('description', models.TextField(null=True, blank=True)),
+                ('catalogue_references', models.CharField(max_length=256, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['historical_item'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Description',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('description', tinymce.models.HTMLField(null=True, blank=True)),
+                ('comments', models.TextField(null=True, blank=True)),
+                ('summary', models.CharField(max_length=256, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['historical_item', 'text'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Feature',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=32)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Format',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Graph',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('display_label', models.CharField(max_length=256, editable=False)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('aspects', models.ManyToManyField(to='digipal.Aspect', null=True, blank=True)),
+                ('group', models.ForeignKey(related_name=b'parts', blank=True, to='digipal.Graph', help_text='Select a graph that contains this one', null=True)),
+            ],
+            options={
+                'ordering': ['idiograph'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='GraphComponent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('component', models.ForeignKey(to='digipal.Component')),
+                ('features', models.ManyToManyField(to='digipal.Feature')),
+                ('graph', models.ForeignKey(related_name=b'graph_components', to='digipal.Graph')),
+            ],
+            options={
+                'ordering': ['graph', 'component'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Hair',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('label', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['label'],
+                'verbose_name_plural': 'Hair',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Hand',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('num', models.IntegerField(help_text=b'The order of display of the Hand label. e.g. 1 for Main Hand, 2 for Gloss.')),
+                ('scragg', models.CharField(max_length=6, null=True, blank=True)),
+                ('ker', models.CharField(max_length=10, null=True, blank=True)),
+                ('em_title', models.CharField(max_length=256, null=True, blank=True)),
+                ('label', models.TextField(null=True, blank=True)),
+                ('display_note', models.TextField(help_text=b'An optional note that will be publicly visible on the website.', null=True, blank=True)),
+                ('internal_note', models.TextField(help_text=b'An optional note for internal or editorial purpose only. Will not be visible on the website.', null=True, blank=True)),
+                ('relevant', models.NullBooleanField()),
+                ('latin_only', models.NullBooleanField()),
+                ('gloss_only', models.NullBooleanField()),
+                ('membra_disjecta', models.NullBooleanField()),
+                ('num_glosses', models.IntegerField(null=True, blank=True)),
+                ('num_glossing_hands', models.IntegerField(null=True, blank=True)),
+                ('scribble_only', models.NullBooleanField()),
+                ('imitative', models.NullBooleanField()),
+                ('comments', models.TextField(null=True, blank=True)),
+                ('display_label', models.CharField(max_length=128, editable=False)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('locus', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('surrogates', models.CharField(default=b'', max_length=50, null=True, blank=True)),
+                ('selected_locus', models.CharField(default=b'', max_length=100, null=True, blank=True)),
+                ('appearance', models.ForeignKey(blank=True, to='digipal.Appearance', null=True)),
+                ('assigned_date', models.ForeignKey(blank=True, to='digipal.Date', null=True)),
+            ],
+            options={
+                'ordering': ['item_part', 'num'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='HandDescription',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('description', models.TextField(help_text=b'This field accepts TEI elements.')),
+                ('label', models.CharField(help_text=b"A label assigned to this hand by a source. E.g. 'Alpha' (for source 'Flight').", max_length=64, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('hand', models.ForeignKey(related_name=b'descriptions', blank=True, to='digipal.Hand', null=True)),
+            ],
+            options={
+                'ordering': ['hand', 'source__priority'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='HistoricalItem',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('date', models.CharField(max_length=128, null=True, blank=True)),
+                ('date_sort', models.CharField(help_text=b'Optional date, usually narrower than the date field. Used for result visualisation and sorting.', max_length=128, null=True, blank=True)),
+                ('name', models.CharField(max_length=256, null=True, blank=True)),
+                ('url', models.URLField(null=True, blank=True)),
+                ('vernacular', models.NullBooleanField()),
+                ('neumed', models.NullBooleanField()),
+                ('catalogue_number', models.CharField(max_length=128, editable=False)),
+                ('display_label', models.CharField(max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('legacy_reference', models.CharField(default=b'', max_length=128, null=True, blank=True)),
+                ('categories', models.ManyToManyField(to='digipal.Category', null=True, blank=True)),
+                ('hair', models.ForeignKey(blank=True, to='digipal.Hair', null=True)),
+                ('historical_item_format', models.ForeignKey(blank=True, to='digipal.Format', null=True)),
+            ],
+            options={
+                'ordering': ['display_label', 'date', 'name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='HistoricalItemDate',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('evidence', models.TextField()),
+                ('vernacular', models.NullBooleanField()),
+                ('addition', models.NullBooleanField()),
+                ('dubitable', models.NullBooleanField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('date', models.ForeignKey(to='digipal.Date')),
+                ('historical_item', models.ForeignKey(to='digipal.HistoricalItem')),
+            ],
+            options={
+                'ordering': ['date'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='HistoricalItemType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Idiograph',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('display_label', models.CharField(max_length=128, editable=False)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('allograph', models.ForeignKey(to='digipal.Allograph')),
+                ('aspects', models.ManyToManyField(to='digipal.Aspect', null=True, blank=True)),
+            ],
+            options={
+                'ordering': ['allograph'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='IdiographComponent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('component', models.ForeignKey(to='digipal.Component')),
+                ('features', models.ManyToManyField(to='digipal.Feature')),
+                ('idiograph', models.ForeignKey(to='digipal.Idiograph')),
+            ],
+            options={
+                'ordering': ['idiograph', 'component'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Image',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('keywords_string', models.CharField(max_length=500, editable=False, blank=True)),
+                ('locus', models.CharField(default=b'', max_length=64, blank=True)),
+                ('folio_side', models.CharField(max_length=4, null=True, blank=True)),
+                ('folio_number', models.CharField(max_length=8, null=True, blank=True)),
+                ('caption', models.CharField(max_length=256, null=True, blank=True)),
+                ('image', models.ImageField(null=True, upload_to=b'uploads/images/', blank=True)),
+                ('iipimage', iipimage.fields.ImageField(storage=iipimage.storage.ImageStorage(base_url=b'https://digipal-stg.cch.kcl.ac.uk/iip/iipsrv.fcgi', location=b'/vol/digipal2/images'), max_length=200, null=True, upload_to=digipal.iipfield.storage.get_image_path, blank=True)),
+                ('display_label', models.CharField(max_length=128)),
+                ('custom_label', models.CharField(help_text=b'Leave blank unless you want to customise the value of the display label field', max_length=128, null=True, blank=True)),
+                ('transcription', models.TextField(null=True, blank=True)),
+                ('internal_notes', models.TextField(null=True, blank=True)),
+                ('width', models.IntegerField(default=0)),
+                ('height', models.IntegerField(default=0)),
+                ('size', models.IntegerField(default=0)),
+                ('quire', models.CharField(default=None, max_length=10, null=True, help_text=b'A quire number, e.g. 3', blank=True)),
+                ('page_boundaries', models.CharField(default=None, max_length=100, null=True, help_text=b'relative coordinates of the page boundaries in json. e.g. [[0.3, 0.1], [0.7, 0.9]]', blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['item_part__display_label', 'folio_number', 'folio_side'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ImageAnnotationStatus',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+                'verbose_name_plural': 'Image annotation statuses',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Institution',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('name', models.CharField(max_length=256)),
+                ('foundation', models.CharField(max_length=128, null=True, blank=True)),
+                ('refoundation', models.CharField(max_length=128, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='InstitutionType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=256)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ItemOrigin',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('evidence', models.TextField(default=b'', null=True, blank=True)),
+                ('dubitable', models.NullBooleanField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('historical_item', models.ForeignKey(to='digipal.HistoricalItem')),
+                ('institution', models.ForeignKey(related_name=b'item_origins', blank=True, to='digipal.Institution', null=True)),
+            ],
+            options={
+                'ordering': ['historical_item'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ItemPart',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('keywords_string', models.CharField(max_length=500, editable=False, blank=True)),
+                ('group_locus', models.CharField(help_text=b'the locus of this part in the group', max_length=64, null=True, blank=True)),
+                ('locus', models.CharField(default=b'face', max_length=64, null=True, help_text=b'the location of this part in the Current Item', blank=True)),
+                ('display_label', models.CharField(max_length=300)),
+                ('pagination', models.BooleanField(default=False)),
+                ('notes', models.TextField(null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('current_item', models.ForeignKey(default=None, blank=True, to='digipal.CurrentItem', null=True)),
+                ('group', models.ForeignKey(related_name=b'subdivisions', blank=True, to='digipal.ItemPart', help_text=b'the item part which contains this one', null=True)),
+            ],
+            options={
+                'ordering': ['display_label'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ItemPartAuthenticity',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('note', models.TextField(default=None, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('category', models.ForeignKey(related_name=b'itempart_authenticity', to='digipal.AuthenticityCategory')),
+                ('item_part', models.ForeignKey(related_name=b'authenticities', to='digipal.ItemPart')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ItemPartItem',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('locus', models.CharField(default=b'', max_length=64, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('historical_item', models.ForeignKey(related_name=b'partitions', to='digipal.HistoricalItem')),
+                ('item_part', models.ForeignKey(related_name=b'constitutionalities', to='digipal.ItemPart')),
+            ],
+            options={
+                'ordering': ['historical_item__id'],
+                'verbose_name': 'Item Partition',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ItemPartType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='KeyVal',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('key', models.CharField(unique=True, max_length=300)),
+                ('val', models.TextField(null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['key'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Language',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='LatinStyle',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('style', models.CharField(max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['style'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Layout',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('page_height', models.IntegerField(null=True, blank=True)),
+                ('page_width', models.IntegerField(null=True, blank=True)),
+                ('frame_height', models.IntegerField(null=True, blank=True)),
+                ('frame_width', models.IntegerField(null=True, blank=True)),
+                ('tramline_width', models.IntegerField(null=True, blank=True)),
+                ('lines', models.IntegerField(null=True, blank=True)),
+                ('columns', models.IntegerField(null=True, blank=True)),
+                ('on_top_line', models.NullBooleanField()),
+                ('multiple_sheet_rulling', models.NullBooleanField()),
+                ('bilinear_ruling', models.NullBooleanField()),
+                ('comments', models.TextField(null=True, blank=True)),
+                ('insular_pricking', models.NullBooleanField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('hair_arrangement', models.ForeignKey(blank=True, to='digipal.Hair', null=True)),
+                ('historical_item', models.ForeignKey(blank=True, to='digipal.HistoricalItem', null=True)),
+                ('item_part', models.ForeignKey(related_name=b'layouts', blank=True, to='digipal.ItemPart', null=True)),
+            ],
+            options={
+                'ordering': ['item_part', 'historical_item'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Measurement',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('label', models.CharField(max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['label'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='MediaPermission',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('label', models.CharField(help_text=b'A short label describing the type of permission. For internal use only.', max_length=64)),
+                ('permission', models.IntegerField(default=100, choices=[(100, b'Private'), (200, b'Thumbnail Only'), (300, b'Full Resolution')])),
+                ('display_message', tinymce.models.HTMLField(default=b'', help_text=b'This message will be displayed when the image is not available to the user.', blank=True)),
+            ],
+            options={
+                'ordering': ['label'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Ontograph',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('nesting_level', models.IntegerField(default=0, help_text=b'An ontograph can contain another ontograph of a higher level. E.g. level 3 con be made of ontographs of level 4 and above. Set 0 to prevent any nesting.')),
+                ('sort_order', models.IntegerField(default=0)),
+            ],
+            options={
+                'ordering': ['sort_order', 'ontograph_type__name', 'name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='OntographType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Owner',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('date', models.CharField(max_length=128)),
+                ('display_label', models.CharField(default=b'', max_length=250, blank=True)),
+                ('evidence', models.TextField()),
+                ('rebound', models.NullBooleanField()),
+                ('annotated', models.NullBooleanField()),
+                ('dubitable', models.NullBooleanField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('institution', models.ForeignKey(related_name=b'owners', default=None, blank=True, to='digipal.Institution', help_text=b'Please select either an institution or a person. Deprecated, please use `Repository` instead.', null=True)),
+            ],
+            options={
+                'ordering': ['date'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='OwnerType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=256)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Person',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('name', models.CharField(unique=True, max_length=256)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Place',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('name', models.CharField(max_length=256)),
+                ('other_names', models.CharField(max_length=256, null=True, blank=True)),
+                ('eastings', models.FloatField(null=True, blank=True)),
+                ('northings', models.FloatField(null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('current_county', models.ForeignKey(related_name=b'county_current', blank=True, to='digipal.County', null=True)),
+                ('historical_county', models.ForeignKey(related_name=b'county_historical', blank=True, to='digipal.County', null=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='PlaceEvidence',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('written_as', models.CharField(max_length=128, null=True, blank=True)),
+                ('place_description', models.CharField(max_length=128, null=True, blank=True)),
+                ('evidence', models.TextField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('hand', models.ForeignKey(default=None, blank=True, to='digipal.Hand', null=True)),
+                ('historical_item', models.ForeignKey(default=None, blank=True, to='digipal.HistoricalItem', null=True)),
+                ('place', models.ForeignKey(to='digipal.Place')),
+            ],
+            options={
+                'ordering': ['place'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='PlaceType',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=256)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Proportion',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('description', models.TextField(null=True, blank=True)),
+                ('cue_height', models.FloatField()),
+                ('value', models.FloatField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('hand', models.ForeignKey(to='digipal.Hand')),
+                ('measurement', models.ForeignKey(to='digipal.Measurement')),
+            ],
+            options={
+                'ordering': ['hand', 'measurement'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Reference',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('name', models.CharField(max_length=128)),
+                ('name_index', models.CharField(max_length=1, null=True, blank=True)),
+                ('legacy_reference', models.CharField(default=b'', max_length=128, null=True, blank=True)),
+                ('full_reference', tinymce.models.HTMLField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Region',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Repository',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('name', models.CharField(max_length=256)),
+                ('short_name', models.CharField(max_length=64, null=True, blank=True)),
+                ('url', models.URLField(null=True, blank=True)),
+                ('comma', models.NullBooleanField()),
+                ('british_isles', models.NullBooleanField()),
+                ('digital_project', models.NullBooleanField()),
+                ('copyright_notice', tinymce.models.HTMLField(null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('media_permission', models.ForeignKey(default=None, blank=True, to='digipal.MediaPermission', help_text=b'The default permission scheme for images originating\n            from this repository.<br/> The Pages can override the\n            repository default permission.\n            ', null=True)),
+                ('part_of', models.ForeignKey(related_name=b'parts', default=None, blank=True, to='digipal.Repository', null=True)),
+                ('place', models.ForeignKey(to='digipal.Place')),
+                ('type', models.ForeignKey(related_name=b'repositories', default=None, blank=True, to='digipal.OwnerType', null=True)),
+            ],
+            options={
+                'ordering': ['short_name', 'name'],
+                'verbose_name_plural': 'Repositories',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='RequestLog',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('request', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('result_count', models.IntegerField(default=0)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Scribe',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('name', models.CharField(unique=True, max_length=128)),
+                ('date', models.CharField(max_length=128, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('legacy_reference', models.CharField(default=b'', max_length=128, null=True, blank=True)),
+                ('reference', models.ManyToManyField(to='digipal.Reference', null=True, blank=True)),
+                ('scriptorium', models.ForeignKey(blank=True, to='digipal.Institution', null=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Script',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('name', models.CharField(max_length=128)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('allographs', models.ManyToManyField(to='digipal.Allograph')),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ScriptComponent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('component', models.ForeignKey(to='digipal.Component')),
+                ('features', models.ManyToManyField(to='digipal.Feature')),
+                ('script', models.ForeignKey(to='digipal.Script')),
+            ],
+            options={
+                'ordering': ['script', 'component'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Source',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(help_text=b'Full reference of this source (e.g. British Library)', unique=True, max_length=128)),
+                ('label', models.CharField(help_text=b'A shorthand for the reference (e.g. BL)', max_length=30, unique=True, null=True, blank=True)),
+                ('label_slug', models.SlugField(max_length=30, null=True, blank=True)),
+                ('label_styled', models.CharField(help_text=b'Styled version of the label, text between _underscores_ will be italicised', max_length=30, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('priority', models.IntegerField(default=0, help_text='Lower number has a higher display priority on the web site. 0 is top, 1 second, then 2, etc.')),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Status',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=32)),
+                ('default', models.BooleanField(default=False)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+            ],
+            options={
+                'ordering': ['name'],
+                'verbose_name_plural': 'Status',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='StewartRecord',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('scragg', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('repository', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('shelf_mark', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('stokes_db', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('fols', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('gneuss', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('ker', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('sp', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('ker_hand', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('locus', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('selected', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('adate', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('location', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('surrogates', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('contents', models.CharField(default=b'', max_length=500, null=True, blank=True)),
+                ('notes', models.CharField(default=b'', max_length=600, null=True, blank=True)),
+                ('em', models.CharField(default=b'', max_length=800, null=True, blank=True)),
+                ('glosses', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('minor', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('charter', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('cartulary', models.CharField(default=b'', max_length=300, null=True, blank=True)),
+                ('eel', models.CharField(default=b'', max_length=1000, null=True, blank=True)),
+                ('import_messages', models.TextField(default=b'', null=True, blank=True)),
+                ('matched_hands', models.CharField(default=b'', max_length=1000, null=True, blank=True)),
+            ],
+            options={
+                'ordering': ['scragg'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Text',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=200)),
+                ('legacy_id', models.IntegerField(null=True, blank=True)),
+                ('date', models.CharField(max_length=128, null=True, blank=True)),
+                ('url', models.URLField(null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('categories', models.ManyToManyField(related_name=b'texts', null=True, to='digipal.Category', blank=True)),
+            ],
+            options={
+                'ordering': ['name'],
+                'verbose_name': 'Text Info',
+                'verbose_name_plural': 'Text Info',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='TextItemPart',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('locus', models.CharField(max_length=20, null=True, blank=True)),
+                ('date', models.CharField(max_length=128, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True, auto_now_add=True)),
+                ('item_part', models.ForeignKey(related_name=b'text_instances', to='digipal.ItemPart')),
+                ('text', models.ForeignKey(related_name=b'text_instances', to='digipal.Text')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AlterUniqueTogether(
+            name='textitempart',
+            unique_together=set([('item_part', 'text')]),
+        ),
+        migrations.AddField(
+            model_name='text',
+            name='item_parts',
+            field=models.ManyToManyField(related_name=b'texts', through='digipal.TextItemPart', to='digipal.ItemPart'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='text',
+            name='languages',
+            field=models.ManyToManyField(related_name=b'texts', null=True, to='digipal.Language', blank=True),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='text',
+            unique_together=set([('name',)]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='reference',
+            unique_together=set([('name', 'name_index')]),
+        ),
+        migrations.AddField(
+            model_name='placeevidence',
+            name='reference',
+            field=models.ForeignKey(to='digipal.Reference'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='place',
+            name='region',
+            field=models.ForeignKey(blank=True, to='digipal.Region', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='place',
+            name='type',
+            field=models.ForeignKey(blank=True, to='digipal.PlaceType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='owner',
+            name='person',
+            field=models.ForeignKey(related_name=b'owners', default=None, blank=True, to='digipal.Person', help_text=b'Please select either an institution or a person. Deprecated, please use `Repository` instead.', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='owner',
+            name='repository',
+            field=models.ForeignKey(related_name=b'owners', default=None, blank=True, to='digipal.Repository', help_text=b'`Repository` actually represents the institution, person or library owning the item.', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='ontograph',
+            name='ontograph_type',
+            field=models.ForeignKey(verbose_name=b'type', to='digipal.OntographType'),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='ontograph',
+            unique_together=set([('name', 'ontograph_type')]),
+        ),
+        migrations.AddField(
+            model_name='itempartauthenticity',
+            name='source',
+            field=models.ForeignKey(related_name=b'itempart_authenticity', blank=True, to='digipal.Source', null=True),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='itempartauthenticity',
+            unique_together=set([('item_part', 'category', 'source')]),
+        ),
+        migrations.AddField(
+            model_name='itempart',
+            name='historical_items',
+            field=models.ManyToManyField(related_name=b'item_parts', through='digipal.ItemPartItem', to='digipal.HistoricalItem'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='itempart',
+            name='owners',
+            field=models.ManyToManyField(to='digipal.Owner', null=True, blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='itempart',
+            name='type',
+            field=models.ForeignKey(blank=True, to='digipal.ItemPartType', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='itemorigin',
+            name='place',
+            field=models.ForeignKey(related_name=b'item_origins', blank=True, to='digipal.Place', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='institution',
+            name='founder',
+            field=models.ForeignKey(related_name=b'person_founder', blank=True, to='digipal.Person', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='institution',
+            name='institution_type',
+            field=models.ForeignKey(to='digipal.InstitutionType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='institution',
+            name='patron',
+            field=models.ForeignKey(related_name=b'person_patron', blank=True, to='digipal.Person', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='institution',
+            name='place',
+            field=models.ForeignKey(to='digipal.Place'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='institution',
+            name='reformer',
+            field=models.ForeignKey(related_name=b'person_reformer', blank=True, to='digipal.Person', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='image',
+            name='annotation_status',
+            field=models.ForeignKey(related_name=b'images', default=None, blank=True, to='digipal.ImageAnnotationStatus', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='image',
+            name='item_part',
+            field=models.ForeignKey(related_name=b'images', default=None, blank=True, to='digipal.ItemPart', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='image',
+            name='media_permission',
+            field=models.ForeignKey(default=None, blank=True, to='digipal.MediaPermission', help_text=b'This field determines if the image is publicly visible and the reason if not.', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='idiograph',
+            name='scribe',
+            field=models.ForeignKey(related_name=b'idiographs', blank=True, to='digipal.Scribe', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='historicalitem',
+            name='historical_item_type',
+            field=models.ForeignKey(to='digipal.HistoricalItemType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='historicalitem',
+            name='language',
+            field=models.ForeignKey(blank=True, to='digipal.Language', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='historicalitem',
+            name='owners',
+            field=models.ManyToManyField(to='digipal.Owner', null=True, blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='handdescription',
+            name='source',
+            field=models.ForeignKey(related_name=b'hand_descriptions', blank=True, to='digipal.Source', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='hand',
+            name='assigned_place',
+            field=models.ForeignKey(blank=True, to='digipal.Place', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='hand',
+            name='glossed_text',
+            field=models.ForeignKey(blank=True, to='digipal.Category', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='hand',
+            name='images',
+            field=models.ManyToManyField(help_text=b'Select the images this hand appears in. The list of available images comes from images connected to the Item Part associated to this Hand.', related_name=b'hands', null=True, to='digipal.Image', blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='hand',
+            name='item_part',
+            field=models.ForeignKey(related_name=b'hands', to='digipal.ItemPart'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='hand',
+            name='latin_style',
+            field=models.ForeignKey(blank=True, to='digipal.LatinStyle', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='hand',
+            name='scribe',
+            field=models.ForeignKey(related_name=b'hands', blank=True, to='digipal.Scribe', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='hand',
+            name='script',
+            field=models.ForeignKey(blank=True, to='digipal.Script', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='hand',
+            name='stewart_record',
+            field=models.ForeignKey(related_name=b'hands', blank=True, to='digipal.StewartRecord', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='graph',
+            name='hand',
+            field=models.ForeignKey(related_name=b'graphs', to='digipal.Hand'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='graph',
+            name='idiograph',
+            field=models.ForeignKey(to='digipal.Idiograph'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='description',
+            name='historical_item',
+            field=models.ForeignKey(blank=True, to='digipal.HistoricalItem', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='description',
+            name='source',
+            field=models.ForeignKey(to='digipal.Source'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='description',
+            name='text',
+            field=models.ForeignKey(related_name=b'descriptions', blank=True, to='digipal.Text', null=True),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='description',
+            unique_together=set([('source', 'historical_item', 'text')]),
+        ),
+        migrations.AddField(
+            model_name='decoration',
+            name='historical_item',
+            field=models.ForeignKey(to='digipal.HistoricalItem'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='dateevidence',
+            name='hand',
+            field=models.ForeignKey(default=None, blank=True, to='digipal.Hand', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='dateevidence',
+            name='historical_item',
+            field=models.ForeignKey(related_name=b'date_evidences', default=None, blank=True, to='digipal.HistoricalItem', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='dateevidence',
+            name='reference',
+            field=models.ForeignKey(blank=True, to='digipal.Reference', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='currentitem',
+            name='owners',
+            field=models.ManyToManyField(default=None, related_name=b'current_items', null=True, to='digipal.Owner', blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='currentitem',
+            name='repository',
+            field=models.ForeignKey(to='digipal.Repository'),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='currentitem',
+            unique_together=set([('repository', 'shelfmark')]),
+        ),
+        migrations.AddField(
+            model_name='componentfeature',
+            name='feature',
+            field=models.ForeignKey(to='digipal.Feature'),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='componentfeature',
+            unique_together=set([('component', 'feature')]),
+        ),
+        migrations.AddField(
+            model_name='component',
+            name='features',
+            field=models.ManyToManyField(related_name=b'components', through='digipal.ComponentFeature', to='digipal.Feature'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='collation',
+            name='historical_item',
+            field=models.ForeignKey(to='digipal.HistoricalItem'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='character',
+            name='components',
+            field=models.ManyToManyField(to='digipal.Component', null=True, blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='character',
+            name='form',
+            field=models.ForeignKey(to='digipal.CharacterForm'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='character',
+            name='ontograph',
+            field=models.ForeignKey(to='digipal.Ontograph'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='cataloguenumber',
+            name='historical_item',
+            field=models.ForeignKey(related_name=b'catalogue_numbers', blank=True, to='digipal.HistoricalItem', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='cataloguenumber',
+            name='source',
+            field=models.ForeignKey(to='digipal.Source'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='cataloguenumber',
+            name='text',
+            field=models.ForeignKey(related_name=b'catalogue_numbers', blank=True, to='digipal.Text', null=True),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='cataloguenumber',
+            unique_together=set([('source', 'number', 'historical_item', 'text')]),
+        ),
+        migrations.AddField(
+            model_name='aspect',
+            name='features',
+            field=models.ManyToManyField(to='digipal.Feature'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='archive',
+            name='historical_item',
+            field=models.ForeignKey(to='digipal.HistoricalItem'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='annotation',
+            name='graph',
+            field=models.OneToOneField(null=True, blank=True, to='digipal.Graph'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='annotation',
+            name='image',
+            field=models.ForeignKey(to='digipal.Image', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='annotation',
+            name='status',
+            field=models.ForeignKey(blank=True, to='digipal.Status', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='alphabet',
+            name='hands',
+            field=models.ManyToManyField(to='digipal.Hand', null=True, blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='alphabet',
+            name='ontographs',
+            field=models.ManyToManyField(to='digipal.Ontograph', null=True, blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='allographcomponent',
+            name='component',
+            field=models.ForeignKey(to='digipal.Component'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='allographcomponent',
+            name='features',
+            field=models.ManyToManyField(to='digipal.Feature', null=True, blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='allograph',
+            name='aspects',
+            field=models.ManyToManyField(to='digipal.Aspect', null=True, blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='allograph',
+            name='character',
+            field=models.ForeignKey(to='digipal.Character'),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='allograph',
+            unique_together=set([('name', 'character')]),
+        ),
+    ]

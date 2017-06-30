@@ -341,7 +341,7 @@ INSTALLED_APPS = INSTALLED_APPS + (
     'digipal',
     'digipal_text',
     'reversion',
-    'south',
+    #'south',
 )
 
 # Grappelli
@@ -543,6 +543,8 @@ DJANGO_DEBUG_LOG = False
 # Indepent from DJANGO_DEBUG_LOG
 DEBUG_PERFORMANCE = False
 
+import logging
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -585,10 +587,29 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-    }
+    },
 }
 
+# Let's ignore some of the warnings for future django version
+
+WARNINGS_IGNORED = [
+    'RemovedInDjango18Warning',
+]
+
+
+class filter_django_warnings(logging.Filter):
+    def filter(self, record):
+        for ignored in WARNINGS_IGNORED:
+            if ignored in record.args[0]:
+                return False
+        return True
+
+
+warn_logger = logging.getLogger('py.warnings')
+warn_logger.addFilter(filter_django_warnings())
+
 # BACKUPS #
+
 
 DB_BACKUP_PATH = os.path.join(PROJECT_ROOT, 'backups')
 # Front-end message for images which are inheriting unspecified media

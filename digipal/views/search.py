@@ -324,20 +324,20 @@ def search_record_view(request):
     # backward compatibility:
     # query string param 'name' and 'scribes' have ben renamed to 'scribe'
     request.GET = request.GET.copy()
-    request.GET['scribe'] = request.REQUEST.get('scribe', '') or request.REQUEST.get(
-        'scribes', '') or request.REQUEST.get('name', '')
+    request.GET['scribe'] = request.GET.get('scribe', '') or request.GET.get(
+        'scribes', '') or request.GET.get('name', '')
 
-    request.GET['ms_date'] = request.REQUEST.get(
-        'ms_date', '') or request.REQUEST.get('date', '')
-    request.GET['hand_date'] = request.REQUEST.get(
-        'hand_date', '') or request.REQUEST.get('date', '')
-    request.GET['scribe_date'] = request.REQUEST.get(
-        'scribe_date', '') or request.REQUEST.get('date', '')
+    request.GET['ms_date'] = request.GET.get(
+        'ms_date', '') or request.GET.get('date', '')
+    request.GET['hand_date'] = request.GET.get(
+        'hand_date', '') or request.GET.get('date', '')
+    request.GET['scribe_date'] = request.GET.get(
+        'scribe_date', '') or request.GET.get('date', '')
 
-    request.GET['hand_place'] = request.REQUEST.get(
-        'hand_place', '') or request.REQUEST.get('place', '')
-    request.GET['scriptorium'] = request.REQUEST.get(
-        'scriptorium', '') or request.REQUEST.get('place', '')
+    request.GET['hand_place'] = request.GET.get(
+        'hand_place', '') or request.GET.get('place', '')
+    request.GET['scriptorium'] = request.GET.get(
+        'scriptorium', '') or request.GET.get('place', '')
 
     # Actually run the searches
     context = {}
@@ -562,7 +562,7 @@ def get_query_summary(request, term, submitted, forms):
                                     if field_name == u'allograph':
                                         parts = choice_label.split(',')
                                         if len(parts) == 2:
-                                            char = request.REQUEST.get(
+                                            char = request.GET.get(
                                                 'character', '')
                                             if char:
                                                 choice_label = u'%s, %s' % (

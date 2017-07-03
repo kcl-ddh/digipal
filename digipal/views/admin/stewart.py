@@ -30,7 +30,7 @@ def stewart_import(request, url=None):
     context['dry_run'] = (request.GET.get('dry_run', '0') == '1')
 
     from django.core.urlresolvers import reverse
-    context['referer'] = request.REQUEST.get('referer', request.META.get(
+    context['referer'] = request.GET.get('referer', request.META.get(
         'HTTP_REFERER', reverse('admin:digipal_stewartrecord_changelist')))
 
     class RollBackException(Exception):
@@ -69,7 +69,7 @@ def stewart_match(request, url=None):
     context['records'] = StewartRecord.objects.filter(id__in=record_ids)
 
     from django.core.urlresolvers import reverse
-    context['referer'] = request.REQUEST.get('referer', request.META.get(
+    context['referer'] = request.GET.get('referer', request.META.get(
         'HTTP_REFERER', reverse('admin:digipal_stewartrecord_changelist')))
 
     action = request.POST.get('action', '').strip()
@@ -84,8 +84,8 @@ def stewart_match(request, url=None):
         if action == 'change_matching':
             matched_hands = []
             i = 0
-            for i in range(0, int(request.REQUEST.get('shand_%s_count' % (record.id,), 0))):
-                match_id = request.REQUEST.get(
+            for i in range(0, int(request.POST.get('shand_%s_count' % (record.id,), 0))):
+                match_id = request.POST.get(
                     'shand_%s_%s' % (record.id, i), None)
                 if match_id:
                     matched_hands.append(match_id)

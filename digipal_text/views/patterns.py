@@ -77,7 +77,9 @@ class PatternAnalyser(object):
         self.options = request.GET.copy()
 
         # what to return?
-        self.toreturn = toreturn = request.REQUEST.get('ret', root).split(',')
+        #self.toreturn = toreturn = request.REQUEST.get('ret', root).split(',')
+        self.toreturn = toreturn = dputils.get_request_var(
+            'ret', root).split(',')
 
         # make sure this is called AFTER self.options is set
         patterns = self.get_patterns()

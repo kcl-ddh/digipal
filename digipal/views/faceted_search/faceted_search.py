@@ -127,7 +127,7 @@ class FacetedModel(object):
         return self.options.get('toolbar_hidden', False)
 
     def get_sort_info(self, request):
-        key = request.REQUEST.get('sort', '')
+        key = request.GET.get('sort', '')
         reverse = key.startswith('-')
         if reverse:
             key = key[1:]
@@ -1129,7 +1129,7 @@ def simple_search(request, content_type='', objectid='', tabid=''):
     # select the content type
     cts = get_types(request)
     context['result_type'] = cts[0]
-    ct_key = request.REQUEST.get('result_type', context['result_type'].key)
+    ct_key = request.GET.get('result_type', context['result_type'].key)
     for ct in cts:
         if ct.key == ct_key:
             context['result_type'] = ct
@@ -1169,7 +1169,7 @@ def search_whoosh_view(request, content_type='', objectid='', tabid=''):
     # select the content type
     cts = get_types(request)
     context['result_type'] = cts[0]
-    ct_key = request.REQUEST.get('result_type', context['result_type'].key)
+    ct_key = request.GET.get('result_type', context['result_type'].key)
     for ct in cts:
         if ct.key == ct_key:
             context['result_type'] = ct

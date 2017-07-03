@@ -605,7 +605,7 @@ def get_int(obj, default=0):
 def get_int_from_request_var(request, var_name, default=0):
     obj = None
     if request:
-        obj = request.REQUEST.get(var_name, None)
+        obj = request.GET.get(var_name, request.POST.get(var_name, None))
     return get_int(obj, default)
 
 
@@ -1840,4 +1840,10 @@ def is_display_narrow(request):
 def get_cache(name):
     from django.core.cache import caches
     ret = caches[name]
+    return ret
+
+
+def get_request_var(request, name, default=None):
+    # avoid using REQUEST, deprecated in Django 1.9
+    ret = request.GET.get(name, request.POST.get(name, default))
     return ret

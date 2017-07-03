@@ -34,7 +34,7 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     data = None
 
     # Support for JSONP responses
-    jsonpcallback = request.REQUEST.get('@callback', None)
+    jsonpcallback = request.GET.get('@callback', None)
     if jsonpcallback is not None:
         if not re.match(ur'(?i)^\w+$', jsonpcallback):
             # invalid name format for the callback
@@ -50,11 +50,11 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
         data = API.process_request(request, content_type, ids)
 
     # convert from JSON to another format
-    format = request.REQUEST.get('@format', None)
+    format = request.GET.get('@format', None)
     if jsonpcallback:
         format = 'jsonp'
     data, mimetype, is_webpage = API.convert_response(
-        data, format, jsonpcallback, request.REQUEST.get('@xslt', None))
+        data, format, jsonpcallback, request.GET.get('@xslt', None))
 
     if is_webpage:
         return render_to_response('digipal/api/webpage.html', {'api_response': mark_safe(data)}, context_instance=RequestContext(request))
@@ -316,7 +316,7 @@ def image(request, image_id):
         context['document_summary'] = image.get_document_summary()
 
     context['annotations_switch_initial'] = 1 - int(context['hide_annotations'] or (
-        (request.REQUEST.get('annotations', 'true')).strip().lower() in ['0', 'false']))
+        (request.GET.get('annotations', 'true')).strip().lower() in ['0', 'false']))
 
     context['show_image'] = context['can_edit'] or not context['no_image_reason']
 

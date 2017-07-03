@@ -91,7 +91,8 @@ def update_viewer_context(context, request):
 
 def get_sub_location_from_request(request):
     try:
-        subl = request.REQUEST.get('sub_location', '[]')
+        #subl = request.REQUEST.get('sub_location', '[]')
+        subl = dputils.get_request_var(request, 'sub_location', '[]')
         ret = json.loads(subl)
     except:
         ret = []
@@ -113,7 +114,8 @@ def get_address_from_sub_location(sub_location):
 
 def text_api_view(request, item_partid, content_type, location_type=u'default', location=''):
 
-    format = request.REQUEST.get('format', 'html').strip().lower()
+    #format = request.REQUEST.get('format', 'html').strip().lower()
+    format = dputils.get_request_var('format', 'html').strip().lower()
     if request.is_ajax():
         format = 'json'
 
@@ -174,7 +176,7 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     if format == 'html':
         context = {'response': response}
         context['display_classes'] = ' '.join(
-            (request.REQUEST.get('ds', '').split(',')))
+            (dputils.get_request_var('ds', '').split(',')))
         context['content_type_key'] = content_type
         ret = render(request, 'digipal_text/text_view.html', context)
 
@@ -425,7 +427,7 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     # 3. Save the user fragment
     new_fragment = None
     if request:
-        new_fragment = request.REQUEST.get('content', None)
+        new_fragment = dputils.get_request_var('content', None)
 
     convert = utils.get_int_from_request_var(request, 'convert')
     save_copy = utils.get_int_from_request_var(request, 'save_copy')
@@ -700,9 +702,9 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
 
         # image dimensions
         options = {}
-        layout = request.REQUEST.get('layout', '')
+        layout = dputils.get_request_var('layout', '')
         if layout == 'width':
-            options['width'] = request.REQUEST.get('width', '100')
+            options['width'] = dputils.get_request_var('width', '100')
 
         # we return the location of the returned fragment
         # this may not be the same as the requested location
@@ -763,7 +765,7 @@ def update_text_image_link(request, image, ret):
         return ret
 
     # print 'TEXT IMAGE LINK: image #%s' % image.id
-    links = request.REQUEST.get('links', None)
+    links = dputils.get_request_var('links', None)
     if links:
         ''' links = [
                         [
@@ -1041,7 +1043,7 @@ def text_api_view_search(request, item_partid, content_type, location_type, loca
     location_type, location = resolve_default_location(
         location_type, location, ret)
 
-    query = request.REQUEST.get('query', '')
+    query = request.GET.get('query', '')
     entries = ''
     hit_count = 0
     if query:

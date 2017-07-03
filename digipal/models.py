@@ -3881,11 +3881,12 @@ class ApiTransform(models.Model):
 
 
 # Generate a meaningful object label for the m2m models
-HistoricalItem.owners.through.__unicode__ = lambda self: self.historicalitem
+HistoricalItem.owners.through.__unicode__ = lambda self: unicode(
+    self.historicalitem)
 
-ItemPart.owners.through.__unicode__ = lambda self: self.itempart
+ItemPart.owners.through.__unicode__ = lambda self: unicode(self.itempart)
 
-CurrentItem.owners.through.__unicode__ = lambda self: self.currentitem
+CurrentItem.owners.through.__unicode__ = lambda self: unicode(self.currentitem)
 
 # Assign get_absolute_url() and get_admin_url() for all models
 # get_absolute_url() returns /digipal/MODEL_PLURAL/ID

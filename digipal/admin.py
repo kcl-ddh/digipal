@@ -597,8 +597,16 @@ class ItemPartAdmin(DigiPalModelAdmin):
         #('Owners', {'fields': ('owners',)}),
     )
     filter_horizontal = ['owners']
-    inlines = [admin_inlines.ItemPartItemInlineFromItemPart, admin_inlines.ItemSubPartInline, admin_inlines.ItemPartAuthenticityInline,
-               admin_inlines.HandInline, admin_inlines.ImageInline, admin_inlines.ItemPartOwnerInline, admin_inlines.PartLayoutInline, admin_inlines.TextItemPartInline]
+    inlines = [
+        admin_inlines.ItemPartItemInlineFromItemPart,
+        admin_inlines.ItemSubPartInline,
+        admin_inlines.ItemPartAuthenticityInline,
+        admin_inlines.HandInline,
+        admin_inlines.ImageInline,
+        admin_inlines.ItemPartOwnerInline,
+        admin_inlines.PartLayoutInline,
+        admin_inlines.TextItemPartInline
+    ]
 
 #     def get_inline_instances(self, request, *args, **kwargs):
 #         ret = super(ItemPartAdmin, self).get_inline_instances(request, *args, **kwargs)

@@ -7,14 +7,17 @@ from digipal import utils
 # Keep this code generic!
 #
 # Anything specific to a content type goes into custom.py:API<ContentTypeName>
-# 
+#
+
+
 class API(object):
-    
+
     # We put a limit by default as accidental queries for all records can easily happen
     # and that's too long to process.
-    # TODO: possibility to override it using a special query string param (@limit=).
+    # TODO: possibility to override it using a special query string param
+    # (@limit=).
     DEFAULT_LIMIT = 100
-    
+
     @classmethod
     def has_permission(cls, content_type, operation='r', user=None):
         '''
@@ -24,13 +27,14 @@ class API(object):
             user = Currently unused
         '''
         ret = False
-        
-        # convert HTTP method to CRUD operation 
-        crud_from_http_method = {'post': 'c', 'get': 'r', 'put': 'u', 'delete': 'd'}
+
+        # convert HTTP method to CRUD operation
+        crud_from_http_method = {'post': 'c',
+                                 'get': 'r', 'put': 'u', 'delete': 'd'}
         operation = operation.lower()
         operation = crud_from_http_method.get(operation, operation)
 
-        # TODO: think about caching this         
+        # TODO: think about caching this
         from django.conf import settings
         permissions = getattr(settings, 'API_PERMISSIONS', [['crud', 'ALL']])
         for perm, cts in permissions:
@@ -45,9 +49,9 @@ class API(object):
                         ret = True
                 else:
                     ret = op_found
-        
-        return ret    
-    
+
+        return ret
+
     @classmethod
     def convert_response(cls, data, format=None, jsonpcallback=None, xslt=None):
         '''Convert a json response (data) into another format
@@ -58,16 +62,17 @@ class API(object):
         '''
         mimetype = 'application/json'
         is_webpage = False
-        
+
         if format == 'jsonp':
             data = u';%s(%s);' % (jsonpcallback, data)
             mimetype = 'text/javascript'
-        
+
         if xslt:
             format = 'xml'
-        
+
         if format == 'xml':
             from django.utils.html import escape
+
             def get_xml_from_entry(entry=None):
                 ret = u''
                 if isinstance(entry, dict):
@@ -78,14 +83,15 @@ class API(object):
                     for v in entry:
                         ret += u'<item>%s</item>' % get_xml_from_entry(v)
                 elif isinstance(entry, bool):
-                    ret += '1' if entry else '0' 
+                    ret += '1' if entry else '0'
                 elif entry is None:
-                    ret += '' 
-                else:  
+                    ret += ''
+                else:
                     ret += u'%s' % escape(entry)
                 return ret
             prolog = u'<?xml version="1.0" encoding="UTF-8"?>'
-            data = u'%s<response>%s</response>' % (prolog, get_xml_from_entry(json.loads(data)))
+            data = u'%s<response>%s</response>' % (
+                prolog, get_xml_from_entry(json.loads(data)))
             mimetype = 'text/xml'
 
         if xslt:
@@ -100,22 +106,25 @@ class API(object):
                 is_webpage = transform.webpage
 
         return data, mimetype, is_webpage
-    
+
     @classmethod
     def get_all_content_types(cls, content_type):
         ret = {'success': True, 'errors': [], 'results': []}
         from digipal import models
-        
-        # problem with this format... [[ct1, ct2]]. Should be a simple list, not a nested one.
-        ret['results'].append([member.lower() for member in dir(models) if hasattr(getattr(models, member), '_meta')])
+
+        # problem with this format... [[ct1, ct2]]. Should be a simple list,
+        # not a nested one.
+        ret['results'].append([member.lower() for member in dir(
+            models) if hasattr(getattr(models, member), '_meta')])
         ret['count'] = len(ret['results'][0])
-        
+
         # new version, same output format as other responses
         if content_type == 'content_type2':
             for ct in ret['results'][0]:
-                ret['results'].append({'str': ct, 'permissions': ''.join([op for op in 'crud' if cls.has_permission(ct, op)])})
+                ret['results'].append({'str': ct, 'permissions': ''.join(
+                    [op for op in 'crud' if cls.has_permission(ct, op)])})
             del ret['results'][0]
-        
+
         ret = json.dumps(ret)
         return ret
 
@@ -128,23 +137,25 @@ class API(object):
             selector = a string that specify which records to work on
         '''
         ret = {'success': True, 'errors': [], 'results': []}
-        
-        method = request.REQUEST.get('@method', request.META['REQUEST_METHOD'])
+
+        method = request.GET.get('@method', request.META['REQUEST_METHOD'])
         is_get = method in ['GET']
 
-        # special case for content_type='content_type'        
+        # special case for content_type='content_type'
         if content_type in ['content_type', 'content_type2']:
             return cls.get_all_content_types(content_type)
 
-        # refusal if there is no permission for that operation        
+        # refusal if there is no permission for that operation
         if not cls.has_permission(content_type, method):
-            ret = {'success': False, 'errors': ['%s method not permitted on %s' % (method.upper(), content_type)], 'results': []}
+            ret = {'success': False, 'errors': ['%s method not permitted on %s' % (
+                method.upper(), content_type)], 'results': []}
             return json.dumps(ret)
-        
+
         # find the model
         model = None
         from digipal import models as models1
-        # TODO: find a more generic way to include other apps than hard-coding the name here
+        # TODO: find a more generic way to include other apps than hard-coding
+        # the name here
         from digipal_text import models as models2
         for models in [models1, models2]:
             for member in dir(models):
@@ -152,20 +163,20 @@ class API(object):
                     model = getattr(models, member)
                     if hasattr(model, '_meta'):
                         break
-        
+
         if not model:
             ret['success'] = False
             ret['errors'] = u'Content type not found (%s).' % content_type
         else:
             # filter the selection
-            # filter from the selector passed in the web path 
+            # filter from the selector passed in the web path
             filters = {}
             ids = cls.get_list_from_csv(selector)
             if ids:
                 filters['id__in'] = ids
-            
+
             # filters in the query string
-            #for filter, value in request.REQUEST.iteritems():
+            # for filter, value in request.REQUEST.iteritems():
             request_params = get_request_params(request)
             for filter, value in request_params.iteritems():
                 if filter.startswith('_'):
@@ -179,14 +190,14 @@ class API(object):
                         # depiste also doing a IS NULL!
                         value = utils.get_bool_from_string(value)
                     filters[filter] = value
-            
+
             # get the records
             records = model.objects.filter(**filters).distinct().order_by('id')
-            
+
             ret['count'] = records.count()
 
             # limit the result set
-            limit = int(request.REQUEST.get('@limit', cls.DEFAULT_LIMIT))
+            limit = int(request.GET.get('@limit', cls.DEFAULT_LIMIT))
             records = records[0:limit]
 
             # we refuse changes over the whole data set!
@@ -194,16 +205,18 @@ class API(object):
                 ret['success'] = False
                 ret['errors'] = u'Modification of a all records is not supported.'
             else:
-                fieldsets = [f for f in request_params.get('@select', '').split(',') if f]
-                
+                fieldsets = [f for f in request_params.get(
+                    '@select', '').split(',') if f]
+
                 # generate the results
                 for record in records:
-                    ret['results'].append(cls.get_data_from_record(record, request, fieldsets, method))
-        
+                    ret['results'].append(cls.get_data_from_record(
+                        record, request, fieldsets, method))
+
         ret = json.dumps(ret)
-        
+
         return ret
-    
+
     @classmethod
     def get_data_from_record(cls, *args, **kwargs):
         import custom
@@ -212,9 +225,9 @@ class API(object):
         for member in dir(custom):
             if member.lower() == custom_cls_name:
                 custom_processor = getattr(custom, member)
-                
+
         ret = custom_processor.get_data_from_record(*args, **kwargs)
-                
+
         return ret
 
     @classmethod
@@ -225,20 +238,21 @@ class API(object):
                 get_list_from_csv('') => []
         '''
         ret = []
-        
+
         if csv:
             ret = [int(v) for v in csv.split(',') if v]
-        
+
         return ret
+
 
 def get_request_params(request):
     '''Returns all parameters and values found in the request: GET, POST, PUT, etc
         request.REQUEST only contains GET and POST
     '''
     from django.http import QueryDict
-    ret = {}
-    
+
     ret = QueryDict(request.body).copy()
-    ret.update(request.REQUEST)
-    
+    ret.update(request.GET)
+    ret.update(request.POST)
+
     return ret

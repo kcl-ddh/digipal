@@ -593,7 +593,7 @@ LOGGING = {
 # Let's ignore some of the warnings for future django version
 
 WARNINGS_IGNORED = [
-    'RemovedInDjango18Warning',
+    'RemovedInDjango18Warning2',
 ]
 
 

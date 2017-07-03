@@ -12,8 +12,8 @@ from django.conf import settings
 from django.utils import formats
 from django.utils.dateformat import format, time_format
 from django.utils.encoding import force_unicode, iri_to_uri
-from django.utils.html import (conditional_escape, escapejs, fix_ampersands,
-    escape, urlize as urlize_impl, linebreaks, strip_tags)
+from django.utils.html import (conditional_escape, escapejs,
+                               escape, urlize as urlize_impl, linebreaks, strip_tags)
 from django.utils.http import urlquote
 #from django.utils.text import Truncator, wrap, phone2numeric
 from django.utils.safestring import mark_safe, SafeData, mark_for_escaping
@@ -27,14 +27,17 @@ from datetime import datetime
 
 register = Library()
 
+
 @register.filter
 def remove_item(ls, itm):
     """ remove item itm from list ls) """
     return ls.remove(itm)
 
+
 @register.filter
 def split_facet(facet):
     return facet.split(':')
+
 
 @register.filter
 def uniq(inp):
@@ -43,13 +46,16 @@ def uniq(inp):
     """
     return "DP_" + str(sha1(inp.encode('utf-8')).hexdigest())
 
+
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
 
+
 @register.filter
 def unquote_string(value):
     return unquote(value)
+
 
 @register.filter
 def querystring(facets):
@@ -60,6 +66,7 @@ def querystring(facets):
     return s
 
 # Some extra mathematical tags
+
 
 @register.filter()
 def div(value, arg):
@@ -84,7 +91,8 @@ def richfield(val):
     "Render a HTML field for the front end. Make it safe, make sure it is surrounded by <p>."
     import re
 
-    if val is None: val = u''
+    if val is None:
+        val = u''
 
     # trim the value from empty spaces and lines
     ret = re.sub(ur'(?usi)^\s+', '', val)
@@ -111,6 +119,7 @@ def hand_description(description, request=None):
     # TODO: convert tei_old into tei into new format (see function below)
     return mark_safe(description.get_description_html(request and request.user and request.user.is_staff))
 
+
 @register.filter
 def tei(value):
     "Convert TEI field into XML"
@@ -122,14 +131,17 @@ def tei(value):
     #     value = re.sub(ur'<\s*([^/])\s*>', ur'<span class="tei-\1">', value)
     # >>> re.findall(ur'(<\s*(\S+)' + ur'\s*(?:(\S+)="([^"]*)")?' * 5 + '>)', r' <t a1="v1" a2="v2">')
     # [('<t a1="v1" a2="v2">', 't', 'a1', 'v1', 'a2', 'v2', '', '', '', '', '', '')]
-    elements = re.findall(ur'(<\s*(\w+)' + ur'\s*(?:(\S+)="([^"]*)")?' * 5 + '>)', value)
+    elements = re.findall(
+        ur'(<\s*(\w+)' + ur'\s*(?:(\S+)="([^"]*)")?' * 5 + '>)', value)
     for element in elements:
-        if element[1][0] == '/': continue
+        if element[1][0] == '/':
+            continue
         element_html = '<span class="tei-' + element[1]
         i = 2
         while i < len(element):
-            if not element[i]: break
-            element_html += ' tei-a-%s__%s' % (element[i], element[i+1])
+            if not element[i]:
+                break
+            element_html += ' tei-a-%s__%s' % (element[i], element[i + 1])
             i += 2
         element_html += '">'
         value = value.replace(element[0], element_html)
@@ -139,6 +151,7 @@ def tei(value):
     value = mark_safe(value)
 
     return value
+
 
 @register.assignment_tag(takes_context=True)
 def load_hands(context, var_name):
@@ -161,7 +174,7 @@ def load_hands(context, var_name):
 
     # get all the graphs on this page
     graphs = Graph.objects.filter(id__in=graph_ids_current_page).select_related('annotation', 'annotation__image',
-        'idiograph', 'idiograph__allograph__character', 'idiograph__allograph__character').order_by(
+                                                                                'idiograph', 'idiograph__allograph__character', 'idiograph__allograph__character').order_by(
         #'hand__scribe__name', 'hand__id', 'id')
         # JIRA 539: sort the graphs alphabetically
         'hand__scribe__name', 'hand__id', 'idiograph__allograph__character__ontograph__sort_order')
@@ -184,7 +197,9 @@ def load_hands(context, var_name):
 
     return ret
 
+
 from digipal.utils import dplog
+
 
 @register.simple_tag
 def chrono(label):
@@ -211,10 +226,12 @@ def chrono(label):
             if k in chrono.last_times:
                 slice_duration = t - chrono.last_times[k]
 
-        message = '%5dMB %8.4f %8.4f %s' % (get_mem(), d.total_seconds(), slice_duration.total_seconds(), label)
+        message = '%5dMB %8.4f %8.4f %s' % (
+            get_mem(), d.total_seconds(), slice_duration.total_seconds(), label)
         dplog(message)
 
     return''
+
+
 chrono.last_time = datetime.now()
 chrono.last_times = {}
-

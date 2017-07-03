@@ -9,7 +9,9 @@ jQuery(function($){
             // better selector that will work with both a single select element or a dual 'pour-over' select widget.
             var value = $(this).parent().find('select :selected:last').val();
             if (value) {
-                var link = ($(this).prev().attr('href')+'../'+value+'/');
+                // /admin/digipal/itempart/add/?_to_field=id
+                var link = $(this).prev().attr('href');
+                link = link.replace(/\/add\/.*/, '/'+value+'/');
                 //console.log(link + '?_popup=1', link, 'height=600,width=1000,resizable=yes,scrollbars=yes');
                 var win = window.open(link + '?_popup=1', link, 'height=600,width=1000,resizable=yes,scrollbars=yes');
                 win.focus();

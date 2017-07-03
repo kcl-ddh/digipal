@@ -5,7 +5,6 @@ import os
 import lxml.etree as ET
 from lxml.etree import XMLSyntaxError
 from django.shortcuts import render, render_to_response
-from django.utils.datastructures import SortedDict
 import base64
 from django.db.models.query import EmptyResultSet
 psutil = None
@@ -1835,4 +1834,10 @@ def is_display_narrow(request):
     ret = bool(re.search(ur'(?i)\b(mobile|opera mini|android|iphone|webos)\b',
                          request.META.get('HTTP_USER_AGENT')))
 
+    return ret
+
+
+def get_cache(name):
+    from django.core.cache import caches
+    ret = caches[name]
     return ret

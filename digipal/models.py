@@ -21,7 +21,7 @@ import logging
 from django.utils.text import slugify
 import utils as dputils
 from digipal.utils import sorted_natural
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 dplog = logging.getLogger('digipal_debugger')
 
 from patches import admin_patches, whoosh_patches
@@ -2803,7 +2803,7 @@ class Graph(models.Model):
         return ret
 
     def get_description_as_array_str(self):
-        ret = SortedDict()
+        ret = OrderedDict()
         for c in self.graph_components.all().order_by('component__name'):
             for f in c.features.all().order_by('name'):
                 ret[u'%s: %s' % (c.component.name, f.name)] = 1

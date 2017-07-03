@@ -16,10 +16,10 @@ from django.forms.formsets import formset_factory
 import json
 from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.db import transaction
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 
 import logging
-dplog = logging.getLogger( 'digipal_debugger')
+dplog = logging.getLogger('digipal_debugger')
 
 
 #########
@@ -40,31 +40,33 @@ def get_ms_id_from_image_names(manuscripts, folios):
     '''
     ret = None
 
-    # a term is part of the search pattern if its frequency is above the threshold
+    # a term is part of the search pattern if its frequency is above the
+    # threshold
     threshold = 0.75
-    
+
     # find a pattern among the image paths
-    pattern = SortedDict()
-    
+    pattern = OrderedDict()
+
     folio_count = len(folios)
     for folio in folios:
         im_path = folio.iipimage.name
-        
+
         # remove the extension
         im_path = re.sub(ur'\.[^.]{2,4}$', '', im_path)
-        
+
         # only keep the image file name and the parent folder
         parts = im_path.split('/')
         for i in range(max(0, len(parts) - 2), len(parts)):
             part = parts[i]
             for term in re.findall(ur'[^\W_]+', part):
                 pattern[term] = pattern.get(term, 0) + 1
-    
+
     # keep only the terms with frequency > threshold
-    search_terms = [term for term in pattern if pattern[term] > threshold * folio_count]
-    
+    search_terms = [term for term in pattern if pattern[term]
+                    > threshold * folio_count]
+
     suggested_shelfmark = ' '.join(search_terms)
-    
+
     # find the best match
     for manuscript in manuscripts:
         match = True
@@ -73,28 +75,31 @@ def get_ms_id_from_image_names(manuscripts, folios):
                 match = False
         if match and (not ret or len(manuscript.display_label) < len(ret.display_label)):
             ret = manuscript
-    
+
     # find the nearest match in the list of item parts
     if ret:
         return ret.id, suggested_shelfmark
     else:
         return 0, suggested_shelfmark
 
+
 def get_requested_itempart(request):
     item_part = None
-    
+
     if str(request.POST.get('manuscript_set', '0')) == '1':
         current_item = None
         item_part = request.POST.get('manuscript', None)
-        if item_part == '0': item_part = None
+        if item_part == '0':
+            item_part = None
         if item_part:
             item_part = ItemPart.objects.get(id=item_part)
             current_item = item_part.current_item
-        
+
         if request.POST.get('itempart_shelfmark', ''):
             # we need to create a new Current Item with the specified shelfmark
             new_shelfmark = request.POST.get('itempart_shelfmark_text', '')
-            current_item = CurrentItem(shelfmark=new_shelfmark, repository=Repository.objects.get(id=request.POST.get('itempart_repo', 0)))
+            current_item = CurrentItem(shelfmark=new_shelfmark, repository=Repository.objects.get(
+                id=request.POST.get('itempart_repo', 0)))
             current_item.save()
 
         if current_item and (request.POST.get('itempart_shelfmark', '') or request.POST.get('itempart_locus', '')):
@@ -103,14 +108,16 @@ def get_requested_itempart(request):
             item_part = ItemPart(current_item=current_item, locus=new_locus)
             item_part.save()
             # create a new default hand for that part
-            hand = Hand(item_part=item_part, num=1, label=Hand.get_default_label())
+            hand = Hand(item_part=item_part, num=1,
+                        label=Hand.get_default_label())
             hand.save()
-    
+
     return item_part
+
 
 def process_bulk_image_ajax(request):
     data = {'result': 'success'}
-    
+
     action = request.GET.get('action', '')
     if action == 'test_replace_image':
         from digipal.images.models import Image
@@ -118,12 +125,13 @@ def process_bulk_image_ajax(request):
         if iids[0] and iids[1]:
             image = Image.objects.get(id=iids[0])
             data = image.find_image_offset(Image.objects.get(id=iids[1]))
-            data['image1'] = iids[0];
-            data['image2'] = iids[1];
-    
-    #find_image_offset
-    
+            data['image1'] = iids[0]
+            data['image2'] = iids[1]
+
+    # find_image_offset
+
     return HttpResponse(json.dumps(data), content_type='application/json')
+
 
 @staff_member_required
 def image_bulk_edit(request, url=None):
@@ -133,13 +141,15 @@ def image_bulk_edit(request, url=None):
     '''
     if request.is_ajax():
         return process_bulk_image_ajax(request)
-    
+
     context = {}
-    context['folios'] = Image.objects.filter(id__in=request.GET.get('ids', '').split(',')).order_by('iipimage')
-    
+    context['folios'] = Image.objects.filter(
+        id__in=request.GET.get('ids', '').split(',')).order_by('iipimage')
+
     from digipal.utils import natural_sort_key
-    context['folios'] = sorted(list(context['folios']), key=lambda r: natural_sort_key(unicode(r.iipimage)))
-    
+    context['folios'] = sorted(
+        list(context['folios']), key=lambda r: natural_sort_key(unicode(r.iipimage)))
+
     context['folio_sides'] = []
     '''
     context['folio_sides'] = [
@@ -154,13 +164,13 @@ def image_bulk_edit(request, url=None):
     manuscript = get_requested_itempart(request)
 
     context['manuscripts'] = ItemPart.objects.all().order_by('display_label')
-    
+
     context['repos'] = Repository.objects.all().order_by('short_name', 'name')
-    
+
     context['permissions'] = MediaPermission.objects.all().order_by('label')
-    
+
     context['title'] = 'Bulk Edit Images'
-    
+
     #context['show_thumbnails'] = request.POST.get('thumbnails_set', 0)
     context['show_duplicates'] = request.POST.get('duplicate_set', 0)
 
@@ -185,10 +195,10 @@ def image_bulk_edit(request, url=None):
 
     action = request.POST.get('action', '').strip()
 
-    #if action == 'operations':
-    
+    # if action == 'operations':
+
     print '-' * 80
-    
+
     if action == 'change_values' and context['show_duplicates']:
         print request.POST
         # change image
@@ -199,15 +209,17 @@ def image_bulk_edit(request, url=None):
                 if image_id != new_image_id:
                     import digipal.images.models
                     im1 = digipal.images.models.Image.objects.get(id=image_id)
-                    im2 = digipal.images.models.Image.objects.get(id=new_image_id)
+                    im2 = digipal.images.models.Image.objects.get(
+                        id=new_image_id)
                     offset_info = im1.find_image_offset(im2)
                     if sum(offset_info['offsets']) > 0:
-                        im1.replace_image_and_update_annotations(offset_info['offsets'], im2)
+                        im1.replace_image_and_update_annotations(
+                            offset_info['offsets'], im2)
 
     one_modified = False
 
     if len(action):
-        
+
         handid = str(request.POST.get('hand', '0'))
         for folio in context['folios']:
             modified = False
@@ -283,16 +295,19 @@ def image_bulk_edit(request, url=None):
                                 folio.save()
                 if str(request.POST.get('hand_set', '0')) == '1':
                     if handid == '-1':
-                        folio.hands.through.objects.filter(image=folio).delete()
+                        folio.hands.through.objects.filter(
+                            image=folio).delete()
                     else:
                         assign_hand_to_folio(handid, folio)
-                        
+
                     #modified = True
                 if str(request.POST.get('perm_set', '0')) == '1':
                     permid = str(request.POST.get('perm', '0'))
                     if permid != '0':
-                        perm = MediaPermission.objects.filter(id=permid).first()
-                        if not perm: perm = None
+                        perm = MediaPermission.objects.filter(
+                            id=permid).first()
+                        if not perm:
+                            perm = None
                         folio.media_permission = perm
                         modified = True
 
@@ -306,9 +321,11 @@ def image_bulk_edit(request, url=None):
                         <textarea class="txta-folio-note" name="inotes-{{folio.id}}">{{ folio.internal_notes }}</textarea>
                 '''
                 if not context['show_duplicates']:
-                    folio.folio_number = request.POST.get('fn-%s' % (folio.id,), '')
+                    folio.folio_number = request.POST.get(
+                        'fn-%s' % (folio.id,), '')
                     #folio.folio_side = folio_sides[int(request.POST.get('fs-%s' % (folio.id,), 1))]
-                    folio.folio_side = request.POST.get('fs-%s' % (folio.id,), '').strip()
+                    folio.folio_side = request.POST.get(
+                        'fs-%s' % (folio.id,), '').strip()
                     #folio.page = request.POST.get('pn-%s' % (folio.id,), '')
                     #folio.archived = (len(request.POST.get('arch-%s' % (folio.id,), '')) > 0)
                     #folio.internal_notes = request.POST.get('inotes-%s' % (folio.id,), '')
@@ -323,7 +340,8 @@ def image_bulk_edit(request, url=None):
         from django.contrib import messages
         messages.success(request, 'Image data updated.')
 
-    context['selected_manuscript_id'], context['suggested_shelfmark'] = get_ms_id_from_image_names(context['manuscripts'], context['folios'])
+    context['selected_manuscript_id'], context['suggested_shelfmark'] = get_ms_id_from_image_names(
+        context['manuscripts'], context['folios'])
 
     # common_item_part: the Item Part in common among all the selected images
     # None if none or more than one
@@ -335,7 +353,7 @@ def image_bulk_edit(request, url=None):
             else:
                 common_item_part = None
                 break
-            
+
     if common_item_part:
         context['can_set_hand'] = True
         context['hands'] = common_item_part.hands.all().order_by('num')
@@ -343,8 +361,10 @@ def image_bulk_edit(request, url=None):
     else:
         context['hands'] = None
 
-    #return view_utils.get_template('admin/editions/folio_image/bulk_edit', context, request)
+    # return view_utils.get_template('admin/editions/folio_image/bulk_edit',
+    # context, request)
     return render(request, 'admin/page/bulk_edit.html', context)
+
 
 def assign_hand_to_folio(handid, folio):
     '''Assign Hand (with id=handid) to the given folio object
@@ -352,10 +372,11 @@ def assign_hand_to_folio(handid, folio):
        Returns the hand object
     '''
     ret = None
-    
+
     if handid == '-2':
         # get the default hand for that item part
-        options = {'item_part': folio.item_part, 'label': Hand.get_default_label()}
+        options = {'item_part': folio.item_part,
+                   'label': Hand.get_default_label()}
         ret = Hand.objects.filter(**options).first()
         if not ret:
             # create default hand for that item part
@@ -368,6 +389,5 @@ def assign_hand_to_folio(handid, folio):
 
     if ret:
         folio.hands.add(ret)
-    
-    return ret 
-    
+
+    return ret

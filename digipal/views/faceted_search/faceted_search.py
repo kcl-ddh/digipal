@@ -9,7 +9,6 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 from digipal.templatetags import hand_filters, html_escape
 from digipal import utils
-from django.utils.datastructures import SortedDict
 from digipal.templatetags.hand_filters import chrono
 import digipal.models
 import re
@@ -952,9 +951,7 @@ class FacetedModel(object):
 
     @classmethod
     def get_cache(cls):
-        from django.core.cache import get_cache
-        ret = get_cache('digipal_faceted_search')
-        return ret
+        return utils.get_cache('digipal_faceted_search')
 
     def cached_search(self, searcher, q, groupedby, sortedby, limit=1000000, get_matched_terms=False):
         # pm dpsearch search --if=images --user=gnoel --qs="terms=seal2"

@@ -3,18 +3,20 @@ from django.template import RequestContext
 from django.db.models import Q
 import json
 import os
-from digipal.models import *
+from collections import OrderedDict
 from digipal.forms import SearchPageForm
 from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 from digipal.templatetags import hand_filters
+from digipal.models import *
 
 import logging
 from subprocess import Popen
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 dplog = logging.getLogger('digipal_debugger')
+
 
 def get_search_types(request=None):
     from content_type.search_hands import SearchHands
@@ -23,9 +25,11 @@ def get_search_types(request=None):
     from content_type.search_graphs import SearchGraphs
     search_hands = SearchHands()
     from digipal.utils import is_model_visible
-    ret = [search_model for search_model in [SearchManuscripts(), search_hands, SearchScribes(), SearchGraphs(search_hands)] if is_model_visible(search_model.get_model(), request or True)]
+    ret = [search_model for search_model in [SearchManuscripts(), search_hands, SearchScribes(
+    ), SearchGraphs(search_hands)] if is_model_visible(search_model.get_model(), request or True)]
 
     return ret
+
 
 def get_search_types_display(content_types):
     ''' returns the content types as a string like this:
@@ -41,10 +45,11 @@ def get_search_types_display(content_types):
         ret += '\'%s\'' % type.label
     return ret
 
+
 @staff_member_required
 @csrf_exempt
 def search_index_view(request):
-    context = {'indexes': SortedDict()}
+    context = {'indexes': OrderedDict()}
 
     '''
     todo
@@ -64,7 +69,7 @@ def search_index_view(request):
     indexer = SearchIndexer()
 
     content_types = faceted_search.get_types(True)
-    
+
     # process request
     action = request.POST.get('action', '')
     reindexes = []
@@ -72,28 +77,29 @@ def search_index_view(request):
         for ct in content_types:
             if request.POST.get('select-%s' % ct.key):
                 reindexes.append(ct.key)
-        
+
         if reindexes:
-            dputils.call_management_command('dpsearch', 'index_facets', **{'if': ','.join(reindexes)})
+            dputils.call_management_command(
+                'dpsearch', 'index_facets', **{'if': ','.join(reindexes)})
             context['indexing'] = indexer.get_state_initial(reindexes)
     if not 'indexing' in context:
         context['indexing'] = indexer.read_state()
-    
+
     context['running'] = context['indexing'] and context['indexing']['progress'] < 1.0
     now = datetime.now()
     if context['indexing'] and\
-        (not context['running'] and ((now - context['indexing']['updated']).total_seconds() > (60 * 10))):
+            (not context['running'] and ((now - context['indexing']['updated']).total_seconds() > (60 * 10))):
         context['indexing'] = None
-    
+
     # read the index stats
     for ct in content_types:
         info = {'date': 0, 'size': 0}
         context['indexes'][ct.key] = {
-            'object': ct, 
+            'object': ct,
             'info': info,
             'indexing': context['indexing']['indexes'].get(ct.key, None) if context['indexing'] else None,
         }
-        
+
         for afile in get_all_files_under(ct.get_whoosh_index_path(), file_types='f'):
             info['size'] += os.path.getsize(afile)
             info['date'] = max(info['date'], os.path.getmtime(afile))
@@ -102,25 +108,32 @@ def search_index_view(request):
         info['size'] = int(info['size'])
 
     context['title'] = 'Search Indexer'
-        
+
     template = 'search/search_index.html'
     if request.is_ajax():
         template = 'search/search_index_fragment.html'
-            
-    ret = render_to_response(template, context, context_instance=RequestContext(request))
+
+    ret = render_to_response(
+        template, context, context_instance=RequestContext(request))
     return ret
 
+
 def catalogue_number_view(request, source='', number=''):
-    cns = CatalogueNumber.objects.filter(source__label_slug=slugify(source), number_slug=slugify(number))
+    cns = CatalogueNumber.objects.filter(
+        source__label_slug=slugify(source), number_slug=slugify(number))
     if len(list(cns)) == 1:
-        # TODO: error management: no hi, no ip, multiple his, mutliple ips, etc.
-        ipi = ItemPartItem.objects.filter(historical_item=cns[0].historical_item).first()
+        # TODO: error management: no hi, no ip, multiple his, mutliple ips,
+        # etc.
+        ipi = ItemPartItem.objects.filter(
+            historical_item=cns[0].historical_item).first()
         ip = ipi.item_part
         from django.shortcuts import redirect
         redirect_url = ip.get_absolute_url()
         return redirect(redirect_url)
     else:
-        raise Http404('Catalogue number not found. Source "%s", number "%s".' % (source, number))
+        raise Http404(
+            'Catalogue number not found. Source "%s", number "%s".' % (source, number))
+
 
 def record_view(request, content_type='', objectid='', tabid=''):
     '''The generic view for any type of record: Hand, Scribe, Manuscript'''
@@ -130,7 +143,8 @@ def record_view(request, content_type='', objectid='', tabid=''):
 
     # We need to do a search to show the next and previous record
     # Only when we come from the the search image.
-    set_search_results_to_context(request, allowed_type=content_type, context=context)
+    set_search_results_to_context(
+        request, allowed_type=content_type, context=context)
 
     for type in context['types']:
         if type.key == content_type:
@@ -155,6 +169,7 @@ def record_view(request, content_type='', objectid='', tabid=''):
 
     return render_to_response(template, context, context_instance=RequestContext(request))
 
+
 def index_view(request, content_type=''):
     context = {}
 
@@ -172,10 +187,12 @@ def index_view(request, content_type=''):
 
     # pagination
     page_letter = request.GET.get('pl', '').lower()
-    context['pages'] = [{'label': 'All', 'id': '', 'selected': (not page_letter)}]
+    context['pages'] = [
+        {'label': 'All', 'id': '', 'selected': (not page_letter)}]
     context['selected_page'] = context['pages'][0]
     for i in range(ord('a'), ord('z') + 1):
-        page = {'label': ('%s' % chr(i)).upper(), 'id': chr(i), 'selected': (chr(i) == page_letter), 'disabled': not(chr(i) in context['active_letters'])}
+        page = {'label': ('%s' % chr(i)).upper(), 'id': chr(i), 'selected': (
+            chr(i) == page_letter), 'disabled': not(chr(i) in context['active_letters'])}
         context['pages'].append(page)
         if page['selected']:
             context['selected_page'] = page
@@ -183,6 +200,7 @@ def index_view(request, content_type=''):
     template = 'pages/record_index.html'
 
     return render_to_response(template, context, context_instance=RequestContext(request))
+
 
 def search_ms_image_view(request):
     '''View for the Browse Image page'''
@@ -212,16 +230,20 @@ def search_ms_image_view(request):
 
     # Applying filters
     if town_or_city:
-        images = images.filter(item_part__current_item__repository__place__name=town_or_city)
+        images = images.filter(
+            item_part__current_item__repository__place__name=town_or_city)
     if repository:
         # repo is in two parts: repo place, repo name (e.g. cambridge, corpus christi college)
         # but we also support old style URL which have only the name of the repo
-        # if we don't, crawlers like Googlebot could receive a 500 error (see JIRA DIGIPAL-483)
+        # if we don't, crawlers like Googlebot could receive a 500 error (see
+        # JIRA DIGIPAL-483)
         repo_parts = [p.strip() for p in repository.split(',')]
         if repo_parts:
-            images = images.filter(item_part__current_item__repository__name=repo_parts[-1])
+            images = images.filter(
+                item_part__current_item__repository__name=repo_parts[-1])
         if len(repo_parts) > 1:
-            images = images.filter(item_part__current_item__repository__place__name=repo_parts[0])
+            images = images.filter(
+                item_part__current_item__repository__place__name=repo_parts[0])
     if date:
         images = images.filter(hands__assigned_date__date=date)
 
@@ -246,20 +268,24 @@ def search_ms_image_view(request):
     # count hands
     hand_filters.chrono('hands:')
     from django.db.models import Count
-    context['images'] = Image.sort_query_set_by_locus(images.select_related('item_part__current_item__repository__place').annotate(hand_count=Count('hands')))
+    context['images'] = Image.sort_query_set_by_locus(images.select_related(
+        'item_part__current_item__repository__place').annotate(hand_count=Count('hands')))
     hand_filters.chrono('hands:')
 
     image_search_form = FilterManuscriptsImages(request.GET)
     context['image_search_form'] = image_search_form
-    context['query_summary'], context['query_summary_interactive'] = get_query_summary(request, '', True, [image_search_form])
+    context['query_summary'], context['query_summary_interactive'] = get_query_summary(
+        request, '', True, [image_search_form])
 
     hand_filters.chrono('template:')
-    ret = render_to_response('search/search_ms_image.html', context, context_instance=RequestContext(request))
+    ret = render_to_response('search/search_ms_image.html',
+                             context, context_instance=RequestContext(request))
     hand_filters.chrono(':template')
 
     hand_filters.chrono(':BROWSE')
 
     return ret
+
 
 def reroute_to_static_search(request):
     ret = None
@@ -271,9 +297,11 @@ def reroute_to_static_search(request):
         ret = redirect(redirect_url)
     return ret
 
+
 def search_record_view(request):
     ret = reroute_to_static_search(request)
-    if ret: return ret
+    if ret:
+        return ret
 
     hand_filters.chrono('SEARCH VIEW:')
     hand_filters.chrono('SEARCH LOGIC:')
@@ -289,29 +317,38 @@ def search_record_view(request):
     if qs_id and qs_result_type:
         from django.shortcuts import redirect
         # TODO: get digipal from current project name or current URL
-        redirect_url = '/%s/%s/%s/?%s' % ('digipal', qs_result_type, qs_id, request.META['QUERY_STRING'])
+        redirect_url = '/%s/%s/%s/?%s' % ('digipal',
+                                          qs_result_type, qs_id, request.META['QUERY_STRING'])
         return redirect(redirect_url)
 
     # backward compatibility:
     # query string param 'name' and 'scribes' have ben renamed to 'scribe'
     request.GET = request.GET.copy()
-    request.GET['scribe'] = request.REQUEST.get('scribe', '') or request.REQUEST.get('scribes', '') or request.REQUEST.get('name', '')
+    request.GET['scribe'] = request.REQUEST.get('scribe', '') or request.REQUEST.get(
+        'scribes', '') or request.REQUEST.get('name', '')
 
-    request.GET['ms_date'] = request.REQUEST.get('ms_date', '')  or request.REQUEST.get('date', '')
-    request.GET['hand_date'] = request.REQUEST.get('hand_date', '')  or request.REQUEST.get('date', '')
-    request.GET['scribe_date'] = request.REQUEST.get('scribe_date', '')  or request.REQUEST.get('date', '')
+    request.GET['ms_date'] = request.REQUEST.get(
+        'ms_date', '') or request.REQUEST.get('date', '')
+    request.GET['hand_date'] = request.REQUEST.get(
+        'hand_date', '') or request.REQUEST.get('date', '')
+    request.GET['scribe_date'] = request.REQUEST.get(
+        'scribe_date', '') or request.REQUEST.get('date', '')
 
-    request.GET['hand_place'] = request.REQUEST.get('hand_place', '')  or request.REQUEST.get('place', '')
-    request.GET['scriptorium'] = request.REQUEST.get('scriptorium', '')  or request.REQUEST.get('place', '')
+    request.GET['hand_place'] = request.REQUEST.get(
+        'hand_place', '') or request.REQUEST.get('place', '')
+    request.GET['scriptorium'] = request.REQUEST.get(
+        'scriptorium', '') or request.REQUEST.get('place', '')
 
     # Actually run the searches
     context = {}
 
     context['nofollow'] = True
 
-    set_search_results_to_context(request, context=context, show_advanced_search_form=True)
+    set_search_results_to_context(
+        request, context=context, show_advanced_search_form=True)
 
-    # check if the search was executed or not (e.g. form not submitted or invalid form)
+    # check if the search was executed or not (e.g. form not submitted or
+    # invalid form)
     if context.has_key('results'):
         # Tab Selection Logic =
         #     we pick the tab the user has selected even if it is empty. END
@@ -332,7 +369,8 @@ def search_record_view(request):
                     break
                 if not first_non_empty_type and not type.is_empty:
                     first_non_empty_type = type.key
-            if not result_type: result_type = first_non_empty_type
+            if not result_type:
+                result_type = first_non_empty_type
 
         result_type = result_type or context['types'][0].key
         context['result_type'] = result_type
@@ -343,12 +381,14 @@ def search_record_view(request):
                 context['is_empty'] = False
 
     from digipal import utils
-    context['search_help_url'] = utils.get_cms_url_from_slug(getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
+    context['search_help_url'] = utils.get_cms_url_from_slug(
+        getattr(settings, 'SEARCH_HELP_PAGE_SLUG', 'search_help'))
 
     # Initialise the advanced search forms
     # context['drilldownform'] = GraphSearchForm({'terms': context['terms'] or ''})
 
-    page_options = get_search_page_js_data(context['types'], request.GET.get('from_link') in ('true', '1'), request)
+    page_options = get_search_page_js_data(
+        context['types'], request.GET.get('from_link') in ('true', '1'), request)
     context['expanded_custom_filters'] = page_options['advanced_search_expanded']
     page_options['linked_fields'] = []
 
@@ -361,18 +401,21 @@ def search_record_view(request):
             context['filters_form'] = custom_filter
 
     from digipal.models import RequestLog
-    RequestLog.save_request(request, sum([type.count for type in context['types']]))
+    RequestLog.save_request(request, sum(
+        [type.count for type in context['types']]))
 
     hand_filters.chrono(':SEARCH LOGIC')
     hand_filters.chrono('SEARCH TEMPLATE:')
 
-    ret = render_to_response('search/search_record.html', context, context_instance=RequestContext(request))
+    ret = render_to_response('search/search_record.html',
+                             context, context_instance=RequestContext(request))
 
     hand_filters.chrono(':SEARCH TEMPLATE')
 
     hand_filters.chrono(':SEARCH VIEW')
 
     return ret
+
 
 def set_page_sizes_to_context(request, context, options=[10, 20, 50, 100]):
     context['page_sizes'] = options
@@ -381,6 +424,7 @@ def set_page_sizes_to_context(request, context, options=[10, 20, 50, 100]):
         context['page_size'] = int(context['page_size'])
     if context['page_size'] not in context['page_sizes']:
         context['page_size'] = context['page_sizes'][0]
+
 
 def set_search_results_to_context(request, context={}, allowed_type=None, show_advanced_search_form=False):
     ''' Read the information posted through the search form and create the queryset
@@ -402,7 +446,8 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
     # pagination sizes
     set_page_sizes_to_context(request, context)
 
-    # list of query parameter/form fields which can be changed without triggering a search
+    # list of query parameter/form fields which can be changed without
+    # triggering a search
     context['submitted'] = False
     non_search_params = ['basic_search_type', 'from_link', 'result_type']
     for param in request.GET:
@@ -419,12 +464,14 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         type.set_desired_view(context['view'])
         type.set_page_size(context['page_size'])
 
-    context['search_types_display'] = get_search_types_display(context['types'])
+    context['search_types_display'] = get_search_types_display(
+        context['types'])
     context['is_empty'] = True
 
     advanced_search_form = SearchPageForm(request.GET)
 
-    advanced_search_form.fields['basic_search_type'].choices = [(type.key, type.label) for type in context['types']]
+    advanced_search_form.fields['basic_search_type'].choices = [
+        (type.key, type.label) for type in context['types']]
 
     if show_advanced_search_form:
         context['advanced_search_form'] = advanced_search_form
@@ -434,7 +481,8 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
         # - term
         term = advanced_search_form.cleaned_data['terms']
         context['terms'] = term or ' '
-        context['query_summary'], context['query_summary_interactive'] = get_query_summary(request, term, context['submitted'], [type.get_form(request) for type in context['types']])
+        context['query_summary'], context['query_summary_interactive'] = get_query_summary(
+            request, term, context['submitted'], [type.get_form(request) for type in context['types']])
 
         # - search type
         context['search_type'] = advanced_search_form.cleaned_data['basic_search_type']
@@ -454,16 +502,22 @@ def set_search_results_to_context(request, context={}, allowed_type=None, show_a
             for type in context['types']:
                 if allowed_type in [None, type.key]:
                     hand_filters.chrono('Search %s:' % type.key)
-                    context['results'] = type.build_queryset(request, term, not has_result)
+                    context['results'] = type.build_queryset(
+                        request, term, not has_result)
                     if type.is_empty == False:
                         has_result = True
                     hand_filters.chrono(':Search %s' % type.key)
+
 
 def get_query_summary(request, term, submitted, forms):
     # Return two strings that summaries the query
     # The first string is plain text, the second is in HTML and allows the user to remove filters
     # e.g. (u'Catalogue Number: "CLA A.1822", Date: "693"',
-    # u'Catalogue Number: "CLA A.1822" <a href="?date=693&amp;s=1&amp;from_link=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>, Date: "693" <a href="?index=CLA+A.1822&amp;from_link=1&amp;s=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span class="glyphicon glyphicon-remove"></span></a>')
+    # u'Catalogue Number: "CLA A.1822" <a
+    # href="?date=693&amp;s=1&amp;from_link=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span
+    # class="glyphicon glyphicon-remove"></span></a>, Date: "693" <a
+    # href="?index=CLA+A.1822&amp;from_link=1&amp;s=1&amp;result_type=scribes&amp;basic_search_type=manuscripts"><span
+    # class="glyphicon glyphicon-remove"></span></a>')
     ret = u''
 
     query_all = False
@@ -471,10 +525,12 @@ def get_query_summary(request, term, submitted, forms):
     from django.utils.html import strip_tags
 
     def get_filter_html(val, param, label=''):
-        ret = u'<a href="%s">' % update_query_params(u'?' + request.META['QUERY_STRING'], '%s=' % param)
+        ret = u'<a href="%s">' % update_query_params(
+            u'?' + request.META['QUERY_STRING'], '%s=' % param)
         if label:
             ret += u'%s: ' % label
-        ret += u'"%s" <span class="glyphicon glyphicon-remove"></span>' % escape(val)
+        ret += u'"%s" <span class="glyphicon glyphicon-remove"></span>' % escape(
+            val)
         ret += u'</a>'
         return ret
 
@@ -489,7 +545,8 @@ def get_query_summary(request, term, submitted, forms):
             for field_name in form.fields:
                 if field_name not in found_params:
                     boundfield = form[field_name]
-                    field_label = getattr(boundfield, 'label', '') or getattr(boundfield.field, 'empty_label', '') or (boundfield.field.initial) or field_name.title()
+                    field_label = getattr(boundfield, 'label', '') or getattr(
+                        boundfield.field, 'empty_label', '') or (boundfield.field.initial) or field_name.title()
                     value = boundfield.value()
                     if value:
                         if hasattr(boundfield.field, 'choices'):
@@ -500,21 +557,24 @@ def get_query_summary(request, term, submitted, forms):
                                     # The main issue is that it has multiple options with the same value
                                     # e.g. insular -> a,insular, insular, r, insular
                                     # If the user selects r, insular, the page page reloads and we see 'a, insular'
-                                    # here we apply some custom logic to show the right value.
+                                    # here we apply some custom logic to show
+                                    # the right value.
                                     if field_name == u'allograph':
                                         parts = choice_label.split(',')
                                         if len(parts) == 2:
-                                            char = request.REQUEST.get('character', '')
+                                            char = request.REQUEST.get(
+                                                'character', '')
                                             if char:
-                                                choice_label = u'%s, %s' % (char.strip(), parts[1].strip())
+                                                choice_label = u'%s, %s' % (
+                                                    char.strip(), parts[1].strip())
 
                                     # format the field for the summary
                                     if ret:
                                         ret += ', '
-                                    ret += get_filter_html(choice_label, field_name, field_label)
+                                    ret += get_filter_html(choice_label,
+                                                           field_name, field_label)
                                     found_params.append(field_name)
                                     break
-
 
         query_all = not ret.strip()
 
@@ -529,21 +589,23 @@ def get_query_summary(request, term, submitted, forms):
 
     return tuple(ret)
 
+
 def get_search_page_js_data(content_types, expanded_search=False, request=None):
     filters = []
     for type in content_types:
         filters.append({
-                         'html': type.get_form(request).as_ul(),
-                         'label': type.label,
-                         'key': type.key,
-                         })
+            'html': type.get_form(request).as_ul(),
+            'label': type.label,
+            'key': type.key,
+        })
 
     ret = {
         'advanced_search_expanded': expanded_search or any([type.is_advanced_search for type in content_types]),
         'filters': filters,
-    };
+    }
 
     return ret
+
 
 def search_graph_view(request):
     # this has been integrated into the main search page
@@ -552,8 +614,10 @@ def search_graph_view(request):
     # we redirect old addresses to the new main search
     from django.shortcuts import redirect
     # TODO: get digipal from current project name or current URL
-    redirect_url = '/digipal/search/?basic_search_type=graphs&from_link=1&result_type=graphs&%s' % (request.META['QUERY_STRING'].replace('_select=', '='),)
+    redirect_url = '/digipal/search/?basic_search_type=graphs&from_link=1&result_type=graphs&%s' % (
+        request.META['QUERY_STRING'].replace('_select=', '='),)
     return redirect(redirect_url)
+
 
 def search_suggestions(request):
     from digipal.utils import get_json_response

@@ -4,7 +4,6 @@ from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
 from digipal.templatetags.hand_filters import chrono
-from django.utils.datastructures import SortedDict
 
 
 class FilterGraphs(forms.Form):

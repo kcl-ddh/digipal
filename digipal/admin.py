@@ -103,6 +103,7 @@ class GraphForm(forms.ModelForm):
 
     class Meta:
         model = Graph
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         # Don't look into other pages for possible grouping graphs.
@@ -123,6 +124,7 @@ class ImageForm(forms.ModelForm):
 
     class Meta:
         model = Image
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         # we change the label of the default value for the media_permission
@@ -151,6 +153,7 @@ class RepositoryForm(forms.ModelForm):
 
     class Meta:
         model = Repository
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         # we change the label of the default value for the media_permission

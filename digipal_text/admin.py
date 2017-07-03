@@ -11,7 +11,7 @@ import re
 
 import logging
 from operator import isCallable
-dplog = logging.getLogger( 'digipal_debugger')
+dplog = logging.getLogger('digipal_debugger')
 
 #-----------------------------------------------------------
 # TODO: move this to digipal lib
@@ -23,11 +23,14 @@ it will display the message on the form.
 The message is either a string or a function of the model instance that returns a string.
 '''
 
+
 class MessageWidget(forms.Widget):
     def render(self, name, value, attrs=None):
-        if value is None: value = ''
+        if value is None:
+            value = ''
         from django.utils.safestring import mark_safe
         return mark_safe(value)
+
 
 class MessageField(forms.Field):
     widget = MessageWidget
@@ -50,6 +53,7 @@ class MessageField(forms.Field):
                 ret = ''
         return ret
 
+
 class ModelFormWithMessageFields(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ModelFormWithMessageFields, self).__init__(*args, **kwargs)
@@ -59,11 +63,15 @@ class ModelFormWithMessageFields(forms.ModelForm):
 
 #-----------------------------------------------------------
 
+
 class TextContentForm(ModelFormWithMessageFields):
-    action_edit = MessageField(message=lambda o: '<a href="/admin/digipal/itempart/%s/edit/">Edit the Text</a>' % o.item_part.id, label='Action')
+    action_edit = MessageField(
+        message=lambda o: '<a href="/admin/digipal/itempart/%s/edit/">Edit the Text</a>' % o.item_part.id, label='Action')
 
     class Meta:
+        fields = '__all__'
         model = TextContent
+
 
 class FilterTCDuplicate(SimpleListFilter):
     title = 'Duplicates'
@@ -78,29 +86,35 @@ class FilterTCDuplicate(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() in ['0', '1']:
-            duplicates = [r.id for r in TextContent.objects.raw('select tc.* from digipal_text_textcontent tc, digipal_text_textcontent tc2 where tc.id <> tc2.id and tc.item_part_id = tc2.item_part_id AND tc.type_id = tc2.type_id')]
+            duplicates = [r.id for r in TextContent.objects.raw(
+                'select tc.* from digipal_text_textcontent tc, digipal_text_textcontent tc2 where tc.id <> tc2.id and tc.item_part_id = tc2.item_part_id AND tc.type_id = tc2.type_id')]
             if self.value() == '1':
                 qs = queryset.filter(id__in=duplicates)
             else:
                 qs = queryset.exclude(id__in=duplicates)
             return qs
 
+
 class TextContentAdmin(reversion.VersionAdmin):
     model = TextContent
     form = TextContentForm
 
-    list_display = ['item_part', 'text', 'get_string_from_languages', 'type', 'created', 'modified']
+    list_display = ['item_part', 'text',
+                    'get_string_from_languages', 'type', 'created', 'modified']
     list_display_links = list_display
-    search_fields = ['item_part__display_label', 'text__name', 'languages__name', 'type__name']
+    search_fields = ['item_part__display_label',
+                     'text__name', 'languages__name', 'type__name']
     list_filter = ['languages', 'type', FilterTCDuplicate]
 
     fieldsets = (
-            (None, {'fields': ('item_part', 'text', 'type', 'languages')}),
-            ('Actions', {'fields': ('action_edit', )}),
-            )
+        (None, {'fields': ('item_part', 'text', 'type', 'languages')}),
+        ('Actions', {'fields': ('action_edit', )}),
+    )
+
 
 class TextContentTypeAdmin(reversion.VersionAdmin):
     model = TextContentType
+
 
 class FilterCTXDuplicate(SimpleListFilter):
     title = 'Duplicates'
@@ -115,12 +129,14 @@ class FilterCTXDuplicate(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() in ['0', '1']:
-            duplicates = [r.id for r in TextContentXML.objects.raw('select tcx.* from digipal_text_textcontentxml tcx, digipal_text_textcontentxml tcx2 where tcx.id <> tcx2.id and tcx.text_content_id = tcx2.text_content_id')]
+            duplicates = [r.id for r in TextContentXML.objects.raw(
+                'select tcx.* from digipal_text_textcontentxml tcx, digipal_text_textcontentxml tcx2 where tcx.id <> tcx2.id and tcx.text_content_id = tcx2.text_content_id')]
             if self.value() == '1':
                 qs = queryset.filter(id__in=duplicates)
             else:
                 qs = queryset.exclude(id__in=duplicates)
             return qs
+
 
 class FilterCTXEmpty(SimpleListFilter):
     title = 'Empty'
@@ -141,13 +157,16 @@ class FilterCTXEmpty(SimpleListFilter):
                 cdt = ' < 3 OR content is null '
             return queryset.extra(where=['length(content) ' + cdt])
 
+
 class TextContentXMLAdmin(reversion.VersionAdmin):
     model = TextContentXML
 
-    list_display = ['id', 'text_content', 'get_type_name', 'status', 'get_length', 'modified', 'created']
+    list_display = ['id', 'text_content', 'get_type_name',
+                    'status', 'get_length', 'modified', 'created']
     list_display_links = ['id', 'text_content', 'modified', 'created']
     search_fields = ['id', 'text_content__item_part__display_label']
-    list_filter = ['status', 'text_content__languages', 'text_content__type', FilterCTXEmpty, FilterCTXDuplicate]
+    list_filter = ['status', 'text_content__languages',
+                   'text_content__type', FilterCTXEmpty, FilterCTXDuplicate]
     list_editable = ['status']
 
     def queryset(self, request):
@@ -170,12 +189,14 @@ class TextContentXMLAdmin(reversion.VersionAdmin):
 #             ('Actions', {'fields': ('action_edit', )}),
 #             )
 
+
 class TextContentXMLStatusAdmin(reversion.VersionAdmin):
     model = TextContentXMLStatus
 
     list_display = ['id', 'name', 'sort_order']
     list_display_links = ['id', 'name']
     list_editable = ['sort_order']
+
 
 admin.site.register(TextContent, TextContentAdmin)
 admin.site.register(TextContentType, TextContentTypeAdmin)

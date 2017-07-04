@@ -50,7 +50,9 @@ def has_user_edit_permission(user, model):
     '''
     ret = False
     if model and user:
-        perm = model._meta.app_label + '.' + model._meta.get_change_permission()
+        from django.contrib.auth import get_permission_codename
+        perm = model._meta.app_label + '.' + \
+            get_permission_codename('change', model._meta)
         ret = user.has_perm(perm)
 
     return ret
@@ -3901,10 +3903,10 @@ def set_additional_models_methods():
     def model_get_absolute_url(self):
         from utils import plural
         # get custom label if defined in _meta, otehrwise stick to module name
-        if self._meta.module_name in ['currentitem']:
+        if self._meta.model_name in ['currentitem']:
             return None
         webpath_key = getattr(self, 'webpath_key',
-                              plural(self._meta.module_name, 2))
+                              plural(self._meta.model_name, 2))
         ret = '/%s/%s/%s/' % (self._meta.app_label,
                               webpath_key.lower(), self.id)
         return ret
@@ -3912,7 +3914,7 @@ def set_additional_models_methods():
     def model_get_admin_url(self):
         # get_admin_url
         from django.core.urlresolvers import reverse
-        info = (self._meta.app_label, self._meta.module_name)
+        info = (self._meta.app_label, self._meta.model_name)
         ret = reverse('admin:%s_%s_change' % info, args=(self.pk,))
         return ret
 

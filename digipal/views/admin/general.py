@@ -140,13 +140,13 @@ def get_obj_info(obj, exclude_list=None):
     ret = {
         'obj': obj,
         'type': obj._meta.object_name,
-        'link': ur'/admin/%s/%s/%s/' % (obj._meta.app_label, obj._meta.module_name, obj.id),
+        'link': ur'/admin/%s/%s/%s/' % (obj._meta.app_label, obj._meta.model_name, obj.id),
         'children': []
     }
 
     info = ''
 
-    if obj._meta.module_name == 'historicalitem':
+    if obj._meta.model_name == 'historicalitem':
         info_parts = []
         info = '%s, %s' % (obj.historical_item_format,
                            obj.historical_item_type)
@@ -182,15 +182,15 @@ def get_obj_key(obj):
 def get_obj_children(obj):
     ret = []
 
-    if obj._meta.module_name == 'itempart':
+    if obj._meta.model_name == 'itempart':
         ret.extend((obj.current_item,))
         ret.extend(list(obj.historical_items.all().order_by('id')))
         ret.extend(list(obj.images.all().order_by('id')))
 
-    if obj._meta.module_name == 'currentitem':
+    if obj._meta.model_name == 'currentitem':
         ret.extend(list(obj.itempart_set.all().order_by('id')))
 
-    if obj._meta.module_name == 'historicalitem':
+    if obj._meta.model_name == 'historicalitem':
         ret.extend(list(obj.item_parts.all().order_by('id')))
 
     return ret

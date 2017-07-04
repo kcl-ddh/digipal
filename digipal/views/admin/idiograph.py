@@ -8,6 +8,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 import json
 
+
 @staff_member_required
 def idiograph_editor(request):
 
@@ -18,12 +19,13 @@ def idiograph_editor(request):
     onlyScribeForm = OnlyScribe()
 
     newContext = {
-               'can_edit': has_edit_permission(request, Annotation), 'formset': formset,
-               'scribeForm': onlyScribeForm
-               }
+        'can_edit': has_edit_permission(request, Annotation), 'formset': formset,
+        'scribeForm': onlyScribeForm
+    }
 
     return render_to_response('admin/digipal/idiograph_editor.html', newContext,
                               context_instance=RequestContext(request))
+
 
 @staff_member_required
 def get_idiograph(request):
@@ -37,15 +39,18 @@ def get_idiograph(request):
         idiograph_components = idiograph_obj.idiographcomponent_set.values()
         components = []
         for component in idiograph_components:
-            feature_obj = Feature.objects.filter(idiographcomponent=component['id'])
+            feature_obj = Feature.objects.filter(
+                idiographcomponent=component['id'])
             if feature_obj.count() > 0:
                 features = []
                 for obj in feature_obj.values():
                     feature = {}
                     feature['name'] = obj['name']
                     feature['id'] = obj['id']
-                    component_id = Component.objects.filter(features=obj['id'], idiographcomponent=component['id']).values('id')[0]['id']
-                    component_name = Component.objects.filter(features=obj['id'], idiographcomponent=component['id']).values('name')[0]['name']
+                    component_id = Component.objects.filter(
+                        features=obj['id'], idiographcomponent=component['id']).values('id')[0]['id']
+                    component_name = Component.objects.filter(
+                        features=obj['id'], idiographcomponent=component['id']).values('name')[0]['name']
                     features.append(feature)
                 c = {
                     'id': component_id,
@@ -59,9 +64,9 @@ def get_idiograph(request):
     else:
         return HttpResponseBadRequest()
 
-@staff_member_required
-@transaction.commit_on_success
 
+@staff_member_required
+@transaction.atomic
 def save_idiograph(request):
     response = {}
     try:
@@ -75,7 +80,8 @@ def save_idiograph(request):
         for component in data:
             idiograph_id = Idiograph.objects.get(id=idiograph.id)
             component_id = Component.objects.get(id=component['id'])
-            idiograph_component = IdiographComponent(idiograph = idiograph_id, component = component_id)
+            idiograph_component = IdiographComponent(
+                idiograph=idiograph_id, component=component_id)
             idiograph_component.save()
             for features in component['features']:
                 feature = Feature.objects.get(id=features['id'])
@@ -86,9 +92,8 @@ def save_idiograph(request):
     return HttpResponse(json.dumps(response), content_type='application/json')
 
 
-
 @staff_member_required
-@transaction.commit_on_success
+@transaction.atomic
 def update_idiograph(request):
     response = {}
     try:
@@ -101,7 +106,8 @@ def update_idiograph(request):
         idiograph.save()
         for idiograph_component in data:
             if idiograph_component['idiograph_component'] != False:
-                ic = IdiographComponent.objects.get(id=idiograph_component['idiograph_component'])
+                ic = IdiographComponent.objects.get(
+                    id=idiograph_component['idiograph_component'])
                 ic.features.clear()
             else:
                 ic = IdiographComponent()
@@ -117,8 +123,9 @@ def update_idiograph(request):
         response['errors'] = ['Internal error: %s' % e.message]
     return HttpResponse(json.dumps(response), content_type='application/json')
 
+
 @staff_member_required
-@transaction.commit_on_success
+@transaction.atomic
 def delete_idiograph(request):
     response = {}
     try:
@@ -131,24 +138,27 @@ def delete_idiograph(request):
         response['errors'] = ['Internal error: %s' % e.message]
     return HttpResponse(json.dumps(response), content_type='application/json')
 
+
 @staff_member_required
 def get_idiographs(request):
-        scribe_id = request.GET.get('scribe', '')
-        idiographs = []
-        scribe = Scribe.objects.get(id=scribe_id)
-        idiographs_values = scribe.idiographs
-        for idiograph in idiographs_values.all():
-            num_features = Feature.objects.filter(idiographcomponent__idiograph=idiograph.id).count()
-            object_idiograph = {
-                'allograph_id': idiograph.allograph_id,
-                'scribe_id': idiograph.scribe_id,
-                'idiograph': idiograph.display_label,
-                'id': idiograph.id,
-                'num_features': num_features
-            }
-            idiographs.append(object_idiograph)
+    scribe_id = request.GET.get('scribe', '')
+    idiographs = []
+    scribe = Scribe.objects.get(id=scribe_id)
+    idiographs_values = scribe.idiographs
+    for idiograph in idiographs_values.all():
+        num_features = Feature.objects.filter(
+            idiographcomponent__idiograph=idiograph.id).count()
+        object_idiograph = {
+            'allograph_id': idiograph.allograph_id,
+            'scribe_id': idiograph.scribe_id,
+            'idiograph': idiograph.display_label,
+            'id': idiograph.id,
+            'num_features': num_features
+        }
+        idiographs.append(object_idiograph)
 
-        return HttpResponse(json.dumps(idiographs), content_type='application/json')
+    return HttpResponse(json.dumps(idiographs), content_type='application/json')
+
 
 @staff_member_required
 def get_allographs(request):
@@ -157,7 +167,8 @@ def get_allographs(request):
     if request.is_ajax():
         allograph_id = request.GET.get('allograph', '')
         allograph = Allograph.objects.get(id=allograph_id)
-        allograph_components = AllographComponent.objects.filter(allograph=allograph)
+        allograph_components = AllographComponent.objects.filter(
+            allograph=allograph)
 
         data = []
 
@@ -176,4 +187,3 @@ def get_allographs(request):
         return HttpResponse(json.dumps(data), content_type='application/json')
     else:
         return HttpResponseBadRequest()
-

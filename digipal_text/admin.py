@@ -169,8 +169,8 @@ class TextContentXMLAdmin(reversion.VersionAdmin):
                    'text_content__type', FilterCTXEmpty, FilterCTXDuplicate]
     list_editable = ['status']
 
-    def queryset(self, request):
-        qs = super(TextContentXMLAdmin, self).queryset(request)
+    def get_query_set(self, request):
+        qs = super(TextContentXMLAdmin, self).get_query_set(request)
         qs = qs.extra(select={'content_length': 'length(content)'})
         return qs
 

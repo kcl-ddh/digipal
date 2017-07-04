@@ -468,6 +468,8 @@ SOUTH_TESTS_MIGRATE = False
 
 COMMENTS_DEFAULT_APPROVED = True
 
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
 #########################
 #         SEARCH        #
 #########################

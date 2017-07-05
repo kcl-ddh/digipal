@@ -1,4 +1,4 @@
-{% load i18n future %}
+{% load i18n %}
 
 <form id="editable-toolbar" method="POST" action="{% url "admin:logout" %}?{{ REDIRECT_FIELD_NAME }}={{ request.path }}">
     {% csrf_token %}

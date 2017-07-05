@@ -462,7 +462,8 @@ IMAGE_SERVER_ADMIN_UPLOAD_DIR = os.path.join(
     IMAGE_SERVER_UPLOAD_ROOT, 'admin-upload')
 
 # Mezzanine
-SITE_TITLE = 'DigiPal'
+# Change this setting in the admin backend interface
+#SITE_TITLE = 'DigiPal'
 
 TWITTER = 'DigiPalProject'
 GITHUB = 'kcl-ddh/digipal'
@@ -534,21 +535,26 @@ FILEBROWSER_EXTENSIONS = {
 # LOGS #
 ########
 
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error.
+# Send an email to the site admins on every HTTP 500 error.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
 
-# Log debug info into debug.log
-# Includes SQL statements
-# NOT for production
-DJANGO_DEBUG_LOG = False
+# Log DigiPal framework messages into digipla.log
+# One of DEBUG, INFO, WARNING, ERROR, CRITICAL
+# see digipal.utils.dplog()
+# USE 'ERROR' ON PRODUCTION SITE
+DIGIPAL_LOG_LEVEL = 'ERROR'
+
+# Log SQL statements into digipal.log
+# INDEPENDENT FROM DIGIPAL_LOG_LEVEL
+# USE False ON PRODUCTION SITE
+DJANGO_LOG_SQL = False
 
 # Log the duration of each http response from django
 # and internal operations (search, indexing)
 # See middleware,py
-# Indepent from DJANGO_DEBUG_LOG
+# Only if DIGIPAL_LOG_LEVEL >= DEBUG
+# USE False ON PRODUCTION SITE
 DEBUG_PERFORMANCE = False
 
 import logging
@@ -563,11 +569,12 @@ LOGGING = {
         },
     },
     'handlers': {
+        # see digipal.utils.dplog()
         'digipal_debug': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'digipal_debug',
-            'filename': os.path.join(PROJECT_ROOT, 'logs/debug.log'),
+            'filename': os.path.join(PROJECT_ROOT, 'logs/digipal.log'),
             'backupCount': 10,
             'maxBytes': 10 * 1024 * 1024,
         },
@@ -590,9 +597,10 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        # see digipal.utils.dplog()
         'digipal_debugger': {
             'handlers': ['digipal_debug'],
-            'level': 'DEBUG',
+            'level': DIGIPAL_LOG_LEVEL,
             'propagate': False,
         },
     },
@@ -803,12 +811,14 @@ except ImportError:
 
 # DJANGO DEBUG INFO get logged into our debug log file
 # This includes the SQL statements
-if DJANGO_DEBUG_LOG and LOGGING:
+if DJANGO_LOG_SQL and LOGGING:
     LOGGING['loggers']['django.db.backends'] = {
         'handlers': ['digipal_debug'],
         'level': 'DEBUG',
         'propagate': False,
     }
+
+LOGGING['loggers']['digipal_debugger']['level'] = DIGIPAL_LOG_LEVEL
 
 # See http://stackoverflow.com/questions/26682413/django-rotating-file-handler-stuck-when-file-is-equal-to-maxbytes/32011192#32011192
 # Deactivate log for the parent process of runserver, children will have the log

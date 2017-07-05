@@ -4,7 +4,6 @@ from django.shortcuts import render
 from digipal import utils as dputils
 from digipal_text.models import TextPattern
 import regex as re
-import logging
 from digipal.utils import get_int_from_request_var
 from django.db.utils import IntegrityError
 from django.utils.text import slugify
@@ -14,7 +13,6 @@ from django.http.response import HttpResponse
 from digipal.models import KeyVal
 from datetime import datetime
 from django.conf import settings
-dplog = logging.getLogger('digipal_debugger')
 
 from django.views.decorators.csrf import csrf_exempt
 

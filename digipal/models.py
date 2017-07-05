@@ -2,7 +2,8 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+#from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.safestring import mark_safe
 from django.db.models import Q
 from PIL import Image as pil
@@ -22,7 +23,6 @@ from django.utils.text import slugify
 import utils as dputils
 from digipal.utils import sorted_natural
 from collections import OrderedDict
-dplog = logging.getLogger('digipal_debugger')
 
 from patches import admin_patches, whoosh_patches
 # need to call it here because get_image_path() is called in the model
@@ -442,28 +442,15 @@ class Reference(models.Model):
         return get_list_as_string(self.name, '', self.name_index)
 
 
-# class OwnerManager(models.Manager):
-#     def get_queryset(self):
-#         #return super(OwnerManager, self).get_queryset()
-# return super(OwnerManager,
-# self).get_queryset().select_related('repository', 'person',
-# 'institution').prefetch_related('itempart_set', 'historicalitem_set',
-# 'current_items')
-
 # MsOwners in legacy db
 # GN: this is actually an Ownership table
 class Owner(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
 
-    # GN: replaced generic relations with particular FKs.
-    # because generic relations are not easy to edit in the admin.
-    #
-    #content_type = models.ForeignKey(ContentType)
-    #object_id = models.PositiveIntegerField()
-    #content_object = generic.GenericForeignKey()
-    #
+    # deprecated, use repository
     institution = models.ForeignKey('Institution', blank=True, null=True, default=None, related_name='owners',
                                     help_text='Please select either an institution or a person. Deprecated, please use `Repository` instead.')
+    # deprecated, use repository
     person = models.ForeignKey('Person', blank=True, null=True, default=None,
                                related_name='owners',
                                help_text='Please select either an institution or a person. Deprecated, please use `Repository` instead.')
@@ -529,12 +516,6 @@ class Owner(models.Model):
 
     def __unicode__(self):
         return self.display_label
-        # return u'%s: %s. %s' % (self.content_type, self.content_object,
-        #        self.date)
-        # return get_list_as_string(self.content_type, ': ', self.content_object,
-        #        '. ', self.date)
-        # return u'%s in %s (%s)' % (self.content_object, self.date,
-        # self.content_type)
 
 # DateText in legacy db
 
@@ -1098,9 +1079,11 @@ class ItemOrigin(models.Model):
 
 class Archive(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
+
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     historical_item = models.ForeignKey(HistoricalItem)
     dubitable = models.NullBooleanField()
     created = models.DateTimeField(auto_now_add=True, editable=False)

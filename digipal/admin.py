@@ -31,9 +31,6 @@ import admin_filters
 import admin_inlines
 import admin_forms
 
-import logging
-dplog = logging.getLogger('digipal_debugger')
-
 
 class DigiPalModelAdmin(reversion.VersionAdmin):
     '''
@@ -63,7 +60,6 @@ class DigiPalModelAdmin(reversion.VersionAdmin):
 
             if field and related_model in [getattr(field, 'through', ''), getattr(field, 'model', '')]:
                 ret = field.count()
-                print ret
                 break
 
         return ret

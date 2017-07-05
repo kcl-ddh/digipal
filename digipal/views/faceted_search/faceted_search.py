@@ -10,12 +10,7 @@ from django.conf import settings
 from digipal.templatetags import hand_filters, html_escape
 from digipal import utils
 from digipal.templatetags.hand_filters import chrono
-import digipal.models
 import re
-
-import logging
-
-dplog = logging.getLogger('digipal_debugger')
 
 
 class FacetedModel(object):

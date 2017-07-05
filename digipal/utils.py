@@ -1171,12 +1171,12 @@ def re_sub_fct(content, apattern, fct, are=None, show_bar=False):
 
 
 def dplog(message, level='DEBUG'):
+    '''Log a debug message. 
+    Logged iff level >= settings.DIGIPAL_LOG_LEVEL
+    '''
     import logging
     dplog = logging.getLogger('digipal_debugger')
     getattr(dplog, level.lower())(message)
-
-    #from datetime import datetime
-    # print '[%s] %s' % (datetime.now(), message)
 
 
 def get_model_from_table_name(table_name):

@@ -14,8 +14,6 @@ from django.contrib.auth.models import User
 from digipal.utils import dplog
 from django.utils.text import slugify
 
-#dplog = logging.getLogger('digipal_debugger')
-
 
 class ClassProperty(property):
     def __get__(self, cls, owner):

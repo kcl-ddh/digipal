@@ -9,10 +9,6 @@ import reversion
 from mezzanine.core.admin import StackedDynamicInlineAdmin
 import re
 
-import logging
-from operator import isCallable
-dplog = logging.getLogger('digipal_debugger')
-
 #-----------------------------------------------------------
 # TODO: move this to digipal lib
 '''
@@ -45,7 +41,7 @@ class MessageField(forms.Field):
 
     def prepare_value(self, value):
         ret = self.message
-        if isCallable(ret):
+        if callable(ret):
             obj = getattr(self.parent_form, 'instance', None)
             if obj:
                 ret = ret(obj)

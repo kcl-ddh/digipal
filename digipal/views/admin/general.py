@@ -11,9 +11,7 @@ from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.db.models import Q
 
-import logging
 from digipal.models import Description
-dplog = logging.getLogger('digipal_debugger')
 
 
 @staff_member_required

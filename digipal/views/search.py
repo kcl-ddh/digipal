@@ -11,11 +11,9 @@ from django.conf import settings
 from digipal.templatetags import hand_filters
 from digipal.models import *
 
-import logging
 from subprocess import Popen
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
-dplog = logging.getLogger('digipal_debugger')
 
 
 def get_search_types(request=None):

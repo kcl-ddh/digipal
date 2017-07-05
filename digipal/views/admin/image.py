@@ -18,9 +18,6 @@ from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.db import transaction
 from collections import OrderedDict
 
-import logging
-dplog = logging.getLogger('digipal_debugger')
-
 
 #########
 

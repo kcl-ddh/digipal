@@ -15,9 +15,7 @@ from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.db import transaction
 
-import logging
 from collections import OrderedDict
-dplog = logging.getLogger('digipal_debugger')
 
 
 @staff_member_required

@@ -210,10 +210,6 @@ INSTALLED_APPS = (
     'tinymce',
 )
 
-# SOUTH_MIGRATION_MODULES = {
-#     'taggit': 'taggit.south_migrations',
-# }
-
 ###############
 # MIDDLEWARES #
 ###############
@@ -250,11 +246,12 @@ TEMPLATES = [
                 'mezzanine.pages.context_processors.page',
 
                 # DigiPal
-                'digipal.processor.quick_search',
+                'digipal.processor.digipal_site_context',
             ]
         },
     }
 ]
+
 
 # List of middleware classes to use. Order is important; in the request phase,
 # this middleware classes will be applied in the order given, and in the
@@ -516,8 +513,6 @@ OPTIONAL_APPS = (
     'lightbox',
 )
 
-DEBUG_TOOLBAR_CONFIG = {'INTERCEPT_REDIRECTS': False}
-
 # Allowed file extensions in Filebrowser app (used by Mezzanine Gallery)
 # It is a copy of filebrowser_safe/settings.py:EXTENSIONS
 # without svg and tif (not all tif formats are supported by Chrome).
@@ -539,7 +534,7 @@ FILEBROWSER_EXTENSIONS = {
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
 
-# Log DigiPal framework messages into digipla.log
+# Log DigiPal framework messages into digipal.log
 # One of DEBUG, INFO, WARNING, ERROR, CRITICAL
 # see digipal.utils.dplog()
 # USE 'ERROR' ON PRODUCTION SITE
@@ -550,8 +545,8 @@ DIGIPAL_LOG_LEVEL = 'ERROR'
 # USE False ON PRODUCTION SITE
 DJANGO_LOG_SQL = False
 
-# Log the duration of each http response from django
-# and internal operations (search, indexing)
+# Log the duration of each http response from django into digipal.log
+# also internal operations (search, indexing)
 # See middleware,py
 # Only if DIGIPAL_LOG_LEVEL >= DEBUG
 # USE False ON PRODUCTION SITE

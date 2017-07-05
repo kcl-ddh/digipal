@@ -190,14 +190,14 @@ def update_query_string(url, updates, url_wins=False):
     return ret
 
 
-def get_str_from_call_stack():
+def get_str_from_call_stack(separator='; '):
     ret = ''
     import traceback
     import re
     tb = traceback.extract_stack()
     #ret = '; '.join(['%s (%s:%s)' % (call[2], re.sub(ur'^.*[\\/]([^/\\]+)\.py$', ur'\1', call[0]), call[1]) for call in tb])
-    ret = '; '.join(['%s (%s:%s)' % (call[2], call[0], call[1])
-                     for call in tb])
+    ret = separator.join(['%s (%s:%s)' % (call[2], call[0], call[1])
+                          for call in tb])
     return ret
 
 

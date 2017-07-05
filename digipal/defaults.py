@@ -1,5 +1,7 @@
 from mezzanine.conf import register_setting
 
+# Make some settings.py variables accessible in the django template context
+# They'll be accessed in the template using {{ settings.X }}
 register_setting(
     name="TEMPLATE_ACCESSIBLE_SETTINGS",
     description="Sequence of setting names available within templates.",
@@ -10,7 +12,11 @@ register_setting(
         'DP_BUILD_NUMBER', 'DP_BUILD_TIMESTAMP', 'DP_BUILD_BRANCH',
         'QUICK_SEARCH_TO_FACETS',
         'MIN_THUMB_LENGTH', 'MAX_THUMB_LENGTH',
-        'FOOTER_LOGO_LINE'
+        'FOOTER_LOGO_LINE',
+        # A way to silence Mezzanine warning when django calls
+        # dir(context['settings'])
+        # where context['settings'] is a TemplateSettings()
+        '__methods__', '__members__'
     ),
     append=True,
 )
@@ -65,11 +71,12 @@ register_setting(
 register_setting(
     name="RICHTEXT_ALLOWED_TAGS",
     append=True,
-    default=("object", "embed", "iframe"), #etc
+    default=("object", "embed", "iframe"),  # etc
 )
 
 register_setting(
     name="RICHTEXT_ALLOWED_ATTRIBUTES",
     append=True,
-    default=("frameborder", "webkitAllowFullScreen", "mozallowfullscreen", "allowFullScreen"), #etc
+    default=("frameborder", "webkitAllowFullScreen",
+             "mozallowfullscreen", "allowFullScreen"),  # etc
 )

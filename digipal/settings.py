@@ -67,12 +67,6 @@ SECRET_KEY = 'change-me'
 #   * Receive x-headers
 INTERNAL_IPS = ('127.0.0.1',)
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
-
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     # Authentication using REMOTE_USER
@@ -167,13 +161,6 @@ make_path(IMAGE_CACHE_ROOT)
 # Package/module name to import the root urlpatterns from for the project.
 ROOT_URLCONF = '%s.urls' % PROJECT_DIRNAME
 
-# Put strings here, like '/home/html/django_templates'
-# or 'C:/www/django/templates'.
-# Always use forward slashes, even on Windows.
-# Don't forget to use absolute paths, not relative paths.
-TEMPLATE_DIRS = [os.path.join(PROJECT_ROOT, 'templates'), os.path.join(
-    PROJECT_ROOT, '../digipal/templates'), ]
-
 CUSTOM_STATIC_PATH = os.path.join(PROJECT_ROOT, 'customisations', 'static')
 
 # Additional locations of static files
@@ -234,21 +221,40 @@ INSTALLED_APPS = (
 # List of processors used by RequestContext to populate the context.
 # Each one should be a callable that takes the request object as its
 # only parameter and returns a dictionary to add to the context.
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.contrib.messages.context_processors.messages',
-    # Only add this if you want the sql queries and debug variables in your template
-    # Only activated in debug mode
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.static',
-    'django.core.context_processors.media',
-    'django.core.context_processors.request',
-    "django.core.context_processors.tz",
-    'mezzanine.conf.context_processors.settings',
-    'digipal.processor.quick_search',
-    'mezzanine.pages.context_processors.page',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            # You can override app templates in the project/templates folder
+            os.path.join(PROJECT_ROOT, 'templates'),
+            # DigiPal app can also override other app templates
+            os.path.join(PROJECT_ROOT, '../digipal/templates'),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                # Only add this if you want the sql queries and debug variables in your template
+                # Only activated in debug mode
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.static',
+                'django.template.context_processors.media',
+                "django.template.context_processors.tz",
+                'django.contrib.messages.context_processors.messages',
+
+                'django.template.context_processors.request',
+
+                # Mezzzanine
+                'mezzanine.conf.context_processors.settings',
+                'mezzanine.pages.context_processors.page',
+
+                # DigiPal
+                'digipal.processor.quick_search',
+            ]
+        },
+    }
+]
 
 # List of middleware classes to use. Order is important; in the request phase,
 # this middleware classes will be applied in the order given, and in the

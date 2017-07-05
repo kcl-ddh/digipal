@@ -53,10 +53,6 @@ class DigiPalModelAdmin(reversion.VersionAdmin):
 
         model = record.__class__
 
-#         for rel_obj in model._meta.get_all_related_objects():
-#             if rel_obj.model.__name__ == related_model.__name__:
-#                 ret = getattr(record, rel_obj.get_accessor_name())
-
         for field_name in model._meta.get_all_field_names():
             field = model._meta.get_field_by_name(field_name)[0]
             get_accessor_name = getattr(field, 'get_accessor_name', None)
@@ -64,19 +60,11 @@ class DigiPalModelAdmin(reversion.VersionAdmin):
                 field_name = get_accessor_name()
 
             field = getattr(record, field_name, None)
-#             if field is None:
-# raise Exception('%s #%s . %s not found' % (record.__class__, record.pk,
-# field_name))
 
             if field and related_model in [getattr(field, 'through', ''), getattr(field, 'model', '')]:
                 ret = field.count()
+                print ret
                 break
-
-            # print model._meta.get_all_related_objects()
-            # raise Exception('%s #%s has no related model %s' %
-            # (record.__class__, record.pk, related_model))
-
-#         print related_model, ret
 
         return ret
 

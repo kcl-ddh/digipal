@@ -100,7 +100,7 @@ class NameModel(models.Model):
     slug = models.SlugField(max_length=100, blank=False, null=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+        auto_now=True, editable=False)
 
     class Meta:
         abstract = True
@@ -166,7 +166,7 @@ class Appearance(models.Model):
     sort_order = models.IntegerField()
     description = models.CharField(max_length=128)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -181,7 +181,7 @@ class Appearance(models.Model):
 class Feature(models.Model):
     name = models.CharField(max_length=32, unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -196,7 +196,7 @@ class Component(models.Model):
     features = models.ManyToManyField(
         Feature, related_name='components', through='ComponentFeature')
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -212,7 +212,7 @@ class ComponentFeature(models.Model):
     set_by_default = models.BooleanField(null=False, default=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+        auto_now=True, editable=False)
 
     class Meta:
         unique_together = ['component', 'feature']
@@ -233,7 +233,7 @@ class Aspect(models.Model):
     name = models.CharField(max_length=128, unique=True)
     features = models.ManyToManyField(Feature)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -246,7 +246,7 @@ class Aspect(models.Model):
 class OntographType(models.Model):
     name = models.CharField(max_length=128, unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -260,7 +260,7 @@ class Ontograph(models.Model):
     name = name = models.CharField(max_length=128)
     ontograph_type = models.ForeignKey(OntographType, verbose_name='type')
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
     nesting_level = models.IntegerField(blank=False, null=False, default=0,
                                         help_text='''An ontograph can contain another ontograph of a higher level. E.g. level 3 con be made of ontographs of level 4 and above. Set 0 to prevent any nesting.''')
@@ -296,9 +296,9 @@ class Character(models.Model):
         max_length=32, unique=False, blank=True, null=True)
     form = models.ForeignKey(CharacterForm, blank=False, null=False)
     ontograph = models.ForeignKey(Ontograph)
-    components = models.ManyToManyField(Component, blank=True, null=True)
+    components = models.ManyToManyField(Component, blank=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     @staticmethod
@@ -318,11 +318,11 @@ class Allograph(models.Model):
     name = models.CharField(max_length=128)
     character = models.ForeignKey(Character)
     default = models.BooleanField(default=False)
-    aspects = models.ManyToManyField(Aspect, blank=True, null=True)
+    aspects = models.ManyToManyField(Aspect, blank=True)
     hidden = models.BooleanField(
         default=False, help_text=u'''If ticked the public users won't see this allograph on the web site.''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     @staticmethod
@@ -350,9 +350,9 @@ class AllographComponent(models.Model):
     allograph = models.ForeignKey(
         Allograph, related_name="allograph_components")
     component = models.ForeignKey(Component)
-    features = models.ManyToManyField(Feature, blank=True, null=True)
+    features = models.ManyToManyField(Feature, blank=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -371,13 +371,13 @@ class Text(models.Model):
 
     date = models.CharField(max_length=128, blank=True, null=True)
     categories = models.ManyToManyField(
-        'Category', blank=True, null=True, related_name='texts')
+        'Category', blank=True, related_name='texts')
     languages = models.ManyToManyField(
-        'Language', blank=True, null=True, related_name='texts')
+        'Language', blank=True, related_name='texts')
     url = models.URLField(blank=True, null=True)
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -395,7 +395,7 @@ class Script(models.Model):
     name = models.CharField(max_length=128)
     allographs = models.ManyToManyField(Allograph)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -410,7 +410,7 @@ class ScriptComponent(models.Model):
     component = models.ForeignKey(Component)
     features = models.ManyToManyField(Feature)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -430,7 +430,7 @@ class Reference(models.Model):
         max_length=128, blank=True, null=True, default='')
     full_reference = HTMLField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -480,7 +480,7 @@ class Owner(models.Model):
     dubitable = models.NullBooleanField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+        auto_now=True, editable=False)
 
     class Meta:
         ordering = ['date']
@@ -551,7 +551,7 @@ class Date(models.Model):
     min_weight = models.FloatField(blank=True, null=True)
     max_weight = models.FloatField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
     legacy_reference = models.CharField(
         max_length=128, blank=True, null=True, default='')
@@ -570,7 +570,7 @@ class Category(models.Model):
     name = models.CharField(max_length=128, unique=True)
     sort_order = models.PositiveIntegerField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -586,7 +586,7 @@ class Format(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=128, unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -601,7 +601,7 @@ class Hair(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     label = models.CharField(max_length=128, unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -615,7 +615,7 @@ class Hair(models.Model):
 class HistoricalItemType(models.Model):
     name = models.CharField(max_length=128)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -630,7 +630,7 @@ class Language(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=128, unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -649,17 +649,17 @@ class HistoricalItem(models.Model):
     date_sort = models.CharField(max_length=128, blank=True, null=True,
                                  help_text='Optional date, usually narrower than the date field. Used for result visualisation and sorting.')
     name = models.CharField(max_length=256, blank=True, null=True)
-    categories = models.ManyToManyField(Category, blank=True, null=True)
+    categories = models.ManyToManyField(Category, blank=True)
     hair = models.ForeignKey(Hair, blank=True, null=True)
     language = models.ForeignKey(Language, blank=True, null=True)
     url = models.URLField(blank=True, null=True)
     vernacular = models.NullBooleanField()
     neumed = models.NullBooleanField()
-    owners = models.ManyToManyField(Owner, blank=True, null=True)
+    owners = models.ManyToManyField(Owner, blank=True)
     catalogue_number = models.CharField(max_length=128, editable=False)
     display_label = models.CharField(max_length=128)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
     legacy_reference = models.CharField(
         max_length=128, blank=True, null=True, default='')
@@ -772,7 +772,7 @@ class Source(models.Model):
     label_styled = models.CharField(max_length=30, blank=True, null=True,
                                     help_text='Styled version of the label, text between _underscores_ will be italicised')
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
     priority = models.IntegerField(blank=False, null=False, default=0,
                                    help_text=u'''Lower number has a higher display priority on the web site. 0 is top, 1 second, then 2, etc.''')
@@ -848,7 +848,7 @@ class CatalogueNumber(models.Model):
     number_slug = models.SlugField(max_length=100, blank=True, null=True)
     url = models.URLField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     def clean(self):
@@ -931,7 +931,7 @@ class Collation(models.Model):
     front_flyleaves = models.IntegerField(blank=True, null=True)
     back_flyleaves = models.IntegerField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -956,7 +956,7 @@ class Decoration(models.Model):
     catalogue_references = models.CharField(max_length=256, blank=True,
                                             null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -979,7 +979,7 @@ class Description(models.Model):
     summary = models.CharField(max_length=256, blank=True, null=True)
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1038,7 +1038,7 @@ class Layout(models.Model):
     hair_arrangement = models.ForeignKey(Hair, blank=True, null=True)
     insular_pricking = models.NullBooleanField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1061,7 +1061,7 @@ class ItemOrigin(models.Model):
         'Institution', null=True, blank=True, related_name='item_origins')
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1104,7 +1104,7 @@ class Archive(models.Model):
     historical_item = models.ForeignKey(HistoricalItem)
     dubitable = models.NullBooleanField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1120,7 +1120,7 @@ class Archive(models.Model):
 class Region(models.Model):
     name = models.CharField(max_length=128, unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1135,7 +1135,7 @@ class County(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=128, unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1149,7 +1149,7 @@ class County(models.Model):
 class PlaceType(models.Model):
     name = models.CharField(max_length=256)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1176,10 +1176,9 @@ class Place(models.Model):
     historical_county = models.ForeignKey(County,
                                           related_name='county_historical',
                                           blank=True, null=True)
-    #origins = generic.GenericRelation(ItemOrigin)
     type = models.ForeignKey(PlaceType, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1206,7 +1205,7 @@ class Place(models.Model):
 class OwnerType(models.Model):
     name = models.CharField(max_length=256)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1249,7 +1248,7 @@ class Repository(models.Model):
             repository default permission.
             ''')
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     #objects = LibraryManager()
@@ -1297,9 +1296,9 @@ class CurrentItem(models.Model):
     description = models.TextField(blank=True, null=True)
     display_label = models.CharField(max_length=128)
     owners = models.ManyToManyField(
-        Owner, blank=True, null=True, default=None, related_name='current_items')
+        Owner, blank=True, default=None, related_name='current_items')
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1339,9 +1338,8 @@ class CurrentItem(models.Model):
 class Person(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=256, unique=True)
-    #owners = generic.GenericRelation(Owner)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1354,7 +1352,7 @@ class Person(models.Model):
 class InstitutionType(models.Model):
     name = models.CharField(max_length=256)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1378,10 +1376,8 @@ class Institution(models.Model):
     place = models.ForeignKey(Place)
     foundation = models.CharField(max_length=128, blank=True, null=True)
     refoundation = models.CharField(max_length=128, blank=True, null=True)
-    #owners = generic.GenericRelation(Owner)
-    #origins = generic.GenericRelation(ItemOrigin)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1397,9 +1393,9 @@ class Scribe(models.Model):
     name = models.CharField(max_length=128, unique=True)
     date = models.CharField(max_length=128, blank=True, null=True)
     scriptorium = models.ForeignKey(Institution, blank=True, null=True)
-    reference = models.ManyToManyField(Reference, blank=True, null=True)
+    reference = models.ManyToManyField(Reference, blank=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
     legacy_reference = models.CharField(
         max_length=128, blank=True, null=True, default='')
@@ -1421,10 +1417,10 @@ class Idiograph(models.Model):
     allograph = models.ForeignKey(Allograph)
     scribe = models.ForeignKey(
         Scribe, related_name="idiographs", blank=True, null=True)
-    aspects = models.ManyToManyField(Aspect, blank=True, null=True)
+    aspects = models.ManyToManyField(Aspect, blank=True)
     display_label = models.CharField(max_length=128, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     @staticmethod
@@ -1449,7 +1445,7 @@ class IdiographComponent(models.Model):
     component = models.ForeignKey(Component)
     features = models.ManyToManyField(Feature)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1469,7 +1465,7 @@ class HistoricalItemDate(models.Model):
     addition = models.NullBooleanField()
     dubitable = models.NullBooleanField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1483,7 +1479,7 @@ class HistoricalItemDate(models.Model):
 class ItemPartType(models.Model):
     name = models.CharField(max_length=128, unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1513,14 +1509,14 @@ class ItemPart(models.Model):
     display_label = models.CharField(max_length=300)
     pagination = models.BooleanField(blank=False, null=False, default=False)
     type = models.ForeignKey(ItemPartType, null=True, blank=True)
-    owners = models.ManyToManyField(Owner, blank=True, null=True)
+    owners = models.ManyToManyField(Owner, blank=True)
     notes = models.TextField(blank=True, null=True)
 
     keywords = KeywordsField(
         help_text='<br/>Comma separated list of keywords. Keywords are case sensitive and can contain spaces. Keywords can also be added or removed using the list above.')
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1670,7 +1666,7 @@ class ItemPartItem(models.Model):
     item_part = models.ForeignKey(ItemPart, related_name='constitutionalities')
     locus = models.CharField(max_length=64, blank=True, null=False, default='')
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1723,7 +1719,7 @@ class ItemPartAuthenticity(models.Model):
     note = models.TextField(blank=True, null=True, default=None)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+        auto_now=True, editable=False)
 
     class Meta:
         unique_together = ['item_part', 'category', 'source']
@@ -1748,7 +1744,7 @@ class TextItemPart(models.Model):
     date = models.CharField(max_length=128, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+        auto_now=True, editable=False)
 
     class Meta:
         unique_together = ['item_part', 'text']
@@ -1766,7 +1762,7 @@ class LatinStyle(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     style = models.CharField(max_length=128)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1779,7 +1775,7 @@ class LatinStyle(models.Model):
 class ImageAnnotationStatus(models.Model):
     name = models.CharField(max_length=128, unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -1849,7 +1845,7 @@ class Image(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+        auto_now=True, editable=False)
 
     __original_iipimage = None
 
@@ -2394,7 +2390,7 @@ class Hand(models.Model):
     imitative = models.NullBooleanField()
     latin_style = models.ForeignKey(LatinStyle, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
-    images = models.ManyToManyField(Image, blank=True, null=True, related_name='hands',
+    images = models.ManyToManyField(Image, blank=True, related_name='hands',
                                     help_text='''Select the images this hand appears in. The list of available images comes from images connected to the Item Part associated to this Hand.''')
 
     # GN: we might want to ignore display_label, it is not used on the admin
@@ -2403,7 +2399,7 @@ class Hand(models.Model):
     display_label = models.CharField(max_length=128, editable=False)
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     # Imported from Brookes DB
@@ -2554,7 +2550,7 @@ class HandDescription(models.Model):
                              help_text='''A label assigned to this hand by a source. E.g. 'Alpha' (for source 'Flight').''')
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -2678,10 +2674,10 @@ class HandDescription(models.Model):
 
 class Alphabet(models.Model):
     name = models.CharField(max_length=128, unique=True)
-    ontographs = models.ManyToManyField(Ontograph, blank=True, null=True)
-    hands = models.ManyToManyField(Hand, blank=True, null=True)
+    ontographs = models.ManyToManyField(Ontograph, blank=True)
+    hands = models.ManyToManyField(Hand, blank=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -2710,7 +2706,7 @@ class DateEvidence(models.Model):
         max_length=255, blank=True, null=True, default='')
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -2724,10 +2720,10 @@ class DateEvidence(models.Model):
 class Graph(models.Model):
     idiograph = models.ForeignKey(Idiograph)
     hand = models.ForeignKey(Hand, related_name='graphs')
-    aspects = models.ManyToManyField(Aspect, null=True, blank=True)
+    aspects = models.ManyToManyField(Aspect, blank=True)
     display_label = models.CharField(max_length=256, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
     group = models.ForeignKey('Graph', related_name='parts', blank=True,
                               null=True, help_text=u'Select a graph that contains this one')
@@ -2837,7 +2833,7 @@ class GraphComponent(models.Model):
     component = models.ForeignKey(Component)
     features = models.ManyToManyField(Feature)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -2851,7 +2847,7 @@ class Status(models.Model):
     name = models.CharField(max_length=32, unique=True)
     default = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -2920,7 +2916,7 @@ class Annotation(models.Model):
     author = models.ForeignKey(User, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+        auto_now=True, editable=False)
     holes = models.CharField(max_length=1000, null=True, blank=True)
     # GN: A temporary id set on the client side.
     # Used ONLY until the id of the new record has been returned to the client.
@@ -3348,7 +3344,7 @@ class PlaceEvidence(models.Model):
     reference = models.ForeignKey(Reference)
     evidence = models.TextField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -3364,7 +3360,7 @@ class Measurement(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)
     label = models.CharField(max_length=128)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -3384,7 +3380,7 @@ class Proportion(models.Model):
     cue_height = models.FloatField()
     value = models.FloatField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     class Meta:
@@ -3411,7 +3407,7 @@ class CarouselItem(models.Model):
     title = models.CharField(
         max_length=300, help_text='The caption under the image of this item. This can contain some inline HTML. You can surround some text with just <a>...</a>.')
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, auto_now_add=True,
+    modified = models.DateTimeField(auto_now=True,
                                     editable=False)
 
     @staticmethod
@@ -3806,7 +3802,7 @@ class KeyVal(models.Model):
     val = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+        auto_now=True, editable=False)
 
     class Meta:
         ordering = ['key', ]
@@ -3862,7 +3858,7 @@ class ApiTransform(models.Model):
         default=False, null=False, blank=False, verbose_name='Show as a webpage?')
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+        auto_now=True, editable=False)
 
     class Meta:
         ordering = ['title']

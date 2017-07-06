@@ -17,16 +17,16 @@
         <a href="{{ scribe.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a>
     </li>
     {% if cansee.hand %}
-        <li class="{% if tabid = "hands" %}active in{% endif %} {% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}">
+        <li class="{% if tabid == "hands" %}active in{% endif %} {% if scribe.hands.all.count > 0 %}{% else %}disabled{% endif %}">
             <a href="{{ scribe.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ scribe.hands.all.count }})</a>
         </li>
     {% endif %}
     {% if cansee.image %}
-        <li class="{% if tabid = "pages" %}active in{% endif %} {% if pages|length > 0 %}{% else %}disabled{% endif %}">
+        <li class="{% if tabid == "pages" %}active in{% endif %} {% if pages|length > 0 %}{% else %}disabled{% endif %}">
             <a href="{{ scribe.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ pages|length }})</a>
         </li>
     {% endif %}
-    <li class="{% if tabid = "idiographs" %}active in{% endif %} {% if scribe.idiographs.all.distinct.count > 0 %}{% else %}disabled{% endif %}">
+    <li class="{% if tabid == "idiographs" %}active in{% endif %} {% if scribe.idiographs.all.distinct.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ scribe.get_absolute_url }}idiographs/" data-address-bar="1" data-target="#idiographs" data-toggle="tab">Idiographs ({{ scribe.idiographs.all.distinct.count }}) </a>
     </li>
 {% endblock %}
@@ -47,7 +47,7 @@
             </div>
 
             {% if cansee.hand %}
-                <div class='tab-pane fade {% if tabid = 'hands' %}active in{% endif %}' id='hands'>
+                <div class='tab-pane fade {% if tabid == 'hands' %}active in{% endif %}' id='hands'>
                     {% if scribe.hands.count %}
                         <table class="table table-condensed">
                             <tr>
@@ -71,7 +71,7 @@
                 {% include "pages/tab_images.html" with images=images full_label=1 %}
                 {% comment %}
                 TODO: above: show the hands for the current scribe
-                <div class='tab-pane fade {% if tabid = 'pages' %}active in{% endif %}' id='pages'>
+                <div class='tab-pane fade {% if tabid == 'pages' %}active in{% endif %}' id='pages'>
                     {% if pages %}
                         <table class='table table-condensed'>
                             <tr>
@@ -102,7 +102,7 @@
                 {% endcomment %}
             {% endif %}
 
-            <div class='tab-pane fade {% if tabid = 'idiographs' %}active in{% endif %}' id='idiographs'>
+            <div class='tab-pane fade {% if tabid == 'idiographs' %}active in{% endif %}' id='idiographs'>
                 {% for idiograph in scribe.idiographs.all %}
                     {% if 1 or idiograph.idiographcomponent_set.all.count %}
                         <div>

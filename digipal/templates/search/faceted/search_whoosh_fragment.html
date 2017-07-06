@@ -46,7 +46,7 @@
                                 {% dp_pagination_with_size_for current_page %}
 
                                 {# SORT DROP DOWN (for grid view only) #}
-                                {% if result_type.get_selected_view.key = 'grid' or result_type.get_selected_view.key = 'ggrid2' %}
+                                {% if result_type.get_selected_view.key == 'grid' or result_type.get_selected_view.key == 'ggrid2' %}
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                                             <span data-toggle="tooltip" title="Sort result by">
@@ -118,7 +118,7 @@
                     <div class="panel panel-default" id="panel-{{ facet.key }}">
                         <div class="panel-heading">
                             <h4 class="panel-title">
-                                {% if facet.options.5 and not facet.expanded = 2 %}
+                                {% if facet.options.5 and not facet.expanded == 2 %}
                                     <span class="facet-xp-icon">
                                         {% if facet.expanded == 1 %}
                                             <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=0{% endfilter %}">
@@ -197,7 +197,7 @@
                                             </tr>
                                         {% endif %}
                                         {% for option in facet.options %}
-                                            {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected or facet.expanded = 2 %}
+                                            {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected or facet.expanded == 2 %}
                                                 <tr
                                                     {% if option.selected %}class="active"{% endif %}
                                                     >
@@ -217,7 +217,7 @@
                                                 </tr>
                                             {% endif %}
                                         {% endfor %}
-                                        {% if facet.options.5 and not facet.expanded = 2 %}
+                                        {% if facet.options.5 and not facet.expanded == 2 %}
                                             <tr><td colspan="2">
                                                 {% if facet.expanded == 1 %}
                                                     <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=0{% endfilter %}" class="btn btn-default small btn-expand-facet">Show less</a>

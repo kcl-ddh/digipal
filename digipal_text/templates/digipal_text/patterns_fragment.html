@@ -83,13 +83,13 @@
         </div>
 
         <ul class="nav nav-tabs">
-            <li {%if active_tab = "tab-units" %}class="active"{%endif%}><a data-toggle="tab" href="#tab-units">Units</a></li>
-            <li {%if active_tab = "tab-variants" %}class="active"{%endif%}><a data-toggle="tab" href="#tab-variants">Variants</a></li>
+            <li {% if active_tab == "tab-units" %}class="active"{%endif%}><a data-toggle="tab" href="#tab-units">Units</a></li>
+            <li {% if active_tab == "tab-variants" %}class="active"{%endif%}><a data-toggle="tab" href="#tab-variants">Variants</a></li>
             <input type="hidden" name="active_tab" value="{{active_tab}}" />
         </ul>
 
         <div class="tab-content">
-            <div id="tab-units" class="tab-pane fade {%if active_tab = "tab-units" %}in active{%endif%}">
+            <div id="tab-units" class="tab-pane fade {%if active_tab == "tab-units" %}in active{%endif%}">
                 <div class="units">
                     {% for unit in units %}
                         <div class="unit">
@@ -112,7 +112,7 @@
                     {% endfor %}
                 </div>
             </div>
-            <div id="tab-variants" class="tab-pane fade {%if active_tab = "tab-variants" %}in active{%endif%}">
+            <div id="tab-variants" class="tab-pane fade {%if active_tab == "tab-variants" %}in active{%endif%}">
                 <div>
                     {% for variant in variants %}
                         {{ variant.hits }}: {{ variant.text }}

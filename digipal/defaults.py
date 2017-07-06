@@ -1,5 +1,16 @@
 from mezzanine.conf import register_setting
 
+# http://mezzanine.jupo.org/docs/configuration.html#reading-settings
+'''
+Mezzanine rules:
+    * registered settings can also be in settings.py but only if value = default
+    * if different, the value from settings.py is used
+    * if absent or =default, the value from database is used
+
+    * in the admin form, mezzanine uses the first token of the name to group
+      variables. e.g. THUMB_MAX_LENGTH => THUMB
+'''
+
 # Make some settings.py variables accessible in the django template context
 # They'll be accessed in the template using {{ settings.X }}
 register_setting(
@@ -46,6 +57,7 @@ register_setting(
 # Build information, see repo.py and dpdb.py
 register_setting(
     name="MIN_THUMB_LENGTH",
+    label="Minimum size of thumbnail",
     description="Minimum size of annotation thumbnails",
     editable=True,
     default=50,
@@ -53,6 +65,7 @@ register_setting(
 
 register_setting(
     name="MAX_THUMB_LENGTH",
+    label="Maximum size of thumbnail",
     description="Maximum size of annotation thumbnails",
     editable=True,
     default=300,
@@ -79,4 +92,10 @@ register_setting(
     append=True,
     default=("frameborder", "webkitAllowFullScreen",
              "mozallowfullscreen", "allowFullScreen"),  # etc
+)
+
+register_setting(
+    name="SITE_TITLE",
+    editable=True,
+    default='My Archetype Site'
 )

@@ -258,7 +258,9 @@ TEMPLATES = [
 # response phase the middleware will be applied in reverse order.
 MIDDLEWARE_CLASSES = (
     'digipal.middleware.HttpsAdminMiddleware',
+
     'mezzanine.core.middleware.UpdateCacheMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -273,6 +275,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+
     'mezzanine.core.request.CurrentRequestMiddleware',
     'mezzanine.core.middleware.RedirectFallbackMiddleware',
     'mezzanine.core.middleware.TemplateForDeviceMiddleware',
@@ -281,7 +284,9 @@ MIDDLEWARE_CLASSES = (
     'mezzanine.core.middleware.SitePermissionMiddleware',
     'mezzanine.pages.middleware.PageMiddleware',
     'mezzanine.core.middleware.FetchFromCacheMiddleware',
+
     'pagination.middleware.PaginationMiddleware',
+
     # Uncomment the following if using any of the SSL settings:
     # 'mezzanine.core.middleware.SSLRedirectMiddleware',
     "django.middleware.gzip.GZipMiddleware",
@@ -350,71 +355,9 @@ INSTALLED_APPS = INSTALLED_APPS + (
 # Grappelli
 GRAPPELLI_ADMIN_TITLE = 'DigiPal'
 
-# Hand/Legacy
-HISTORICAL_ITEM_TYPES = ['charter', 'manuscript']
-INSTITUTION_TYPES = ['medieval institution', 'modern repository']
-UNKOWN_PLACE_NAME = '000000'
-
-LEGACY_CATEGORY_REGEX = r'^(\w+).*'
-LEGACY_INSTITUTION_DICT = {0: INSTITUTION_TYPES[0], 2: INSTITUTION_TYPES[1]}
-LEGACY_LIBRARY_REGEX = r'\[?([^,]*),\s+([^],]*),?\s*([^\]]*)'
-LEGACY_MODERN_PERSON = 1
-LEGACY_NULL_BOOLEAN_DICT = {-1: True, 0: False, 1: None}
-LEGACY_REFERENCE_REGEX = r'[\[\{]([^#]*)#[^#]*[\]\}]?'
-LEGACY_REFERENCE_PAGE_REGEX = r'([\[])([^#]*)(#\d*)[^\]]*([\]])'
-
-SOURCE_CLA = 'cla'
-SOURCE_GNEUSS = 'gneuss'
-SOURCE_KER = 'ker'
-SOURCE_SCRAGG = 'scragg'
-SOURCE_SAWYER = 'sawyer'
-SOURCE_SAWYER_KW = 'electronic'
-SOURCE_PELTERET = 'pelteret'
-# To be removed, no longer used
-#SOURCES = [SOURCE_CLA, SOURCE_GNEUSS, SOURCE_KER, SOURCE_SCRAGG, SOURCE_SAWYER, SOURCE_PELTERET]
-# the id of the source record for this project
-SOURCE_PROJECT_ID = 8
-SOURCE_PROJECT_NAME = 'DigiPal Project'
-
-# To be removed, no longer used
-# CATALOGUE_NUMBERS = {'cla_number': SOURCE_CLA,
-#         'index': SOURCE_GNEUSS,
-#         'ker_index': SOURCE_KER,
-#         'scragg': SOURCE_SCRAGG,
-#         'sawyer_number': SOURCE_SAWYER,
-#         'pelteret_number': SOURCE_PELTERET}
-
-CHARACTER_ABBREV_STROKE = 'abbrev.stroke'
-
-CHOPPER_EXPORTS = os.path.join(MEDIA_ROOT, 'chopper')
-CHOPPER_NAMESPACE = {'c': 'http://idp.bl.uk/chopper/standalone'}
-CHOPPER_SOURCES = {'G': SOURCE_GNEUSS, 'S': SOURCE_SAWYER}
-CHOPPER_CHARACTER_MAPPING = {u'Ã°': 'eth', u'Ã¾': 'thorn', '(punctus)': '.',
-                             '(punctus elevatus)': './', '(punctus versus)': ';',
-                             '(punctus uersus)': ';', '(abbrev)': CHARACTER_ABBREV_STROKE,
-                             '(accent)': 'accent', '(ligature)': 'ligature', '(wynn)': 'wynn',
-                             'w': 'wynn', 'asc': u'Ã¦', 'll': 'l', 'rr': 'r', 'v': 'u',
-                             'nasal': CHARACTER_ABBREV_STROKE, ':-': ';'}
-CHOPPER_ABBREV_STROKE_MARKER = '['
-
-ITEM_PART_DEFAULT_LOCUS = 'face'
-
-SCRIBE_NAME_PREFIX = 'DigiPal Scribe '
-
-# This appears in the advanced search page
-HAND_ID_PREFIX = 'DigiPal Hand '
-
-# Default name used for bulk creation of hands
-HAND_DEFAULT_LABEL = 'Default Hand'
-
-STATUS_CHOPPER = 'chopper'
-STATUS_DEFAULT = 'draft'
-STATUS = [STATUS_DEFAULT, STATUS_CHOPPER]
-
-MAX_THUMB_LENGTH = 50
-#MIN_THUMB_LENGTH = 50
-
-# Image Server
+##################
+# IMAGE SERVER   #
+##################
 
 # IMAGE_SERVER_WEB_ROOT is now only used for the migration script
 IMAGE_SERVER_WEB_ROOT = 'jp2'
@@ -458,20 +401,6 @@ IMAGE_SERVER_UPLOAD_EXTENSIONS = ('.jp2', '.jpg', '.tif', '.bmp', '.jpeg')
 IMAGE_SERVER_ADMIN_UPLOAD_DIR = os.path.join(
     IMAGE_SERVER_UPLOAD_ROOT, 'admin-upload')
 
-# Mezzanine
-# Change this setting in the admin backend interface
-#SITE_TITLE = 'DigiPal'
-
-TWITTER = 'DigiPalProject'
-GITHUB = 'kcl-ddh/digipal'
-
-# South
-SOUTH_TESTS_MIGRATE = False
-
-# DISQUS
-
-COMMENTS_DEFAULT_APPROVED = True
-
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 #########################
@@ -489,17 +418,6 @@ QUICK_SEARCH_TO_FACETS = True
 
 # If True the auto complete is enabled on the search page
 AUTOCOMPLETE_PUBLIC_USER = True
-
-# Haystack
-# HAYSTACK_CONNECTIONS = {
-#     'default': {
-#         'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
-#     },
-#     'whoosh': {
-#         'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-#         'PATH': os.path.join(SEARCH_INDEX_PATH, 'haystack'),
-#     },
-#}
 
 #########################
 # OPTIONAL APPLICATIONS #
@@ -619,8 +537,9 @@ class filter_django_warnings(logging.Filter):
 warn_logger = logging.getLogger('py.warnings')
 warn_logger.addFilter(filter_django_warnings())
 
-# BACKUPS #
-
+##################
+#     BACKUPS    #
+##################
 
 DB_BACKUP_PATH = os.path.join(PROJECT_ROOT, 'backups')
 # Front-end message for images which are inheriting unspecified media
@@ -648,6 +567,10 @@ except NameError:
 OWNABLE_MODELS_ALL_EDITABLE.append('blog.blogpost')
 
 # ----------------------------------------------------------------------------
+
+##################
+#     CACHE      #
+##################
 
 # DJANGO COMPRESSOR
 # True => Combine all resources into a single file
@@ -718,7 +641,10 @@ COMPRESS_PRECOMPILERS = (
 )
 # ----------------------------------------------------------------------------
 
-# TINY MCE
+##################
+#     TINY MCE   #
+##################
+
 TINYMCE_DEFAULT_CONFIG = {
     'language': "en",
 
@@ -748,6 +674,10 @@ TINYMCE_DEFAULT_CONFIG = {
     'paste_strip_class_attributes': True
 }
 
+##################
+#     DIGIPAL    #
+##################
+
 # Annotator Settings
 ANNOTATOR_ZOOM_LEVELS = 7
 # Zoom Increment for the OpenLayers/Zoomify viewer
@@ -775,12 +705,56 @@ MODELS_PRIVATE = ['itempart', 'image', 'graph',
 TEXT_IMAGE_MASTER_CONTENT_TYPE = 'transcription'
 
 # Lightbox Settings
-LIGHTBOX = False
+LIGHTBOX = True
 
 # GRAPH TOOLTIPS
 # see digipal.models Graph.get_label for available field names
 GRAPH_TOOLTIP_SHORT = u'{allograph} by {hand}\n {locus}'
 GRAPH_TOOLTIP_LONG = u'{allograph} by {hand}\n {ip} {locus}\n ({hi_date})'
+
+# Hand/Legacy
+HISTORICAL_ITEM_TYPES = ['charter', 'manuscript']
+INSTITUTION_TYPES = ['medieval institution', 'modern repository']
+UNKOWN_PLACE_NAME = '000000'
+
+SOURCE_CLA = 'cla'
+SOURCE_GNEUSS = 'gneuss'
+SOURCE_KER = 'ker'
+SOURCE_SCRAGG = 'scragg'
+SOURCE_SAWYER = 'sawyer'
+SOURCE_SAWYER_KW = 'electronic'
+SOURCE_PELTERET = 'pelteret'
+# To be removed, no longer used
+#SOURCES = [SOURCE_CLA, SOURCE_GNEUSS, SOURCE_KER, SOURCE_SCRAGG, SOURCE_SAWYER, SOURCE_PELTERET]
+# the id of the source record for this project
+SOURCE_PROJECT_ID = 8
+SOURCE_PROJECT_NAME = 'DigiPal Project'
+CHARACTER_ABBREV_STROKE = 'abbrev.stroke'
+
+ITEM_PART_DEFAULT_LOCUS = 'face'
+
+SCRIBE_NAME_PREFIX = 'DigiPal Scribe '
+
+# This appears in the advanced search page
+HAND_ID_PREFIX = 'DigiPal Hand '
+
+# Default name used for bulk creation of hands
+HAND_DEFAULT_LABEL = 'Default Hand'
+
+# Mezzanine
+# Change this setting in the admin backend interface
+
+MAX_THUMB_LENGTH = 300
+MIN_THUMB_LENGTH = 50
+
+SITE_TITLE = 'My Archetype site'
+
+TWITTER = 'DigiPalProject'
+GITHUB = 'kcl-ddh/digipal'
+
+# DISQUS
+
+COMMENTS_DEFAULT_APPROVED = True
 
 ##################
 # LOCAL SETTINGS #
@@ -844,5 +818,3 @@ except ImportError:
     pass
 else:
     set_dynamic_settings(globals())
-
-#

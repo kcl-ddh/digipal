@@ -245,12 +245,15 @@ class TextContent(models.Model):
         return u', '.join([l.name for l in self.languages.all()])
 
     def __unicode__(self):
-        info = self.type
-        languages = self.get_string_from_languages()
-        if languages:
-            info += u', %s' % languages
+        ret = u'New TextContent record'
+        if self.pk:
+            info = unicode(self.type)
+            languages = self.get_string_from_languages()
+            if languages:
+                info += u', %s' % languages
 
-        ret = u'%s (%s)' % (self.item_part, info)
+            ret = u'%s (%s)' % (self.item_part, info)
+
         return ret
 
     def get_absolute_url(self, unset=False, qs='', metas=None, location_type=None, location=None, content_types=None):

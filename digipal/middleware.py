@@ -6,8 +6,10 @@ from django.http.response import Http404
 
 # TODO: log the perfs to a file instead of printing them out
 
+
 def are_perf_info_enabled():
     return getattr(settings, 'DEBUG', False) and getattr(settings, 'DEBUG_PERFORMANCE', False)
+
 
 class ErrorMiddleware(object):
     def process_exception(self, request, exception):
@@ -24,6 +26,7 @@ class ErrorMiddleware(object):
             return render(request, 'errors/404.html', context, status=404)
         else:
             return None
+
 
 class HttpsAdminMiddleware(object):
     def process_request(self, request):
@@ -46,8 +49,8 @@ class HttpsAdminMiddleware(object):
         if are_perf_info_enabled():
             from datetime import datetime
             request.stop_time = datetime.now()
-            dplog('%s (%s)' % (request.path, request.stop_time - request.start_time))
+            dplog('%s (%s)' %
+                  (request.path, request.stop_time - request.start_time))
             dplog('END RESPONSE' + '-' * 60)
 
         return response
-

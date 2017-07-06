@@ -31,10 +31,12 @@ class MessageWidget(forms.Widget):
 class MessageField(forms.Field):
     widget = MessageWidget
 
-    def __init__(self, message='', *args, **kwargs):
+    def __init__(self, message='', required=False, *args, **kwargs):
         self.message = message
         self.parent_form = None
-        return super(MessageField, self).__init__(*args, **kwargs)
+        ret = super(MessageField, self).__init__(
+            *args, required=required, **kwargs)
+        return ret
 
     def set_form(self, form):
         self.parent_form = form
@@ -46,7 +48,7 @@ class MessageField(forms.Field):
             if obj:
                 ret = ret(obj)
             else:
-                ret = ''
+                ret = 'WARNING: no object'
         return ret
 
 
@@ -57,12 +59,23 @@ class ModelFormWithMessageFields(forms.ModelForm):
             if isinstance(f, MessageField):
                 f.set_form(self)
 
-#-----------------------------------------------------------
+# -----------------------------------------------------------
+
+
+def text_content_form_action_edit_message(text_content):
+    ret = u''
+
+    if text_content and text_content.pk and text_content.item_part:
+        ret = u'<a href="%s">Edit the Text</a>' % text_content.get_absolute_url()
+
+    return ret
 
 
 class TextContentForm(ModelFormWithMessageFields):
     action_edit = MessageField(
-        message=lambda o: '<a href="/admin/digipal/itempart/%s/edit/">Edit the Text</a>' % o.item_part.id, label='Action')
+        message=text_content_form_action_edit_message,
+        label='Action'
+    )
 
     class Meta:
         fields = '__all__'
@@ -165,8 +178,8 @@ class TextContentXMLAdmin(reversion.VersionAdmin):
                    'text_content__type', FilterCTXEmpty, FilterCTXDuplicate]
     list_editable = ['status']
 
-    def get_query_set(self, request):
-        qs = super(TextContentXMLAdmin, self).get_query_set(request)
+    def get_queryset(self, request):
+        qs = super(TextContentXMLAdmin, self).get_queryset(request)
         qs = qs.extra(select={'content_length': 'length(content)'})
         return qs
 

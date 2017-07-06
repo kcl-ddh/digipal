@@ -784,12 +784,13 @@ class ImageAdmin(DigiPalModelAdmin):
     get_iipimage_field.allow_tags = True
 
     def get_changelist(self, request, **kwargs):
-        ''' Override this function in order to enforce a sort order on the folio number and side'''
+        ''' Override this function in order to enforce a sort order on the folio
+         number and side'''
         from django.contrib.admin.views.main import ChangeList
 
         class SortedChangeList(ChangeList):
-            def get_query_set(self, *args, **kwargs):
-                qs = super(SortedChangeList, self).get_query_set(
+            def get_queryset(self, *args, **kwargs):
+                qs = super(SortedChangeList, self).get_queryset(
                     *args, **kwargs)
                 return Image.sort_query_set_by_locus(qs).prefetch_related('annotation_set', 'hands').select_related('item_part')
 

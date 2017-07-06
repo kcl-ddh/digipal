@@ -7,19 +7,19 @@
 
 BeautifulSoup==3.2.1
 git+git://github.com/geoffroy-noel-ddh/Digital-Lightbox
-Django==1.6.5
-Mezzanine==3.1.5
+Django==1.8.18
+Mezzanine==4.2.3
 regex
 # if it fails, try 'sudo apt-get install python-dev', then run again
 Pillow==2.6.2
-South==1.0.1
 Whoosh==2.7.3
 disqus-python==0.4.2
 django-appconf==0.6
 django-compress==1.0.1
 django-compressor==1.5
 git+git://github.com/geoffroy-noel-ddh/django-iipimage.git
-git+git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev
+#git+git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev
+git+git://github.com/geoffroy-noel-ddh/django-pagination
 django-reversion==1.8.4
 django-tinymce==1.5.3
 feedparser==5.1.3

@@ -2317,27 +2317,6 @@ def normalize_string(s):
     return s
 
 
-# Adapted from http://djangosnippets.org/snippets/162/
-# Useful for image package download http://djangosnippets.org/snippets/20/
-def thumbnail(image, length=settings.MAX_THUMB_LENGTH):
-    """Display thumbnail-size image of ImageField named image. Assumes images
-    are not very large (i.e. no manipulation of the image is done on backend).
-    Requires constant named max_thumb_length to limit longest axis"""
-    max_thumb_length = length
-    max_img_length = max(image.width, image.height)
-    ratio = max_img_length > max_thumb_length \
-        and float(max_img_length) / max_thumb_length \
-        or 1
-    thumb_width = image.width / ratio
-    thumb_width = int(thumb_width)
-    thumb_height = image.height / ratio
-    thumb_height = int(thumb_height)
-    url = image.url
-
-    return mark_safe(u'<img src="%s" width="%s" height="%s"/>' %
-                     (url, thumb_width, thumb_height))
-
-
 # Hands in legacy db
 class Hand(models.Model):
     legacy_id = models.IntegerField(blank=True, null=True)

@@ -2,9 +2,10 @@ from django.conf import settings
 from digipal import utils as dputils
 import urllib2
 
+
 def get_stats_from_xml_string(xml_string, text_label='', stats=None):
-#     print 'Count - Tag'
-#     print
+    #     print 'Count - Tag'
+    #     print
 
     els = {}
     if stats is not None:
@@ -32,6 +33,7 @@ def get_stats_from_xml_string(xml_string, text_label='', stats=None):
 #     for el in sorted(els):
 #         print el
 
+
 def fix_sequences(db_alias, silent=False):
     ret = 0
 
@@ -51,7 +53,8 @@ def fix_sequences(db_alias, silent=False):
     cur = sqlSelect(connection, select_seq_info, [db_name, ur'nextval%'])
     while True:
         rec = cur.fetchone()
-        if not rec: break
+        if not rec:
+            break
         params = {'table_name': rec[0], 'seq_field': rec[1]}
         if not silent:
             print '%s.%s' % (params['table_name'], params['seq_field'])
@@ -63,15 +66,17 @@ def fix_sequences(db_alias, silent=False):
 
     return ret
 
+
 def sqlWrite(wrapper, command, arguments=[], dry_run=False):
     if not dry_run:
         cur = wrapper.cursor()
 
-        #print command
+        # print command
         cur.execute(command, arguments)
-        #wrapper.commit()
+        # wrapper.commit()
         cur.close()
         cur = None
+
 
 def sqlSelect(wrapper, command, arguments=[]):
     ''' return a cursor,
@@ -82,15 +87,18 @@ def sqlSelect(wrapper, command, arguments=[]):
 
     return cur
 
+
 def fetch_all_dic(cursor, key_field_name=None):
     ret = {}
     desc = cursor.description
-    if key_field_name is None: key_field_name = desc[0][0]
+    if key_field_name is None:
+        key_field_name = desc[0][0]
     for row in cursor.fetchall():
         row = dict(zip([col[0] for col in desc], row))
         ret[row[key_field_name]] = row
     cursor.close()
     return ret
+
 
 def sqlSelectMaxDate(con, table, field):
     ret = None
@@ -102,6 +110,7 @@ def sqlSelectMaxDate(con, table, field):
 
     return ret
 
+
 def sqlSelectCount(con, table):
     ret = 0
     cur = sqlSelect(con, 'select count(*) from %s' % table)
@@ -110,6 +119,7 @@ def sqlSelectCount(con, table):
     cur.close()
 
     return ret
+
 
 def sqlDeleteAll(con, table, dry_run=False):
     ret = True
@@ -124,21 +134,25 @@ def sqlDeleteAll(con, table, dry_run=False):
 
     return ret
 
+
 def dropTable(con, table_name, dry_run=False):
-    if dry_run: return
+    if dry_run:
+        return
 
     sqlWrite(con, 'DROP TABLE %s CASCADE' % table_name, [], dry_run)
+
 
 def readFile(filepath):
     from digipal.utils import read_file
     return read_file(filepath)
 
+
 class Logger(object):
 
-    FATAL   = 0
+    FATAL = 0
     WARNING = 1
-    INFO    = 2
-    DEBUG   = 3
+    INFO = 2
+    DEBUG = 3
 
     def __init__(self, log_level=None):
         self.setLogLevel(log_level)
@@ -146,7 +160,8 @@ class Logger(object):
 
     def setLogLevel(self, log_level=None):
         self.log_level = log_level
-        if self.log_level is None: self.log_level = Logger.DEBUG
+        if self.log_level is None:
+            self.log_level = Logger.DEBUG
 
     def resetWarning(self):
         self.warning_count = 0
@@ -164,14 +179,17 @@ class Logger(object):
             timestamp = datetime.now().strftime("%y-%m-%d %H:%M:%S")
             try:
                 indent_str = '    ' * indent
-                print (u'[%s] %s%s%s' % (timestamp, indent_str, prefixes[log_level], message)).encode('utf-8')
+                print (u'[%s] %s%s%s' % (timestamp, indent_str,
+                                         prefixes[log_level], message)).encode('utf-8')
             except UnicodeEncodeError:
                 print '???'
+
 
 def write_file(file_name, data):
     f = open(file_name, 'wb')
     f.write(data)
     f.close()
+
 
 def wget(url):
     ret = None
@@ -182,9 +200,11 @@ def wget(url):
         ret = None
     return ret
 
+
 def get_simple_str(str):
     import re
     return re.sub(ur'\W+', '_', str.strip().lower())
+
 
 def is_int(str):
     try:
@@ -193,30 +213,47 @@ def is_int(str):
         return False
     return True
 
+
 def get_obj_label(obj):
     return '%s #%d: %s' % (obj._meta.object_name, obj.id, obj)
 
-def web_fetch(url):
-    ret = {'error': None, 'response': None, 'status': 0, 'reason': None, 'body': None}
+
+def web_fetch(url, username=None, password=None, sessionid=None, noredirect=False):
+    ret = {'error': None, 'response': None,
+           'status': 0, 'reason': None, 'body': None}
 
     import urlparse
     parts = urlparse.urlsplit(url)
 
     import httplib
+    from base64 import b64encode
+    port = parts.port
+    if parts.scheme == 'https':
+        port = 443
+        conn = httplib.HTTPSConnection(parts.hostname, port)
+    else:
+        conn = httplib.HTTPConnection(parts.hostname, port)
+
+    options = {}
+    if username:
+        userAndPass = b64encode(username + ':' + password)
+        headers = {'Authorization': 'Basic %s' % userAndPass}
+        options['headers'] = headers
+
+    if sessionid:
+        options['headers'] = {'Cookie': 'sessionid=%s' % sessionid}
+
     try:
-        port = parts.port
-        if parts.scheme == 'https':
-            port = 443
-            conn = httplib.HTTPSConnection(parts.hostname, port)
-        else:
-            conn = httplib.HTTPConnection(parts.hostname, port)
-        conn.request('GET', parts.path+'?'+parts.query)
+        conn.request('GET', parts.path + '?' + parts.query, **options)
+
         ret['response'] = conn.getresponse()
+
         headers = dict(ret['response'].getheaders())
         ret['status'] = '%s' % ret['response'].status
         ret['reason'] = '%s' % ret['response'].reason
         ret['body'] = ret['response'].read()
-        if headers.has_key('location') and headers['location'] != url:
+
+        if not noredirect and headers.has_key('location') and headers['location'] != url:
             # follow redirect
             ret = web_fetch(headers['location'])
         conn.close()
@@ -224,6 +261,7 @@ def web_fetch(url):
         ret['error'] = e
 
     return ret
+
 
 def dictfetchall(cursor):
     "Returns all rows from a cursor as a dict"
@@ -233,13 +271,16 @@ def dictfetchall(cursor):
         for row in cursor.fetchall()
     ]
 
+
 def prnt(txt):
     '''A safe print function that won't generate encoding errors'''
     print txt.encode('utf8', 'ignore')
 
+
 def get_bool_from_mysql(mysql_bool='-1'):
     '''Returns True/False from a mysql boolean field'''
     return mysql_bool and unicode(mysql_bool) == '-1'
+
 
 class CommandMessages(object):
 
@@ -250,14 +291,15 @@ class CommandMessages(object):
         self.summary = {}
 
     def msg(self, message, *args, **kwargs):
-        category=kwargs.get('category', 'WARNING')
+        category = kwargs.get('category', 'WARNING')
         message = '%s: %s' % (category, message)
         message = message.replace('%s', '{}')
         print message.format(*args)
         self.summary[message] = self.summary.get(message, 0) + 1
 
     def printSummary(self):
-        if not self.summary: return
+        if not self.summary:
+            return
         print '=' * 40
         print 'MESSAGES SUMMARY'
         for msg, count in self.summary.iteritems():

@@ -158,8 +158,8 @@
 
     {% block blog_post_list_post_content %}
     {% editable blog_post.content %}
-    {{  blog_post.content|removetags:"a i b span div strong em blockquote"|safe|truncatewords:50 }}
-    <p style='margin-top:1.5%;'><a href="{{ blog_post.get_absolute_url }}" class='btn btn-default btn-sm'>{% trans "Read more" %}</a></p>
+        {{  blog_post.content|safe|truncatewords:50 }}
+        <p style='margin-top:1.5%;'><a href="{{ blog_post.get_absolute_url }}" class='btn btn-default btn-sm'>{% trans "Read more" %}</a></p>
     {% endeditable %}
     {% endblock %}
     </div>

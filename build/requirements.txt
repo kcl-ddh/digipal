@@ -21,7 +21,7 @@ git+git://github.com/geoffroy-noel-ddh/django-iipimage.git
 #git+git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev
 git+git://github.com/geoffroy-noel-ddh/django-pagination
 django-reversion==1.8.4
-django-tinymce==1.5.3
+django-tinymce==2.6.0
 feedparser==5.1.3
 importlib==1.0.3
 # if it fails, try 'sudo apt-get install libxml2-dev libxslt1-dev python-dev', then run again

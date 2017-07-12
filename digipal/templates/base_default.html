@@ -78,24 +78,16 @@
 
                     <span id="banner-img-left" class="banner-image hidden-xs"></span>
                     <span id="banner-img-right" class="banner-image hidden-sm hidden-xs"></span>
-
+                    
                     <div class="container">
                         <!-- Brand and toggle get grouped for better mobile display -->
                         <div class="navbar-header">
-
-                            {% comment %}
-                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
-                                <span class="sr-only">Toggle navigation</span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                            </button>
-                            {% endcomment %}
+                    
                             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
                                 <span class="sr-only">Toggle navigation</span>
                                 <span class="fa fa-bars"></span>
                             </button>
-
+                    
                             <a class="navbar-brand" href="/">
                                 {% block logo %}
                                     {% if settings.BANNER_LOGO_HTML %}
@@ -104,20 +96,13 @@
                                         {# https://jsfiddle.net/vemj87m3/ #}
                                         <span id='logo'>
                                             {%spaceless%}
-                                                <span class="logo-brand logo-brand-digi">Digi</span>
-                                                <span class="logo-brand logo-brand-pal">Pal</span>
-                                                <span class='logo-separator hidden-sm hidden-xs'>&nbsp;</span>
-                                                <span class='logo-sub hidden-sm hidden-xs'>
-                                                    Digital Resource and Database of Palaeography,
-                                                    <br/>
-                                                    Manuscript Studies and Diplomatic
-                                                </span>
+                                                <span class="logo-brand logo-brand-digi">{{ settings.SITE_TITLE }}</span>
                                             {%endspaceless%}
                                         </span>
                                     {% endif %}
                                 {% endblock %}
                             </a>
-
+                    
                         </div>
                     </div>
 

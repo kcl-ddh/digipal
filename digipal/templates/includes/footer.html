@@ -19,14 +19,14 @@
             </div>
 
             <div class="col-md-1 col-xs-12">
-                {% if settings.TWITTER %}
-                    <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Follow {{ settings.SITE_TITLE }}' href='https://twitter.com/{{ settings.TWITTER }}'>
+                {% if settings.ARCHETYPE_TWITTER %}
+                    <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Follow {{ settings.SITE_TITLE }}' href='https://twitter.com/{{ settings.ARCHETYPE_TWITTER }}'>
                         <i class='fa fa-twitter'></i>
                     </a>
                 {% endif %}
 
-                {% if settings.GITHUB %}
-                    <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title="Explore Archetype's source code on GitHub" href= 'https://github.com/{{ settings.GITHUB }}'>
+                {% if settings.ARCHETYPE_GITHUB %}
+                    <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title="Explore Archetype's source code on GitHub" href= 'https://github.com/{{ settings.ARCHETYPE_GITHUB }}'>
                         <i class='fa fa-github'></i>
                     </a>
                 {% endif %}

@@ -683,7 +683,7 @@ def form_dialog(request, image_id):
 def save(request, graphs):
     """Saves an annotation and creates a cutout of the annotation."""
 
-    if settings.REJECT_HTTP_API_REQUESTS:
+    if settings.ARCHETYPE_API_READ_ONLY:
         #        transaction.rollback()
         raise Http404
     else:
@@ -864,7 +864,7 @@ def save(request, graphs):
 
 @login_required
 def save_editorial(request, graphs):
-    if settings.REJECT_HTTP_API_REQUESTS:
+    if settings.ARCHETYPE_API_READ_ONLY:
         #        transaction.rollback()
         raise Http404
     else:
@@ -959,7 +959,7 @@ def get_json_error_from_form_errors(form):
 @login_required
 def delete(request, image_id, graph_id):
     """Deletes the annotation related with the `image_id` and `feature_id`."""
-    if settings.REJECT_HTTP_API_REQUESTS:
+    if settings.ARCHETYPE_API_READ_ONLY:
         raise Http404
 
     data = {}

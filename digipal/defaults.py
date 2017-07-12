@@ -22,7 +22,7 @@ register_setting(
     editable=False,
     default=(
         'ADMIN_STYLES', 'BANNER_LOGO_HTML', 'SHOW_QUICK_SEARCH_SCOPES',
-        'GITHUB', 'TWITTER',
+        'ARCHETYPE_GITHUB', 'ARCHETYPE_TWITTER',
         'DP_BUILD_NUMBER', 'DP_BUILD_TIMESTAMP', 'DP_BUILD_BRANCH',
         'QUICK_SEARCH_TO_FACETS',
         'ARCHETYPE_THUMB_LENGTH_MIN', 'ARCHETYPE_THUMB_LENGTH_MAX',
@@ -76,6 +76,70 @@ register_setting(
     description="Maximum size of annotation thumbnails (in pixel)",
     editable=True,
     default=300,
+)
+
+register_setting(
+    name="ARCHETYPE_API_READ_ONLY",
+    label="API Read Only",
+    description="If set, the Web API is read only",
+    editable=True,
+    default=False,
+)
+
+register_setting(
+    name="ARCHETYPE_ANNOTATION_TOOLTIP_SHORT",
+    label="Annotation tooltip (short)",
+    description="Template for the annotation short tooltips",
+    editable=True,
+    default='{allograph} by {hand}\n {locus}',
+)
+
+register_setting(
+    name="ARCHETYPE_ANNOTATION_TOOLTIP_LONG",
+    label="Annotation tooltip (long)",
+    description="Template for the annotation long tooltips",
+    editable=True,
+    default='{allograph} by {hand}\n {ip} {locus}\n ({hi_date})',
+)
+
+register_setting(
+    name="ARCHETYPE_SCRIBE_NAME_PREFIX",
+    label="Scribe name prefix",
+    description="Prefix added to the scribe names",
+    editable=True,
+    default='DigiPal Scribe',
+)
+
+register_setting(
+    name="ARCHETYPE_HAND_ID_PREFIX",
+    label="Hand ID prefix",
+    description="Prefix added to the hand IDs",
+    editable=True,
+    default='DigiPal Hand',
+)
+
+register_setting(
+    name="ARCHETYPE_HAND_LABEL_DEFAULT",
+    label="Hand default label",
+    description="Default name used for bulk creation of hands",
+    editable=True,
+    default='Default Hand',
+)
+
+register_setting(
+    name="ARCHETYPE_TWITTER",
+    label="Twitter handler",
+    description="Your project twitter handler",
+    editable=True,
+    default='DigiPalProject',
+)
+
+register_setting(
+    name="ARCHETYPE_GITHUB",
+    label="Github handler",
+    description="Your project github handler",
+    editable=True,
+    default='kcl-ddh/digipal',
 )
 
 # Prevent TinyMCE from stripping the tags and attributes necessary to

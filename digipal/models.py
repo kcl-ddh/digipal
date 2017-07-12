@@ -2393,10 +2393,10 @@ class Hand(models.Model):
 
     @classmethod
     def get_default_label(cls):
-        return getattr(settings, 'HAND_DEFAULT_LABEL', 'Default Hand')
+        return getattr(settings, 'ARCHETYPE_HAND_LABEL_DEFAULT', 'Default Hand')
 
     def get_search_label(self):
-        return '%s%s' % (settings.HAND_ID_PREFIX, self.id)
+        return '%s%s' % (settings.ARCHETYPE_HAND_ID_PREFIX, self.id)
 
     def get_short_label(self):
         ret = unicode(self)
@@ -2709,10 +2709,10 @@ class Graph(models.Model):
         return ret or ['unspecified']
 
     def get_short_label(self):
-        return self.get_label(pattern=settings.GRAPH_TOOLTIP_SHORT)
+        return self.get_label(pattern=settings.ARCHETYPE_ANNOTATION_TOOLTIP_SHORT)
 
     def get_long_label(self):
-        return self.get_label(pattern=settings.GRAPH_TOOLTIP_LONG)
+        return self.get_label(pattern=settings.ARCHETYPE_ANNOTATION_TOOLTIP_LONG)
 
     def get_label(self, pattern='{allograph} by {hand}\n {ip}, {locus}\n ({hi_date})'):
         '''Return a label by sustituting the fields in the given pattern.

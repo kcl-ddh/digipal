@@ -35,7 +35,7 @@ class SearchHands(SearchContentType):
             'type': self.FT_CODE, 'name': 'scribe', 'boost': 0.3}, 'advanced': True}
         # JIRA 358: we need to search by the hand name
         ret['pk'] = {'whoosh': {'type': self.FT_CODE,
-                                'name': 'hand', 'format': settings.HAND_ID_PREFIX + '%s'}}
+                                'name': 'hand', 'format': settings.ARCHETYPE_HAND_ID_PREFIX + '%s'}}
 
         ret['assigned_place__name'] = {'whoosh': {
             'type': self.FT_TITLE, 'name': 'hand_place'}, 'advanced': True}

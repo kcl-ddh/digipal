@@ -376,7 +376,7 @@ IMAGE_SERVER_THUMBNAIL_HEIGHT = 35
 IMAGE_SERVER_RGN = 'http://%s%s?FIF=%s&%s&RGN=%0.6f,%0.6f,%0.6f,%0.6f&CVT=JPEG'
 IMAGE_SERVER_EXT = 'jp2'
 # Set this to 1.0 if you are using IIPSrv >= 1.0
-IMAGE_SERVER_VERSION = 0.9
+IMAGE_SERVER_VERSION = 1.0
 # When True, all images on the website will have a relative URL
 # IMAGE_SERVER_HOST is therfore ignored.
 # Added this for the Docker instance where all requests (images and others)
@@ -692,8 +692,6 @@ PAGE_IMAGE_SHOW_MSDATE = False
 # Show MS summary on annotator?
 PAGE_IMAGE_SHOW_MSSUMMARY = False
 
-# Web API
-REJECT_HTTP_API_REQUESTS = False
 # See /digipal/doc/http-api.md for instructions
 API_PERMISSIONS = [['crud', 'ALL']]
 
@@ -709,11 +707,6 @@ TEXT_IMAGE_MASTER_CONTENT_TYPE = 'transcription'
 
 # Lightbox Settings
 LIGHTBOX = True
-
-# GRAPH TOOLTIPS
-# see digipal.models Graph.get_label for available field names
-GRAPH_TOOLTIP_SHORT = u'{allograph} by {hand}\n {locus}'
-GRAPH_TOOLTIP_LONG = u'{allograph} by {hand}\n {ip} {locus}\n ({hi_date})'
 
 # Hand/Legacy
 HISTORICAL_ITEM_TYPES = ['charter', 'manuscript']
@@ -733,21 +726,6 @@ SOURCE_PROJECT_NAME = 'DigiPal Project'
 CHARACTER_ABBREV_STROKE = 'abbrev.stroke'
 
 ITEM_PART_DEFAULT_LOCUS = 'face'
-
-SCRIBE_NAME_PREFIX = 'DigiPal Scribe '
-
-# This appears in the advanced search page
-HAND_ID_PREFIX = 'DigiPal Hand '
-
-# Default name used for bulk creation of hands
-HAND_DEFAULT_LABEL = 'Default Hand'
-
-TWITTER = 'DigiPalProject'
-GITHUB = 'kcl-ddh/digipal'
-
-# DISQUS
-
-COMMENTS_DEFAULT_APPROVED = True
 
 ##################
 # LOCAL SETTINGS #

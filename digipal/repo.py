@@ -304,7 +304,7 @@ def process_commands_main_dir():
                     print '> Collect Static (skipped: django webserver)'
 
                 print '> Validate'
-                system('python manage.py check', r'0 errors found', True)
+                system('python manage.py check', r'no issues', True)
 
                 print '> Update build info'
                 system('python manage.py dpdb setbuild --branch "%s"' %

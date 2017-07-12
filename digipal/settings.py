@@ -7,6 +7,8 @@
 
 import os
 import sys
+import logging
+import importlib
 
 
 def gettext(s): return s
@@ -24,7 +26,7 @@ def make_path(path):
 # Emails will be sent on server errors if DEBUG=False
 # Add admin email addresses in your local_settings.py
 ADMINS = ()
-#SERVER_EMAIL = 'django@text.com'
+# SERVER_EMAIL = 'django@text.com'
 MANAGERS = ADMINS
 
 # Local time zone for this installation. Choices can be found here:
@@ -153,11 +155,6 @@ IMAGE_CACHE_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
 
 make_path(IMAGE_CACHE_ROOT)
 
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: 'http://foo.com/media/', '/media/'.
-##ADMIN_MEDIA_PREFIX = STATIC_URL + 'grappelli/'
-
 # Package/module name to import the root urlpatterns from for the project.
 ROOT_URLCONF = '%s.urls' % PROJECT_DIRNAME
 
@@ -269,7 +266,7 @@ MIDDLEWARE_CLASSES = (
     # GN 09/05/13: Commented out, see Mantis #5585
     # This was preventing us from testing the site as a non-staff user
     # or log in as a different staff user.
-    #'django.contrib.auth.middleware.RemoteUserMiddleware',
+    # 'django.contrib.auth.middleware.RemoteUserMiddleware',
 
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -299,21 +296,28 @@ MIDDLEWARE_CLASSES = (
 
 ADMIN_MENU_ORDER = (
     ('Web Content', ('blog.BlogPost', 'pages.Page', 'digipal.CarouselItem',
-                     'generic.Keyword', 'generic.ThreadedComment', ('Media Library', 'fb_browse'))),
+                     'generic.Keyword', 'generic.ThreadedComment',
+                     ('Media Library', 'fb_browse'))),
     ('Image', ('digipal.Image', 'digipal.MediaPermission')),
     ('Text', ('digipal_text.TextContentXML', 'digipal_text.TextContent',
-              'digipal_text.TextContentType', 'digipal_text.TextContentXMLStatus', 'digipal.Text')),
+              'digipal_text.TextContentType', 'digipal_text.TextContentXMLStatus',
+              'digipal.Text')),
     ('Item', ('digipal.HistoricalItem', 'digipal.CurrentItem', 'digipal.ItemPart',
-              'digipal.HistoricalItemType', 'digipal.Format', 'digipal.Category', 'digipal.ItemPartType', )),
+              'digipal.HistoricalItemType', 'digipal.Format', 'digipal.Category',
+              'digipal.ItemPartType', )),
     ('Hand', ('digipal.Hand', 'digipal.Scribe', 'digipal.Script')),
     ('Annotation', ('digipal.Annotation',
                     'digipal.Graph', 'digipal.ImageAnnotationStatus')),
-    ('Symbol', ('digipal.Ontograph', 'digipal.OntographType', 'digipal.Character', 'digipal.Allograph',
-                'digipal.Idiograph', 'digipal.Language', 'digipal.LatinStyle', 'digipal.Alphabet', 'digipal.CharacterForm')),
+    ('Symbol', ('digipal.Ontograph', 'digipal.OntographType', 'digipal.Character',
+                'digipal.Allograph', 'digipal.Idiograph', 'digipal.Language',
+                'digipal.LatinStyle', 'digipal.Alphabet',
+                'digipal.CharacterForm')),
     ('Descriptor', ('digipal.Component', 'digipal.Feature',
-                    'digipal.ComponentFeature', 'digipal.Aspect', 'digipal.Appearance')),
+                    'digipal.ComponentFeature', 'digipal.Aspect',
+                    'digipal.Appearance')),
     ('Actor', ('digipal.Person', 'digipal.Owner', 'digipal.OwnerType',
-               'digipal.Repository', 'digipal.Institution', 'digipal.InstitutionType')),
+               'digipal.Repository', 'digipal.Institution',
+               'digipal.InstitutionType')),
     ('Location', ('digipal.Place', 'digipal.PlaceType',
                   'digipal.Region', 'digipal.County')),
     ('Admin', ('auth.User', 'auth.Group', 'conf.Setting', 'sites.Site',
@@ -331,7 +335,7 @@ DASHBOARD_TAGS = (
 # SITEMAP GENERATION (see python manage.py sitemap)
 # List of DigiPal models to list in the sitemap
 # DEPRECATED, use MODELS_PUBLIC instead
-#SITEMAP_MODELS = ['ItemPart', 'Hand', 'Scribe', 'Image']
+# SITEMAP_MODELS = ['ItemPart', 'Hand', 'Scribe', 'Image']
 # The website root URL (with trailing slash)
 SITEMAP_PATH_TO_RESOURCE = 'http://www.digipal.eu/'
 
@@ -349,7 +353,6 @@ INSTALLED_APPS = INSTALLED_APPS + (
     'digipal',
     'digipal_text',
     'reversion',
-    #'south',
 )
 
 # Grappelli
@@ -363,8 +366,8 @@ GRAPPELLI_ADMIN_TITLE = 'DigiPal'
 IMAGE_SERVER_WEB_ROOT = 'jp2'
 IMAGE_SERVER_HOST = 'digipal.cch.kcl.ac.uk'
 IMAGE_SERVER_PATH = '/iip/iipsrv.fcgi'
-#IMAGE_SERVER_METADATA = '%s?FIF=%s&amp;OBJ=Max-size'
-#IMAGE_SERVER_METADATA_REGEX = r'^.*?Max-size:(\d+)\s+(\d+).*?$'
+# IMAGE_SERVER_METADATA = '%s?FIF=%s&amp;OBJ=Max-size'
+# IMAGE_SERVER_METADATA_REGEX = r'^.*?Max-size:(\d+)\s+(\d+).*?$'
 IMAGE_SERVER_ZOOMIFY = 'http://%s%s?zoomify=%s/'
 IMAGE_SERVER_FULL = 'http://%s%s?FIF=%s&amp;RST=*&amp;QLT=100&amp;CVT=JPG'
 IMAGE_SERVER_THUMBNAIL = 'http://%s%s?FIF=%s&amp;RST=*&amp;HEI=35&amp;CVT=JPG'
@@ -470,7 +473,8 @@ DJANGO_LOG_SQL = False
 # USE False ON PRODUCTION SITE
 DEBUG_PERFORMANCE = False
 
-import logging
+PROJECT_LOG_PATH = os.path.join(PROJECT_ROOT, 'logs')
+make_path(PROJECT_LOG_PATH)
 
 LOGGING = {
     'version': 1,
@@ -487,7 +491,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'digipal_debug',
-            'filename': os.path.join(PROJECT_ROOT, 'logs/digipal.log'),
+            'filename': os.path.join(PROJECT_LOG_PATH, 'digipal.log'),
             'backupCount': 10,
             'maxBytes': 10 * 1024 * 1024,
         },
@@ -495,7 +499,7 @@ LOGGING = {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'digipal_debug',
-            'filename': os.path.join(PROJECT_ROOT, 'logs/error.log'),
+            'filename': os.path.join(PROJECT_LOG_PATH, 'error.log'),
             'backupCount': 10,
             'maxBytes': 10 * 1024 * 1024,
         },
@@ -596,28 +600,28 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/faceted_search/'),
         'TIMEOUT': 60 * 60 * 24,
-        #'TIMEOUT': 1,
+        # 'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     },
     'digipal_compute': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/compute/'),
         'TIMEOUT': 60 * 60 * 24,
-        #'TIMEOUT': 1,
+        # 'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     },
     'digipal_text_patterns': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/text_patterns/'),
         'TIMEOUT': 60 * 60 * 24,
-        #'TIMEOUT': 1,
+        # 'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     }
 }
 
 # Uncomment this to force less to ALWAYS be compiled, even when not changed
 # Slow but useful when making changes to css
-#CACHES['django-compressor'] = CACHES['default']
+# CACHES['django-compressor'] = CACHES['default']
 
 # Mezzanine settings var reuire as soon as we use django cache
 NEVERCACHE_KEY = 'NOCACHE'
@@ -635,7 +639,6 @@ COMPRESS_CSS_FILTERS = [
 # Compiling LESS to CSS
 # ALWAYS (even when COMPRESS_ENABLED == False)
 COMPRESS_PRECOMPILERS = (
-    #('text/coffeescript', 'coffee --compile --stdio'),
     ('text/less', 'digipal.compressor_filters.LessAndCssAbsoluteFilter'),
     ('text/typescript', 'tsc {infile} --out {outfile}'),
 )
@@ -724,8 +727,6 @@ SOURCE_SCRAGG = 'scragg'
 SOURCE_SAWYER = 'sawyer'
 SOURCE_SAWYER_KW = 'electronic'
 SOURCE_PELTERET = 'pelteret'
-# To be removed, no longer used
-#SOURCES = [SOURCE_CLA, SOURCE_GNEUSS, SOURCE_KER, SOURCE_SCRAGG, SOURCE_SAWYER, SOURCE_PELTERET]
 # the id of the source record for this project
 SOURCE_PROJECT_ID = 8
 SOURCE_PROJECT_NAME = 'DigiPal Project'
@@ -762,7 +763,6 @@ COMMENTS_DEFAULT_APPROVED = True
 
 # from PROJECT_PACKAGE.local_settings import *'
 # Where PROJECT_PACKAGE is the Django package for your project
-import importlib
 try:
     local_settings = importlib.import_module(
         '..local_settings', os.environ['DJANGO_SETTINGS_MODULE'])
@@ -793,7 +793,6 @@ LOGGING['loggers']['digipal_debugger']['level'] = DIGIPAL_LOG_LEVEL
 # Deactivate log for the parent process of runserver, children will have the log
 # This is to avoid errors when the log rotates and the parent process
 # still has a handle of the file
-import os
 RUNNING_DEVSERVER = (len(sys.argv) > 1 and sys.argv[1] == 'runserver')
 if RUNNING_DEVSERVER and DEBUG and os.environ.get('RUN_MAIN', None) != 'true':
     LOGGING = {}

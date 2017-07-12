@@ -11,3 +11,5 @@ digipal/search/
 .gitignore
 digipal/backups/*.sql
 digipal/repo_cfg.py
+digipal_cust/static/
+digipal_cust/django_cache/

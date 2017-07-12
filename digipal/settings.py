@@ -742,14 +742,6 @@ HAND_ID_PREFIX = 'DigiPal Hand '
 # Default name used for bulk creation of hands
 HAND_DEFAULT_LABEL = 'Default Hand'
 
-# Mezzanine
-# Change this setting in the admin backend interface
-
-MAX_THUMB_LENGTH = 300
-MIN_THUMB_LENGTH = 50
-
-SITE_TITLE = 'My Archetype site'
-
 TWITTER = 'DigiPalProject'
 GITHUB = 'kcl-ddh/digipal'
 

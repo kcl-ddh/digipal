@@ -4,6 +4,7 @@ from mezzanine.conf import register_setting
 '''
 Mezzanine rules:
     * registered settings can also be in settings.py but only if value = default
+    * IF VARIABLE ALSO IN SETTINGS THEN IT WON'T SHOW UP IN THE ADMIN INTERFACE
     * if different, the value from settings.py is used
     * if absent or =default, the value from database is used
 
@@ -24,7 +25,7 @@ register_setting(
         'GITHUB', 'TWITTER',
         'DP_BUILD_NUMBER', 'DP_BUILD_TIMESTAMP', 'DP_BUILD_BRANCH',
         'QUICK_SEARCH_TO_FACETS',
-        'MIN_THUMB_LENGTH', 'MAX_THUMB_LENGTH',
+        'ARCHETYPE_THUMB_LENGTH_MIN', 'ARCHETYPE_THUMB_LENGTH_MAX',
         'FOOTER_LOGO_LINE', 'DEBUG',
         # A way to silence Mezzanine warning when django calls
         # dir(context['settings'])
@@ -62,26 +63,19 @@ register_setting(
 
 # Build information, see repo.py and dpdb.py
 register_setting(
-    name="MIN_THUMB_LENGTH",
-    label="Minimum size of thumbnail",
-    description="Minimum size of annotation thumbnails",
+    name="ARCHETYPE_THUMB_LENGTH_MIN",
+    label="Thumb Min Size",
+    description="Minimum size of annotation thumbnails (in pixel)",
     editable=True,
     default=50,
 )
 
 register_setting(
-    name="MAX_THUMB_LENGTH",
-    label="Maximum size of thumbnail",
-    description="Maximum size of annotation thumbnails",
+    name="ARCHETYPE_THUMB_LENGTH_MAX",
+    label="Thumb Max Size",
+    description="Maximum size of annotation thumbnails (in pixel)",
     editable=True,
     default=300,
-)
-
-register_setting(
-    name='QUICK_SEARCH_TO_FACETS',
-    description="Search box goes to facet search page?",
-    editable=True,
-    default=False,
 )
 
 # Prevent TinyMCE from stripping the tags and attributes necessary to

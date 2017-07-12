@@ -3142,7 +3142,7 @@ class Annotation(models.Model):
                 top = (img_height - max_y) / img_height
                 width = max_x - min_x
                 height = max_y - min_y
-                length = settings.MAX_THUMB_LENGTH
+                length = settings.ARCHETYPE_THUMB_LENGTH_MAX
 
                 if width > height:
                     if width > length:
@@ -3188,7 +3188,7 @@ class Annotation(models.Model):
         # Returns cutout info about this annotation
         # as a dictionary.
         # If fixlen is None, the length is
-        #  !!! between settings.MIN_THUMB_LENGTH and settings.MAX_THUMB_LENGTH
+        #  !!! between settings.ARCHETYPE_THUMB_LENGTH_MIN and settings.ARCHETYPE_THUMB_LENGTH_MAX
         # if fixlen is between 0 and 1, the length is fixlen * orginal size
         #
         ret = {'url': '', 'dims': [0, 0], 'frame_dims': [0, 0]}
@@ -3227,17 +3227,17 @@ class Annotation(models.Model):
         else:
             ret['dims'] = ret['frame_dims'][:]
 
-        # turn it into a thumbnail (max len is settings.MAX_THUMB_LENGTH)
-        #factor = min(1.0, float(settings.MAX_THUMB_LENGTH) / float(max(ret['frame_dims'])))
+        # turn it into a thumbnail (max len is settings.ARCHETYPE_THUMB_LENGTH_MAX)
+        #factor = min(1.0, float(settings.ARCHETYPE_THUMB_LENGTH_MAX) / float(max(ret['frame_dims'])))
         if fixlen:
             if fixlen > 0 and fixlen <= 1:
                 max_len = fixlen * max(ret['frame_dims'])
             else:
                 max_len = fixlen
         else:
-            max_len = float(settings.MAX_THUMB_LENGTH)
-            if getattr(settings, 'MIN_THUMB_LENGTH', settings.MAX_THUMB_LENGTH) < settings.MAX_THUMB_LENGTH:
-                max_lens = [settings.MIN_THUMB_LENGTH, max_len]
+            max_len = float(settings.ARCHETYPE_THUMB_LENGTH_MAX)
+            if getattr(settings, 'ARCHETYPE_THUMB_LENGTH_MIN', settings.ARCHETYPE_THUMB_LENGTH_MAX) < settings.ARCHETYPE_THUMB_LENGTH_MAX:
+                max_lens = [settings.ARCHETYPE_THUMB_LENGTH_MIN, max_len]
                 max_len = min(max_lens[1], max_lens[0] + float(max_lens[1] - max_lens[0]) / float(
                     dims[longest_dim]) * ret['frame_dims'][longest_dim] * 1.25)
         factor = min(1.0, max_len / float(max(ret['frame_dims'])))

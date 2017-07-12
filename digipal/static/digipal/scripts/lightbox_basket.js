@@ -148,6 +148,11 @@
         var length_basket = length_basket_elements(collection) || 0;
         $('#delete-collection').attr('data-original-title', 'Delete ' + collection_name);
         $('#share-collection').attr('data-original-title', 'Share ' + collection_name);
+        
+        if (!window.digipal_settings.ARCHETYPE_GOOGLE_SHORTENER_CLIENTID) {
+            $('#share-collection').hide();
+        }
+        
         var url_request = '/digipal/collection/' + collection_name.replace(/\s*/gi, '') + '/images/';
         if (!$.isEmptyObject(data)) {
 

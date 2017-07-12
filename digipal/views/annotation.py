@@ -94,7 +94,7 @@ def get_features(graph_id, only_features=False):
     allographs_cache = []
     graphs_ids = str(graph_id).split(',')
     graphs = Graph.objects.filter(id__in=graphs_ids).select_related(
-        'graph_components', 'hand', 'idiograph', 'image')
+        'hand', 'idiograph')
     for graph in graphs:
         obj = get_features_from_graph(
             graph, only_features, allographs_cache=allographs_cache)
@@ -173,7 +173,7 @@ def allograph_features(request, allograph_id):
     obj = {}
     data = []
     allographs = Allograph.objects.filter(
-        id__in=allographs_ids).select_related('allograph_components__component')
+        id__in=allographs_ids)
     for allograph in allographs:
         allograph_components = allograph.allograph_components.all()
         allographs_list = {}

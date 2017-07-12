@@ -142,6 +142,22 @@ register_setting(
     default='kcl-ddh/digipal',
 )
 
+register_setting(
+    name="ARCHETYPE_GOOGLE_SHORTENER_CLIENTID",
+    label="Google Short URL Client ID",
+    description="Google Short URL Client ID",
+    editable=True,
+    default='',
+)
+
+register_setting(
+    name="ARCHETYPE_GOOGLE_SHORTENER_API_KEY",
+    label="Google Short URL API Key",
+    description="Google Short URL API Key",
+    editable=True,
+    default='',
+)
+
 # Prevent TinyMCE from stripping the tags and attributes necessary to
 # embed video in the blog posts.
 

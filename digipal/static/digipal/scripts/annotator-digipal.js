@@ -685,6 +685,10 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             url_allograph_button.on('click', function() {
                 show_url_allograph(dialog_instance, selectedFeature, $(this));
             });
+            if (!window.digipal_settings.ARCHETYPE_GOOGLE_SHORTENER_CLIENTID) {
+                url_allograph_button.hide();
+            }
+            
 
             // Changes in the name/title of the public note
             var name_temporary_annotation = $('.name_temporary_annotation');

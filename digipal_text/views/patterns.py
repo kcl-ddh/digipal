@@ -12,7 +12,7 @@ from digipal.templatetags import hand_filters, html_escape
 from django.http.response import HttpResponse
 from digipal.models import KeyVal
 from datetime import datetime
-from django.conf import settings
+from mezzanine.conf import settings
 
 from django.views.decorators.csrf import csrf_exempt
 

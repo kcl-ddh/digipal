@@ -55,7 +55,7 @@ class SearchIndexer(object):
     
         # recreate an empty index
         from whoosh.fields import Schema
-        from django.conf import settings
+        from mezzanine.conf import settings
         ret = self.recreate_whoosh_index(os.path.join(settings.SEARCH_INDEX_PATH, 'faceted'), ct.key, Schema(**fields))
         return ret
     

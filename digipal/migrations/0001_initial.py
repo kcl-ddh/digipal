@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 import iipimage.storage
-from django.conf import settings
+from mezzanine.conf import settings
 import tinymce.models
 import iipimage.fields
 import digipal.iipfield.storage

@@ -1,4 +1,4 @@
-from django.conf import settings
+from mezzanine.conf import settings
 from django import forms
 from digipal.templatetags.hand_filters import chrono
 from digipal import utils

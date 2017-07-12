@@ -16,7 +16,7 @@ from digipal.models import Allograph, AllographComponent, Annotation, Hand, \
     GraphComponent, Graph, Component, Feature, Idiograph, Image, Repository, \
     has_edit_permission, Aspect
 import ast
-from django.conf import settings
+from mezzanine.conf import settings
 from digipal.templatetags.hand_filters import chrono
 from digipal.utils import dplog
 

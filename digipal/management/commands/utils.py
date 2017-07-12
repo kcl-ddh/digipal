@@ -1,4 +1,4 @@
-from django.conf import settings
+from mezzanine.conf import settings
 from digipal import utils as dputils
 import urllib2
 

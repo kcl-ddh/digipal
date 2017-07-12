@@ -17,7 +17,7 @@ def mezzanine_patches():
     # Fix Mezzanine case-insensitive keyword issue
     # See https://github.com/stephenmcd/mezzanine/issues/647
 
-    from django.conf import settings
+    from mezzanine.conf import settings
     if 'mezzanine.blog' in settings.INSTALLED_APPS:
 
         keyword_exists = True
@@ -134,7 +134,7 @@ def admin_patches():
     # setings.HIDDEN_ADMIN_APPS = ('APP_LABEL_1', )
     #
 
-    from django.conf import settings
+    from mezzanine.conf import settings
     import django.contrib.auth.models
 
     _user_has_module_perms_old = django.contrib.auth.models._user_has_module_perms

@@ -1045,7 +1045,7 @@ def is_model_visible(model, request):
     model = model.split('.')[-1]
 
     # check permissions from settings.py MODELS_PUBLIC|PRIVATE
-    from django.conf import settings
+    from mezzanine.conf import settings
     ret = (model in settings.MODELS_PUBLIC) or (
         (model in settings.MODELS_PRIVATE) and
         request and request.user and request.user.is_staff
@@ -1491,7 +1491,7 @@ def call_management_command(command, *args, **kwargs):
     )
 
     # shell command line
-    from django.conf import settings
+    from mezzanine.conf import settings
     import sys
 
     python_path = get_python_path()

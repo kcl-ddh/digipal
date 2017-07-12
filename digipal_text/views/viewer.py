@@ -7,7 +7,7 @@ from django.http import HttpResponse, Http404
 from django.db import transaction
 from digipal import utils
 from collections import OrderedDict
-from django.conf import settings
+from mezzanine.conf import settings
 from digipal import utils as dputils
 import json
 
@@ -1079,7 +1079,7 @@ def text_api_view_search(request, item_partid, content_type, location_type, loca
 def get_entries_from_query(query):
 
     # run the query with Whoosh
-    from django.conf import settings
+    from mezzanine.conf import settings
     from whoosh.index import open_dir
     import os
     index = open_dir(os.path.join(

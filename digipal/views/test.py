@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 # Object models
 from digipal.models import Graph
-from django.conf import settings
+from mezzanine.conf import settings
 
 def cookied_inputs(request):
     context = {'test': 'Yo!'}

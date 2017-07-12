@@ -6,7 +6,7 @@ from digipal.forms import SearchPageForm
 from django.utils.safestring import mark_safe
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.conf import settings
+from mezzanine.conf import settings
 from digipal.templatetags import hand_filters, html_escape
 from digipal import utils
 from digipal.templatetags.hand_filters import chrono

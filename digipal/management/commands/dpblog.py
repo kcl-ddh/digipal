@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
+from mezzanine.conf import settings
 from os.path import isdir
 import os
 import shlex

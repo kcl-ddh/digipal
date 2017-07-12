@@ -1,5 +1,5 @@
 from django import http
-from django.conf import settings
+from mezzanine.conf import settings
 import re
 from digipal.utils import dplog
 from django.http.response import Http404

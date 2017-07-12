@@ -1,6 +1,6 @@
 from digipal.forms import SearchPageForm
 import digipal
-from django.conf import settings
+from mezzanine.conf import settings
 
 
 class CanUserSeeModel(object):

@@ -1,4 +1,4 @@
-from django.conf import settings
+from mezzanine.conf import settings
 
 # Tell South about the iipimage field
 # See

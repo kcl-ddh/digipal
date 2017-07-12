@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from dpbase import DPBaseCommand
-from django.conf import settings
+from mezzanine.conf import settings
 from os.path import isdir
 import os
 import sys

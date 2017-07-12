@@ -35,7 +35,7 @@ class API(object):
         operation = crud_from_http_method.get(operation, operation)
 
         # TODO: think about caching this
-        from django.conf import settings
+        from mezzanine.conf import settings
         permissions = getattr(settings, 'API_PERMISSIONS', [['crud', 'ALL']])
         for perm, cts in permissions:
             cts = [ct.lower() for ct in cts.split(',')]

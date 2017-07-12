@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.db.models import Count
-from django.conf import settings
+from mezzanine.conf import settings
 import django_admin_customisations
 from digipal.models import Image, HistoricalItem, Hand, Annotation
 import re

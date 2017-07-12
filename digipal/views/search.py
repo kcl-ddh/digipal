@@ -7,7 +7,7 @@ from collections import OrderedDict
 from digipal.forms import SearchPageForm
 from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.conf import settings
+from mezzanine.conf import settings
 from digipal.templatetags import hand_filters
 from digipal.models import *
 

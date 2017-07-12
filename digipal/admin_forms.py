@@ -20,7 +20,7 @@ from models import Allograph, AllographComponent, Alphabet, Annotation, \
     Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
     StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
     CarouselItem, ApiTransform
-from django.conf import settings
+from mezzanine.conf import settings
 import re
 
 # ----------------------------------------------------------------

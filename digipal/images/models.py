@@ -1,4 +1,4 @@
-from django.conf import settings
+from mezzanine.conf import settings
 import os
 import digipal.models
 from django.db import transaction

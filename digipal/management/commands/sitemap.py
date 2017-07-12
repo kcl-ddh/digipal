@@ -3,7 +3,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from optparse import make_option
 from digipal import models
-from django.conf import settings
+from mezzanine.conf import settings
 import os
 
 

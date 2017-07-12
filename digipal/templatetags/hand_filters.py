@@ -8,7 +8,7 @@ from functools import wraps
 from pprint import pformat
 
 from django.template.base import Variable, Library, VariableDoesNotExist
-from django.conf import settings
+from mezzanine.conf import settings
 from django.utils import formats
 from django.utils.dateformat import format, time_format
 from django.utils.encoding import force_unicode, iri_to_uri

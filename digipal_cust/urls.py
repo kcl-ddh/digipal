@@ -6,7 +6,7 @@ admin.autodiscover()
 
 # ADD YOUR OWN URLPATTERNS *ABOVE* THE LINE BELOW.
 # DigiPal URLs
-urlpatterns += patterns('', ('^', include('digipal.urls')))
+urlpatterns = patterns('', ('^', include('digipal.urls')))
 
 # Adds ``STATIC_URL`` to the context.
 handler500 = 'mezzanine.core.views.server_error'

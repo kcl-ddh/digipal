@@ -10,8 +10,6 @@ Mezzanine rules:
 
     * in the admin form, mezzanine uses the first token of the name to group
       variables. e.g. THUMB_MAX_LENGTH => THUMB
-
-
 '''
 
 # Make some settings.py variables accessible in the django template context

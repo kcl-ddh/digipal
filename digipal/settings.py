@@ -584,6 +584,10 @@ INSTALLED_APPS = INSTALLED_APPS + ('compressor',)
 STATICFILES_FINDERS = STATICFILES_FINDERS + \
     ('compressor.finders.CompressorFinder',)
 
+DJANGO_CACHE_PATH = os.path.join(PROJECT_ROOT, 'django_cache')
+make_path(DJANGO_CACHE_PATH)
+
+
 # CACHING (make sure it is persistent otherwise files are recompiled each time
 # the app restarts)
 CACHES = {
@@ -592,27 +596,27 @@ CACHES = {
     },
     'django-compressor': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/django_compressor/'),
+        'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'django_compressor'),
         'TIMEOUT': 60 * 60 * 24,
         'MAX_ENTRIES': 300,
     },
     'digipal_faceted_search': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/faceted_search/'),
+        'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'faceted_search'),
         'TIMEOUT': 60 * 60 * 24,
         # 'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     },
     'digipal_compute': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/compute/'),
+        'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'compute'),
         'TIMEOUT': 60 * 60 * 24,
         # 'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     },
     'digipal_text_patterns': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(PROJECT_ROOT, 'django_cache/text_patterns/'),
+        'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'text_patterns'),
         'TIMEOUT': 60 * 60 * 24,
         # 'TIMEOUT': 1,
         'MAX_ENTRIES': 300,

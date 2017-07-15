@@ -244,10 +244,27 @@
     padding-top: 0.1em;
 }
 
+.facets .panel-heading {
+    padding-left: 1.3em;
+}
+
 .facet-xp-icon {
     position: absolute;
     right: 1.1em;
     margin-right: 2px;
+}
+
+.facet-xp-info {
+    position: absolute;
+    left: 1.1em;
+    margin-left: 2px;
+    
+    a {
+        color: lighten(@dp-main, 25%);
+        &:hover {
+            color: @dp-main;
+        }
+    }
 }
 
 /* Text samples in the result table */

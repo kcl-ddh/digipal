@@ -24,7 +24,7 @@ register_setting(
         'DP_BUILD_NUMBER', 'DP_BUILD_TIMESTAMP', 'DP_BUILD_BRANCH',
         'QUICK_SEARCH_TO_FACETS',
         'ARCHETYPE_THUMB_LENGTH_MIN', 'ARCHETYPE_THUMB_LENGTH_MAX',
-        'FOOTER_LOGO_LINE', 'DEBUG',
+        'FOOTER_LOGO_LINE', 'DEBUG', 'ARCHETYPE_SEARCH_HELP_URL',
         # A way to silence Mezzanine warning when django calls
         # dir(context['settings'])
         # where context['settings'] is a TemplateSettings()
@@ -152,6 +152,14 @@ register_setting(
     name="ARCHETYPE_GOOGLE_SHORTENER_API_KEY",
     label="Google Short URL API Key",
     description="Google Short URL API Key",
+    editable=True,
+    default='',
+)
+
+register_setting(
+    name="ARCHETYPE_SEARCH_HELP_URL",
+    label="Search Help Page",
+    description="Use relative URL if page is on this web site",
     editable=True,
     default='',
 )

@@ -1616,6 +1616,16 @@ class ItemPart(models.Model):
     def get_quires(self):
         return self.get_quires_from_id(self.id)
 
+    def get_first_image(self):
+        '''Returns the first non private image for this IP
+            If in DEBUG mode we ignore permissions.
+        '''
+        ret = Image.sort_query_set_by_locus(self.images.all())
+        if not settings.DEBUG:
+            ret = Image.filter_permissions(ret, [
+                MediaPermission.PERM_PUBLIC, MediaPermission.PERM_THUMB_ONLY])
+        return ret.first()
+
     @classmethod
     def get_quires_from_id(cls, item_partid):
         '''Returns a dict of quire information

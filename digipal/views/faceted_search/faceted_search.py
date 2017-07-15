@@ -466,6 +466,7 @@ class FacetedModel(object):
 
         if field['type'] == 'url':
             ret = '<a href="%s" class="btn btn-default btn-sm" title="" data-toggle="tooltip">View</a>' % ret
+
         if field['type'] == 'image':
             if 'Annotation' in str(type(ret)):
                 if 'Graph' in str(type(record)):
@@ -475,8 +476,15 @@ class FacetedModel(object):
                     ret = html_escape.annotation_img(
                         ret, lazy=1, fixlen=800, wrap=record, link=record)
             else:
+                # GN: we used to link to the page for the record shown in the result
+                # now we link to the image web page.
+                # This works well for both image & text result types.
+
+                link = ret
+                if field.get('link_to_record', False):
+                    link = record
                 ret = html_escape.iip_img(ret, width=field.get(
-                    'max_size', 50), lazy=1, wrap=record, link=record)
+                    'max_size', 50), lazy=1, wrap=record, link=link)
         if ret is None:
             ret = ''
 

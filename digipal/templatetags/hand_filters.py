@@ -110,7 +110,14 @@ def richfield(val):
     return mark_safe(ret)
 
 
+@register.filter
+def entities_to_unicode(value):
+    from HTMLParser import HTMLParser
+    parser = HTMLParser()
+    return parser.unescape(value)
+
 # TEI conversion
+
 
 @register.filter
 def hand_description(description, request=None):

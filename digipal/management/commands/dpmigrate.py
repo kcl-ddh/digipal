@@ -14,6 +14,7 @@ import difflib
 from django.utils.text import slugify
 from django.db import transaction
 from digipal import utils as dputils
+from digipal.models import HistoricalItem, Text, TextItemPart
 
 
 class Command(BaseCommand):
@@ -161,6 +162,10 @@ Commands:
             known_command = True
             self.ip_auth()
 
+        if command == 'move_hi_dates_to_text':
+            known_command = True
+            self.move_hi_dates_to_text()
+
         if command == 'convert_exon_folio_numbers':
             known_command = True
             self.convert_exon_folio_numbers()
@@ -257,6 +262,34 @@ Commands:
 
         if not known_command:
             raise CommandError('Unknown command: "%s".' % command)
+
+    @transaction.atomic
+    def move_hi_dates_to_text(self):
+        ret = ur''
+        for hi in HistoricalItem.objects.all():
+            if hi.date or hi.date_sort:
+                for ip in hi.item_parts.all():
+                    print '---'
+                    texts = ip.texts
+                    if texts.count() == 0:
+                        text = Text(name=ip.display_label)
+                        text.save()
+                        item_itempart = TextItemPart(text=text, item_part=ip)
+                        item_itempart.save()
+                        print 'Created'
+                    for text in texts.all():
+                        text.date = hi.date
+                        text.date_sort = hi.date_sort
+                        print ur'Move %s from HI #%s to Text #%s' % (hi.date, hi.id, ip.id)
+                        text.save()
+                hi.date = None
+                hi.date_sort = None
+                hi.save()
+
+        if self.is_dry_run():
+            raise Exception('DRY_RUN ROLLBACK')
+
+        return ret
 
     def ip_auth(self):
         # create the categories

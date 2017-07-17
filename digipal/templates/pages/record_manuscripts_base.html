@@ -114,7 +114,9 @@
                         <dd>{{ item_part.historical_item.historical_item_format|default:'Unspecified' }}</dd>
                         {% comment %}TODO: use item_part.historical_itemS {% endcomment %}
 
+                        {% block ms_date %}
                         <dt>Date</dt><dd>{{ item_part.historical_item.date|default:'Unspecified' }}</dd>
+                        {% endblock %}
 
                         {% if item_part.historical_item.itemorigin_set.all.count %}
                             <dt>Origin</dt>

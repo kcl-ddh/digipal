@@ -363,13 +363,45 @@ class AllographComponent(models.Model):
         return get_list_as_string(self.allograph, '. ', self.component)
 
 
-class Text(models.Model):
+class ModelWithDate(models.Model):
+    date = models.CharField(max_length=128, blank=True,
+                            null=True, help_text='Date of the Historical Item')
+    date_sort = models.CharField(max_length=128, blank=True, null=True,
+                                 help_text='Optional date used for sorting HI or visualising HI on timeline. It is interpretable and bounded: e.g. 1200 x 1229.')
+
+    class Meta:
+        abstract = True
+
+    def is_date_precise(self):
+        ret = False
+        date = self.get_date_sort()
+        # if re.search(ur'\d{3,4}$', date) and not re.search(ur'(?i)circa',
+        # date) and not re.search(ur'(?i)\bx\b', date) and not
+        # re.search(ur'(?i)\bc\b', date):
+        if re.match(ur'\d{1,2}\s+\w+\s+\d{4}$', date) and not re.search(ur'(?i)circa', date) and not re.search(ur'(?i)\bx\b', date) and not re.search(ur'(?i)\bc\b', date):
+            ret = True
+        return ret
+
+    def get_date_sort_range_diff(self):
+        ret = 1000
+        date = self.get_date_sort()
+        if date:
+            rng = dputils.get_range_from_date(date)
+            diff = abs(rng[0] - rng[1])
+            ret = diff
+
+        return ret
+
+    def get_date_sort(self):
+        return self.date_sort or self.date
+
+
+class Text(ModelWithDate):
     name = models.CharField(max_length=200)
     item_parts = models.ManyToManyField(
         'ItemPart', through='TextItemPart', related_name='texts')
     legacy_id = models.IntegerField(blank=True, null=True)
 
-    date = models.CharField(max_length=128, blank=True, null=True)
     categories = models.ManyToManyField(
         'Category', blank=True, related_name='texts')
     languages = models.ManyToManyField(
@@ -622,13 +654,13 @@ class Language(models.Model):
 
 
 # Manuscripts, Charters in legacy db
-class HistoricalItem(models.Model):
+
+
+class HistoricalItem(ModelWithDate):
     legacy_id = models.IntegerField(blank=True, null=True)
     historical_item_type = models.ForeignKey(HistoricalItemType)
     historical_item_format = models.ForeignKey(Format, blank=True, null=True)
-    date = models.CharField(max_length=128, blank=True, null=True)
-    date_sort = models.CharField(max_length=128, blank=True, null=True,
-                                 help_text='Optional date, usually narrower than the date field. Used for result visualisation and sorting.')
+
     name = models.CharField(max_length=256, blank=True, null=True)
     categories = models.ManyToManyField(Category, blank=True)
     hair = models.ForeignKey(Hair, blank=True, null=True)
@@ -651,8 +683,14 @@ class HistoricalItem(models.Model):
     def __unicode__(self):
         return u'%s' % (self.display_label)
 
+    def get_first_text(self):
+        ret = None
+        ip = self.item_parts.first()
+        if ip:
+            ret = ip.texts.first()
+        return ret
+
     def get_descriptions(self):
-        #ret = Description.objects.filter(historical_item=self).distinct()
         ret = self.description_set.all().order_by('source__priority')
         return ret
 
@@ -664,41 +702,6 @@ class HistoricalItem(models.Model):
                 cn = u''.join([u'%s %s ' % (cn.source, cn.number)
                                for cn in cns]).strip()
         self.catalogue_number = cn
-
-    def is_date_precise(self):
-        ret = False
-        date = self.get_date_sort()
-        # if re.search(ur'\d{3,4}$', date) and not re.search(ur'(?i)circa',
-        # date) and not re.search(ur'(?i)\bx\b', date) and not
-        # re.search(ur'(?i)\bc\b', date):
-        if re.match(ur'\d{1,2}\s+\w+\s+\d{4}$', date) and not re.search(ur'(?i)circa', date) and not re.search(ur'(?i)\bx\b', date) and not re.search(ur'(?i)\bc\b', date):
-            ret = True
-        return ret
-
-    def get_date_sort_range_diff(self):
-        ret = 1000
-        date = self.get_date_sort()
-        if date:
-            rng = dputils.get_range_from_date(date)
-            diff = abs(rng[0] - rng[1])
-#             if diff == 0:
-#                 ret.append('precise year')
-#             if diff <= 5:
-#                 ret.append('5 year (or less)')
-#             if diff <= 10:
-#                 ret.append('10 years (or less)')
-#             if diff <= 20:
-#                 ret.append('20 years (or less)')
-#             if diff > 20:
-#                 ret.append('More than 20 years')
-#         else:
-#             ret.append('Unspecified')
-            ret = diff
-
-        return ret
-
-    def get_date_sort(self):
-        return self.date_sort or self.date
 
     def get_part_count(self):
         return self.item_parts.all().count()

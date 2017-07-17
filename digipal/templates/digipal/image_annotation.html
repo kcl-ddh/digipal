@@ -31,7 +31,7 @@
 
     {% if PAGE_IMAGE_SHOW_MSDATE or document_summary %}
         <div>
-            <span data-placement="bottom" title="Date of the document" data-toggle="tooltip">{{ image.item_part.historical_item.date|default:'Unspecified' }}{% if PAGE_IMAGE_SHOW_MSDATE and document_summary %}:{% endif %}</span>
+            <span data-placement="bottom" title="Date of the text" data-toggle="tooltip">{{ image.item_part.historical_item.get_first_text.date|default:'Unspecified' }}{% if PAGE_IMAGE_SHOW_MSDATE and document_summary %}:{% endif %}</span>
             <div data-placement="bottom" data-toggle="tooltip" title="{{ document_summary|striptags|entities_to_unicode|escape }}" class="force-inline">{{ document_summary|truncatewords_html:15|safe }}</div>
         </div>
     {% endif %}

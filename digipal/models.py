@@ -2727,13 +2727,14 @@ class Graph(models.Model):
     def get_long_label(self):
         return self.get_label(pattern=settings.ARCHETYPE_ANNOTATION_TOOLTIP_LONG)
 
-    def get_label(self, pattern='{allograph} by {hand}\n {ip}, {locus}\n ({hi_date})'):
+    def get_label(self, pattern=ur'{allograph} by {hand}\n {ip}, {locus}\n ({hi_date})'):
         '''Return a label by sustituting the fields in the given pattern.
            Error during susbtitution goes to std out and generate UPPERcase field in label.
            Unkown field names are left untouched.
-           See setting.GRAPH_TOOLTIP_*
+           See setting.ARCHETYPE_ANNOTATION_TOOLTIP_*
         '''
-        ret = unicode(pattern)
+
+        ret = unicode(pattern).decode('unicode_escape')
 
         def get_field(match):
             r = match.group(0)
@@ -2759,7 +2760,9 @@ class Graph(models.Model):
                 r = r.upper()
             return ur'%s' % r
 
-        return re.sub(ur'\{([^}]+)\}', get_field, ret)
+        ret = re.sub(ur'\{([^}]+)\}', get_field, ret)
+
+        return ret
 
     def save(self, *args, **kwargs):
         #self.display_label = u'%s. %s' % (self.idiograph, self.hand)

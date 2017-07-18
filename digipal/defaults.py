@@ -49,14 +49,14 @@ register_setting(
     name="DP_BUILD_TIMESTAMP",
     description="DigiPal Build Date Time",
     editable=True,
-    default='',
+    default=u'',
 )
 
 register_setting(
     name="DP_BUILD_BRANCH",
     description="DigiPal Build Branch",
     editable=True,
-    default='',
+    default=u'',
 )
 
 # Build information, see repo.py and dpdb.py
@@ -89,7 +89,7 @@ register_setting(
     label="Annotation tooltip (short)",
     description="Template for the annotation short tooltips",
     editable=True,
-    default='{allograph} by {hand}\n {locus}',
+    default=u'{allograph} by {hand}\n {locus}',
 )
 
 register_setting(
@@ -97,7 +97,7 @@ register_setting(
     label="Annotation tooltip (long)",
     description="Template for the annotation long tooltips",
     editable=True,
-    default='{allograph} by {hand}\n {ip} {locus}\n ({hi_date})',
+    default=u'{allograph} by {hand}\n {ip} {locus}\n ({hi_date})',
 )
 
 register_setting(
@@ -105,7 +105,7 @@ register_setting(
     label="Scribe name prefix",
     description="Prefix added to the scribe names",
     editable=True,
-    default='DigiPal Scribe',
+    default=u'DigiPal Scribe',
 )
 
 register_setting(
@@ -113,7 +113,7 @@ register_setting(
     label="Hand ID prefix",
     description="Prefix added to the hand IDs",
     editable=True,
-    default='DigiPal Hand',
+    default=u'DigiPal Hand',
 )
 
 register_setting(
@@ -121,7 +121,7 @@ register_setting(
     label="Hand default label",
     description="Default name used for bulk creation of hands",
     editable=True,
-    default='Default Hand',
+    default=u'Default Hand',
 )
 
 register_setting(
@@ -129,7 +129,7 @@ register_setting(
     label="Twitter handler",
     description="Your project twitter handler",
     editable=True,
-    default='DigiPalProject',
+    default=u'DigiPalProject',
 )
 
 register_setting(
@@ -137,7 +137,7 @@ register_setting(
     label="Github handler",
     description="Your project github handler",
     editable=True,
-    default='kcl-ddh/digipal',
+    default=u'kcl-ddh/digipal',
 )
 
 register_setting(
@@ -145,7 +145,7 @@ register_setting(
     label="Google Short URL Client ID",
     description="Google Short URL Client ID",
     editable=True,
-    default='',
+    default=u'',
 )
 
 register_setting(
@@ -153,7 +153,7 @@ register_setting(
     label="Google Short URL API Key",
     description="Google Short URL API Key",
     editable=True,
-    default='',
+    default=u'',
 )
 
 register_setting(
@@ -161,7 +161,7 @@ register_setting(
     label="Search Help Page",
     description="Use relative URL if page is on this web site",
     editable=True,
-    default='',
+    default=u'',
 )
 
 # Prevent TinyMCE from stripping the tags and attributes necessary to

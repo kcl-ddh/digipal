@@ -484,7 +484,7 @@ class FacetedModel(object):
                 if field.get('link_to_record', False):
                     link = record
                 ret = html_escape.iip_img(ret, width=field.get(
-                    'max_size', 50), lazy=1, wrap=record, link=link)
+                    'max_size', 50), lazy=1, wrap=link, link=link)
         if ret is None:
             ret = ''
 

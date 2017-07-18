@@ -24,7 +24,8 @@ class Query(object):
             return self.faceted_search.overview_records
 
     def get_count(self):
-        return len(self.get_records())
+        records = self.get_records()
+        return records.count()
 
     def get_summary(self):
         ret = 'Summary for query %s' % self.index

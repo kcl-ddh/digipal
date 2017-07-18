@@ -2753,6 +2753,11 @@ class Graph(models.Model):
                     r = self.annotation.image.item_part
                 if key == 'hi_date':
                     r = self.annotation.image.item_part.historical_item.date
+                if key == 'text_date':
+                    r = ur''
+                    text = self.annotation.image.item_part.historical_item.get_first_text()
+                    if text:
+                        r = text.date
                 if key == 'desc':
                     r = (self.get_description_as_str() or u'')
             except Exception, e:

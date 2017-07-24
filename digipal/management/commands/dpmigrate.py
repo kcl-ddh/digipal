@@ -15,6 +15,7 @@ from django.utils.text import slugify
 from django.db import transaction
 from digipal import utils as dputils
 from digipal.models import HistoricalItem, Text, TextItemPart
+from gi.importer import repository
 
 
 class Command(BaseCommand):
@@ -1894,7 +1895,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 # report and skip duplicate CSV lines
                 line_key = '%s %s' % (rec['Repository'], rec['Shelfmark'])
                 if line_key in unique_lines:
-                    self.print_warning('WARNING: duplicate line in CSV (same repo+shelfmark)', indent=1,
+                    self.print_warning('duplicate line in CSV (same repo+shelfmark)', indent=1,
                                        extra='%s, line %s and line %s' % (line_key, unique_lines[line_key], line_index))
                     continue
                 else:
@@ -1935,7 +1936,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                 else:
                     ci = cis[0]
                     self.print_warning(
-                        'Duplicate shelfmark', indent=1, extra='(line %s, CI #%s)' % (line_index, ci.id))
+                        'a CI with same shelfmark already exists', indent=1, extra='(line %s, CI #%s)' % (line_index, ci.id))
 
                 ip = ci.itempart_set.first()
                 if not ip:
@@ -1953,7 +1954,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                         historical_item_type_id=1, date=rec['Date'])
                     hi.save()
                     ItemPartItem(historical_item=hi, item_part=ip).save()
-                    print '    IP #%s, HI #%s, CI #%s' % (ip.id, hi.id, ci.id)
+                    print '    Created IP #%s, HI #%s, CI #%s' % (ip.id, hi.id, ci.id)
 
                 if hi:
                     # add the historical archive as an owner (i.e repo)
@@ -1964,13 +1965,18 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                             ha = Repository(
                                 name=ha_name, place=unknown_place, type_id=4)
                             ha.save()
+                            print '    Created Repository/Historical Archive %s' % (ha.id)
                         else:
                             ha = has[0]
 
                         # add link b/w HI and Historical Archive
-                        ownership = Owner(repository=ha)
-                        ownership.save()
-                        hi.owners.add(ownership)
+                        if hi.owners.filter(repository=ha).count():
+                            print '    Ownership already exists'
+                        else:
+                            ownership = Owner(repository=ha)
+                            ownership.save()
+                            hi.owners.add(ownership)
+                            print '    Added ownership %s, repo %s' % (ownership.id, repository.id)
 
                     # create the Cat Num
                     if import_cat_num:
@@ -1990,28 +1996,32 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                                 'catalogue number missing', indent=1, extra='(line %s)' % line_index)
 
                 # link to the image records
-                image_path = get_normalised_path(
-                    re.sub(ur'\\+', ur'/', ur'%s\\%s' % (rec['Location'], rec['Name of image'])))
-                # remove drive (e.g. Z/)
-                image_path = re.sub(ur'^[^/]/', ur'', image_path)
-                images = Image.objects.filter(
-                    iipimage__icontains=image_path).order_by('-width')
-                extra = '(%s)' % image_path
-                if images.count() == 0:
-                    self.print_warning(
-                        'WARNING: no image for this MS', indent=1, extra=extra)
-                if images.count() > 20:
-                    self.print_warning('WARNING: too many images associated with this MS',
-                                       indent=1, extra=extra + ', %s images' % images.count())
+                if rec.get('Location'):
+                    image_path = get_normalised_path(
+                        re.sub(ur'\\+', ur'/', ur'%s\\%s' % (rec['Location'], rec['Name of image'])))
+                    # remove drive (e.g. Z/)
+                    image_path = re.sub(ur'^[^/]/', ur'', image_path)
+                    images = Image.objects.filter(
+                        iipimage__icontains=image_path).order_by('-width')
+                    extra = '(%s)' % image_path
+                    if images.count() == 0:
+                        self.print_warning(
+                            'no image for this MS', indent=1, extra=extra)
+                    if images.count() > 20:
+                        self.print_warning('too many images associated with this MS',
+                                           indent=1, extra=extra + ', %s images' % images.count())
+                    else:
+                        for image in images:
+                            print '    Image #%s connected to this MS' % image.id
+                            if image.item_part is not None and image.item_part_id != ip.id:
+                                self.print_warning('image already linked to another IP', indent=1,
+                                                   extra=extra + ', IM #%s to IP #%s' % (image.id, image.item_part_id))
+                                continue
+                            image.item_part = ip
+                            image.save()
                 else:
-                    for image in images:
-                        print '    Image #%s connected to this MS' % image.id
-                        if image.item_part is not None and image.item_part_id != ip.id:
-                            self.print_warning('WARNING: image already linked to another IP', indent=1,
-                                               extra=extra + ', IM #%s to IP #%s' % (image.id, image.item_part_id))
-                            continue
-                        image.item_part = ip
-                        image.save()
+                    self.print_warning(
+                        'Location not supplied (%s images already attached)' % ip.images.count(), indent=1)
 
         for k, v in image_paths.iteritems():
             if len(v) > 1:

@@ -5,7 +5,7 @@
 # pip install -r requirements
 #
 
-BeautifulSoup==3.2.1
+beautifulsoup4==4.6.0
 git+git://github.com/geoffroy-noel-ddh/Digital-Lightbox
 Django==1.8.18
 Mezzanine==4.2.3
@@ -32,8 +32,8 @@ psycopg2==2.5.4
 # We force this version. To replace buggy template in the one installed
 # with Mezzanine 3.1.5
 grappelli-safe==0.4.6
-bleach==1.4
-filebrowser-safe==0.3.6
+bleach==2.0.0
+filebrowser_safe==0.4.6
 oauthlib==0.7.1
 pytz==2015.7
 six==1.10.0

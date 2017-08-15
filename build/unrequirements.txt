@@ -11,6 +11,8 @@
 # please append new entries at the TOP of the file.
 # Because pip uninstall will stop of package already removed
 
+# replaced by beautifulsoup4
+BeautifulSoup
 # replaced by a fork
 Digital-Lightbox 
 # replaced by Django 1.7 migration system

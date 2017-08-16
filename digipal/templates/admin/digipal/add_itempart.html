@@ -1,11 +1,10 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/change_form.html" %}
 {% load i18n admin_urls admin_static admin_modify %}
 
 {% block extrahead %}
     {{ block.super }}
-    <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
-    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.css" />
-    <script src="{{ STATIC_URL }}digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="{% static "digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.css" %}">
+    <script type="text/javascript" src="{% static "digipal/scripts/libs/jquery-ui/jquery-ui.custom.min.js" %}"></script>
     
     {{ media }}
     
@@ -14,10 +13,10 @@
             $(function() {
                 {% for fieldset in form %}
                     {% for field in fieldset %}
-                    	// {{ field.key }}
-                    	{% if field.list_json %}
-                    		$('#field-{{ field.key }}').autocomplete({source: {{ field.list_json|safe }} });
-                    	{% endif %}
+                        // {{ field.key }}
+                        {% if field.list_json %}
+                            $('#field-{{ field.key }}').autocomplete({source: {{ field.list_json|safe }} });
+                        {% endif %}
                     {% endfor %}
                 {% endfor %}
                 
@@ -43,10 +42,25 @@
 {% endblock %}
 
 {% block extrastyle %}
-    {{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
+    {{ block.super }}
     <style>
-        .field-required label {font-weight: bold !important;}
+        /* .field-required label {font-weight: bold !important;} */
         input.invalid { background-color: pink; }
+
+        @media (max-width: 940px) {
+            form .aligned p.help {
+                margin-left: 0;
+            }
+        }
+        
+        /*Hide admin language dropdown*/
+        #id_language_chzn {
+            display:none;
+        }
+        
+        input.vTextField {
+            width: 20em;
+        }
     </style>
 {% endblock %}
 
@@ -58,30 +72,62 @@
 
 <div id="content-main">
 
-    <form id="quickform" action="" method="post">
+    <p>For Item definition please refer to 
+        <a href="https://github.com/kcl-ddh/digipal/wiki/Items-and-their-Parts" target="_blank">
+        the introduction to the Items and their Parts.
+        </a>
+    </p>
+    
+    <form id="quickform" action="#container" method="post">
         {% csrf_token %}
-        {% for fieldset in form %}
-            <fieldset class="module aligned">
-                {% for field in fieldset %}
-                    {% if forloop.counter0 %}
-                        <div class="form-row">
-                            <div class="{% if field.required %}field-required{% endif %}">
-                                <label for="field-{{ field.key }}">
-                                    {{ field.label }}
-                                </label>
-                                <input type="text" class="vTextField" id="field-{{ field.key }}" name="{{ field.key }}" 
-                                    {% if field.eg %}placeholder="e.g. {{ field.eg }}"{% endif %}
-                                    />
+        <div>
+            {% for fieldset in form %}
+                <fieldset class="module aligned">
+                    {% for field in fieldset %}
+                        {% if forloop.counter0 %}
+                            <div class="form-row">
+                                <div class="{% if field.required %}field-required{% endif %}">
+                                    <label for="field-{{ field.key }}" class="{% if field.required %}required{% endif %}">
+                                        {{ field.label }}
+                                    </label>
+                                    <input type="text" class="vTextField" id="field-{{ field.key }}" name="{{ field.key }}" 
+                                        {% if field.eg %}placeholder=""{% endif %} value="{{ field.value }}"
+                                        />
+                                    <br/>
+                                    <p class="help">
+                                        {{ field.help_text }}
+                                        {% if field.eg %}<br/>e.g. {{ field.eg }} {% endif %}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    {% else %}
-                        <h2>{{ field }}</h2>
-                    {% endif %}
-                {% endfor %}
-            </fieldset>
-        {% endfor %}
-        <input type="submit" value="Submit" />
+                        {% else %}
+                            <h2>{{ field }}</h2>
+                        {% endif %}
+                    {% endfor %}
+                </fieldset>
+            {% endfor %}
+        </div>
+        
+        <div class="submit-row">
+            <!-- input type="submit" value="Save" class="default" name="_save" -->
+            <!-- input class="change-view-save-another" type="submit" value="Save and add another" name="_addanother" -->
+            <input class="change-view-save-continue" type="submit" value="Save and continue editing" name="_continue">
+        </div>
     </form>
+
+    <!--  div>
+        <br/>
+        <p>An Item is a physical object which bears handwritting, illutrations or other manifestation of a visual communication.</p>
+        <p>In many cases the Current Item, Historical Item and Item Part simply refer to the same object.
+            But the concepts allow you to deal with individual parts if needed.
+        </p>
+        <h2></h2>
+        <ul>
+            <li>A Historical Item is a whole item as it was in the past.</li>
+            <li>A Current Item is a whole item as it is now.</li>
+            <li>An Item Part is any part of Historical Item that remained undivided up to this day.</li>
+        </ul>
+    </div -->
 
 </div>
 

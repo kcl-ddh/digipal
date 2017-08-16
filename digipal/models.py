@@ -726,23 +726,24 @@ class HistoricalItem(ModelWithDate):
 
     @classmethod
     def get_or_create(cls, name, cat_num):
-        name = name.strip()
-        cat_num = cat_num.strip()
-        cat_num = CatalogueNumber.get_or_create(cat_num)
-        his = HistoricalItem.objects.all()
         ret = None
-        if name:
-            his = his.filter(name__iexact=name)
-        if cat_num:
-            his = his.filter(catalogue_number=cat_num)
-        if his.count() == 1:
-            ret = his[0]
-        if his.count() == 0:
-            ret = HistoricalItem(
-                name=name, historical_item_type=HistoricalItemType.objects.first())
-            ret.save()
+        name = name.strip()
+        cat_num = CatalogueNumber.get_or_create(cat_num.strip())
+
+        if name or cat_num:
+            his = HistoricalItem.objects.all()
+            if name:
+                his = his.filter(name__iexact=name)
             if cat_num:
-                ret.catalogue_numbers.append(cat_num)
+                his = his.filter(catalogue_number=cat_num)
+            if his.count() == 1:
+                ret = his[0]
+            if his.count() == 0:
+                ret = HistoricalItem(
+                    name=name, historical_item_type=HistoricalItemType.objects.first())
+                ret.save()
+                if cat_num:
+                    ret.catalogue_numbers.add(cat_num)
 
         return ret
 
@@ -780,17 +781,26 @@ class Source(models.Model):
         return u'%s' % (self.label or self.name)
 
     @classmethod
+    def get_all_sources(cls):
+        '''Return all sources (load them the first time then cache them)'''
+        ret = getattr(cls, '_sources', None)
+        if ret is None:
+            ret = cls.objects.all().order_by('id')
+            cls._sources = ret
+
+        return ret
+
+    @classmethod
     def get_source_from_keyword(cls, keyword, none_if_not_found=False):
         '''Returns a source from a keyword matching part of the name or the label.
            e.g. Source.get_source_from_keyword('digipal') => <Source: DigiPal>
            If more than one match, the one with the lowest ID is returned.
         '''
         ret = None
-        cls._sources = getattr(
-            cls, '_sources', cls.objects.all().order_by('id'))
+        sources = cls.get_all_sources()
 
-        if cls._sources:
-            for source in cls._sources:
+        if sources:
+            for source in sources:
                 if keyword.lower() in source.name.lower() or keyword.lower() in source.label.lower():
                     ret = source
                     break
@@ -818,6 +828,7 @@ class Source(models.Model):
     def save(self, *args, **kwargs):
         self.label_slug = slugify(unicode(self.label))
         super(Source, self).save(*args, **kwargs)
+        self.__class__._sources = None
 
 # Manuscripts, Charters in legacy db
 
@@ -1306,16 +1317,18 @@ class CurrentItem(models.Model):
 
     @classmethod
     def get_or_create(cls, shelfmark, repository):
+        ret = None
         shelfmark = shelfmark.strip()
         repository = repository.strip()
         repository = Repository.get_or_create(repository)
-        items = CurrentItem.objects.filter(
-            shelfmark__iexact=shelfmark, repository=repository)
-        if items.count():
-            ret = items[0]
-        else:
-            ret = CurrentItem(shelfmark=shelfmark, repository=repository)
-            ret.save()
+        if repository:
+            items = CurrentItem.objects.filter(
+                shelfmark__iexact=shelfmark, repository=repository)
+            if items.count():
+                ret = items[0]
+            else:
+                ret = CurrentItem(shelfmark=shelfmark, repository=repository)
+                ret.save()
         return ret
 
 # OwnerText in legacy db

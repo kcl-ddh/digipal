@@ -243,7 +243,15 @@
         // this.loadContent();
         // this.loadContent(false, this.getContentAddress(locationType));
         //
-        if ((locationType === 'sync') || (this.loadedAddress)) {
+        
+        // GN: 18 Aug 2017:
+        // Relaxed condition to fix the following bug:
+        // If you sync a text to 1v and there is no 1v, this.loadedAddress is null.
+        // Then user select Whole but that won't load the whole text because this.loadAddress.
+        // TODO: understand why this condition was designed in the first place
+        // and whether there are ny risk of looping if replaced with (1).
+        // if ((locationType === 'sync') || (this.loadedAddress)) {
+        if (1) {
             window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
         }
     };

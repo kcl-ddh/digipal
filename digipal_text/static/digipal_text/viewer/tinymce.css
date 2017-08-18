@@ -86,7 +86,8 @@ span[data-dpt] > span[data-dpt] {
 
 .mce-content-body span[data-dpt-cat=chars],
 .mce-content-body span[data-dpt=person],
-.mce-content-body span[data-dpt=place]
+.mce-content-body span[data-dpt=place],
+.mce-content-body span[data-dpt=datetime]
 {
     background-color: rgba(0,255,0,0.25);
 }
@@ -106,7 +107,8 @@ span[data-dpt] > span[data-dpt] {
 
 .mce-content-body span[data-dpt-cat=chars]:before,
 .mce-content-body span[data-dpt=person]:before,
-.mce-content-body span[data-dpt=place]:before
+.mce-content-body span[data-dpt=place]:before,
+.mce-content-body span[data-dpt=datetime]:before
 {
     color: green;
     font-weight: bold;
@@ -194,6 +196,10 @@ span[data-dpt] > span[data-dpt] {
 
 .mce-content-body span[data-dpt=place][data-dpt-type=name]:before {
     content: "Place name";
+}
+
+.mce-content-body span[data-dpt=datetime][data-dpt-type=date]:before {
+    content: "Date";
 }
 
 .mce-content-body span[data-dpt-type=witnesses]:before {

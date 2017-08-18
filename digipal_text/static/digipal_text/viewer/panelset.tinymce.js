@@ -184,6 +184,10 @@ var PanelSetPlugIn = function(editor, url) {
         return insertSpanOnSelectedDropdownOption(selectedValue, 'place', 'chars');
     }
 
+    function insertDateTimeOnSelectedDropdownOption(selectedValue) {
+        return insertSpanOnSelectedDropdownOption(selectedValue, 'datetime', 'chars');
+    }
+
     function insertSpanOnSelectedDropdownOption(selectedValue, tag, cat) {
         addSpan({'tag': tag, 'attributes': {'cat': cat, 'type': selectedValue}, 'conditions': {'isparent': null}});
     }
@@ -264,6 +268,9 @@ var PanelSetPlugIn = function(editor, url) {
     // Place
     addDropDown('psplace', 'Name', 'Place', null, insertPlaceOnSelectedDropdownOption);
 
+    // Date Time
+    addDropDown('psdatetime', 'Date', 'Temporal', null, insertDateTimeOnSelectedDropdownOption);
+    
     // H1
     editor.addButton('psh1', {
         text: 'H1',

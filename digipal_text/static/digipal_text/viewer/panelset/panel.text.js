@@ -141,7 +141,7 @@
                     me.componentIsReady('tinymce');
                 },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | psperson | psplace | psdatetime | pslocation | psex pssupplied psdel | code ',
+                toolbar: window.text_editor_options.toolbars.default,
                 paste_word_valid_elements: 'i,em,p,span',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted

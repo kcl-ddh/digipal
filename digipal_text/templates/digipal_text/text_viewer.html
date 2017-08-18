@@ -138,6 +138,11 @@
 
 {% block extra_js %}
     {{ block.super }}
+    
+    <script>
+        window.text_editor_options = {{ text_editor_options|safe }};
+    </script>
+    
     <script src="{{ STATIC_URL }}digipal_text/jqlayout/jquery.layout.min.js"></script>
     {# TODO: include min on production #}
     <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.min.js"></script>

@@ -731,6 +731,18 @@ CHARACTER_ABBREV_STROKE = 'abbrev.stroke'
 
 ITEM_PART_DEFAULT_LOCUS = 'face'
 
+####
+
+TEXT_EDITOR_OPTIONS = {
+    'buttons': {
+        'psclause': 'Address,Disposition,Witnesses',
+        'psClauseSecondary': 'Arenga,Boundaries,Holding,Injunction,Malediction,Narration,Notification,Prohibition,Salutation,Sealing,Subscription,Intitulatio,Warrandice'
+    },
+    'toolbars': {
+        'default': 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | psperson | pslocation | psex pssupplied psdel | code ',
+    }
+}
+
 ##################
 # LOCAL SETTINGS #
 ##################
@@ -770,6 +782,9 @@ LOGGING['loggers']['digipal_debugger']['level'] = DIGIPAL_LOG_LEVEL
 RUNNING_DEVSERVER = (len(sys.argv) > 1 and sys.argv[1] == 'runserver')
 if RUNNING_DEVSERVER and DEBUG and os.environ.get('RUN_MAIN', None) != 'true':
     LOGGING = {}
+
+if 'TEXT_EDITOR_OPTIONS_CUSTOM' in locals():
+    TEXT_EDITOR_OPTIONS.update(locals()['TEXT_EDITOR_OPTIONS_CUSTOM'])
 
 #
 if not COMPRESS_ENABLED:

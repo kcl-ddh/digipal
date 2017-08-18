@@ -257,10 +257,10 @@ var PanelSetPlugIn = function(editor, url) {
     });
     
     // Clauses
-    addDropDown('psclause', 'Address,Disposition,Witnesses', 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
+    addDropDown('psclause', window.text_editor_options.buttons.psclause, 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
 
     // Other Clauses
-    addDropDown('psClauseSecondary', 'Arenga,Boundaries,Holding,Injunction,Malediction,Narration,Notification,Prohibition,Salutation,Sealing,Subscription,Intitulatio,Warrandice', 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
+    addDropDown('psClauseSecondary', window.text_editor_options.buttons.psClauseSecondary, 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
 
     // Person
     addDropDown('psperson', 'Title,Name', 'Person', null, insertPersonOnSelectedDropdownOption);

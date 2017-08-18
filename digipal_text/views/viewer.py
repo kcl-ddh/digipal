@@ -78,6 +78,8 @@ def text_viewer_view(request, item_partid=0, master_location_type='', master_loc
 
     context['body_class'] = 'page-text-viewer'
 
+    context['text_editor_options'] = settings.TEXT_EDITOR_OPTIONS
+
     update_viewer_context(context, request)
 
     return render(request, 'digipal_text/text_viewer.html', context)

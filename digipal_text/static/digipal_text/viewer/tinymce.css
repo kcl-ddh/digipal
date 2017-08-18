@@ -85,7 +85,8 @@ span[data-dpt] > span[data-dpt] {
 /* Categories */
 
 .mce-content-body span[data-dpt-cat=chars],
-.mce-content-body span[data-dpt=person]
+.mce-content-body span[data-dpt=person],
+.mce-content-body span[data-dpt=place]
 {
     background-color: rgba(0,255,0,0.25);
 }
@@ -104,7 +105,8 @@ span[data-dpt] > span[data-dpt] {
 }
 
 .mce-content-body span[data-dpt-cat=chars]:before,
-.mce-content-body span[data-dpt=person]:before
+.mce-content-body span[data-dpt=person]:before,
+.mce-content-body span[data-dpt=place]:before
 {
     color: green;
     font-weight: bold;
@@ -188,6 +190,10 @@ span[data-dpt] > span[data-dpt] {
 }
 .mce-content-body span[data-dpt=person][data-dpt-type=name]:before {
     content: "Person name";
+}
+
+.mce-content-body span[data-dpt=place][data-dpt-type=name]:before {
+    content: "Place name";
 }
 
 .mce-content-body span[data-dpt-type=witnesses]:before {

@@ -354,7 +354,8 @@ def get_all_master_locations(context):
     # Get entry numbers from texts
     for tcx in TextContentXML.objects.filter(text_content__item_part=context['item_part']).iterator():
         for m in re.findall(ur'<span data-dpt="location" data-dpt-loctype="(.*?)">(.*?)</span>', tcx.content or ''):
-            ret[m[0]].add(m[1])
+            if m[0] in ret:
+                ret[m[0]].add(m[1])
 
     # sort locations
     for k, v in ret.iteritems():

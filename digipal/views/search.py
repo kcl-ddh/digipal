@@ -71,6 +71,22 @@ def search_index_view(request):
     # process request
     action = request.POST.get('action', '')
     reindexes = []
+
+    if action == 'cancel':
+        context['indexing'] = indexer.read_state()
+        if context['indexing']:
+            import signal
+            pid = context['indexing']['pid']
+            # kill process
+            try:
+                res = os.kill(pid, signal.SIGKILL)
+            except OSError, e:
+                # Process doesn't exist
+                if e.errno == 3:
+                    pass
+            # reset state
+            indexer.clear_state()
+
     if action == 'reindex':
         for ct in content_types:
             if request.POST.get('select-%s' % ct.key):
@@ -80,6 +96,7 @@ def search_index_view(request):
             dputils.call_management_command(
                 'dpsearch', 'index_facets', **{'if': ','.join(reindexes)})
             context['indexing'] = indexer.get_state_initial(reindexes)
+
     if not 'indexing' in context:
         context['indexing'] = indexer.read_state()
 

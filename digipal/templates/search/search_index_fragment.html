@@ -6,8 +6,16 @@
         <h1 class='header1'>
             Search Indexer
             <span class="pull-right small">
-                <input type="hidden" name="action" value="reindex"/>
-                <button class="btn btn-primary action-reindex" type="submit" name="submit" value="submit" disabled>Reindex</button>
+                <input type="hidden" name="action" value="refresh"/>
+                {% if indexing.state == 'indexing' %}
+                    <button type="submit" class="btn btn-danger action-cancel" name="action" value="cancel">
+                        Cancel
+                    </button>
+                {% else %}
+                    <button type="submit" class="btn btn-primary action-reindex" name="action" value="reindex" disabled>
+                        Reindex
+                    </button>
+                {% endif %}
     
                 <a class="action-refresh" href="?action=refresh">
                     <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>

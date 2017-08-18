@@ -180,6 +180,10 @@ var PanelSetPlugIn = function(editor, url) {
         return insertSpanOnSelectedDropdownOption(selectedValue, 'person', 'chars');
     }
 
+    function insertPlaceOnSelectedDropdownOption(selectedValue) {
+        return insertSpanOnSelectedDropdownOption(selectedValue, 'place', 'chars');
+    }
+
     function insertSpanOnSelectedDropdownOption(selectedValue, tag, cat) {
         addSpan({'tag': tag, 'attributes': {'cat': cat, 'type': selectedValue}, 'conditions': {'isparent': null}});
     }
@@ -232,7 +236,7 @@ var PanelSetPlugIn = function(editor, url) {
     
     // Locations
     editor.addButton('pslocation', function() {
-        var items = [{text: 'Locus', value: 'locus'}, {text: 'Entry', value: 'entry'}, {text: 'Section', value: 'section'}];
+        var items = [{text: 'Locus', value: 'locus'}, {text: 'Entry', value: 'entry'}];
     
         return {
             type: 'listbox',
@@ -258,7 +262,7 @@ var PanelSetPlugIn = function(editor, url) {
     addDropDown('psperson', 'Title,Name', 'Person', null, insertPersonOnSelectedDropdownOption);
 
     // Place
-    //addDropDown('psplace', 'Name', null, insertClauseOnSelectedDropdownOption);
+    addDropDown('psplace', 'Name', 'Place', null, insertPlaceOnSelectedDropdownOption);
 
     // H1
     editor.addButton('psh1', {

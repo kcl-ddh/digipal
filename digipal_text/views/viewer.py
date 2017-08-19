@@ -116,7 +116,6 @@ def get_address_from_sub_location(sub_location):
 
 def text_api_view(request, item_partid, content_type, location_type=u'default', location=''):
 
-    #format = request.REQUEST.get('format', 'html').strip().lower()
     format = dputils.get_request_var(request, 'format', 'html').strip().lower()
     if request.is_ajax():
         format = 'json'
@@ -128,16 +127,15 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
 
     response = None
 
-    # delegate to a custom function if it exists
+    # DELEGATE TO A CUSTOM VIEW FOR THE GIVEN CONTENT TYPE
 
     # Look up the content_type in the function name
     # e.g. content_type = image => text_api_view_image
-    function = globals().get('text_api_view_' + content_type, None)
+    text_api_view_content_type = globals().get(
+        'text_api_view_' + content_type, None)
+    content_type_record = None
 
-    if function:
-        response = function(request, item_partid, content_type,
-                            location_type, location, max_size=max_size)
-    else:
+    if not text_api_view_content_type:
         # Look up the content_type in the TextContentType table
         # e.g. content_type = translation or transcription, we assume it must
         # be a TextContentXML
@@ -146,15 +144,19 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
             slug=content_type).first()
 
         if content_type_record:
-            response = text_api_view_text(
-                request, item_partid, content_type, location_type, location, content_type_record, max_size=max_size)
+            text_api_view_content_type = text_api_view_text
+
+    if text_api_view_content_type:
+        response = text_api_view_content_type(
+            request, item_partid, content_type,
+            location_type, location, content_type_record, max_size=max_size)
 
     # we didn't find a custom function for this content type
     if response is None:
         response = {'status': 'error',
                     'message': 'Invalid Content Type (%s)' % content_type}
 
-    # If sublocation is not defined by specific funciton we just return
+    # If sublocation is not defined by specific function we just return
     # the desired sublocation.
     # If specific function want to remove they can set it to []
     response['sub_location'] = response.get(
@@ -162,14 +164,19 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     if not response['sub_location']:
         del response['sub_location']
 
-    if location_type == 'sync':
-        # dummy response in case of syncing with another panel
-        response['location'] = location
+    # HANDLE location_type = sync
+
+    # We take care of syncing logic here, customisations don't need to worry
+    # about it.
+    if response.get('location_type', '') == 'sync':
         response['location_type'] = location_type
-        response['content'] = 'Syncing...'
-        set_message(response, 'Syncing...', '')
+        response['location'] = location
+        response['content'] = 'Synchronising panel...'
+        set_message(response, 'Synchronising panel...', '')
 
     ret = None
+
+    # RESPONSE FORMATTING
 
     if format == 'json':
         ret = HttpResponse(json.dumps(response),
@@ -212,7 +219,6 @@ def get_tei_from_text_response(response, item_partid, content_type):
 
     # convert to XML object
     #xml = dputils.get_xml_from_unicode(ret, ishtml=True, add_root=True)
-    # print repr(response)
     from digipal.models import ItemPart
     itempart = ItemPart.objects.filter(id=item_partid).first()
 
@@ -220,7 +226,6 @@ def get_tei_from_text_response(response, item_partid, content_type):
         text_content__type__slug='translation', text_content__item_part__id=item_partid).first()
 
     #
-    # print ret
     from django.template.loader import render_to_string
     context = {
         'meta': {
@@ -528,6 +533,25 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
 
 
 def resolve_default_location(location_type, location, response):
+
+    if location_type == 'sync' and 'locations' in response:
+        # See VisigothicPal #13
+        # No location to sync with so we return first available LT, L instead
+        # This happens when a text is still empty or contains no location (yet)
+        # Note, only works when client is calling with &load_locations=1
+        # e.g. locations: {whole: [], locus: ["1r"]} => return 'sync'
+        # e.g. locations: {whole: []} => return Whole
+        has_specific_location = False
+
+        for lt, ls in response['locations'].iteritems():
+            if ls:
+                has_specific_location = True
+                break
+
+        if not has_specific_location:
+            # returns (LT, L) = (sync, X)
+            location_type = 'default'
+
     if location_type == 'default':
         locations = response['locations']
         # grab the first available location
@@ -537,6 +561,7 @@ def resolve_default_location(location_type, location, response):
             if locations[ltype]:
                 location = locations[ltype][0]
             break
+
     return location_type, location
 
 # def get_units(content, location_type, locations):
@@ -639,7 +664,7 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
     return ret
 
 
-def text_api_view_image(request, item_partid, content_type, location_type, location, max_size=None, ignore_sublocation=False):
+def text_api_view_image(request, item_partid, content_type, location_type, location, content_type_record, max_size=None, ignore_sublocation=False):
     '''
         location = an identifier for the image. Relative to the item part
                     '#1000' => image with id = 1000
@@ -690,47 +715,54 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
     image = find_image(request, item_partid, location_type,
                        location, get_visible_images, visible_images)
 
-    if location_type == 'entry':
-        # user asked for entry, we can only return a locus
-        # so we add the entry as a sublocation
-        ret['sub_location'] = ['', 'location'], [
-            'loctype', 'entry'], ['@text', location]
-
-    # deal with writing annotations
-    if request.method == 'POST':
-        update_text_image_link(request, image, ret)
+    if not image:
+        set_message(ret, 'Image not found')
+        ret['location_type'] = location_type
+        ret['location'] = location
     else:
-        # display settings
-        ret['presentation_options'] = [["highlight", "Highlight Text Units"]]
+        if location_type == 'entry':
+            # user asked for entry, we can only return a locus
+            # so we add the entry as a sublocation
+            ret['sub_location'] = ['', 'location'], [
+                'loctype', 'entry'], ['@text', location]
 
-        # image dimensions
-        options = {}
-        layout = dputils.get_request_var(request, 'layout', '')
-        if layout == 'width':
-            options['width'] = dputils.get_request_var(request, 'width', '100')
+        if request.method == 'POST':
+            # deal with writing annotations
+            update_text_image_link(request, image, ret)
+        else:
+            # display settings
+            ret['presentation_options'] = [
+                ["highlight", "Highlight Text Units"]]
 
-        # we return the location of the returned fragment
-        # this may not be the same as the requested location
-        # e.g. if the requested location is 'default' we resolve it
-        # ret['location_type'] = location_type
-        ret['location_type'] = 'locus'
-        ret['location'] = image.locus if image else location
+            # image dimensions
+            options = {}
+            layout = dputils.get_request_var(request, 'layout', '')
+            if layout == 'width':
+                options['width'] = dputils.get_request_var(
+                    request, 'width', '100')
 
-        if image:
-            # ret['content'] = iip_img(image, **options)
-            ret['zoomify_url'] = image.zoomify()
-            ret['width'] = image.width
-            ret['height'] = image.height
+            # we return the location of the returned fragment
+            # this may not be the same as the requested location
+            # e.g. if the requested location is 'default' we resolve it
+            # ret['location_type'] = location_type
+            ret['location_type'] = 'locus'
+            ret['location'] = image.locus if image else location
 
-            # add all the elements found on that page in the transcription
-            # ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), location_type, location)
-            ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(
-                settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), 'locus', get_locus_from_location(location_type, location))
+            if image:
+                # ret['content'] = iip_img(image, **options)
+                ret['zoomify_url'] = image.zoomify()
+                ret['width'] = image.width
+                ret['height'] = image.height
 
-            # print ret['text_elements']
+                # add all the elements found on that page in the transcription
+                # ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), location_type, location)
+                ret['text_elements'] = get_text_elements_from_image(request, item_partid, getattr(
+                    settings, 'TEXT_IMAGE_MASTER_CONTENT_TYPE', 'transcription'), 'locus', get_locus_from_location(location_type, location))
 
-            # add all the non-graph annotations
-            ret.update(get_annotations_from_image(image))
+                # print ret['text_elements']
+
+                # add all the non-graph annotations
+                ret.update(get_annotations_from_image(image))
 
     return ret
 
@@ -973,7 +1005,7 @@ def get_elementid_from_xml_element(element, idcount, as_string=False):
     return parts
 
 
-def find_image(request, item_partid, location_type, location, get_visible_images, visible_images):
+def find_image(request, item_partid, location_type, location, get_visible_images, visible_images, first_if_no_found=False):
     # return a Image object that matches the requested manuscript and location
     from digipal.models import Image
 
@@ -997,7 +1029,7 @@ def find_image(request, item_partid, location_type, location, get_visible_images
                         item_part_id=item_partid, locus=locus).first()
 
     # Image not found, display the first one
-    if not image or not image.is_full_res_for_user(request):
+    if first_if_no_found and (not image or not image.is_full_res_for_user(request)):
         image = get_visible_images(
             item_partid, request, visible_images).first()
 

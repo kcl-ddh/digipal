@@ -160,7 +160,17 @@
                 break;
             }
             if (!empty) {
-                if (this.$contentTypes) {
+                // See Active Collab VisigtohicPal #13
+                var canBeSynced = false;
+
+                for (var j in locations) {
+                    if (locations[j].length > 0) {
+                        canBeSynced = true;
+                        break;
+                    }
+                }
+                
+                if (canBeSynced && this.$contentTypes) {
                     locations.sync = [['location', 'Top Location'], ['location+1', 'Top location (next)'], ['location-1', 'Top location (previous)']];
                     locations.sync = locations.sync.concat(this.$contentTypes.dpbsdropdown('getOptions'));
                 }

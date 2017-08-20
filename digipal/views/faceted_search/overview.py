@@ -25,7 +25,11 @@ class Query(object):
 
     def get_count(self):
         records = self.get_records()
-        return records.count()
+        if isinstance(records, list):
+            ret = len(records)
+        else:
+            ret = records.count()
+        return ret
 
     def get_summary(self):
         ret = 'Summary for query %s' % self.index
@@ -527,7 +531,7 @@ class Overview(object):
             'vcat', True) and (not possible_categories or field['key'] in possible_categories)]
 
         category_field = faceted_search.get_field_by_key(
-            self.request.REQUEST.get('vcat', 'hi_type'))
+            utils.get_request_var(self.request, 'vcat', 'hi_type'))
         if category_field is None:
             category_field = faceted_search.get_field_by_key('hi_type')
         if category_field is None:
@@ -642,8 +646,8 @@ class Overview(object):
         # reframe the x values based on min date
         for point in points:
             if point[0] is not None:
-                point[0][0] -= self.mins[0]
-                point[0][1] -= self.mins[0]
+                point[0][0] -= self.mins[0] or 0
+                point[0][1] -= self.mins[0] or 0
         # reframe the histograms
         #self.histogram = {x - self.mins[0]: hist for x, hist in self.histogram.iteritems()}
         histogram = self.histogram

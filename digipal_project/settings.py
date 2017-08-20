@@ -1,3 +1,5 @@
+from digipal.settings import *
+
 # Template file for local settings.
 # Do NOT change settings.py instead copy this to local_settings.py, change it
 # to suite the environment, but do NOT commit it to version control.
@@ -33,9 +35,9 @@ STATICFILES_DIRS = (
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'archetype',
-        'USER': 'app_archetype',
-        'PASSWORD': 'pass',
+        'NAME': 'digipal',
+        'USER': 'app_digipal',
+        'PASSWORD': 'dppsqlpass',
         'HOST': '',
         'PORT': '',
     },

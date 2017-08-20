@@ -15,7 +15,6 @@ from django.utils.text import slugify
 from django.db import transaction
 from digipal import utils as dputils
 from digipal.models import HistoricalItem, Text, TextItemPart
-from gi.importer import repository
 
 
 class Command(BaseCommand):
@@ -1976,7 +1975,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
                             ownership = Owner(repository=ha)
                             ownership.save()
                             hi.owners.add(ownership)
-                            print '    Added ownership %s, repo %s' % (ownership.id, repository.id)
+                            print '    Added ownership %s, repo %s' % (ownership.id, ha.id)
 
                     # create the Cat Num
                     if import_cat_num:

@@ -249,19 +249,26 @@
         // Note that no request is sent if address hasn't changed.
         // Also note that this will reset the sublocation!
         //
-        // This will create infinite event recursion on startup:
-        // this.loadContent();
-        // this.loadContent(false, this.getContentAddress(locationType));
-        //
         
-        // GN: 18 Aug 2017:
+        // GN: 18-20 Aug 2017: AC MOA #20
+        // Why this condition was designed in the first place?
+        // If &above=location/default;subl:... on page load then when we 
+        // receive default loc from server => updateLocations() calls
+        // setOption on the LT dropdown and this in turns call this function
+        // the trigger below resets the sublocation and it's never used when
+        // other panels later sync with this one...
+        // The logic is really convoluted but it's hard to make it work and test 
+        // on all possible use cases from various projects. So we end up with this
+        // solution below.
+        // TODO: check if updateLocations() really need to call setOption
+        //
+        // if ((locationType === 'sync') || (this.loadedAddress)) {
+        //
         // Relaxed condition to fix the following bug:
         // If you sync a text to 1v and there is no 1v, this.loadedAddress is null.
         // Then user select Whole but that won't load the whole text because this.loadAddress.
-        // TODO: understand why this condition was designed in the first place
-        // and whether there are ny risk of looping if replaced with (1).
-        // if ((locationType === 'sync') || (this.loadedAddress)) {
-        if (1) {
+        //
+        if ((locationType === 'sync') || (!this.locationsAreUnloaded)) {
             window.setTimeout(function() { me.$locationSelect.trigger('change'); }, 0);
         }
     };
@@ -310,6 +317,10 @@
     };
 
     Located.prototype.resetSubLocation = function(subLocation) {
+        if (0 && this.subLocation && this.subLocation.length > 0) {
+            console.log('Reset sublocation '+this.panelType);
+            console.log(this.subLocation);
+        }
         this.subLocation = JSON.parse(JSON.stringify(subLocation || []));
     };
 

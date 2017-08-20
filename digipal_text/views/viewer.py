@@ -168,6 +168,9 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
 
     # We take care of syncing logic here, customisations don't need to worry
     # about it.
+    # Sync in => sync out. For UI/client logic purpose.
+    # If we don't return sync, client assumes we can't support sync.
+    # Only exception is in resolve_default_location() below.
     if response.get('location_type', '') == 'sync':
         response['location_type'] = location_type
         response['location'] = location

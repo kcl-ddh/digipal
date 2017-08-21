@@ -658,6 +658,7 @@ def get_range_from_date(str):
 
     if str is not None and is_max_date_range(ret):
         # circa 1221 x circa 1247
+        str = str.replace(u'×', u'x')
         if 'x' in str:
             parts = str.split('x')
             if len(parts) == 2:

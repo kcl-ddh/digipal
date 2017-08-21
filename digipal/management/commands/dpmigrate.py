@@ -278,10 +278,11 @@ Commands:
                         item_itempart.save()
                         print 'Created'
                     for text in texts.all():
-                        text.date = hi.date
+                        text.date = hi.date.replace(u'×', u'x')
                         text.date_sort = hi.date_sort
-                        print ur'Move %s from HI #%s to Text #%s' % (hi.date, hi.id, ip.id)
+                        print ur'Move %s from HI #%s to Text #%s' % (text.date, hi.id, ip.id)
                         text.save()
+                        print dputils.get_range_from_date(text.date)
                 hi.date = None
                 hi.date_sort = None
                 hi.save()

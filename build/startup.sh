@@ -2,6 +2,8 @@
 # Starts services (DB, Web, Image server)
 # Wait until site is running
 
+source /home/digipal/build/upgrade_project_content.sh
+
 /usr/bin/supervisord -c /home/digipal/build/supervisord.conf &
 for i in {1..200}
 do

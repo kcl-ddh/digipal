@@ -814,6 +814,10 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         _St A. Lib._
         _Stair Society Misc V_
         _Scone Lib._
+        Macquarrie, Bruces
+        _CDS_, i
+        _A-S Relations_
+        _Foedera_, i
         '''
 
         # convert to a list sorted by length of name (longest first)

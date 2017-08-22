@@ -79,7 +79,7 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "4" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal &&\
+RUN echo "5" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal &&\
     ln -s local_settings.template.py digipal/local_settings.py
 
 COPY * /home/digipal/build/
@@ -116,5 +116,7 @@ EXPOSE 80
 # START-UP
 
 ENV SHELL /bin/bash
+
+VOLUME archetype
 
 CMD ["/bin/bash", "/home/digipal/build/startup.sh"]

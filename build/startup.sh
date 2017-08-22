@@ -16,5 +16,6 @@ do
   fi
   sleep 1 || break
 done
+sleep infinity
 
 echo "WEBSITE IS *NOT* RUNNING"

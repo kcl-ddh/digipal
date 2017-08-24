@@ -87,13 +87,20 @@ COPY * /home/digipal/build/
 RUN echo "1" && pip install -r build/requirements.txt
 
 # Create tables, admin and site records, indexes
+
+USER postgres
+
+RUN source build/fix_permissions.sh
+
 RUN /etc/init.d/postgresql start &&\
         python manage.py syncdb --noinput &&\
         python manage.py migrate &&\
         python manage.py loaddata build/data_init.json build/data_char.json build/data_menu.json build/data_test.json &&\
         python manage.py dpsearch index &&\
-        python manage.py dpsearch index_facets &&\
+        python manage.py dpsearch index_facets
 #        python manage.py collectstatic --noinput
+
+USER root
 
 # give files to www-data
 #RUN chown -R www-data:www-data ../digipal && \

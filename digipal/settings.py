@@ -105,7 +105,7 @@ LOGOUT_URL = PROJECT_URL + 'account/logout/'
 # Full filesystem path to the project.
 PROJECT_ROOT = os.path.dirname(os.path.abspath(
     sys.modules[os.environ['DJANGO_SETTINGS_MODULE']].__file__))
-sys.path.append(os.path.join(PROJECT_ROOT, 'apps'))
+# sys.path.append(os.path.join(PROJECT_ROOT, 'apps'))
 
 # Name of the directory for the project.
 PROJECT_DIRNAME = PROJECT_ROOT.split(os.sep)[-1]

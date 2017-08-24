@@ -16,8 +16,12 @@ ADMINS = (
 IMAGE_SERVER_EXT = 'tif'
 
 IMAGE_SERVER_HOST = 'localhost'
-IMAGE_SERVER_ROOT = '/home/digipal/images/'
+IMAGE_SERVER_ROOT = os.path.join(PROJECT_ROOT, 'images')
 IMAGE_URLS_RELATIVE = True
+
+make_path(IMAGE_SERVER_ROOT)
+make_path(os.path.join(IMAGE_SERVER_ROOT, IMAGE_SERVER_UPLOAD_ROOT))
+make_path(os.path.join(IMAGE_SERVER_ROOT, IMAGE_SERVER_ORIGINALS_ROOT))
 
 IMAGE_SERVER_ZOOMIFY = 'http://%s%s?zoomify=%s/'
 IMAGE_SERVER_PATH = '/iip/iipsrv.fcgi'

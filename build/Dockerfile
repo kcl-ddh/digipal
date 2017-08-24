@@ -93,12 +93,12 @@ RUN /etc/init.d/postgresql start &&\
         python manage.py loaddata build/data_init.json build/data_char.json build/data_menu.json build/data_test.json &&\
         python manage.py dpsearch index &&\
         python manage.py dpsearch index_facets &&\
-        python manage.py collectstatic --noinput
+#        python manage.py collectstatic --noinput
 
 # give files to www-data
-RUN chown -R www-data:www-data ../digipal && \
-    chmod -R ug+rw ../digipal && \
-    chmod -R o-rw ../digipal
+#RUN chown -R www-data:www-data ../digipal && \
+#    chmod -R ug+rw ../digipal && \
+#    chmod -R o-rw ../digipal
 
 ########################
 # WEB SERVER
@@ -117,6 +117,6 @@ EXPOSE 80
 
 ENV SHELL /bin/bash
 
-VOLUME archetype
+VOLUME /home/digipal/digipal_project/
 
 CMD ["/bin/bash", "/home/digipal/build/startup.sh"]

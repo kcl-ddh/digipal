@@ -1,3 +1,5 @@
+# Reset the file permissions to keep www-data, postgres and docker host user
+# happy. 
 cd /home/digipal
 
 # reset permission to www-data
@@ -10,10 +12,6 @@ chmod o+rw -R digipal_project
 chmod o+x digipal_project
 
 # special permission requirements for psql on its database folder
-# special permission requirements for psql on its database folder
-if [ ! -e "digipal_project/database" ]; then
-    mkdir digipal_project/database
-fi
 chown postgres:postgres -R digipal_project/database
 chmod u+rw -R digipal_project/database
 chmod u+x digipal_project/database

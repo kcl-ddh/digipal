@@ -58,7 +58,7 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "6" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
+RUN echo "8" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
 
 COPY * build/
 
@@ -66,11 +66,7 @@ COPY * build/
 # DATABASE
 # see http://docs.docker.com/examples/postgresql_service/
 # move psql data directory inside digipal_project
-RUN build/fix_permissions.sh
-
-RUN export PG_ORIGINAL_DATA_DIR=`find /etc -iname postgresql.conf | xargs grep 'data_directory' | sed -E "s@data_directory.*=.*'(.*)'.*@\1@g"` &&\
-    mv $PG_ORIGINAL_DATA_DIR/* digipal_project/database/.
-RUN find /etc -iname postgresql.conf | xargs sed -i -E "s@data_directory.*@data_directory = '/home/digipal/digipal_project/database'@g"
+RUN bash build/repair_digipal_project.sh
 
 # Create the database, the user and allow local and remote access using md5 auth.
 # Fixes issue with Django accessing the DB

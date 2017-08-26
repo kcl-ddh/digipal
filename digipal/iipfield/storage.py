@@ -3,20 +3,19 @@ from mezzanine.conf import settings
 # Tell South about the iipimage field
 # See
 # http://south.readthedocs.org/en/latest/tutorial/part4.html#simple-inheritance
-#from south.modelsinspector import add_introspection_rules
-#add_introspection_rules([], ["^iipimage\.fields\.ImageField"])
+# from south.modelsinspector import add_introspection_rules
+# add_introspection_rules([], ["^iipimage\.fields\.ImageField"])
 
 # patch the iipimage to correct a bug (.image was hardcoded)
 from iipimage.storage import *
 
-import re
-
 # Patch 3+1:
 # We now support TIF as well as JP2 on the image server
 # If default format is set to 'tif' then we overwrite the conversion instruction to a pyramidal TIF
-#CONVERT_TO_JP2 = 'kdu_compress -i %s -o %s -rate -,4,2.34,1.36,0.797,0.466,0.272,0.159,0.0929,0.0543,0.0317,0.0185 Stiles="{1024,1024}" Cblk="{64,64}" Creversible=no Clevels=5 Corder=RPCL Cmodes=BYPASS'
+# CONVERT_TO_JP2 = 'kdu_compress -i %s -o %s -rate -,4,2.34,1.36,0.797,0.466,0.272,0.159,0.0929,0.0543,0.0317,0.0185 Stiles="{1024,1024}" Cblk="{64,64}" Creversible=no Clevels=5 Corder=RPCL Cmodes=BYPASS'
 if settings.IMAGE_SERVER_EXT == 'tif':
-    CONVERT_TO_JP2 = "convert %s -define tiff:tile-geometry=256x256 -compress jpeg ptif:%s"
+    from iipimage import storage
+    storage.CONVERT_TO_JP2 = 'convert %s -define tiff:tile-geometry=256x256 -compress jpeg ptif:%s'
 
 # PATCH 1:
 
@@ -97,6 +96,7 @@ def _call_image_conversion(command, input_path):
     Tidy up by removing the original image at `input_path`.
 
     """
+    print command, input_path
     try:
         # subprocess.check_call(shlex.split(command.encode('ascii')))
         os.system(command.encode('ascii'))

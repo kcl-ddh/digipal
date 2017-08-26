@@ -88,9 +88,9 @@ RUN echo "1" && pip install -r build/requirements.txt
 
 # Create tables, admin and site records, indexes
 
-USER postgres
+RUN build/fix_permissions.sh
 
-RUN source build/fix_permissions.sh
+USER postgres
 
 RUN /etc/init.d/postgresql start &&\
         python manage.py syncdb --noinput &&\

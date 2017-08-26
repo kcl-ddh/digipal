@@ -9,9 +9,9 @@ source build/fix_permissions.sh
 
 # Upgrade imported database to this version of Archetype
 service postgresql start
-python manage.py collectstatic --noinput
 python manage.py migrate --fake-initial
 python manage.py migrate
-/etc/init.d/postgresql stop
+python manage.py collectstatic --noinput
+service postgresql stop
 
 source build/fix_permissions.sh

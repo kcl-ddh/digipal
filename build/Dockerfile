@@ -50,20 +50,37 @@ COPY build-iipsrv.sh /tmp/build-iipsrv.sh
 RUN bash /tmp/build-iipsrv.sh
 
 ########################
+# DIGIPAL FRAMEWORK
+
+# Fetch Digipal
+RUN mkdir /home/digipal
+
+WORKDIR /home/digipal
+
+# (inc. the number in echo to force docker build to fetch new version of the code)
+RUN echo "5" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
+
+COPY * build/
+
+########################
 # DATABASE
 # see http://docs.docker.com/examples/postgresql_service/
+# move psql data directory inside digipal_project
+RUN build/fix_permissions.sh
 
-USER postgres
+RUN export PG_ORIGINAL_DATA_DIR=`find /etc -iname postgresql.conf | xargs grep 'data_directory' | sed -E "s@data_directory.*=.*'(.*)'.*@\1@g"` &&\
+    mv $PG_ORIGINAL_DATA_DIR/* digipal_project/database/.
+RUN find /etc -iname postgresql.conf | xargs sed -i -E "s@data_directory.*@data_directory = '/home/digipal/digipal_project/database'@g"
 
 # Create the database, the user and allow local and remote access using md5 auth.
 # Fixes issue with Django accessing the DB
 # Adjust PostgreSQL configuration so that remote connections to the database are possible.
+USER postgres
 RUN /etc/init.d/postgresql start &&\
         psql -c "CREATE USER app_digipal WITH PASSWORD 'dppsqlpass';" &&\
         createdb -E 'utf-8' -T template0 -O app_digipal digipal &&\
         sed -i 's/local\s*all\s*all\s*peer/local    all    all    md5/' $(psql -c "SHOW hba_file;" | grep conf | xargs) &&\
         echo "host all  all    0.0.0.0/0  md5" >> $(psql -c "SHOW hba_file;" | grep conf | xargs)
-
 USER root
 
 ########################
@@ -73,39 +90,19 @@ RUN pip install --upgrade pip
 ########################
 # DIGIPAL FRAMEWORK
 
-# Fetch Digipal
-RUN mkdir /home/digipal
-
-WORKDIR /home/digipal
-
-# (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "5" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal &&\
-    ln -s local_settings.template.py digipal/local_settings.py
-
-COPY * /home/digipal/build/
-
 RUN echo "1" && pip install -r build/requirements.txt
 
 # Create tables, admin and site records, indexes
 
 RUN build/fix_permissions.sh
 
-USER postgres
-
 RUN /etc/init.d/postgresql start &&\
-        python manage.py syncdb --noinput &&\
         python manage.py migrate &&\
         python manage.py loaddata build/data_init.json build/data_char.json build/data_menu.json build/data_test.json &&\
         python manage.py dpsearch index &&\
         python manage.py dpsearch index_facets
-#        python manage.py collectstatic --noinput
 
 USER root
-
-# give files to www-data
-#RUN chown -R www-data:www-data ../digipal && \
-#    chmod -R ug+rw ../digipal && \
-#    chmod -R o-rw ../digipal
 
 ########################
 # WEB SERVER

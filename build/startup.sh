@@ -2,6 +2,13 @@
 # Starts services (DB, Web, Image server)
 # Wait until site is running
 
+function on_stop_container {
+    echo "Stopping container..."
+    chmod o+rwx -R /home/digipal/digipal_project
+}
+
+trap "on_stop_container" SIGTERM
+
 source /home/digipal/build/upgrade_project_content.sh
 
 /usr/bin/supervisord -c /home/digipal/build/supervisord.conf &

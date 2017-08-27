@@ -68,17 +68,6 @@ COPY * build/
 # move psql data directory inside digipal_project
 RUN bash build/repair_digipal_project.sh
 
-# Create the database, the user and allow local and remote access using md5 auth.
-# Fixes issue with Django accessing the DB
-# Adjust PostgreSQL configuration so that remote connections to the database are possible.
-USER postgres
-RUN /etc/init.d/postgresql start &&\
-        psql -c "CREATE USER app_digipal WITH PASSWORD 'dppsqlpass';" &&\
-        createdb -E 'utf-8' -T template0 -O app_digipal digipal &&\
-        sed -i 's/local\s*all\s*all\s*peer/local    all    all    md5/' $(psql -c "SHOW hba_file;" | grep conf | xargs) &&\
-        echo "host all  all    0.0.0.0/0  md5" >> $(psql -c "SHOW hba_file;" | grep conf | xargs)
-USER root
-
 ########################
 # PYTHON + PIP
 RUN pip install --upgrade pip

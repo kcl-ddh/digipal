@@ -6,6 +6,8 @@ cd /home/digipal
 # Recreate content of digipal_project if empty (e.g. enabled volume in kitematic)
 if [ ! -e "digipal_project/__init__.py" ]; then
     git checkout digipal_project
+    
+    # TODO: restore archetype.zip under digipal_project
 fi
 
 # configure and copy default DB into digipal_project
@@ -27,7 +29,25 @@ PG_ORIGINAL_DATA_DIR=`grep 'data_directory' $PG_CONFIG_PATH_ORIGINAL | sed -E "s
 if [ ! -e "digipal_project/database/PG_VERSION" ]; then
     # database is missing, let's copy it from the original psql data dir
     rm -rf digipal_project/database/*
-    copy -r $PG_ORIGINAL_DATA_DIR/* digipal_project/database/.
+    cp -r $PG_ORIGINAL_DATA_DIR/* digipal_project/database/.
+    # Create the database, the user and allow local and remote access using md5 auth.
+    # Fixes issue with Django accessing the DB
+    # Adjust PostgreSQL configuration so that remote connections to the database are possible.
+    # RUN /etc/init.d/postgresql start &&\
+    
+    source build/fix_permissions.sh
+    
+    service postgresql start
+    su postgres -c <<EOF  
+        psql -c "CREATE USER app_digipal WITH PASSWORD 'dppsqlpass';" &&\
+        createdb -E 'utf-8' -T template0 -O app_digipal digipal &&\
+        sed -i 's/local\s*all\s*all\s*peer/local    all    all    md5/' $(psql -c "SHOW hba_file;" | grep conf | xargs) &&\
+        echo "host all  all    0.0.0.0/0  md5" >> $(psql -c "SHOW hba_file;" | grep conf | xargs)
+EOF
+
+    # TODO: restore archetype.sql or archetype.sql.zip in digipal_project
+    
+    service postgresql stop
 fi
 
 source build/fix_permissions.sh

@@ -5,7 +5,7 @@ cd /home/digipal
 # reset permission to www-data
 chown -R www-data:www-data ../digipal
 chmod -R ug+rw ../digipal
-chmod -R o-rw ../digipal
+chmod -R o-rwx ../digipal
 
 # grant permissions to project/shared folder to world
 chmod o+rw -R digipal_project

@@ -4,7 +4,9 @@
 
 function on_stop_container {
     echo "Stopping container..."
+    echo "Stopping container..." >> /home/digipal/digipal_project/logs/docker.log
     chmod o+rwx -R /home/digipal/digipal_project
+    kill -s TERM `cat /home/digipal/supervisord.pid`
 }
 
 trap "on_stop_container" SIGTERM
@@ -20,11 +22,13 @@ do
     echo "=================="
     echo "WEBSITE IS RUNNING"
     echo "=================="
-    sleep infinity
+    # sleep infinity is not trappable
+    while true; do sleep 1 || break; done
     break
   fi
   sleep 1 || break
 done
-sleep infinity
+# sleep infinity is not trappable
+while true; do sleep 1 || break; done
 
 echo "WEBSITE IS *NOT* RUNNING"

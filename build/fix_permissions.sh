@@ -8,11 +8,10 @@ chmod -R ug+rw ../digipal
 chmod -R o-rwx ../digipal
 
 # grant permissions to project/shared folder to world
-chmod o+rw -R digipal_project
-chmod o+x digipal_project
+chmod o+rwx -R digipal_project
 
 # special permission requirements for psql on its database folder
+chmod o+x .
 chown postgres:postgres -R digipal_project/database
-chmod u+rw -R digipal_project/database
-chmod u+x digipal_project/database
+chmod u+rwx -R digipal_project/database
 chmod go-rwx -R digipal_project/database

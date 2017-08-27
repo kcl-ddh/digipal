@@ -15,4 +15,4 @@ chmod o+x digipal_project
 chown postgres:postgres -R digipal_project/database
 chmod u+rw -R digipal_project/database
 chmod u+x digipal_project/database
-chmod go-rwx digipal_project/database
+chmod go-rwx -R digipal_project/database

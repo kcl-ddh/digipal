@@ -58,7 +58,7 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "8" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
+RUN echo "9" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
 
 COPY * build/
 

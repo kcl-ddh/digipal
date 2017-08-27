@@ -38,7 +38,8 @@ if [ ! -e "digipal_project/database/PG_VERSION" ]; then
     source build/fix_permissions.sh
     
     service postgresql start
-    su postgres -c <<EOF  
+    echo "Recreate database and user"
+    su postgres -c /bin/bash <<"EOF" 
         psql -c "CREATE USER app_digipal WITH PASSWORD 'dppsqlpass';" &&\
         createdb -E 'utf-8' -T template0 -O app_digipal digipal &&\
         sed -i 's/local\s*all\s*all\s*peer/local    all    all    md5/' $(psql -c "SHOW hba_file;" | grep conf | xargs) &&\

@@ -91,7 +91,7 @@ class ProjectZipper(object):
                 run_cmd('ln -fs %s %s' % (path, new_path))
                 path = new_path
 
-            run_cmd('tar --append -f %s -C %s %s' %
+            run_cmd('tar --append -hf %s -C %s %s' %
                     (self.get_tar_path(), os.path.dirname(path), os.path.basename(path)))
 
             if new_name:

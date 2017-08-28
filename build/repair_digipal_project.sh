@@ -46,8 +46,11 @@ if [ ! -e "digipal_project/database/PG_VERSION" ]; then
         echo "host all  all    0.0.0.0/0  md5" >> $(psql -c "SHOW hba_file;" | grep conf | xargs)
 EOF
 
-    # TODO: restore archetype.sql or archetype.sql.zip in digipal_project
-    
+    # TODO: restore archetype.sql or archetype.sql in digipal_project
+    if [ -e "digipal_project/archetype.sql"]; then
+        
+    fi
+
     service postgresql stop
 fi
 

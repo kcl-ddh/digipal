@@ -40,6 +40,10 @@ class ProjectZipper(object):
         sys.path.append('.')
         self.settings = import_module(settings_module)
 
+        # old style: digipal app is also the django project
+        self.is_digipal_app_the_project = os.path.exists(
+            os.path.join(self.settings.PROJECT_ROOT, 'repo.py'))
+
     def get_dst_path(self, part=None):
         ret = os.path.join(self.settings.STATIC_ROOT)
         if part:
@@ -108,16 +112,18 @@ class ProjectZipper(object):
         self.add_path_to_tar(os.path.join(
             self.settings.PROJECT_ROOT, 'customisations'))
         # templates
-        self.add_path_to_tar(os.path.join(
-            self.settings.PROJECT_ROOT, 'templates'))
+        if not self.is_digipal_app_the_project:
+            self.add_path_to_tar(os.path.join(
+                self.settings.PROJECT_ROOT, 'templates'))
         # media
         self.add_path_to_tar(self.settings.MEDIA_ROOT, 'media')
         # images
         self.add_path_to_tar(self.settings.IMAGE_SERVER_ROOT, 'images')
 
         # TODO: local_settings.py, settings.py and urls.py
-        self.add_path_to_tar(os.path.join(
-            self.settings.PROJECT_ROOT, 'settings.py'), 'settings.py.bk')
+        if not self.is_digipal_app_the_project:
+            self.add_path_to_tar(os.path.join(
+                self.settings.PROJECT_ROOT, 'settings.py'), 'settings.py.bk')
         self.add_path_to_tar(os.path.join(
             self.settings.PROJECT_ROOT, 'local_settings.py'), 'local_settings.py.bk')
         self.add_path_to_tar(os.path.join(
@@ -125,8 +131,6 @@ class ProjectZipper(object):
 
         # Now zip it all
         run_cmd('gzip -f9 %s' % self.get_tar_path())
-# run_cmd('tar -cf %s.tar -C %s archetype.sql' % (self.get_dst_path(),
-# self.get_dst_path()
 
         print 'Download your backup at: %s' % (os.path.join(self.settings.STATIC_URL, 'archetype.tar.gz'), )
 #                                                         ))

@@ -1,9 +1,8 @@
 # How to make a backup of your framework content:
 # got to the terminal (On Kitematic, click Exec when DigiPal/Archetype is running)
 # then type/paste these lines (press ENTER/RETURN key at then end of each):
-# apt-get install wget
-# wget -O zip_digipal_project.py http://bit.ly/2xERjk7
-# python zip_digipal_project.py
+# apt-get install -y wget
+# wget -qO zip_digipal_project.py http://bit.ly/2xERjk7 && python zip_digipal_project.py
 # exit
 #
 # TODO:
@@ -89,7 +88,7 @@ class ProjectZipper(object):
             new_path = None
             if new_name and os.path.basename(path) != new_name:
                 new_path = os.path.join('/tmp', new_name)
-                run_cmd('ln -fs %s %s' % (path, new_path))
+                run_cmd('cp -rf %s %s' % (path, new_path))
                 path = new_path
 
             # Note: -h wil make tar crash in some containers
@@ -97,7 +96,7 @@ class ProjectZipper(object):
                     (self.get_tar_path(), os.path.dirname(path), os.path.basename(path)))
 
             if new_path:
-                run_cmd('unlink %s' % new_path)
+                run_cmd('rm -rf %s' % new_path)
 
     def create_tar(self):
         run_cmd('tar -cf %s --files-from /dev/null' % self.get_tar_path())

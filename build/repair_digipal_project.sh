@@ -5,9 +5,16 @@ cd /home/digipal
 
 # Recreate content of digipal_project if empty (e.g. enabled volume in kitematic)
 if [ ! -e "digipal_project/__init__.py" ]; then
+    # repair from github
+    echo "RESTORE from github"
     git checkout digipal_project
-    
-    # TODO: restore archetype.zip under digipal_project
+
+    if [ -e digipal_project/archetype.tar.gz ]; then
+        # TODO: restore archetype.zip under digipal_project
+        echo "RESTORE BACKUP archetype.tar.gz"
+        rm -rf digipal_project/customisations digipal_project/templates digipal_project/static digipal_project/media digipal_project/images digipal_project/logs digipal_project/django_cache
+        tar -xzf digipal_project/archetype.tar.gz -C digipal_project
+    fi
 fi
 
 # configure and copy default DB into digipal_project
@@ -48,7 +55,8 @@ EOF
 
     # TODO: restore archetype.sql or archetype.sql in digipal_project
     if [ -e "digipal_project/archetype.sql"]; then
-        
+        echo "RESTORE DATABASE archetype.sql"
+        su postgres -c "psql --quiet digipal < digipal_project/archetype.sql" > /dev/null
     fi
 
     service postgresql stop

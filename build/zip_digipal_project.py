@@ -88,7 +88,7 @@ class ProjectZipper(object):
             new_path = None
             if new_name and os.path.basename(path) != new_name:
                 new_path = os.path.join('/tmp', new_name)
-                run_cmd('cp -rf %s %s' % (path, new_path))
+                run_cmd('cp -rfL %s %s' % (path, new_path))
                 path = new_path
 
             # Note: -h wil make tar crash in some containers

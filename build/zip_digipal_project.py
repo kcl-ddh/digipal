@@ -86,15 +86,17 @@ class ProjectZipper(object):
         path = path.rstrip('/')
 
         if os.path.exists(path):
-            if new_name:
+            new_path = None
+            if new_name and os.path.basename(path) != new_name:
                 new_path = os.path.join('/tmp', new_name)
                 run_cmd('ln -fs %s %s' % (path, new_path))
                 path = new_path
 
-            run_cmd('tar --append -hf %s -C %s %s' %
+            # Note: -h wil make tar crash in some containers
+            run_cmd('tar --append -f %s -C %s %s' %
                     (self.get_tar_path(), os.path.dirname(path), os.path.basename(path)))
 
-            if new_name:
+            if new_path:
                 run_cmd('unlink %s' % new_path)
 
     def create_tar(self):

@@ -1,3 +1,6 @@
+# apt-get install wget
+# wget -O zip_digipal_project.py http://bit.ly/2xERjk7
+# python zip_digipal_project.py
 import os
 import re
 import sys
@@ -24,6 +27,9 @@ from importlib import import_module
 sys.path.append('.')
 settings = import_module(settings_module)
 
+sql_filename = 'archetype.sql'
+sql_path = os.path.join(settings.STATIC_ROOT, sql_filename)
+
 DB = settings.DATABASES['default']
 
 host = DB['HOST']
@@ -36,6 +42,9 @@ username = DB['USER']
 dbname = DB['NAME']
 password = DB['PASSWORD']
 os.environ['PGPASSWORD'] = password
-command = 'pg_dump -U %s %s -c %s %s > archetype.sql' % (
-    username, dbname, host, port)
+command = 'pg_dump -U %s %s -c %s %s > "%s"' % (
+    username, dbname, host, port, sql_path)
 os.system(command)
+os.system('chmod ugo+rw %s' % sql_path)
+
+print os.path.join(settings.STATIC_URL, sql_filename)

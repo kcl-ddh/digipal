@@ -6,9 +6,13 @@ source build/repair_digipal_project.sh
 
 # Upgrade imported database to this version of Archetype
 service postgresql start
-python manage.py migrate --fake-initial
-python manage.py migrate
+python manage.py migrate --fake-initial --no-initial-data --noinput
+python manage.py migrate --no-initial-data --noinput
 python manage.py collectstatic --noinput >> digipal_project/logs/docker.log
+if [ ! -e "digipal_project/search" ]; then
+    su www-data -s /bin/bash -c "python manage.py dpsearch index_facets"
+fi
+
 service postgresql stop
 
 source build/fix_permissions.sh

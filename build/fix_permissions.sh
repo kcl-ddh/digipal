@@ -9,6 +9,9 @@ chmod -R o-rwx ../digipal
 
 # grant permissions to project/shared folder to world
 chmod o+rwx -R digipal_project
+# needed for postgres to run sql scripts
+chmod o+rwx -R build/schema_upgrades
+chmod o+x build
 
 # special permission requirements for psql on its database folder
 chmod o+x .

@@ -35,7 +35,8 @@ RUN apt-get update -y && apt-get install -y \
 ########################
 # LESSC & TYPESCRIPT
 
-RUN npm install -g less typescript; ln -s /usr/bin/nodejs /usr/bin/node
+# 2.1.5 b/c 2.4.2 displays compilation errors on Text Viewer 
+RUN npm install -g less typescript@2.1.5; ln -s /usr/bin/nodejs /usr/bin/node
 
 ########################
 # IMAGE PROCESSING

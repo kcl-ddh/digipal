@@ -9,10 +9,14 @@ service postgresql start
 python manage.py migrate --fake-initial --no-initial-data --noinput
 python manage.py migrate --no-initial-data --noinput
 python manage.py collectstatic --noinput >> digipal_project/logs/docker.log
-if [ ! -e "digipal_project/search" ]; then
+if [ ! -e "digipal_project/search/faceted" ]; then
+    source build/fix_permissions.sh
     su www-data -s /bin/bash -c "python manage.py dpsearch index_facets"
 fi
-
+if [ ! -e "digipal_project/search/unified" ]; then
+    source build/fix_permissions.sh
+    su www-data -s /bin/bash -c "python manage.py dpsearch index"
+fi
 service postgresql stop
 
 source build/fix_permissions.sh

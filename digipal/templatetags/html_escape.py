@@ -749,3 +749,24 @@ class CaptureasNode(template.Node):
         output = self.nodelist.render(context)
         context[self.varname] = output
         return ''
+
+
+@register.simple_tag
+def archetype_version_message(*args, **kwargs):
+    from digipal import __version__ as current_version
+
+    latest_version = dputils.get_latest_docker_version()
+
+    upgrade_message = ''
+    if [int(n) for n in re.findall('\d+', current_version)] < [int(n) for n in re.findall('\d+', latest_version)]:
+        upgrade_message = '''
+            <a target="_blank" href="https://hub.docker.com/r/gnoelddh/digipal/" style="background-color:green; color: white; font-weight: bold; font-size: 1.5em;">
+                Get the new Archetype (%s)
+            </a>
+        ''' % latest_version
+
+    ret = '''
+    <p>You are using Archetype %s
+        %s
+    </p>''' % (current_version, upgrade_message)
+    return ret

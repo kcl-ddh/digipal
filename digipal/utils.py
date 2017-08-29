@@ -1848,3 +1848,40 @@ def get_request_var(request, name, default=None):
     # avoid using REQUEST, deprecated in Django 1.9
     ret = request.GET.get(name, request.POST.get(name, default))
     return ret
+
+
+def get_latest_docker_version(cached_days=1):
+    '''
+    Return build.__version__ from github master version.
+    The value is cached for a day in the KeyVal table.
+    '''
+    from digipal.models import KeyVal
+    import math
+    import time
+    now = time.time()
+
+    from build import __version__ as ret
+
+    key = 'get_latest_docker_version'
+    info = KeyVal.getjs(key, {'last_checked': 0, 'version': ret})
+
+    delta = (now - info['last_checked']) / 60.0 / 60 / 24
+    if math.floor(delta) >= cached_days:
+        info['last_checked'] = now
+        content = ''
+        version_url = 'https://raw.githubusercontent.com/kcl-ddh/digipal/master/build/__init__.py'
+        import urllib2
+        try:
+            response = urllib2.urlopen(version_url)
+            content = response.read()
+        except Exception, e:
+            pass
+
+        if content:
+            version = re.findall(ur"__version__\s*=\s*'([^']+)'", content)
+            if version:
+                info['version'] = version[0]
+
+        KeyVal.setjs(key, info)
+
+    return info['version']

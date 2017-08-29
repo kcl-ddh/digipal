@@ -1,10 +1,10 @@
 # To build DigiPal Framework Image with Docker:
 #
-# docker build -t gnoelddh/digipal build
+# docker build -t gnoelddh/archetype build --no-cache
 #
 # Then run the container like this:
 #
-# docker run -ti -p 80:80 gnoelddh/digipal
+# docker run -ti -p 8080:80 gnoelddh/archetype
 #
 # Now you can browse to http://localhost/ from your host machine
 # Note that this version is for local use only, not for production.
@@ -59,7 +59,7 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "11" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
+RUN echo "12" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
 
 COPY * build/
 
@@ -80,7 +80,7 @@ RUN echo "1" && pip install -r build/requirements.txt
 
 # Create tables, admin and site records, indexes
 
-RUN build/fix_permissions.sh
+RUN /bin/bash build/fix_permissions.sh
 
 RUN /etc/init.d/postgresql start &&\
         python manage.py migrate &&\

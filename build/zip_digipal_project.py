@@ -66,7 +66,7 @@ class ProjectZipper(object):
         dbname = DB['NAME']
         password = DB['PASSWORD']
         os.environ['PGPASSWORD'] = password
-        command = 'pg_dump -U %s %s -c %s %s > "%s"' % (
+        command = 'pg_dump -U %s %s -c --if-exists --exclude-table-data=digipal_text_textcontentxmlcopy %s %s > "%s"' % (
             username, dbname, host, port, sql_path)
         os.system(command)
 

@@ -546,6 +546,8 @@ warn_logger.addFilter(filter_django_warnings())
 ##################
 
 DB_BACKUP_PATH = os.path.join(PROJECT_ROOT, 'backups')
+make_path(DB_BACKUP_PATH)
+
 # Front-end message for images which are inheriting unspecified media
 # permission from their repository
 # TODO: don't ahrdcode the url

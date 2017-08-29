@@ -6,12 +6,19 @@ cd /home/digipal
 # Recreate content of digipal_project if empty (e.g. enabled volume in kitematic)
 if [ ! -e "digipal_project/__init__.py" ]; then
     # repair from github
-    echo "RESTORE from github"
+    echo "RESTORE digipal_project from github"
     git checkout digipal_project
+
+    if [ ! -e "digipal_project/archetype.tar.gz" ]; then
+        if [ -e "build/archetype.tar.gz" ]; then
+            echo "RESTORE demo site"
+            cp build/archetype.tar.gz digipal_project/.
+        fi
+    fi
 
     if [ -e digipal_project/archetype.tar.gz ]; then
         # TODO: restore archetype.zip under digipal_project
-        echo "RESTORE BACKUP archetype.tar.gz"
+        echo "deploy digipal_project"
         rm -rf digipal_project/customisations digipal_project/templates digipal_project/static digipal_project/media digipal_project/images digipal_project/logs digipal_project/django_cache
         tar -xzf digipal_project/archetype.tar.gz -C digipal_project
     fi
@@ -45,7 +52,7 @@ if [ ! -e "digipal_project/database/PG_VERSION" ]; then
     source build/fix_permissions.sh
     
     service postgresql start
-    echo "Recreate database and user"
+    echo "RECREATE DATABASE"
     su postgres -c /bin/bash <<"EOF" 
         psql -c "CREATE USER app_digipal WITH PASSWORD 'dppsqlpass';" &&\
         createdb -E 'utf-8' -T template0 -O app_digipal digipal &&\
@@ -53,9 +60,8 @@ if [ ! -e "digipal_project/database/PG_VERSION" ]; then
         echo "host all  all    0.0.0.0/0  md5" >> $(psql -c "SHOW hba_file;" | grep conf | xargs)
 EOF
 
-    # TODO: restore archetype.sql or archetype.sql in digipal_project
-    if [ -e "digipal_project/archetype.sql"]; then
-        echo "RESTORE DATABASE archetype.sql"
+    if [ -e "digipal_project/archetype.sql" ]; then
+        echo "RESTORE DATABASE"
         su postgres -c "psql --quiet digipal < digipal_project/archetype.sql" > /dev/null
     fi
 

@@ -33,6 +33,17 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     '''
     data = None
 
+    if 1:
+        # /digipal/api/meta/
+        # for debuggin purpose only
+        from digipal.api.generic import API
+        if content_type == 'meta' and settings.DEBUG:
+            data = {k: (v if type(v) in
+                        [str, unicode, int, float, bool, tuple]
+                        else str(type(v)) + repr(v))
+                    for k, v in request.META.iteritems()}
+            data = json.dumps(data)
+
     # Support for JSONP responses
     jsonpcallback = request.GET.get('@callback', None)
     if jsonpcallback is not None:
@@ -46,7 +57,6 @@ def get_content_type_data(request, content_type, ids=None, only_features=False):
     if not data:
         if ids:
             ids = str(ids)
-        from digipal.api.generic import API
         data = API.process_request(request, content_type, ids)
 
     # convert from JSON to another format

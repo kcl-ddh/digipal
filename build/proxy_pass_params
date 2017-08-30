@@ -1,0 +1,17 @@
+proxy_set_header  QUERY_STRING       $query_string;
+proxy_set_header  REQUEST_METHOD     $request_method;
+proxy_set_header  CONTENT_TYPE       $content_type;
+proxy_set_header  CONTENT_LENGTH     $content_length;
+
+proxy_set_header  REQUEST_URI        $request_uri;
+proxy_set_header  PATH_INFO          $document_uri;
+proxy_set_header  DOCUMENT_ROOT      $document_root;
+proxy_set_header  SERVER_PROTOCOL    $server_protocol;
+proxy_set_header  REQUEST_SCHEME     $scheme;
+# TODO
+#proxy_set_header  HTTPS              $https if_not_empty;
+
+proxy_set_header  REMOTE_ADDR        $remote_addr;
+proxy_set_header  REMOTE_PORT        $remote_port;
+proxy_set_header  SERVER_PORT        $server_port;
+proxy_set_header  SERVER_NAME        $server_name;

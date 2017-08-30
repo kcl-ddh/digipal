@@ -12,6 +12,14 @@ ADMINS = (
 
 IMAGE_URLS_RELATIVE = True
 
+# NOT SECURE
+# We have to do this for the case where we are running in a VM on Windows
+# Windows > VBox > Docker container
+# The VM IP is dynamically assigned so we can't put anything specific in here.
+# We don't have that issue on Linux where Host and Container share the same IP
+# and localhost can be used.
+ALLOWED_HOSTS = ['*']
+
 # Remove this line to work with JP2 format
 # Note that it requires a kakadu license for commercial applications
 IMAGE_SERVER_EXT = 'tif'

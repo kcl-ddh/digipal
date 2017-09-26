@@ -1,0 +1,6 @@
+tmp
+logs
+var/tmp
+**/*.tar
+**/.gz
+

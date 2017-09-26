@@ -11,14 +11,13 @@ from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.db.models import Q
 
-import logging
 from digipal.models import Description
-dplog = logging.getLogger( 'digipal_debugger')
+
 
 @staff_member_required
 @csrf_exempt
 def import_view(request, app_label, model_name):
-    input = request.REQUEST.get('input_text') or ''
+    input = request.POST.get('input_text') or ''
 
     import_type = None
     import_types = [
@@ -26,7 +25,7 @@ def import_view(request, app_label, model_name):
         {'label': 'Test', 'key': 'test'},
     ]
     for aimport_type in import_types:
-        if request.REQUEST.get('import_type', '') == aimport_type['key']:
+        if request.POST.get('import_type', '') == aimport_type['key']:
             aimport_type['selected'] = 1
             import_type = aimport_type
 
@@ -39,16 +38,19 @@ def import_view(request, app_label, model_name):
         source_slug = 'moa'
         source = Source.objects.filter(label_slug=source_slug).first()
         if not source:
-            import_log.append('ERROR: could not find source "%s"' % source_slug)
+            import_log.append(
+                'ERROR: could not find source "%s"' % source_slug)
         else:
             def write_data(data):
                 if data:
-                    #print data['ips'].count(), data['lines']
+                    # print data['ips'].count(), data['lines']
                     for ip in data['ips']:
                         written = False
                         for hi in ip.historical_items.all():
-                            description, created = Description.objects.get_or_create(historical_item=hi, source=source)
-                            import_log.append(u'%s description for IP "%s" "%s" (#%s)' % (('created' if created  else 'updated'), ip, hi.catalogue_number, ip.id))
+                            description, created = Description.objects.get_or_create(
+                                historical_item=hi, source=source)
+                            import_log.append(u'%s description for IP "%s" "%s" (#%s)' % (
+                                ('created' if created else 'updated'), ip, hi.catalogue_number, ip.id))
 
                             description.summary = u'\n'.join(data['lines'])
 
@@ -56,7 +58,8 @@ def import_view(request, app_label, model_name):
                             written = True
 
                         if not written:
-                            import_log.append(u'WARNING: HI missing for "%s" (#%s)' % (ip, ip.id))
+                            import_log.append(
+                                u'WARNING: HI missing for "%s" (#%s)' % (ip, ip.id))
 
                 return None
 
@@ -64,34 +67,39 @@ def import_view(request, app_label, model_name):
             line_number = 0
             for line in re.split(u'\n', input):
                 line_number += 1
-                #print line
+                # print line
                 code = line.strip()
                 if code:
-                    ips = ItemPart.objects.filter(current_item__shelfmark__iexact=code)
+                    ips = ItemPart.objects.filter(
+                        current_item__shelfmark__iexact=code)
                     if not ips.count():
-                        ips = ItemPart.objects.filter(historical_items__catalogue_numbers__number__iexact='Document %s' % code)
+                        ips = ItemPart.objects.filter(
+                            historical_items__catalogue_numbers__number__iexact='Document %s' % code)
                     if ips.count():
                         write_data(data)
-                        #print ' => %s' % ips.count()
+                        # print ' => %s' % ips.count()
                         data = {'ips': ips, 'lines': []}
                     else:
                         if data:
                             data['lines'].append(code)
                         else:
-                            import_log.append('WARNING: unassigned line: %s' % code)
+                            import_log.append(
+                                'WARNING: unassigned line: %s' % code)
                 else:
                     data = write_data(data)
 
             data = write_data(data)
 
-
-    context = {'input_text': input, 'import_log': '\n'.join(import_log), 'import_types': import_types}
+    context = {'input_text': input, 'import_log': '\n'.join(
+        import_log), 'import_types': import_types}
     return render(request, 'admin/digipal/import.html', context)
+
 
 @staff_member_required
 def instances_view(request, app_label):
     context = {}
     return render(request, 'admin/digipal/instances.html', context)
+
 
 @staff_member_required
 def context_view(request, app_label, model_name, object_id):
@@ -100,13 +108,15 @@ def context_view(request, app_label, model_name, object_id):
     context = {}
 
     # get the object
-    model_class = ContentType.objects.get(app_label=app_label, model=model_name).model_class()
+    model_class = ContentType.objects.get(
+        app_label=app_label, model=model_name).model_class()
     obj = model_class.objects.get(id=object_id)
 
     #context['obj_tree'] = get_obj_info(obj)
     context['tree_html'] = mark_safe(get_html_from_obj_tree(get_obj_info(obj)))
 
     return render(request, 'admin/digipal/context.html', context)
+
 
 def get_html_from_obj_tree(element):
     ret = ur''
@@ -120,24 +130,28 @@ def get_html_from_obj_tree(element):
 
     return ret
 
+
 def get_obj_info(obj, exclude_list=None):
-    if exclude_list is None: exclude_list = {}
+    if exclude_list is None:
+        exclude_list = {}
 
     ret = {
-           'obj': obj,
-           'type': obj._meta.object_name,
-           'link': ur'/admin/%s/%s/%s/' % (obj._meta.app_label, obj._meta.module_name, obj.id),
-           'children': []
-           }
+        'obj': obj,
+        'type': obj._meta.object_name,
+        'link': ur'/admin/%s/%s/%s/' % (obj._meta.app_label, obj._meta.model_name, obj.id),
+        'children': []
+    }
 
     info = ''
 
-    if obj._meta.module_name == 'historicalitem':
+    if obj._meta.model_name == 'historicalitem':
         info_parts = []
-        info = '%s, %s' % (obj.historical_item_format, obj.historical_item_type)
+        info = '%s, %s' % (obj.historical_item_format,
+                           obj.historical_item_type)
         if info:
             info_parts = [info]
-        info_parts.extend(['%s' % cat_num for cat_num in obj.catalogue_numbers.all()])
+        info_parts.extend(
+            ['%s' % cat_num for cat_num in obj.catalogue_numbers.all()])
         info = ', '.join(info_parts)
 
     if info:
@@ -145,7 +159,8 @@ def get_obj_info(obj, exclude_list=None):
 
     exclude_list[get_obj_key(obj)] = 1
 
-    ret['html'] = ur'<a href="%s">%s #%s: %s %s</a>[<a href="%s">edit</a>]' % (ret['link']+ur'context/', ret['type'], obj.id, ret['obj'], info, ret['link'])
+    ret['html'] = ur'<a href="%s">%s #%s: %s %s</a>[<a href="%s">edit</a>]' % (
+        ret['link'] + ur'context/', ret['type'], obj.id, ret['obj'], info, ret['link'])
 
     for child in get_obj_children(obj):
         if get_obj_key(child) not in exclude_list:
@@ -157,21 +172,23 @@ def get_obj_info(obj, exclude_list=None):
 
     return ret
 
+
 def get_obj_key(obj):
     return ur'%s-%s' % (obj._meta.object_name, obj.id)
+
 
 def get_obj_children(obj):
     ret = []
 
-    if obj._meta.module_name == 'itempart':
+    if obj._meta.model_name == 'itempart':
         ret.extend((obj.current_item,))
         ret.extend(list(obj.historical_items.all().order_by('id')))
         ret.extend(list(obj.images.all().order_by('id')))
 
-    if obj._meta.module_name == 'currentitem':
+    if obj._meta.model_name == 'currentitem':
         ret.extend(list(obj.itempart_set.all().order_by('id')))
 
-    if obj._meta.module_name == 'historicalitem':
+    if obj._meta.model_name == 'historicalitem':
         ret.extend(list(obj.item_parts.all().order_by('id')))
 
     return ret

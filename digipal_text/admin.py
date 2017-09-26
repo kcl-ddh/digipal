@@ -3,16 +3,11 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.db.models import Count
 from django import forms
-from django.db import models
 from django.core.urlresolvers import reverse
 from models import TextContent, TextContentXML, TextContentXMLStatus, TextContentType
 import reversion
 from mezzanine.core.admin import StackedDynamicInlineAdmin
 import re
-
-import logging
-from operator import isCallable
-dplog = logging.getLogger('digipal_debugger')
 
 #-----------------------------------------------------------
 # TODO: move this to digipal lib
@@ -36,11 +31,11 @@ class MessageWidget(forms.Widget):
 class MessageField(forms.Field):
     widget = MessageWidget
 
-    def __init__(self, message='', *args, **kwargs):
+    def __init__(self, message='', required=False, *args, **kwargs):
         self.message = message
         self.parent_form = None
-        ret = super(MessageField, self).__init__(*args, **kwargs)
-        self.required = False
+        ret = super(MessageField, self).__init__(
+            *args, required=required, **kwargs)
         return ret
 
     def set_form(self, form):
@@ -48,12 +43,12 @@ class MessageField(forms.Field):
 
     def prepare_value(self, value):
         ret = self.message
-        if isCallable(ret):
+        if callable(ret):
             obj = getattr(self.parent_form, 'instance', None)
             if obj:
                 ret = ret(obj)
             else:
-                ret = ''
+                ret = 'WARNING: no object'
         return ret
 
 
@@ -64,28 +59,26 @@ class ModelFormWithMessageFields(forms.ModelForm):
             if isinstance(f, MessageField):
                 f.set_form(self)
 
-#-----------------------------------------------------------
+# -----------------------------------------------------------
 
 
-def text_content_form_action_edit_message(obj):
-    ret = ''
-    if obj:
-        ip = None
-        try:
-            ip = getattr(obj, 'item_part', None)
-        except models.ObjectDoesNotExist, e:
-            pass
+def text_content_form_action_edit_message(text_content):
+    ret = u''
 
-        if ip:
-            ret = '<a href="/admin/digipal/itempart/%s/edit/">Edit the Text</a>' % obj.item_part.id
+    if text_content and text_content.pk and text_content.item_part:
+        ret = u'<a href="%s">Edit the Text</a>' % text_content.get_absolute_url()
+
     return ret
 
 
 class TextContentForm(ModelFormWithMessageFields):
     action_edit = MessageField(
-        message=text_content_form_action_edit_message, label='Action')
+        message=text_content_form_action_edit_message,
+        label='Action'
+    )
 
     class Meta:
+        fields = '__all__'
         model = TextContent
 
 
@@ -185,8 +178,8 @@ class TextContentXMLAdmin(reversion.VersionAdmin):
                    'text_content__type', FilterCTXEmpty, FilterCTXDuplicate]
     list_editable = ['status']
 
-    def queryset(self, request):
-        qs = super(TextContentXMLAdmin, self).queryset(request)
+    def get_queryset(self, request):
+        qs = super(TextContentXMLAdmin, self).get_queryset(request)
         qs = qs.extra(select={'content_length': 'length(content)'})
         return qs
 

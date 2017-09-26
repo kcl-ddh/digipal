@@ -3,7 +3,7 @@ from search_content_type import SearchContentType, get_form_field_from_queryset
 from digipal.models import *
 from django.forms.widgets import Textarea, TextInput, HiddenInput, Select, SelectMultiple
 from django.db.models import Q
-from django.conf import settings
+from mezzanine.conf import settings
 
 from digipal.utils import sorted_natural
 class FilterManuscripts(forms.Form):

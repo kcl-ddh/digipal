@@ -141,7 +141,7 @@
                     me.componentIsReady('tinymce');
                 },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | psperson | pslocation | psex pssupplied psdel | code ',
+                toolbar: window.text_editor_options.toolbars.default,
                 paste_word_valid_elements: 'i,em,p,span',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted
@@ -152,7 +152,7 @@
                 menubar : false,
                 statusbar: false,
                 height: '15em',
-                content_css : '/static/digipal_text/viewer/tinymce.css?v=10,/static/digipal_text/viewer/tinymce_custom.css?v=10'
+                content_css : '/static/digipal_text/viewer/tinymce.css?v=12,/static/digipal_text/viewer/tinymce_custom.css?v=12'
             };
 
             if (this.contentType == 'codicology') {

@@ -5,23 +5,23 @@
 # pip install -r requirements
 #
 
-BeautifulSoup==3.2.1
+beautifulsoup4==4.6.0
 git+git://github.com/geoffroy-noel-ddh/Digital-Lightbox
-Django==1.6.5
-Mezzanine==3.1.5
+Django==1.8.18
+Mezzanine==4.2.3
 regex
 # if it fails, try 'sudo apt-get install python-dev', then run again
 Pillow==2.6.2
-South==1.0.1
 Whoosh==2.7.3
 disqus-python==0.4.2
-django-appconf==0.6
+django-appconf==1.0.2
 django-compress==1.0.1
 django-compressor==1.5
 git+git://github.com/geoffroy-noel-ddh/django-iipimage.git
-git+git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev
-django-reversion==1.8.4
-django-tinymce==1.5.3
+#git+git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev
+git+git://github.com/geoffroy-noel-ddh/django-pagination
+django-reversion==1.8.7
+django-tinymce==2.6.0
 feedparser==5.1.3
 importlib==1.0.3
 # if it fails, try 'sudo apt-get install libxml2-dev libxslt1-dev python-dev', then run again
@@ -31,12 +31,12 @@ psycopg2==2.5.4
 
 # We force this version. To replace buggy template in the one installed
 # with Mezzanine 3.1.5
-grappelli-safe==0.3.13
-bleach==1.4
-filebrowser-safe==0.3.6
+grappelli-safe==0.4.6
+bleach==2.0.0
+filebrowser_safe==0.4.6
 oauthlib==0.7.1
-pytz==2014.7
-six==1.8.0
-requests==2.4.3
-requests-oauthlib==0.4.2
-html5lib==0.999
+pytz==2015.7
+six==1.10.0
+requests==2.11.1
+requests-oauthlib==0.6.0
+html5lib==0.999999999

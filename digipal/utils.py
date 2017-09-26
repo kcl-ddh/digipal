@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.utils.html import escape
-import re, os
+import re
+import os
 import lxml.etree as ET
 from lxml.etree import XMLSyntaxError
 from django.shortcuts import render, render_to_response
-from django.utils.datastructures import SortedDict
 import base64
+from django.db.models.query import EmptyResultSet
 psutil = None
 try:
     import psutil
@@ -17,8 +18,10 @@ REGEXP_ROMAN_NUMBER = re.compile(ur'(?iu)\b[ivxlcdm]+\b')
 _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
 _nsre = re.compile(ur'(?iu)([0-9]+)')
 
+
 def is_roman_number(astring):
     return REGEXP_ROMAN_NUMBER.match(astring) is not None
+
 
 def sorted_natural(l, roman_numbers=False, is_locus=False):
     '''Sorts l and returns it. Natural sorting is applied.'''
@@ -29,6 +32,7 @@ def sorted_natural(l, roman_numbers=False, is_locus=False):
             ret.remove(v)
             ret.append(v)
     return ret
+
 
 def natural_sort_key(s, roman_numbers=False, is_locus=False):
     '''
@@ -44,7 +48,8 @@ def natural_sort_key(s, roman_numbers=False, is_locus=False):
 
         If is_locus is True, 'face' will appear before 'dorse', etc.
     '''
-    if s is None: s = ''
+    if s is None:
+        s = ''
 
     if is_locus:
         s = re.sub(ur'(?i)\b(cover)\b', '50', s)
@@ -55,7 +60,8 @@ def natural_sort_key(s, roman_numbers=False, is_locus=False):
     if roman_numbers:
         while True:
             m = _nsre_romans.search(s)
-            if m is None: break
+            if m is None:
+                break
             # convert the roman number into base 10 number
             number = get_int_from_roman_number(m.group(1))
             if number:
@@ -63,6 +69,7 @@ def natural_sort_key(s, roman_numbers=False, is_locus=False):
                 s = s[:m.start(1)] + str(number) + s[m.end(1):]
 
     return [int(text) if text.isdigit() else text.lower() for text in re.split(_nsre, s)]
+
 
 def plural(value, count=2):
     '''
@@ -95,9 +102,11 @@ def plural(value, count=2):
         ret = ' '.join([plural(word, count) for word in words])
     else:
         ret = value
-        if ret in ['of']: return ret
+        if ret in ['of']:
+            return ret
         if count != 1:
-            if ret in ['a', 'an']: return ''
+            if ret in ['a', 'an']:
+                return ''
             if ret[-1:] == 'y':
                 ret = ret[:-1] + 'ie'
             if ret[-2:] == 'ss':
@@ -105,6 +114,7 @@ def plural(value, count=2):
             if not ret[-1:] == 's':
                 ret = ret + 's'
     return ret
+
 
 def update_query_string(url, updates, url_wins=False):
     '''
@@ -123,7 +133,8 @@ def update_query_string(url, updates, url_wins=False):
     show = url == '?page=2&amp;terms=%C3%86thelstan&amp;repository=&amp;ordering=&amp;years=&amp;place=&amp;basic_search_type=hands&amp;date=&amp;scribes=&amp;result_type=' and updates == 'result_type=manuscripts'
 
     ret = url.strip()
-    if ret and ret[0] == '#': return ret
+    if ret and ret[0] == '#':
+        return ret
 
     from urlparse import urlparse, urlunparse, parse_qs
 
@@ -171,19 +182,24 @@ def update_query_string(url, updates, url_wins=False):
         ret = '?'
 
     # We mark this safe so django template renderer won't try to escape it a second time
-    # This would generate something like this in the html output: '?k1=v1&amp;amp;k2=v'
+    # This would generate something like this in the html output:
+    # '?k1=v1&amp;amp;k2=v'
     from django.utils.safestring import mark_safe
     ret = mark_safe(ret)
 
     return ret
 
-def get_str_from_call_stack():
+
+def get_str_from_call_stack(separator='; '):
     ret = ''
-    import traceback, re
+    import traceback
+    import re
     tb = traceback.extract_stack()
     #ret = '; '.join(['%s (%s:%s)' % (call[2], re.sub(ur'^.*[\\/]([^/\\]+)\.py$', ur'\1', call[0]), call[1]) for call in tb])
-    ret = '; '.join(['%s (%s:%s)' % (call[2], call[0], call[1]) for call in tb])
+    ret = separator.join(['%s (%s:%s)' % (call[2], call[0], call[1])
+                          for call in tb])
     return ret
+
 
 def urlencode(dict, doseq=0):
     ''' This is a unicode-compatible wrapper around urllib.urlencode()
@@ -194,7 +210,7 @@ def urlencode(dict, doseq=0):
     '''
     import urllib
     d = {}
-    for k,v in dict.iteritems():
+    for k, v in dict.iteritems():
         d[k] = []
         for v2 in dict[k]:
             if isinstance(v2, unicode):
@@ -202,6 +218,7 @@ def urlencode(dict, doseq=0):
             d[k].append(v2)
     ret = urllib.urlencode(d, doseq)
     return ret
+
 
 def get_tokens_from_phrase(phrase, lowercase=False):
     ''' Returns a list of tokens from a query phrase.
@@ -236,9 +253,11 @@ def get_tokens_from_phrase(phrase, lowercase=False):
 
     # add the remaining tokens
     if phrase:
-        ret.extend([t for t in re.split(ur'\s+', phrase.lower().strip()) if t.lower() not in ['and', 'or', 'not']])
+        ret.extend([t for t in re.split(ur'\s+', phrase.lower().strip())
+                    if t.lower() not in ['and', 'or', 'not']])
 
     return ret
+
 
 def get_regexp_from_terms(terms, as_list=False):
     ''' input: list of query terms, e.g. ['ab', cd ef', 'gh']
@@ -252,13 +271,14 @@ def get_regexp_from_terms(terms, as_list=False):
         for t2 in terms:
             for t in variations(t2):
                 t = re.escape(t)
-                
-                if not t: continue
-    
+
+                if not t:
+                    continue
+
                 if 1:
                     if t[-1] in ['i', 'y']:
                         t = t[:-1] + '(y|i|ie|ies)'
-    
+
                 if 0:
                     if t[-1] == u's':
                         t += u'?'
@@ -268,11 +288,11 @@ def get_regexp_from_terms(terms, as_list=False):
         #                 t += ur'?'
         #             t = ur'\b%ss?\b' % t
                 t = ur'\b%s\b' % t
-    
+
                 # convert all \* into \W*
                 # * is for searches like 'digi*'
                 t = t.replace(ur'\*', ur'\w*')
-    
+
                 ret.append(t)
 
     if not as_list:
@@ -280,11 +300,14 @@ def get_regexp_from_terms(terms, as_list=False):
 
     return ret
 
+
 def find_first(pattern, text, default=''):
     ret = default
     matches = re.findall(pattern, text)
-    if matches: ret = matches[0]
+    if matches:
+        ret = matches[0]
     return ret
+
 
 def get_int_from_roman_number(input):
     """
@@ -331,7 +354,7 @@ def get_int_from_roman_number(input):
         value = ints[nums.index(c)]
         # If the next place holds a larger number, this value is negative.
         try:
-            nextvalue = ints[nums.index(input[i +1])]
+            nextvalue = ints[nums.index(input[i + 1])]
             if nextvalue > value:
                 value *= -1
         except IndexError:
@@ -339,8 +362,10 @@ def get_int_from_roman_number(input):
             pass
         places.append(value)
     sum = 0
-    for n in places: sum += n
+    for n in places:
+        sum += n
     return sum
+
 
 def get_plain_text_from_html(html):
     '''Returns the unencoded text from a HTML fragment. No tags, no entities, just plain utf-8 text.
@@ -360,17 +385,23 @@ def get_plain_text_from_html(html):
         ret = u''
     return ret
 
+
 def set_left_joins_in_queryset(qs):
-    qs.query.promote_joins(qs.query.alias_map.keys(), True)
-    #pass
-#     for alias in qs.query.alias_map:
-#         qs.query.promote_alias(alias, True)
+    #qs.query.promote_joins(qs.query.alias_map.keys(), True)
+    qs.query.promote_joins(qs.query.alias_map.keys())
+
 
 def get_str_from_queryset(queryset):
-    ret = unicode(queryset.query)
-    ret = re.sub(ur'(INNER|FROM|AND|OR|WHERE|GROUP|ORDER|LEFT|RIGHT|HAVING)', ur'\n\1', ret)
+    # https://code.djangoproject.com/ticket/22973
+    try:
+        ret = unicode(queryset.query)
+    except EmptyResultSet:
+        ret = ur'SQL QUERY for EmptyResultSet'
+    ret = re.sub(
+        ur'(INNER|FROM|AND|OR|WHERE|GROUP|ORDER|LEFT|RIGHT|HAVING)', ur'\n\1', ret)
     ret = re.sub(ur'(INNER|AND|OR|LEFT|RIGHT)', ur'\t\1', ret)
     return ret.encode('ascii', 'ignore')
+
 
 def remove_accents(input_str):
     '''Returns the input string without accented character.
@@ -381,8 +412,10 @@ def remove_accents(input_str):
     import unicodedata
     # use 'NFD' instead of 'NFKD'
     # Otherwise the ellipsis \u2026 is tranformed into '...' and the output string will have a different length
-    #return remove_combining_marks(unicodedata.normalize('NFKD', unicode(input_str)))
+    # return remove_combining_marks(unicodedata.normalize('NFKD',
+    # unicode(input_str)))
     return remove_combining_marks(unicodedata.normalize('NFD', unicode(input_str)))
+
 
 def remove_combining_marks(input_str):
     '''Returns the input unicode string without the combining marks found as 'individual character'
@@ -392,6 +425,7 @@ def remove_combining_marks(input_str):
     import unicodedata
     return u"".join([c for c in unicode(input_str) if not unicodedata.combining(c)])
 
+
 def write_file(file_path, content, encoding='utf8'):
     f = open(file_path, 'wb')
     if encoding:
@@ -399,11 +433,13 @@ def write_file(file_path, content, encoding='utf8'):
     f.write(content)
     f.close()
 
+
 def get_bool_from_string(string):
     ret = False
     if str(string) in ['1', 'True', 'true', 'on', 'On']:
         ret = True
     return ret
+
 
 def get_one2one_object(model, field_name):
     '''Returns model.field_name where field_name is a one2one relation.
@@ -426,6 +462,7 @@ def get_one2one_object(model, field_name):
 #
 #-------------------------------------
 
+
 def get_string_from_xml(xmltree, remove_root=False):
     '''Serialise the given XML node into a string.
         BEWARE: the method returns the TAIL, that is,
@@ -440,6 +477,7 @@ def get_string_from_xml(xmltree, remove_root=False):
     if remove_root:
         ret = ret.replace('<root>', '').replace('</root>', '')
     return ret
+
 
 def get_unicode_from_xml(xmltree, encoding='utf-8', text_only=False, remove_root=False):
     # if text_only = True => strip all XML tags
@@ -459,6 +497,7 @@ def get_unicode_from_xml(xmltree, encoding='utf-8', text_only=False, remove_root
             ret = ret.replace('<root>', '').replace('</root>', '')
 
         return ret
+
 
 def get_xml_from_unicode(document, ishtml=False, add_root=False):
     # document = a unicode object containing the document
@@ -484,6 +523,7 @@ def get_xml_from_unicode(document, ishtml=False, add_root=False):
 
     return ret
 
+
 def get_xml_element_text(element):
     # returns all the text within element and its descendants
     # WITHOUT the TAIL.
@@ -497,6 +537,7 @@ def get_xml_element_text(element):
     # get_xml_element_text(element) => 't1t2t3'
 
     return ''.join(element.itertext())
+
 
 def get_xslt_transform(source, template, error=None, remove_empty_xmlns=False):
     dom = get_xml_from_unicode(source)
@@ -513,6 +554,7 @@ def get_xslt_transform(source, template, error=None, remove_empty_xmlns=False):
 
     return ret
 
+
 def is_xml_well_formed(xml_string):
     try:
         get_xml_from_unicode(xml_string, add_root=True)
@@ -521,6 +563,7 @@ def is_xml_well_formed(xml_string):
         return False
     except ET.ParseError, e:
         return False
+
 
 def strip_xml_tags(doc, xpath):
     '''Keep only the XML content of all the elements matching xpath'''
@@ -531,6 +574,7 @@ def strip_xml_tags(doc, xpath):
 
     if node is not None:
         ET.strip_tags(doc, temp_name)
+
 
 def remove_xml_elements(xml, xpath):
     ret = 0
@@ -546,6 +590,7 @@ def remove_xml_elements(xml, xpath):
 #
 #-------------------------------------
 
+
 def get_int(obj, default=0):
     '''Returns an int from an obj (e.g. string)
         If the conversion fails, returns default.
@@ -556,16 +601,20 @@ def get_int(obj, default=0):
         ret = default
     return ret
 
+
 def get_int_from_request_var(request, var_name, default=0):
     obj = None
     if request:
-        obj = request.REQUEST.get(var_name, None)
+        obj = request.GET.get(var_name, request.POST.get(var_name, None))
     return get_int(obj, default)
+
 
 MAX_DATE_RANGE = [-5000, 5000]
 
+
 def is_max_date_range(rng):
     return rng and rng[0] == MAX_DATE_RANGE[0] and rng[1] == MAX_DATE_RANGE[1]
+
 
 def get_midpoint_from_date_range(astr=None, arange=None):
     '''
@@ -603,11 +652,13 @@ def get_midpoint_from_date_range(astr=None, arange=None):
 
     return ret
 
+
 def get_range_from_date(str):
     ret = get_range_from_date_simple(str)
 
     if str is not None and is_max_date_range(ret):
         # circa 1221 x circa 1247
+        str = str.replace(u'×', u'x')
         if 'x' in str:
             parts = str.split('x')
             if len(parts) == 2:
@@ -617,6 +668,7 @@ def get_range_from_date(str):
                     ret = [d0[0], d1[1]]
 
     return ret
+
 
 def get_range_from_date_simple(str):
     '''
@@ -629,11 +681,12 @@ def get_range_from_date_simple(str):
     if not str:
         return ret
 
-    #print str
+    # print str
 
     # remove day
     # eg. Saturday 5 August 1245 => 5 August 1245
-    str = re.sub(ur'(?iu)(monday|tuesday|wednesday|thursday|friday|saturday|sunday)', u'', str)
+    str = re.sub(
+        ur'(?iu)(monday|tuesday|wednesday|thursday|friday|saturday|sunday)', u'', str)
 
     # remove day month
     # eg. 11 November 1170 X 24 March 1201 => 1170 X 1201
@@ -716,7 +769,7 @@ def get_range_from_date_simple(str):
     m = re.match(ur'(?iu)ca\.?\s*(\d+)$', str)
     if m:
         n = int(m.group(1))
-        str = 'Ca %sx%s' % (n-5, n+5)
+        str = 'Ca %sx%s' % (n - 5, n + 5)
 
     # 1066x1087 => [1066, 1087]
     # Ca 820x840 => [820, 840]
@@ -733,7 +786,7 @@ def get_range_from_date_simple(str):
             ret[0] = ret[0] - (ret[0] % 5)
             if ret[1] % 5:
                 ret[1] = ret[1] - (ret[1] % 5) + 5
-    #107    1080s    1080.0    1085.0    1090.0
+    # 107    1080s    1080.0    1085.0    1090.0
     m = re.match(ur'(?iu)(\d+0)s$', str)
     if m:
         ret = [int(m.group(1)), int(m.group(1)) + 10]
@@ -754,8 +807,8 @@ def get_range_from_date_simple(str):
         # in./med./ex.
         # digipal_date is not consistent for "ex."
         # it can be the last 20 or 30 years
-        #139    Saec. viii ex.    780.0    790.0    800.0
-        #137    Saec. vii ex.    670.0    690.0    700.0
+        # 139    Saec. viii ex.    780.0    790.0    800.0
+        # 137    Saec. vii ex.    670.0    690.0    700.0
         # => take last 30 years
         ex_duration = 30
         if mod == 'ex.':
@@ -779,12 +832,12 @@ def get_range_from_date_simple(str):
             if century2 == century + 1:
                 ret = [ret[1] - 20, ret[1] + 20]
 
-
-        #if m.group(2) == '':
+        # if m.group(2) == '':
 
     ret = [int(ret[0]), int(ret[1])]
 
     return ret
+
 
 def get_all_files_under(root, file_types='fd', filters=[], extensions=[], direct_children=False, can_return_root=False):
     '''Returns a list of absolute paths to all the files under root.
@@ -807,13 +860,14 @@ def get_all_files_under(root, file_types='fd', filters=[], extensions=[], direct
         if (file_type in file_types) and \
             (can_return_root or path != root) and \
             (not filters or any([filter.lower() in path.lower() for filter in filters])) and \
-            (not extensions or any([path.endswith('.' + ext.strip('.')) for ext in extensions])):
-                ret.append(path)
+                (not extensions or any([path.endswith('.' + ext.strip('.')) for ext in extensions])):
+            ret.append(path)
 
         if file_type == 'd' and (path == root or not direct_children):
             for file_name in os.listdir(path):
                 to_process.append(os.path.join(path, file_name))
     return ret
+
 
 def get_cms_page_from_title(title):
     from mezzanine.pages.models import Page as MPage
@@ -822,6 +876,7 @@ def get_cms_page_from_title(title):
         return page
     return None
 
+
 def get_cms_url_from_slug(title):
     page = get_cms_page_from_title(title)
     if page:
@@ -829,15 +884,18 @@ def get_cms_url_from_slug(title):
     from django.utils.text import slugify
     return u'/%s' % slugify(unicode(title))
 
+
 def remove_param_from_request(request, key):
     ret = request
-    #print dir(ret.GET)
+    # print dir(ret.GET)
     ret.GET = ret.GET.copy()
     if ret.GET.has_key('jx'):
         del ret.GET['jx']
     ret.META = ret.META.copy()
-    ret.META['QUERY_STRING'] = re.sub(ur'\Wjx=1($|&|#)', ur'', ret.META.get('QUERY_STRING', ''))
+    ret.META['QUERY_STRING'] = re.sub(
+        ur'\Wjx=1($|&|#)', ur'', ret.META.get('QUERY_STRING', ''))
     return ret
+
 
 def read_file(filepath):
     import codecs
@@ -846,6 +904,7 @@ def read_file(filepath):
     f.close()
 
     return ret
+
 
 def get_dict_from_string(string, sep=',', keep_blanks=False):
     '''Return an array of string
@@ -864,6 +923,7 @@ def get_dict_from_string(string, sep=',', keep_blanks=False):
 
     return ret
 
+
 def get_normalised_path(path):
     ''' Turn the path and file names into something the image server won't complain about
         Extension is preserved.'''
@@ -873,6 +933,7 @@ def get_normalised_path(path):
     file_base_name = re.sub(r'_+', '_', file_base_name)
     file_base_name = re.sub(r'_?(/|\\)_?', r'\1', file_base_name)
     return file_base_name + extension
+
 
 def add_keywords(obj, keywords='', remove=False):
     # add or remove Mezzanine keywords on a model instance
@@ -904,9 +965,11 @@ def add_keywords(obj, keywords='', remove=False):
         # assign them to the object
         from mezzanine.generic.fields import KeywordsField
         for field in [f for f in obj._meta.virtual_fields if f.__class__ == KeywordsField]:
-            field.save_form_data(obj, u','.join([unicode(kw.id) for kw in existing_keywords.values()]))
+            field.save_form_data(obj, u','.join(
+                [unicode(kw.id) for kw in existing_keywords.values()]))
 
     return ret
+
 
 def expand_folio_range(frange, errors=None):
     '''
@@ -953,6 +1016,7 @@ def expand_folio_range(frange, errors=None):
 
     return ret
 
+
 def is_model_visible(model, request):
     ''' Returns True if <model> is visible to the user.
     Based on setting.py:MODELS_PUBLIC and MODELS_PRIVATE.
@@ -964,7 +1028,8 @@ def is_model_visible(model, request):
     if request == True:
         return True
 
-    if not model: return False
+    if not model:
+        return False
 
     # resolve model instance -> model
     from django.db.models.base import ModelBase
@@ -981,13 +1046,14 @@ def is_model_visible(model, request):
     model = model.split('.')[-1]
 
     # check permissions from settings.py MODELS_PUBLIC|PRIVATE
-    from django.conf import settings
+    from mezzanine.conf import settings
     ret = (model in settings.MODELS_PUBLIC) or (
-                (model in settings.MODELS_PRIVATE) and
-                request and request.user and request.user.is_staff
-            )
+        (model in settings.MODELS_PRIVATE) and
+        request and request.user and request.user.is_staff
+    )
 
     return ret
+
 
 def is_staff(request=None):
     # returns True if the request user is a staff
@@ -996,6 +1062,7 @@ def is_staff(request=None):
 
     return request and request.user and is_user_staff(request.user)
 
+
 def is_user_staff(user=None):
     # returns True if the request user is a staff
     if user == True:
@@ -1003,12 +1070,14 @@ def is_user_staff(user=None):
 
     return user and user.is_staff
 
+
 def raise_404(message=None, title=None):
     from django.http import Http404
     # Prior to 1.9 the production template would not receive any parameter
     # when calling django default Http404
     # See digipal.middleware.py.ErrorMiddleware
     raise Http404(message)
+
 
 def request_invisible_model(model, request, model_label=None):
     # Raise 404 if the model is not visible
@@ -1018,6 +1087,7 @@ def request_invisible_model(model, request, model_label=None):
             message = u'''You don't have access to %s records.''' % model_label
         raise_404(message)
 
+
 def convert_xml_to_html(xml):
     ret = xml
 
@@ -1025,10 +1095,12 @@ def convert_xml_to_html(xml):
     # () 4. add buttons to editor
     # () 5. display notes at the bottom of the desc
 
-    ret = re.sub(ur'<c>', ur'<span data-dpt="record" data-dpt-model="character">', ret)
+    ret = re.sub(
+        ur'<c>', ur'<span data-dpt="record" data-dpt-model="character">', ret)
 
     for el in re.findall(ur'(?ui)<[^>]+>', xml):
-        if re.search(ur'(?ui)</?(p|div|span)\b', el): continue
+        if re.search(ur'(?ui)</?(p|div|span)\b', el):
+            continue
 
         nel = el
         nel = re.sub(ur'(?ui)([^\s>]+)(\s*=\s*")', ur'data-dpt-\1\2', nel)
@@ -1038,6 +1110,7 @@ def convert_xml_to_html(xml):
         ret = ret.replace(el, nel)
 
     return ret
+
 
 class ProgressBar(object):
 
@@ -1061,9 +1134,10 @@ class ProgressBar(object):
         bar_width = int(1.0 * pos / self.max * self.max_width)
         ext = int(bar_width - self.width)
         if ext > 0:
-            #print pos,self.max,ext
+            # print pos,self.max,ext
             sys.stdout.write('#' * ext)
             self.width = bar_width
+
 
 def re_sub_fct(content, apattern, fct, are=None, show_bar=False):
     # Replace every occurrence of apattern in content with fct(match)
@@ -1079,10 +1153,12 @@ def re_sub_fct(content, apattern, fct, are=None, show_bar=False):
     if 0:
         while True:
             match = pattern.search(content, pos)
-            if not match: break
+            if not match:
+                break
 
             replacement = fct(match)
-            content = ur'%s%s%s' % (content[0:match.start(0)], replacement, content[match.end(0):])
+            content = ur'%s%s%s' % (content[0:match.start(
+                0)], replacement, content[match.end(0):])
             pos = match.start(0) + len(replacement)
             if show_bar:
                 bar.update(match.start(), len(content))
@@ -1094,13 +1170,15 @@ def re_sub_fct(content, apattern, fct, are=None, show_bar=False):
 
     return content
 
+
 def dplog(message, level='DEBUG'):
+    '''Log a debug message. 
+    Logged iff level >= settings.DIGIPAL_LOG_LEVEL
+    '''
     import logging
     dplog = logging.getLogger('digipal_debugger')
     getattr(dplog, level.lower())(message)
 
-    #from datetime import datetime
-    #print '[%s] %s' % (datetime.now(), message)
 
 def get_model_from_table_name(table_name):
     # BEWARE: not efficient!
@@ -1116,8 +1194,10 @@ def get_model_from_table_name(table_name):
 
     return ret
 
+
 def get_model_from_name(name):
     return get_models_from_names([name])
+
 
 def get_models_from_names(names):
     # name = an array of model names
@@ -1127,7 +1207,8 @@ def get_models_from_names(names):
     ret = {}
 
     from django.contrib.contenttypes.models import ContentType
-    cts = ContentType.objects.filter(model__in=[name.strip().lower() for name in names]).order_by('app_label', 'model')
+    cts = ContentType.objects.filter(
+        model__in=[name.strip().lower() for name in names]).order_by('app_label', 'model')
     for ct in cts:
         found_model = ret.get(ct.model, None)
         if found_model and found_model._meta.app_label == 'digipal':
@@ -1138,6 +1219,7 @@ def get_models_from_names(names):
         ret[ct.model] = model
 
     return ret.values()
+
 
 def sql_select_dict(query, arguments=None):
     '''
@@ -1162,12 +1244,14 @@ def sql_select_dict(query, arguments=None):
 
     return ret
 
+
 class MultiDict(dict):
     '''A multi-entries dictionary
         Behaves like a python dict where each value is a list of entries
         This class adds helpers functions to deal with this structure
         # {'key1': [e1, e2, e3, ...], ...}
     '''
+
     def add_entry(self, key, entry):
         if key not in self:
             self[key] = []
@@ -1180,6 +1264,7 @@ class MultiDict(dict):
             ret += len(entries)
         return ret
 
+
 def get_sortable_hash_value(obj):
     '''Returns a value that can be used as a key and can be sorted'''
     ret = unicode(obj)
@@ -1189,6 +1274,7 @@ def get_sortable_hash_value(obj):
 
 
 import threading
+
 
 class DPThread(threading.Thread):
     def __init__(self, fct, args, kwargs):
@@ -1201,11 +1287,13 @@ class DPThread(threading.Thread):
     def run(self):
         self.res = self.fct(*self.args, **self.kwargs)
 
+
 def run_in_thread(fct, args, kwargs):
     '''Runs one function is a separate thread'''
     thread = DPThread(fct, args, kwargs)
     thread.start()
     return thread
+
 
 def run_in_thread_advanced(fct, args, kwargs, athreads=1, wait=False, print_results=False):
     '''Runs one function in multiple separate threads'''
@@ -1226,6 +1314,8 @@ def run_in_thread_advanced(fct, args, kwargs, athreads=1, wait=False, print_resu
 
 # increment the value of an item in a counter dictionary
 # {item: count, item: count}
+
+
 def inc_counter(dic, item, count=1):
     dic[item] = dic.get(item, 0)
     dic[item] += count
@@ -1236,10 +1326,12 @@ def get_cache_key_from_string(s):
     '''Returns a base64 string from a hash of the given string <s>
         Hashed with SHA1
     '''
-    import hashlib, base64
+    import hashlib
+    import base64
     hasher = hashlib.sha1()
     hasher.update(repr(s))
     return base64.b64encode(hasher.digest())
+
 
 def get_mem():
     # return the memory used by this process in MB
@@ -1248,6 +1340,7 @@ def get_mem():
         process = psutil.Process(os.getpid())
         ret = (process.memory_info().rss / 1024 / 1024)
     return ret
+
 
 def gc_collect():
     # clear potentially huge query info in BEDUG mode
@@ -1258,6 +1351,7 @@ def gc_collect():
     # this may be slow so avoid calling in a fast or large loop
     import gc
     gc.collect()
+
 
 def get_plain_text_from_xmltext(xml_str):
     '''Returns a plain text version of the XML <value>.
@@ -1273,11 +1367,11 @@ def get_plain_text_from_xmltext(xml_str):
     ret = xml_str
     ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', ret)
     ret = regex.sub(ur'<span data-dpt="location".*?</span>', ur'', ret)
-    
-    # Remove deleted elements 
+
+    # Remove deleted elements
     # <span data-dpt="del" data-dpt-type="supplied">di</span>
     ret = regex.sub(ur'(?musi)<span data-dpt="del"[^>]*>[^<]*</span>', '', ret)
-    
+
     ret = ret.replace(u'</p>', ' ')
 
     # Remove all tags
@@ -1288,14 +1382,14 @@ def get_plain_text_from_xmltext(xml_str):
 
     # remove | (editorial line breaks) and other supplied signs <>
     ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '')
-    
+
     # used between words in MOA
     ret = ret.replace(ur'', ';')
-    
+
     # MS line breaks:
     ret = regex.sub(ur'(?musi)-\s*\|', u'#HY#', ret)
     # insert a CR to preserve rendering and also avoid joining words
-    # accross the MS line break. 
+    # accross the MS line break.
     ret = ret.replace(u'|', u'\r')
     # reunite hyphenated parts even when they are separated by spaces
     ret = regex.sub(ur'\s*#HY#\s*', u'', ret)
@@ -1303,6 +1397,7 @@ def get_plain_text_from_xmltext(xml_str):
     ret = regex.sub(ur'(?musi)\s+', ' ', ret)
 
     return ret
+
 
 def run_shell_command(command):
     ret = True
@@ -1314,30 +1409,32 @@ def run_shell_command(command):
         pass
     return ret
 
+
 def get_python_path():
     # return the full path to python executable that runs this script
-    
+
     # basic approach, get it directly from sys.
     # This is technically correct.
     # However one caveat is when systemwide python is called with the libs
     # from a virtualenv. In that case calling that python will not be able
-    # to run django due to missing packages. 
-    import sys, os
+    # to run django due to missing packages.
+    import sys
+    import os
     python_path = sys.executable
-    
+
     # TODO
     # best approach would be to use the above and set the PYTHONPATH
     # but not easy and cross OS to pass sys.path within Popen()
-    # If this works we don't need the code below to find virtualenv python 
+    # If this works we don't need the code below to find virtualenv python
     lib_path = (os.pathsep).join(sys.path)
-    
+
     # another is to find python within the virtual env
     if 0:
-        # simple case, but again may not work if system-wide python 
+        # simple case, but again may not work if system-wide python
         # called with virtualenv libs... (e.g. EXON server)
         # In that case VIRTUAL_ENV is not set.
         virtualenv = os.environ.get('VIRTUAL_ENV')
-        if  virtualenv:
+        if virtualenv:
             ppath = os.path.join(virtualenv, 'bin', 'python')
             if os.path.exists(ppath):
                 python_path = ppath
@@ -1354,26 +1451,27 @@ def get_python_path():
             if os.path.exists(ppath):
                 python_path = ppath
                 break
-            
+
     return python_path
+
 
 def call_management_command(command, *args, **kwargs):
     '''
     Execute a Django management command in a SEPARATE PROCESS.
-    
+
     e.g. call_management_command('command', 'arg1', 'arg2', option1=val1, option2=val2)
     is executed as:
     python manage.py command arg1 arg2 --option1=val1 --option2=val2
-    
+
     Note that the option names can be different from the internal names used
     by the management command. So not exactly the same as django call_command()
-    
+
     Approach:
     We use Popen() to start another python process running the dhjango command.
     That process seems to inherit from our virtual env settings.
     And it will survive its parent.
     I.e. it's like doing a 'nohup ... &' from the command line
-    
+
     Alternatives:
         * call command from this process: too long, browser will time out, web
             worker can be killed.
@@ -1385,22 +1483,23 @@ def call_management_command(command, *args, **kwargs):
         * os.fork(): not supported by Windows?. Approach is similar to previous 
             one, anyway.
     '''
-    
-    # django manage command line 
+
+    # django manage command line
     command_django = '%s %s %s' % (
-        command, 
-        ' '.join(args), 
+        command,
+        ' '.join(args),
         (' '.join(['--%s=%s' % (k, v) for k, v in kwargs.iteritems()]))
     )
-    
+
     # shell command line
-    from django.conf import settings
+    from mezzanine.conf import settings
     import sys
-    
+
     python_path = get_python_path()
-    
-    command_shell = '%s %s %s' % (python_path, os.path.join(settings.PROJECT_ROOT, '..', 'manage.py'), command_django)
-    
+
+    command_shell = '%s %s %s' % (python_path, os.path.join(
+        settings.PROJECT_ROOT, '..', 'manage.py'), command_django)
+
     if 1:
         # run the command in a child process, calling python
         from subprocess import Popen
@@ -1409,42 +1508,48 @@ def call_management_command(command, *args, **kwargs):
         dplog('called command : %s | %s' % (child_id, command_shell))
     else:
         # fork doesn't work on WIndows
-        # run the command in a child process, calling command directly from this context
+        # run the command in a child process, calling command directly from
+        # this context
         from django.core.management import call_command
         from digipal.models import KeyVal
         from multiprocessing import Process
         from datetime import datetime
+
         def f(reindexes_str):
             KeyVal.set('k2.a', repr(datetime.now()))
             KeyVal.set('k2.b', reindexes_str)
             try:
-                call_command('dpsearch', 'index_facets', index_filter=reindexes_str)
+                call_command('dpsearch', 'index_facets',
+                             index_filter=reindexes_str)
             except Exception, e:
                 KeyVal.set('k2.c', 'ERROR: %s' % repr(e))
-            else: 
+            else:
                 KeyVal.set('k2.c', repr(datetime.now()))
             exit()
         ##p = Process(target=f, args=(','.join(reindexes),))
-        ##p.start()
-        ##print p
+        # p.start()
+        # print p
+
 
 def json_dumps(data):
     from datetime import datetime
     import json
+
     def json_serial(obj):
         """JSON serializer for objects not serializable by default json code"""
         if isinstance(obj, datetime):
             serial = obj.isoformat()
             return serial
-        raise TypeError ("Type not serializable")    
+        raise TypeError("Type not serializable")
     return json.dumps(data, default=json_serial)
+
 
 def json_loads(data):
     #from datetime import datetime
     from django.utils.dateparse import parse_datetime
     import json
-    
-    # convert all dates in a list of dictionary from string to datetime 
+
+    # convert all dates in a list of dictionary from string to datetime
     def convert_dates(dic):
         if isinstance(dic, list):
             for i in range(0, len(dic)):
@@ -1455,7 +1560,7 @@ def json_loads(data):
                         v = re.sub('(\+\d{2}):(\d{2})$', ur'\1\2', v)
                         dic[i] = parse_datetime(v)
                 elif isinstance(dic[i], dict) or isinstance(dic[i], list):
-                    convert_dates(dic[i]) 
+                    convert_dates(dic[i])
         if isinstance(dic, dict):
             for k, v in dic.iteritems():
                 if isinstance(v, basestring):
@@ -1464,13 +1569,13 @@ def json_loads(data):
                         v = re.sub('(\+\d{2}):(\d{2})$', ur'\1\2', v)
                         dic[k] = parse_datetime(v)
                 elif isinstance(v, dict) or isinstance(v, list):
-                    convert_dates(v) 
+                    convert_dates(v)
 
-    ret = None    
+    ret = None
     if data and data.strip():
         ret = json.loads(data)
         convert_dates(ret)
-    
+
     return ret
 
 ########################
@@ -1479,22 +1584,27 @@ def json_loads(data):
 #
 ########################
 
+
 def get_json_response(data):
     '''Returns a HttpResponse with the given data variable encoded as json'''
     from django.http.response import HttpResponse
-    ret = HttpResponse(json_dumps(data), content_type='application/json; charset=utf-8', )
+    ret = HttpResponse(json_dumps(
+        data), content_type='application/json; charset=utf-8', )
     ret['Access-Control-Allow-Origin'] = '*'
     return ret
 
+
 def get_csv_response_from_rows(rows, charset='latin-1', headings=None, filename='response.csv'):
     # returns a http response with a CSV content created from rows
-    # rows is a list of dictionaries 
-    
+    # rows is a list of dictionaries
+
     from django.http import StreamingHttpResponse
-    ret = StreamingHttpResponse(generate_csv_lines_from_rows(rows, encoding=charset, headings=headings), content_type="text/csv")
+    ret = StreamingHttpResponse(generate_csv_lines_from_rows(
+        rows, encoding=charset, headings=headings), content_type="text/csv")
     ret['Content-Disposition'] = 'attachment; filename="%s"' % filename
-    
-    return ret 
+
+    return ret
+
 
 def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
     '''
@@ -1507,9 +1617,11 @@ def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
         for line in generate_csv_lines_from_rows(rows, encoding=encoding, headings=headings):
             csvfile.write(line)
 
+
 class Echo(object):
     def write(self, value):
         return value
+
 
 def generate_csv_lines_from_rows(rows, encoding=None, headings=None):
     '''
@@ -1524,13 +1636,15 @@ def generate_csv_lines_from_rows(rows, encoding=None, headings=None):
         # Can't use DictWriter b/c it .writerow() doesn't return anything.
         # Normal csv.writer does return the buffer.
         writer = csv.writer(pseudo_buffer)
-        
+
         headings = headings or rows.keys()
-        
+
         yield writer.writerow(headings)
         for row in rows:
-            row_encoded = [unicode(row.get(k, '')).encode(encoding, 'replace') for k in headings]
+            row_encoded = [unicode(row.get(k, '')).encode(
+                encoding, 'replace') for k in headings]
             yield writer.writerow(row_encoded)
+
 
 def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=None, same_as_above=None):
     '''
@@ -1599,37 +1713,45 @@ def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=N
 
 ########################
 
+
 def get_short_uid(adatetime=None):
-    # The time in milliseconds in base 36 
+    # The time in milliseconds in base 36
     # e.g. 2016-11-12 23:14:29.337677+05:00 -> LMXOd7f65 (9 chars)
     # result is URL safe
     # If adatetime is None, uses now()
     from datetime import datetime
     b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.'
     BASE = len(b64)
+
     def num_encode(n):
         s = []
         while True:
             n, r = divmod(n, BASE)
             s.append(b64[r])
-            if n == 0: break
+            if n == 0:
+                break
         return ''.join(reversed(s))
-    
+
     ret = adatetime or datetime.utcnow()
-    ret = '%s%s%s%s%s%s' % (b64[ret.month], b64[ret.day], b64[ret.hour], b64[ret.minute], b64[ret.second], num_encode(long('%s%s' % (ret.year - 2000, ret.microsecond))))
+    ret = '%s%s%s%s%s%s' % (b64[ret.month], b64[ret.day], b64[ret.hour], b64[ret.minute],
+                            b64[ret.second], num_encode(long('%s%s' % (ret.year - 2000, ret.microsecond))))
     #ret = ret.isoformat()
     #ret = long(re.sub(ur'\D', '', ret))
     #ret = str(ret)
     #ret = base64.b64encode(str(ret), 'ascii')
-    #return parseInt((new Date()).toISOString().replace(/\D/g, '')).toString(36);
+    # return parseInt((new Date()).toISOString().replace(/\D/g,
+    # '')).toString(36);
     return ret
+
 
 from datetime import datetime, timedelta, tzinfo
 
 # A UTC class.
 # Core Python has limited support time-zone aware datetimes
-# We add UTC  
+# We add UTC
 # http://stackoverflow.com/a/2331635/3748764
+
+
 class UTC(tzinfo):
     """UTC"""
 
@@ -1644,11 +1766,14 @@ class UTC(tzinfo):
     def dst(self, dt):
         return self.zero_offset
 
+
 utc = UTC()
+
 
 def now():
     '''Returns UTC now datetime with time-zone'''
     return datetime.now(utc)
+
 
 def cmp_locus(l1, l2):
     # compare two locuses
@@ -1657,11 +1782,14 @@ def cmp_locus(l1, l2):
     # 0 if =
     l1 = natural_sort_key(l1, 1, 1)
     l2 = natural_sort_key(l2, 1, 1)
-    
-    if l1 < l2: return -1
-    elif l1 > l2: return 1
+
+    if l1 < l2:
+        return -1
+    elif l1 > l2:
+        return 1
 
     return 0
+
 
 def is_unit_in_range(unitid, ranges):
     ''' e.g. ('13a1', '1a1-10b3;45b1-45b2;60b4') => True
@@ -1670,34 +1798,53 @@ def is_unit_in_range(unitid, ranges):
 
     ranges = ranges.strip()
 
-    if not ranges: return True
+    if not ranges:
+        return True
 
     unit_keys = natural_sort_key(unitid)
 
     for range in ranges.split(','):
-        parts  = range.split('-')
+        parts = range.split('-')
         if len(parts) == 2:
-            ret = (unit_keys >= natural_sort_key(parts[0])) and (unit_keys <= natural_sort_key(parts[1]))
+            ret = (unit_keys >= natural_sort_key(parts[0])) and (
+                unit_keys <= natural_sort_key(parts[1]))
         else:
             ret = unitid == parts[0]
-        if ret: break
+        if ret:
+            break
 
     return ret
+
 
 def extract_file_from_zip(zip_path, file_path, output_path):
     '''Extract a single file from a ZIP into the given path.'''
     #cmd = 'unzip -p %s content.xml > %s' % (input_path, outfile)
     import zipfile
-    
+
     with open(zip_path, 'rb') as fh:
         z = zipfile.ZipFile(fh)
         write_file(output_path, z.read(file_path), encoding=None)
 
+
 def is_display_narrow(request):
     ret = False
-    
+
     # TODO: test and make it more robust
-    #print u'\n'.join([ur'%s = %s' % (k,v) for k,v in request.META.iteritems()])
-    ret = bool(re.search(ur'(?i)\b(mobile|opera mini|android|iphone|webos)\b', request.META.get('HTTP_USER_AGENT')))
-    
+    # print u'\n'.join([ur'%s = %s' % (k,v) for k,v in
+    # request.META.iteritems()])
+    ret = bool(re.search(ur'(?i)\b(mobile|opera mini|android|iphone|webos)\b',
+                         request.META.get('HTTP_USER_AGENT')))
+
+    return ret
+
+
+def get_cache(name):
+    from django.core.cache import caches
+    ret = caches[name]
+    return ret
+
+
+def get_request_var(request, name, default=None):
+    # avoid using REQUEST, deprecated in Django 1.9
+    ret = request.GET.get(name, request.POST.get(name, default))
     return ret

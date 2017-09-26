@@ -12,15 +12,19 @@ register = template.Library()
 #from mezzanine import template as mezzzanine_template
 #register = mezzzanine_template.Library()
 
+
 @stringfilter
 def spacify(value, autoescape=None):
     if autoescape:
         esc = conditional_escape
     else:
-        esc = lambda x: x
+        def esc(x): return x
     return mark_safe(re.sub('\s', '%20', esc(value)))
+
+
 spacify.needs_autoescape = True
 register.filter(spacify)
+
 
 @register.filter(is_safe=True)
 @stringfilter
@@ -30,8 +34,10 @@ def sql_query(value):
     e.g. {{ my_query|sql_query }}
     """
     #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    value = re.sub(ur'(?musi)\b(select|from|where|order\s+by|and|group|left\s+join|right\s+join)\b', ur'<br/><strong>\1</strong>', value)
+    value = re.sub(ur'(?musi)\b(select|from|where|order\s+by|and|group|left\s+join|right\s+join)\b',
+                   ur'<br/><strong>\1</strong>', value)
     return mark_safe(value)
+
 
 @register.filter(is_safe=True)
 @stringfilter
@@ -46,9 +52,11 @@ def anchorify(value):
     value = re.sub(ur'(?u)[^\w\s-]', u'', value).strip()
     return mark_safe(re.sub(u'[-\s]+', u'-', value))
 
+
 @register.filter()
 def multiply(value, arg):
-    return float(value)*float(arg) if value and arg else 0.0
+    return float(value) * float(arg) if value and arg else 0.0
+
 
 @register.filter()
 def update_query_params(content, updates):
@@ -57,12 +65,14 @@ def update_query_params(content, updates):
     '''
     return update_query_params_internal(content, updates)
 
+
 @register.filter()
 def add_query_params(content, updates):
     ''' The query strings in the content are updated by the filter.
         In case of conflict, the parameters in the content always win.
     '''
     return update_query_params_internal(content, updates, True)
+
 
 def update_query_params_internal(content, updates, url_wins=False):
     '''
@@ -78,7 +88,8 @@ def update_query_params_internal(content, updates, url_wins=False):
         'href="http://www.mysite.com/path/?k1=v1&k5=v5" href="/home?k5=v5"'
 
     '''
-    if len(content.strip()) == 0: return content
+    if len(content.strip()) == 0:
+        return content
 
     # find all the URLs in content
     template = ur'%s'
@@ -98,14 +109,17 @@ def update_query_params_internal(content, updates, url_wins=False):
     for m in matches[::-1]:
         url = max(m.groups())
         new_url = update_query_string(url, updates, url_wins)
-        content = content[0:m.start()] + (template % new_url) + content[m.end():]
+        content = content[0:m.start()] + (template %
+                                          new_url) + content[m.end():]
 
     return mark_safe(content)
+
 
 @register.filter
 def plural(value, count=2):
     from digipal.utils import plural
     return plural(value, count)
+
 
 @register.filter
 def dictget(content, key=''):
@@ -118,10 +132,12 @@ def dictget(content, key=''):
                 ret = getattr(content, key, None)
     return ret
 
+
 @register.filter
 def json(value):
     import json
     return mark_safe(json.dumps(value))
+
 
 @register.filter
 def tag_phrase_terms(value, phrase=''):
@@ -131,8 +147,9 @@ def tag_phrase_terms(value, phrase=''):
     from digipal.utils import get_regexp_from_terms, get_tokens_from_phrase, remove_combining_marks, remove_accents
 
     terms = get_tokens_from_phrase(remove_accents(phrase))
-    
+
     return tag_terms(value, terms)
+
 
 @register.filter
 def tag_terms(value, terms=None):
@@ -157,27 +174,31 @@ def tag_terms(value, terms=None):
         for re_term in get_regexp_from_terms(terms, True):
             #value = re.sub(ur'(?iu)(>[^<]*)('+re_term+ur')', ur'\1<span class="found-term">\2</span>', u'>'+value)[1:]
             pos = 1
-            pattern = re.compile(ur'(?iu)(>[^<]*?)('+re_term+ur')')
-            #print re_term
+            pattern = re.compile(ur'(?iu)(>[^<]*?)(' + re_term + ur')')
+            # print re_term
             while True:
-                #print value_no_accent, pos
+                # print value_no_accent, pos
                 # pos-1 because we want to include the last > we've inserted in the previous loop.
                 # without this we might miss occurrences
                 m = pattern.search(value_no_accent, pos - 1)
-                #print m
+                # print m
                 if m:
-                    replacement = u'%s<span class="found-term">%s</span>' % (value[m.start(1):m.end(1)], value[m.start(2):m.end(2)])
+                    replacement = u'%s<span class="found-term">%s</span>' % (
+                        value[m.start(1):m.end(1)], value[m.start(2):m.end(2)])
 
                     value = value[:m.start(0)] + replacement + value[m.end(0):]
 
-                    replacement = u'%s<span class="found-term">%s</span>' % (value_no_accent[m.start(1):m.end(1)], value_no_accent[m.start(2):m.end(2)])
-                    value_no_accent = value_no_accent[:m.start(0)] + replacement + value_no_accent[m.end(0):]
+                    replacement = u'%s<span class="found-term">%s</span>' % (
+                        value_no_accent[m.start(1):m.end(1)], value_no_accent[m.start(2):m.end(2)])
+                    value_no_accent = value_no_accent[:m.start(
+                        0)] + replacement + value_no_accent[m.end(0):]
 
                     pos = m.start(0) + len(replacement)
                 else:
                     break
 
     return value
+
 
 @register.assignment_tag
 def get_records_from_ids(search_type, recordids):
@@ -188,6 +209,7 @@ def get_records_from_ids(search_type, recordids):
             {% prepare_search_result search_type recordids %}
     '''
     return search_type.get_records_from_ids(recordids)
+
 
 @register.assignment_tag
 def reset_recordids():
@@ -205,6 +227,7 @@ def reset_recordids():
     '''
     return []
 
+
 @register.simple_tag
 def iip_img_a(image, *args, **kwargs):
     '''
@@ -218,7 +241,8 @@ def iip_img_a(image, *args, **kwargs):
         are treated.
     '''
 
-    return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPEG">%s</a>' % (escape(image.iipimage.full_base_url.replace('\\', '/')), iip_img(image, *args, **kwargs)))
+    return mark_safe(ur'<a href="%s&amp;RST=*&amp;QLT=100&amp;CVT=JPEG">%s</a>' % (escape(image.full().replace('\\', '/')), iip_img(image, *args, **kwargs)))
+
 
 @register.simple_tag
 def iip_img(image, *args, **kwargs):
@@ -249,11 +273,13 @@ def iip_img(image, *args, **kwargs):
         if min(dims) > 0:
             for i in [0, 1]:
                 if vs[i] is None:
-                    kwargs[ds[i]] = int(float(vs[1-i]) / float(dims[1-i]) * float(dims[i]))
+                    kwargs[ds[i]] = int(
+                        float(vs[1 - i]) / float(dims[1 - i]) * float(dims[i]))
 
     ret = img(iip_url(image, *args, **kwargs), *args, **kwargs)
 
     return ret
+
 
 @register.simple_tag
 def annotation_img(annotation, *args, **kwargs):
@@ -267,14 +293,16 @@ def annotation_img(annotation, *args, **kwargs):
 
     ret = u''
     if annotation:
-        info = annotation.get_cutout_url_info(fixlen=kwargs.get('fixlen', None))
+        info = annotation.get_cutout_url_info(
+            fixlen=kwargs.get('fixlen', None))
         #dims = annotation.image.get_region_dimensions(url)
         #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
         if info['url']:
             ret = img(info['url'], alt=annotation.graph, rotation=annotation.rotation, holes=annotation.get_holes(),
-                        width=info['dims'][0], height=info['dims'][1], frame_width=info['frame_dims'][0],
-                        frame_height=info['frame_dims'][1], *args, **kwargs)
+                      width=info['dims'][0], height=info['dims'][1], frame_width=info['frame_dims'][0],
+                      frame_height=info['frame_dims'][1], *args, **kwargs)
     return ret
+
 
 def wrap_img(html_img, **kwargs):
     '''
@@ -300,7 +328,8 @@ def wrap_img(html_img, **kwargs):
         if 'TextUnit' in [c.__name__ for c in inspect.getmro(record.__class__)]:
             type_class = 'graph_img'
             attributes['data-type'] = 'textunit'
-            attributes['data-id'] = '%s:%s' % (record.__class__.__name__, record.id)
+            attributes['data-id'] = '%s:%s' % (
+                record.__class__.__name__, record.id)
 
         if content_type in ['graph']:
             attributes['data-type'] = 'annotation'
@@ -311,7 +340,6 @@ def wrap_img(html_img, **kwargs):
 
         if content_type == 'image':
             type_class = 'imageDatabase'
-
 
         ret = ur'''
                 <span %s class="droppable_image %s">
@@ -332,6 +360,7 @@ def wrap_img(html_img, **kwargs):
         ret = ur'''<%s %s>%s</%s>''' % (element, attributes, ret, element)
 
     return ret
+
 
 @register.simple_tag
 def img(src, *args, **kwargs):
@@ -371,7 +400,8 @@ def img(src, *args, **kwargs):
         rotation = float(kwargs['rotation'])
         ##style += ';position:relative;max-width:none;'
         if rotation > 0.0 or kwargs.get('force_rotation', False):
-            style += ur';transform:rotate(%(r)sdeg); -ms-transform:rotate(%(r)sdeg); -webkit-transform:rotate(%(r)sdeg);' % {'r': rotation}
+            style += ur';transform:rotate(%(r)sdeg); -ms-transform:rotate(%(r)sdeg); -webkit-transform:rotate(%(r)sdeg);' % {
+                'r': rotation}
 
     if kwargs.get('lazy', False):
         more += ur' data-lazy-img-src="%s" ' % escape(src)
@@ -389,16 +419,16 @@ def img(src, *args, **kwargs):
             vs.append(int(kwargs.get(a)))
             #more += ur' %s="%s" ' % (a, vs[-1])
             style += ';%s:%dpx;' % (a, vs[-1])
-        if 'frame_'+a in kwargs:
-            vs.append(int(kwargs.get('frame_'+a)))
+        if 'frame_' + a in kwargs:
+            vs.append(int(kwargs.get('frame_' + a)))
             frame_css += u';%s:%spx;' % (a, vs[-1] + padding * 2)
         if len(vs) == 2:
             p = 'top'
             if a == 'width':
                 p = 'left'
-            v = (vs[0]-vs[1])/2
+            v = (vs[0] - vs[1]) / 2
             if v:
-                style += ';%s:-%dpx;' % (p, (vs[0]-vs[1])/2)
+                style += ';%s:-%dpx;' % (p, (vs[0] - vs[1]) / 2)
 
     if style:
         style = ' style="%s" ' % style
@@ -410,16 +440,19 @@ def img(src, *args, **kwargs):
     if all(frame_size):
         for hole in kwargs.get('holes', {}).values():
             # [offx, offy, lengthx, lengthy]
-            holes_html += ur'<span class="hole" style="left:%dpx;top:%dpx;width:%dpx;height:%dpx;"></span>' % (hole[0] * frame_size[0], hole[1] * frame_size[1], hole[2] * frame_size[0], hole[3] * frame_size[1])
+            holes_html += ur'<span class="hole" style="left:%dpx;top:%dpx;width:%dpx;height:%dpx;"></span>' % (
+                hole[0] * frame_size[0], hole[1] * frame_size[1], hole[2] * frame_size[0], hole[3] * frame_size[1])
 
     if frame_css:
         frame_css = ' style="%s" ' % frame_css
 
-    ret = ur'<span class="img-frame" %s>%s%s</span>' % (frame_css, holes_html, ret)
+    ret = ur'<span class="img-frame" %s>%s%s</span>' % (
+        frame_css, holes_html, ret)
 
     ret = wrap_img(ret, **kwargs)
 
     return mark_safe(ret)
+
 
 @register.simple_tag
 def iip_url(image, *args, **kwargs):
@@ -430,8 +463,10 @@ def iip_url(image, *args, **kwargs):
         width and height are optional. See IIP Image for the way they
         are treated.
     '''
-    #return mark_safe(iipfield.thumbnail_url(kwargs.get('height', None), kwargs.get('width', None)).replace('\\', '/'))
+    # return mark_safe(iipfield.thumbnail_url(kwargs.get('height', None),
+    # kwargs.get('width', None)).replace('\\', '/'))
     return mark_safe(image.thumbnail_url(kwargs.get('height', None), kwargs.get('width', None)).replace('\\', '/'))
+
 
 def escapenewline(value):
     """
@@ -439,9 +474,12 @@ def escapenewline(value):
     into a Javascript variable.
     """
     return value.replace('\n', '\\\n')
+
+
 escapenewline.is_safe = True
 escapenewline = stringfilter(escapenewline)
 register.filter('escapenewline', escapenewline)
+
 
 @register.inclusion_tag('pagination/pagination_with_size.html', takes_context=True)
 def dp_pagination_with_size_for(context, current_page):
@@ -453,6 +491,7 @@ def dp_pagination_with_size_for(context, current_page):
     ret['page_size'] = context.get('page_size', 10)
     ret['request'] = context.get('request', None)
     return ret
+
 
 @register.inclusion_tag('pagination/pagination.html', takes_context=True)
 def dp_pagination_for(context, current_page):
@@ -475,6 +514,7 @@ def dp_pagination_for(context, current_page):
 
     return ret
 
+
 @register.simple_tag
 def render_mezzanine_page(page_title, *args, **kwargs):
     '''
@@ -492,6 +532,7 @@ def render_mezzanine_page(page_title, *args, **kwargs):
         if rtp:
             ret = rtp.content
     return ret
+
 
 @register.simple_tag
 def image_icon(count, message, url, template_type=None, request=None):
@@ -513,17 +554,20 @@ def image_icon(count, message, url, template_type=None, request=None):
         # if count is a QuerySet on Image model, convert it into a int
         if hasattr(count, 'all'):
             from digipal.models import Image
-            count = Image.filter_permissions_from_request(count.all(), request).count()
+            count = Image.filter_permissions_from_request(
+                count.all(), request).count()
 
         if count:
             m = re.match(ur'(.*)(COUNT)(\s+)(\w*)(.*)', message)
             if m:
-                message = ur'%s%s%s%s%s' % (m.group(1), count, m.group(3), plural(m.group(4), count), m.group(5))
+                message = ur'%s%s%s%s%s' % (m.group(1), count, m.group(
+                    3), plural(m.group(4), count), m.group(5))
             ret = u'''<span class="result-image-count">
                         (<a data-toggle="tooltip" title="%s" href="%s">%s&nbsp;<i class="fa fa-picture-o"></i></a>)
                       </span>''' % (message, add_query_params(u'%s?result_type=%s' % (url, template_type), request.META['QUERY_STRING']), count)
 
     return mark_safe(ret)
+
 
 @register.simple_tag
 def mezzanine_page_active(request, page):
@@ -546,6 +590,7 @@ def mezzanine_page_active(request, page):
 
     return 'active' if ret else ''
 
+
 @register.simple_tag
 def record_field(content_type, record, field):
     '''
@@ -564,40 +609,42 @@ def dplink(parser, token):
     Output:
         If OBJ is an object, has a url and user can see it:
         <a href="LINK TO OBJ">CONTENT</a>
-        
+
         Otherwise:
         CONTENT 
     '''
-    
+
     def get_link_from_obj(obj=None):
         ret = {'content': '%s' % obj, 'url': ur''}
         if obj:
             f = getattr(obj, 'get_absolute_url')
-            if f: ret['url'] = '%s' % f()
-        return ret 
+            if f:
+                ret['url'] = '%s' % f()
+        return ret
 
     class DPLinkNode(template.base.TagHelperNode):
         def __init__(self, nodelist, args, kwargs):
-            super(DPLinkNode, self).__init__(takes_context=False, args=args, kwargs=kwargs)
+            super(DPLinkNode, self).__init__(
+                takes_context=False, args=args, kwargs=kwargs)
             self.nodelist = nodelist
-    
+
         def render(self, context):
             ret = self.nodelist.render(context)
-            
+
             args, kwargs = self.get_resolved_arguments(context)
             link = get_link_from_obj(*args, **kwargs)
             obj = args[0]
-            
+
             request = context.get('request', None)
             if request and not dputils.is_model_visible(obj, request):
                 link['url'] = None
-            
+
             ret = ret.strip() or link['content']
             if link['url']:
                 ret = u'<a href="%s">%s</a>' % (link['url'], ret)
-            
+
             return ret
-            
+
     nodelist = parser.parse(('enddplink',))
     parser.delete_first_token()
 
@@ -609,6 +656,7 @@ def dplink(parser, token):
         takes_context=False, name='dplink'
     )
     return DPLinkNode(nodelist, args, kwargs)
+
 
 @register.filter
 def dpfootnotes(html):
@@ -623,7 +671,7 @@ def dpfootnotes(html):
     #ret = example
     ret = html
 
-    #return ret
+    # return ret
 
     # 1. clean up: remove the existing anchors around [1]
     # MOA pollution
@@ -643,12 +691,15 @@ def dpfootnotes(html):
 
         if preceding:
             # a note
-            anchor = u'<a id="footnote%s" href="#refnote%s" title="Return to main text" data-toggle="tooltip" data-placement="bottom">' % (match.group(3), match.group(3))
+            anchor = u'<a id="footnote%s" href="#refnote%s" title="Return to main text" data-toggle="tooltip" data-placement="bottom">' % (
+                match.group(3), match.group(3))
         else:
             # a reference
-            anchor = u'<a id="refnote%s" href="#footnote%s" title="See the footnote" data-toggle="tooltip">' % (match.group(3), match.group(3))
+            anchor = u'<a id="refnote%s" href="#footnote%s" title="See the footnote" data-toggle="tooltip">' % (
+                match.group(3), match.group(3))
 
-        ret = u'%s%s%s[%s]</a>' % (preceding, match.group(2), anchor, match.group(3))
+        ret = u'%s%s%s[%s]</a>' % (preceding,
+                                   match.group(2), anchor, match.group(3))
 
         return ret
 
@@ -674,7 +725,6 @@ def dpfootnotes(html):
 #     return ret
 
 
-
 # see https://djangosnippets.org/snippets/545/
 # {% captureas VAR %}...{% endcaptureas %}
 
@@ -683,10 +733,12 @@ def do_captureas(parser, token):
     try:
         tag_name, args = token.contents.split(None, 1)
     except ValueError:
-        raise template.TemplateSyntaxError("'captureas' node requires a variable name.")
+        raise template.TemplateSyntaxError(
+            "'captureas' node requires a variable name.")
     nodelist = parser.parse(('endcaptureas',))
     parser.delete_first_token()
     return CaptureasNode(nodelist, args)
+
 
 class CaptureasNode(template.Node):
     def __init__(self, nodelist, varname):
@@ -697,4 +749,3 @@ class CaptureasNode(template.Node):
         output = self.nodelist.render(context)
         context[self.varname] = output
         return ''
-    

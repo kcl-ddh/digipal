@@ -1,5 +1,5 @@
 from django.db import models
-from django.conf import settings
+from mezzanine.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Q
 import os
@@ -13,8 +13,6 @@ import digipal.models
 from django.contrib.auth.models import User
 from digipal.utils import dplog
 from django.utils.text import slugify
-
-#dplog = logging.getLogger('digipal_debugger')
 
 
 class ClassProperty(property):
@@ -227,7 +225,7 @@ class TextContentType(digipal.models.NameModel):
 
 class TextContent(models.Model):
     languages = models.ManyToManyField(
-        'digipal.Language', blank=True, null=True, related_name='text_contents')
+        'digipal.Language', blank=True, related_name='text_contents')
     type = models.ForeignKey(
         'TextContentType', blank=False, null=False, related_name='text_contents')
     item_part = models.ForeignKey(
@@ -236,8 +234,7 @@ class TextContent(models.Model):
                              null=True, related_name='text_contents')
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         unique_together = ('item_part', 'type')
@@ -248,12 +245,15 @@ class TextContent(models.Model):
         return u', '.join([l.name for l in self.languages.all()])
 
     def __unicode__(self):
-        info = unicode(self.type)
-        languages = self.get_string_from_languages()
-        if languages:
-            info += u', %s' % languages
+        ret = u'New TextContent record'
+        if self.pk:
+            info = unicode(self.type)
+            languages = self.get_string_from_languages()
+            if languages:
+                info += u', %s' % languages
 
-        ret = u'%s (%s)' % (self.item_part, info)
+            ret = u'%s (%s)' % (self.item_part, info)
+
         return ret
 
     def get_absolute_url(self, unset=False, qs='', metas=None, location_type=None, location=None, content_types=None):
@@ -317,8 +317,7 @@ class TextContentXMLCopy(models.Model):
     content = models.BinaryField(blank=False, null=False)
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         unique_together = ('source', 'ahash',)
@@ -370,8 +369,7 @@ class TextContentXML(models.Model):
         'digipal.Image', blank=True, null=True, related_name='text_content_xmls')
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         unique_together = ('text_content',)
@@ -437,8 +435,7 @@ class TextAnnotation(models.Model):
         'digipal.Annotation', blank=False, null=False, related_name='textannotations')
     elementid = models.CharField(max_length=255, blank=False, null=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         unique_together = ['annotation', 'elementid']
@@ -475,8 +472,7 @@ class EntryHand(models.Model):
     certainty = models.FloatField(blank=False, null=False, default=1.0)
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         unique_together = ['item_part', 'entry_number',
@@ -505,8 +501,7 @@ class TextPattern(models.Model):
     description = models.TextField(blank=True, null=True)
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(
-        auto_now=True, auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         unique_together = ['key']
@@ -544,7 +539,6 @@ os.path.basename(settings.PROJECT_ROOT)
 module_path = os.path.basename(
     settings.PROJECT_ROOT) + '.customisations.digipal_text.models'
 from importlib import import_module
-import_module(module_path)
 try:
     import_module(module_path)
 except ImportError, e:

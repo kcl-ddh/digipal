@@ -49,7 +49,7 @@
         	</div>
             
             {% editable page.richtextpage.content %}
-                {{ page.richtextpage.content|richtext_filter|safe }}
+                {{ page.richtextpage.content|richtext_filters|safe }}
             {% endeditable %}
             
         </div>

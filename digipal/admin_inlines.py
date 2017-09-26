@@ -1,24 +1,24 @@
 from django.contrib import admin
 from models import Allograph, AllographComponent, Alphabet, Annotation, \
-        Appearance, Aspect, \
-        CatalogueNumber, Category, Character, CharacterForm, Collation, Component, County, \
-        ComponentFeature, CurrentItem, \
-        Date, DateEvidence, Decoration, Description, \
-        Feature, Format, \
-        Graph, GraphComponent, \
-        Hair, Hand, HistoricalItem, HistoricalItemType, \
-        Idiograph, IdiographComponent, Institution, InstitutionType, \
-        HistoricalItemDate, \
-        ItemOrigin, ItemPart, ItemPartType, ItemPartItem, \
-        Language, LatinStyle, Layout, \
-        Measurement, \
-        Ontograph, OntographType, Owner, OwnerType, ImageAnnotationStatus, \
-        Image, Person, Place, PlaceType, PlaceEvidence, Proportion, \
-        Reference, Region, Repository, \
-        Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
-        StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
-        CarouselItem, ApiTransform, ItemPartAuthenticity
-from django.conf import settings
+    Appearance, Aspect, \
+    CatalogueNumber, Category, Character, CharacterForm, Collation, Component, County, \
+    ComponentFeature, CurrentItem, \
+    Date, DateEvidence, Decoration, Description, \
+    Feature, Format, \
+    Graph, GraphComponent, \
+    Hair, Hand, HistoricalItem, HistoricalItemType, \
+    Idiograph, IdiographComponent, Institution, InstitutionType, \
+    HistoricalItemDate, \
+    ItemOrigin, ItemPart, ItemPartType, ItemPartItem, \
+    Language, LatinStyle, Layout, \
+    Measurement, \
+    Ontograph, OntographType, Owner, OwnerType, ImageAnnotationStatus, \
+    Image, Person, Place, PlaceType, PlaceEvidence, Proportion, \
+    Reference, Region, Repository, \
+    Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
+    StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
+    CarouselItem, ApiTransform, ItemPartAuthenticity
+from mezzanine.conf import settings
 from mezzanine.core.admin import StackedDynamicInlineAdmin
 import re
 import admin_forms
@@ -40,15 +40,18 @@ import admin_forms
 
 class DigiPalInline(admin.StackedInline):
     def formfield_for_dbfield(self, db_field, **kwargs):
-        formfield = super(DigiPalInline, self).formfield_for_dbfield(db_field, **kwargs)
+        formfield = super(DigiPalInline, self).formfield_for_dbfield(
+            db_field, **kwargs)
         if hasattr(formfield, 'choices'):
             # dirty trick so queryset is evaluated and cached in .choices
             formfield.choices = formfield.choices
         return formfield
 
+
 class DigiPalInlineDynamic(StackedDynamicInlineAdmin):
     def formfield_for_dbfield(self, db_field, **kwargs):
-        formfield = super(DigiPalInlineDynamic, self).formfield_for_dbfield(db_field, **kwargs)
+        formfield = super(DigiPalInlineDynamic, self).formfield_for_dbfield(
+            db_field, **kwargs)
         if hasattr(formfield, 'choices'):
             # dirty trick so queryset is evaluated and cached in .choices
             formfield.choices = formfield.choices
@@ -60,57 +63,70 @@ class DigiPalInlineDynamic(StackedDynamicInlineAdmin):
 #                       #
 #########################
 
+
 class OwnerInline(DigiPalInline):
     model = Owner
+
 
 class PlaceInline(DigiPalInline):
     model = Place
 
+
 class CurrentItemInline(DigiPalInline):
     model = CurrentItem
+
 
 class HistoricalItemInline(DigiPalInline):
     model = HistoricalItem
 
+
 class HistoricalItemOwnerInline(DigiPalInline):
     model = HistoricalItem.owners.through
     verbose_name = "Ownership"
-    verbose_name_plural = "Ownerships"    
+    verbose_name_plural = "Ownerships"
+
 
 class ItemPartOwnerInline(DigiPalInline):
     model = ItemPart.owners.through
     verbose_name = "Ownership"
-    verbose_name_plural = "Ownerships"    
+    verbose_name_plural = "Ownerships"
+
 
 class CurrentItemOwnerInline(DigiPalInline):
     model = CurrentItem.owners.through
     verbose_name = "Ownership"
-    verbose_name_plural = "Ownerships"    
+    verbose_name_plural = "Ownerships"
+
 
 class OwnerHistoricalItemInline(DigiPalInline):
     model = HistoricalItem.owners.through
     verbose_name = "Historical Item"
-    verbose_name_plural = "Historical Items"    
+    verbose_name_plural = "Historical Items"
+
 
 class OwnerCurrentItemInline(DigiPalInline):
     model = CurrentItem.owners.through
     verbose_name = "Current Item"
-    verbose_name_plural = "Current Items"    
+    verbose_name_plural = "Current Items"
+
 
 class OwnerItemPartInline(DigiPalInline):
     model = ItemPart.owners.through
     verbose_name = "Item Part"
-    verbose_name_plural = "Item Parts"    
+    verbose_name_plural = "Item Parts"
+
 
 class AllographComponentInline(DigiPalInline):
     model = AllographComponent
 
     filter_horizontal = ['features']
 
+
 class IdiographInline(DigiPalInline):
     model = Idiograph
 
     filter_horizontal = ['aspects']
+
 
 class TextItemPartInline(DigiPalInline):
     model = TextItemPart
@@ -121,27 +137,34 @@ class AllographInline(DigiPalInline):
 
     filter_horizontal = ['aspects']
 
+
 class ItemPartInline(DigiPalInline):
     model = ItemPart
+
 
 class ItemPartItemInline(DigiPalInlineDynamic):
     extra = 3
     model = ItemPartItem
 
+
 class ItemPartItemInlineFromHistoricalItem(ItemPartItemInline):
     verbose_name = 'Item Part'
     verbose_name_plural = 'Item Parts'
+
 
 class ItemPartItemInlineFromItemPart(ItemPartItemInline):
     verbose_name = 'Historical Item'
     verbose_name_plural = 'Historical Items'
 
+
 class DateEvidenceInline(DigiPalInline):
     model = DateEvidence
-    
+
+
 class DateEvidenceInlineFromDate(DigiPalInline):
     model = DateEvidence
     fk_name = 'date'
+
 
 class GraphComponentInline(DigiPalInline):
     model = GraphComponent
@@ -156,8 +179,10 @@ class PlaceEvidenceInline(DigiPalInline):
 class ProportionInline(DigiPalInline):
     model = Proportion
 
+
 class HandDescriptionInline(DigiPalInline):
     model = HandDescription
+
 
 class CatalogueNumberInline(DigiPalInline):
     model = CatalogueNumber
@@ -191,9 +216,11 @@ class PartLayoutInline(DigiPalInline):
     model = Layout
     exclude = ('historical_item', )
 
+
 class ItemLayoutInline(DigiPalInline):
     model = Layout
     exclude = ('item_part', )
+
 
 class GraphInline(DigiPalInline):
     model = Graph
@@ -210,9 +237,10 @@ class IdiographComponentInline(DigiPalInline):
 class ScribeInline(DigiPalInline):
     model = Scribe
 
+
 class ImageInline(DigiPalInline):
     model = Image
-    
+
 #     def formfield_for_dbfield(self, db_field, **kwargs):
 #         formfield = super(ImageInline, self).formfield_for_dbfield(db_field, **kwargs)
 #         #print db_field.name, repr(formfield), repr(db_field)
@@ -222,37 +250,44 @@ class ImageInline(DigiPalInline):
 #             # dirty trick so queryset is evaluated and cached in .choices
 #             formfield.choices = formfield.choices
 #         return formfield
-    
-    # removed keywords as it generates too many queries (one per form in the formset) 
-    exclude = ['image', 'caption', 'display_label', 'folio_side', 'folio_number', 'width', 'height', 'size', 'keywords']
+
+    # removed keywords as it generates too many queries (one per form in the
+    # formset)
+    exclude = ['image', 'caption', 'display_label', 'folio_side',
+               'folio_number', 'width', 'height', 'size', 'keywords']
+
 
 class ItemPartAuthenticityInline(DigiPalInlineDynamic):
     model = ItemPartAuthenticity
     extra = 3
-    
+
     verbose_name = 'Authenticity note'
     verbose_name_plural = 'Authenticity notes'
-    
+
 #    readonly_fields = ['display_label']
 #     fieldsets = (
 #                 (None, {'fields': ('name', 'type',)}),
 #                 ('Locus of this part in the group', {'fields': ('group_locus', )}),
 #                 ('This part is currently found in ...', {'fields': ('current_item', 'locus')}),
-#                 ) 
+#                 )
+
 
 class ItemSubPartInline(DigiPalInlineDynamic):
     model = ItemPart
     extra = 3
-    
+
     verbose_name = 'Item Part'
     verbose_name_plural = 'Sub-parts In This Group'
-    
+
     readonly_fields = ['display_label']
     fieldsets = (
                 (None, {'fields': ('display_label', 'type',)}),
-                ('Locus of this part in the group', {'fields': ('group_locus', )}),
-                ('This part is currently found in ...', {'fields': ('current_item', 'locus')}),
-                ) 
+                ('Locus of this part in the group',
+                 {'fields': ('group_locus', )}),
+                ('This part is currently found in ...',
+                 {'fields': ('current_item', 'locus')}),
+    )
+
 
 class CharacterInline(DigiPalInline):
     model = Character
@@ -261,18 +296,23 @@ class CharacterInline(DigiPalInline):
 
 # MOA-116: we don't use DigiPalInline as it overwrites the hand selection
 # done by admin_forms.HandsInlineForm and shows all hands instead.
+
+
 class HandsInline(admin.StackedInline):
     model = Hand.images.through
     form = admin_forms.HandsInlineForm
     formset = admin_forms.HandsInlineFormSet
 
+
 class InstitutionInline(DigiPalInline):
     model = Institution
+
 
 class ScriptComponentInline(DigiPalInline):
     model = ScriptComponent
 
     filter_horizontal = ['features']
+
 
 class HandInline(DigiPalInlineDynamic):
     model = Hand
@@ -280,6 +320,5 @@ class HandInline(DigiPalInlineDynamic):
     form = admin_forms.HandForm
 
     filter_horizontal = ['images']
-    
-    fieldsets = admin_forms.fieldsets_hand
 
+    fieldsets = admin_forms.fieldsets_hand

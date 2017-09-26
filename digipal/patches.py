@@ -11,142 +11,15 @@ import re
 
 from digipal.compressor_filters import compressor_patch
 
-def iipimage_patches():
-    from django.conf import settings
-    
-    # Tell South about the iipimage field
-    # See http://south.readthedocs.org/en/latest/tutorial/part4.html#simple-inheritance
-    from south.modelsinspector import add_introspection_rules
-    add_introspection_rules([], ["^iipimage\.fields\.ImageField"])
-    
-    # patch the iipimage to correct a bug (.image was hardcoded)
-    from iipimage import storage
-    
-    import logging
-    import re
-    dplog = logging.getLogger('digipal_debugger')
-    
-    # Patch 3+1:
-    # We now support TIF as well as JP2 on the image server
-    # If default format is set to 'tif' then we overwrite the conversion instruction to a pyramidal TIF
-    #CONVERT_TO_JP2 = 'kdu_compress -i %s -o %s -rate -,4,2.34,1.36,0.797,0.466,0.272,0.159,0.0929,0.0543,0.0317,0.0185 Stiles="{1024,1024}" Cblk="{64,64}" Creversible=no Clevels=5 Corder=RPCL Cmodes=BYPASS'
-    if settings.IMAGE_SERVER_EXT == 'tif':
-        storage.CONVERT_TO_JP2 = "convert %s -define tiff:tile-geometry=256x256 -compress jpeg ptif:%s"
 
-    # PATCH 1:
-    
-    # prefix the upload dir with IMAGE_SERVER_ADMIN_UPLOAD_DIR
-    def generate_new_image_path():
-        ret = storage.generate_new_image_path()
-        # GN: prefix the path with settings.IMAGE_SERVER_ADMIN_UPLOAD_DIR
-        try:
-            import os
-            ret = os.path.join(settings.IMAGE_SERVER_ADMIN_UPLOAD_DIR, ret)
-            ret = ret[:-3] + settings.IMAGE_SERVER_EXT
-        except Exception:
-            pass
-        return ret
-    
-    # The name of the iipimage field was hardcoded.
-    # Changed to iipimage to match Page model.
-    def get_image_path (instance, filename):
-        """Returns the upload path for a page image.
-    
-        The path returned is a Unix-style path with forward slashes.
-    
-        This filename is entirely independent of the supplied `name`. It
-        includes a directory prefix of the first character of the UUID and
-        a fixed 'jp2' extension.
-    
-        Note that the image that `name` is of is most likely not a JPEG
-        2000 image. However, even though we're using a UUID, it's worth
-        not futzing about with the possibility of collisions with the
-        eventual filename. Also, it's more convenient to always be passing
-        around the real filename.
-    
-        :param instance: the instance of the model where the ImageField is
-          defined
-        :type instance: `models.Model`
-        :param filename: the filename that was originally given to the file
-        :type filename: `str`
-        :rtype: `str`
-    
-        """
-        
-        if instance.id:
-            # Reuse the existing filename. Unfortunately,
-            # instance.image.name gives the filename of the image being
-            # uploaded, so load the original record.
-            original = instance._default_manager.get(pk=instance.id)
-            image_path = original.iipimage.name
-            if not image_path:
-                # While the model instance exists, it previously had no
-                # image, so generate a new image path.
-                image_path = generate_new_image_path()
-            else:
-                # The original image file must be deleted or else the save
-                # will add a suffix to `image_path`.
-                # GN: iipimage
-                original.iipimage.delete(save=False)
-        else:
-            image_path = generate_new_image_path()
-        
-        return image_path
-    
-    storage.get_image_path = get_image_path
-    
-    # PATCH 2:
-    # subprocess.check_call(shlex.split(command.encode('ascii')))
-    # Didn't work on Windows. Changed to a cross-platform implementation.
-    
-    import os
-    
-    def _call_image_conversion (command, input_path):
-        """Run the supplied image conversion `command`.
-    
-        Tidy up by removing the original image at `input_path`.
-    
-        """
-        try:
-            # subprocess.check_call(shlex.split(command.encode('ascii')))
-            os.system(command.encode('ascii'))
-        except subprocess.CalledProcessError, e:
-            os.remove(input_path)
-            raise IOError('Failed to convert the page image to .jp2: %s' % e)
-        finally:
-            # Tidy up by deleting the original image, regardless of
-            # whether the conversion is successful or not.
-            os.remove(input_path)
-    
-    storage.image_storage._call_image_conversion = _call_image_conversion
-    
-    from iipimage import fields
-    
-    # Patch 3:
-    # The order of the query string arguments do matter,
-    # if CVT appears before HEI, the resizing will fail on some iip image server implementations
-    
-    def thumbnail_url (self, height=None, width=None):
-        try:
-            height = '&HEI=%s' % str(int(height))
-        except (TypeError, ValueError):
-            height = ''
-        try:
-            width = '&WID=%s' % str(int(width))
-        except (TypeError, ValueError):
-            width = ''
-        return '%s%s%s&CVT=JPEG' % (self.full_base_url, height, width)
-    
-    fields.ImageFieldFile.thumbnail_url = thumbnail_url
-    
 def mezzanine_patches():
     # Patch 4:
     # Fix Mezzanine case-insensitive keyword issue
     # See https://github.com/stephenmcd/mezzanine/issues/647
-    
-    from django.conf import settings
+
+    from mezzanine.conf import settings
     if 'mezzanine.blog' in settings.INSTALLED_APPS:
-    
+
         keyword_exists = True
         try:
             from mezzanine.generic.models import Keyword
@@ -154,54 +27,55 @@ def mezzanine_patches():
             keyword_exists = False
             if getattr(settings, 'DEV_SERVER', False):
                 print 'WARNING: import failed (%s) and Mezzanine Blog case-sensitive keywords patch cannot be applied.' % e
-        
+
         if keyword_exists:
             # patch integrated into the latest mezzanine version
-            
-#             from django.contrib.admin.views.decorators import staff_member_required
-#             @staff_member_required
-#             def admin_keywords_submit(request):
-#                 """
-#                 Adds any new given keywords from the custom keywords field in the
-#                 admin, and returns their IDs for use when saving a model with a
-#                 keywords field.
-#                 """
-#                 ids, titles = [], []
-#                 for title in request.POST.get("text_keywords", "").split(","):
-#                     title = "".join([c for c in title if c.isalnum() or c in "- "])
-#                     title = title.strip()
-#                     if title:
-#                         keywords = Keyword.objects.filter(title__iexact=title)
-#
-#                         # pick a case-sensitive match if it exists.
-#                         # otherwise pick any other match.
-#                         for keyword in keywords:
-#                             if keyword.title == title:
-#                                 break
-#
-#                         # no match at all, create a new keyword.
-#                         if not keywords.count():
-#                             keyword = Keyword(title=title)
-#                             keyword.save()
-#
-#                         id = str(keyword.id)
-#                         if id not in ids:
-#                             ids.append(id)
-#                             titles.append(title)
-#                 from django.http import HttpResponse
-#                 return HttpResponse("%s|%s" % (",".join(ids), ", ".join(titles)))
-#
-#             import mezzanine.generic.views
-#             mezzanine.generic.views.admin_keywords_submit = admin_keywords_submit
-            
+
+            #             from django.contrib.admin.views.decorators import staff_member_required
+            #             @staff_member_required
+            #             def admin_keywords_submit(request):
+            #                 """
+            #                 Adds any new given keywords from the custom keywords field in the
+            #                 admin, and returns their IDs for use when saving a model with a
+            #                 keywords field.
+            #                 """
+            #                 ids, titles = [], []
+            #                 for title in request.POST.get("text_keywords", "").split(","):
+            #                     title = "".join([c for c in title if c.isalnum() or c in "- "])
+            #                     title = title.strip()
+            #                     if title:
+            #                         keywords = Keyword.objects.filter(title__iexact=title)
+            #
+            #                         # pick a case-sensitive match if it exists.
+            #                         # otherwise pick any other match.
+            #                         for keyword in keywords:
+            #                             if keyword.title == title:
+            #                                 break
+            #
+            #                         # no match at all, create a new keyword.
+            #                         if not keywords.count():
+            #                             keyword = Keyword(title=title)
+            #                             keyword.save()
+            #
+            #                         id = str(keyword.id)
+            #                         if id not in ids:
+            #                             ids.append(id)
+            #                             titles.append(title)
+            #                 from django.http import HttpResponse
+            #                 return HttpResponse("%s|%s" % (",".join(ids), ", ".join(titles)))
+            #
+            #             import mezzanine.generic.views
+            #             mezzanine.generic.views.admin_keywords_submit = admin_keywords_submit
+
             # TODO: move this code to a new view that extends Mezzanine blog_post_detail.
-            # Not documented way of doing it so we stick with this temporary solution for the moment.
-            
+            # Not documented way of doing it so we stick with this temporary
+            # solution for the moment.
+
             def blogPost_get_related_posts_by_tag(self):
                 # returns a list of BlogPosts with common tags to the current post
                 # the list is reverse chronological order
                 ret = []
-                
+
                 from django.contrib.contenttypes.models import ContentType
                 content_type_id = ContentType.objects.get_for_model(self).id
                 select = r'''
@@ -217,7 +91,7 @@ def mezzanine_patches():
                     order by p.publish_date;
                 '''
                 params = [content_type_id, self.id, content_type_id, self.id]
-                
+
                 # run the query and remove duplicates
                 posts = {}
                 for post in BlogPost.objects.raw(select, params):
@@ -226,19 +100,19 @@ def mezzanine_patches():
                 keys.sort()
                 for key in keys[::-1]:
                     ret.append(posts[key])
-                        
+
                 return ret
-            
+
             from mezzanine.blog.models import BlogPost
             BlogPost.get_related_posts_by_tag = blogPost_get_related_posts_by_tag
-            
+
     # see https://github.com/stephenmcd/mezzanine/issues/1060
     patch_thumbnail = True
     if patch_thumbnail:
         from mezzanine.core.templatetags import mezzanine_tags
-        
+
         thumbnail = mezzanine_tags.thumbnail
-        
+
         def thumbnail_2(*args, **kwargs):
             ret = ''
             try:
@@ -247,6 +121,7 @@ def mezzanine_patches():
                 pass
             return ret
         mezzanine_tags.thumbnail = thumbnail_2
+
 
 def admin_patches():
     # Patch 5: bar permissions to some application models in the admin
@@ -258,61 +133,64 @@ def admin_patches():
     #
     # setings.HIDDEN_ADMIN_APPS = ('APP_LABEL_1', )
     #
-    
-    from django.conf import settings
+
+    from mezzanine.conf import settings
     import django.contrib.auth.models
-    
+
     _user_has_module_perms_old = django.contrib.auth.models._user_has_module_perms
-    
+
     def _user_has_module_perms(user, app_label):
         if user and not user.is_superuser and user.is_active and \
-            app_label in getattr(settings, 'HIDDEN_ADMIN_APPS', ()):
+                app_label in getattr(settings, 'HIDDEN_ADMIN_APPS', ()):
             return False
         return _user_has_module_perms_old(user, app_label)
-    
+
     django.contrib.auth.models._user_has_module_perms = _user_has_module_perms
-    
+
     _user_has_perm_old = django.contrib.auth.models._user_has_perm
+
     def _user_has_perm(user, perm, obj):
         # perm =  'digipal.add_allograph'
         if user and not user.is_superuser and user.is_active and perm and \
-            re.sub(ur'\..*$', '', '%s' % perm) in getattr(settings, 'HIDDEN_ADMIN_APPS', ()):
+                re.sub(ur'\..*$', '', '%s' % perm) in getattr(settings, 'HIDDEN_ADMIN_APPS', ()):
             return False
         return _user_has_perm_old(user, perm, obj)
-    
+
     django.contrib.auth.models._user_has_perm = _user_has_perm
-    
+
 # Whoosh 2.6 patch for the race condition during clearing of the cache
 # See JIRA DIGIPAL-480
+
+
 def whoosh_patches():
-    
+
     import functools
     from heapq import nsmallest
     from whoosh.compat import iteritems, xrange
     from operator import itemgetter
     from time import time
     from threading import Lock
-    
+
     def lru_cache(maxsize=100):
         """A simple cache that, when the cache is full, deletes the least recently
         used 10% of the cached values.
-    
+
         This function duplicates (more-or-less) the protocol of the
         ``functools.lru_cache`` decorator in the Python 3.2 standard library.
-    
+
         Arguments to the cached function must be hashable.
-    
+
         View the cache statistics tuple ``(hits, misses, maxsize, currsize)``
         with f.cache_info().  Clear the cache and statistics with f.cache_clear().
         Access the underlying function with f.__wrapped__.
         """
-    
+
         def decorating_function(user_function):
             stats = [0, 0]  # Hits, misses
             data = {}
             lastused = {}
             lock = Lock()
-    
+
             @functools.wraps(user_function)
             def wrapper(*args):
                 with lock:
@@ -332,22 +210,21 @@ def whoosh_patches():
                     finally:
                         lastused[args] = time()
                     return result
-    
+
             def cache_info():
                 with lock:
                     return stats[0], stats[1], maxsize, len(data)
-    
+
             def cache_clear():
                 with lock:
                     data.clear()
                     lastused.clear()
                     stats[0] = stats[1] = 0
-    
+
             wrapper.cache_info = cache_info
             wrapper.cache_clear = cache_clear
             return wrapper
         return decorating_function
-    
+
     from whoosh.util import cache
     cache.lru_cache = lru_cache
-    

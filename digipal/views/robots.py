@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.conf import settings
+from mezzanine.conf import settings
 
 def robots_view(request):
     from digipal.management.commands.sitemap import Command

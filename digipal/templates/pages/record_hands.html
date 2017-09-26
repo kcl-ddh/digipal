@@ -24,17 +24,17 @@
         <a href="{{ result.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a>
     </li>
     {% if cansee.handdescription %}
-	    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if result.descriptions.count %}{% else %}disabled{% endif %}">
+	    <li class="{% if tabid == "descriptions" %}active in{% endif %} {% if result.descriptions.count %}{% else %}disabled{% endif %}">
 	        <a href="{{ result.get_absolute_url }}descriptions/" data-address-bar="1" data-target="#descriptions" data-toggle="tab">Description</a>
 	    </li>
     {% endif %}
     {% if cansee.image %}
-        <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
+        <li class="{% if tabid == "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
             <a href="{{ result.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a>
         </li>
     {% endif %}
     {% if cansee.graph %}
-        <li class="{% if tabid = "graphs" %}active in{% endif %} {% if annotations_count > 0 %}{% else %}disabled{% endif %}">
+        <li class="{% if tabid == "graphs" %}active in{% endif %} {% if annotations_count > 0 %}{% else %}disabled{% endif %}">
             <a href="{{ result.get_absolute_url }}graphs/" data-address-bar="1" data-target="#graphs" data-toggle="tab">Graphs ({{ annotations_count }})</a>
         </li>
     {% endif %}
@@ -95,7 +95,7 @@
             </div>
 
             {% if cansee.handdescription %}
-            <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
+            <div class='tab-pane fade {% if tabid == "descriptions" %}active in{% endif %}' id='descriptions'>
                 {% for description in result.descriptions.all %}
                     <h3>
                         {% if description.label %}{{description.label}} - {% endif %}
@@ -119,7 +119,7 @@
             {% include "digipal/add_to_collection.html" %}
 
             {% if cansee.graph %}
-                <div class='tab-pane fade {% if tabid = "graphs" %}active in{% endif %}' id='graphs'>
+                <div class='tab-pane fade {% if tabid == "graphs" %}active in{% endif %}' id='graphs'>
                     {% include "digipal/annotations.html" %}
                 </div>
             {% endif %}

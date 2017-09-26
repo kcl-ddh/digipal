@@ -38,7 +38,7 @@ UPLOAD_IMAGES_URL = 'uploads/images/'
 UPLOAD_IMAGES_ROOT = os.path.join(PROJECT_ROOT, MEDIA_URL.strip('/'),
         UPLOAD_IMAGES_URL.strip('/'))
 
-MAX_THUMB_LENGTH = 50
+ARCHETYPE_THUMB_LENGTH_MAX = 50
 ```
 
 ### Haystack

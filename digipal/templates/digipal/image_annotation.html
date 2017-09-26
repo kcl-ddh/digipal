@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load html_escape hand_filters future mezzanine_tags %}
+{% load html_escape hand_filters mezzanine_tags %}
 
 {% block meta_title %}
     {% comment %}{% if image.item_part.pagination %}Page{% else %}Folio{% endif %}:{% endcomment %}
@@ -30,10 +30,10 @@
     </h2>
 
     {% if PAGE_IMAGE_SHOW_MSDATE or document_summary %}
-        <p>
-            <span data-placement="bottom" title="Date of the document" data-toggle="tooltip">{{ image.item_part.historical_item.date|default:'Unspecified' }}{% if PAGE_IMAGE_SHOW_MSDATE and document_summary %}:{% endif %}</span>
-            <span data-placement="bottom" data-toggle="tooltip" title="{{ document_summary|escape }}">{{ document_summary|truncatewords:15 }}</span>
-        </p>
+        <div>
+            <span data-placement="bottom" title="Date of the text" data-toggle="tooltip">{{ image.item_part.historical_item.get_first_text.date|default:'Unspecified' }}{% if PAGE_IMAGE_SHOW_MSDATE and document_summary %}:{% endif %}</span>
+            <div data-placement="bottom" data-toggle="tooltip" title="{{ document_summary|striptags|entities_to_unicode|escape }}" class="force-inline">{{ document_summary|truncatewords_html:15|safe }}</div>
+        </div>
     {% endif %}
 
     <input id="id_page" name="page" type="hidden" value="{{ image.id }}" />
@@ -62,7 +62,7 @@
                     </li>
                 {% endif %}
                 {% if cansee.textcontentxml %}
-                    <li class="{% if url = "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
+                    <li class="{% if url == "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
                         <a href="/digipal/page/{{ image.id }}/texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ text_content_xmls.count }})</a>
                     </li>
                 {% endif %}

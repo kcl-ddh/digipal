@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand
-from django.conf import settings
+from mezzanine.conf import settings
 from optparse import make_option
 from digipal import utils as dputils
 from digipal.utils import sorted_natural

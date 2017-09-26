@@ -1,5 +1,5 @@
 {% load html_escape %}
-<div class='tab-pane fade {% if tabid = "pages" %}active in{% endif %}' id='pages'>
+<div class='tab-pane fade {% if tabid == "pages" %}active in{% endif %}' id='pages'>
     {% if images %}
         {% for image in images %}
             {% if forloop.counter0|divisibleby:4 %}

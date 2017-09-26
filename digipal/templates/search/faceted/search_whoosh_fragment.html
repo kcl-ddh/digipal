@@ -46,7 +46,7 @@
                                 {% dp_pagination_with_size_for current_page %}
 
                                 {# SORT DROP DOWN (for grid view only) #}
-                                {% if result_type.get_selected_view.key = 'grid' or result_type.get_selected_view.key = 'ggrid2' %}
+                                {% if result_type.get_selected_view.key == 'grid' or result_type.get_selected_view.key == 'ggrid2' %}
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                                             <span data-toggle="tooltip" title="Sort result by">
@@ -118,25 +118,34 @@
                     <div class="panel panel-default" id="panel-{{ facet.key }}">
                         <div class="panel-heading">
                             <h4 class="panel-title">
-                                {% if facet.options.5 and not facet.expanded = 2 %}
+                                {% if settings.ARCHETYPE_SEARCH_HELP_URL %}
+                                    {# in a span otherwise BS doesn't show it as a link #}
+                                    <span class="facet-xp-info">
+                                        <a class="info-link" target="_blank" href="{{ settings.ARCHETYPE_SEARCH_HELP_URL }}#{{ facet.key }}" title="Learn more">
+                                            <i class="fa fa-question-circle" aria-hidden="true"></i>
+                                        </a>
+                                    </span>
+                                {% endif %}
+                                
+                                {% if facet.options.5 and not facet.expanded == 2 %}
+                                    {# in a span otherwise BS doesn't show it as a link #}
                                     <span class="facet-xp-icon">
                                         {% if facet.expanded == 1 %}
-                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=0{% endfilter %}">
+                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=0{% endfilter %}" title="Show less">
                                                 <span class="fa fa-chevron-down"></span>
                                             </a>
                                         {% else %}
-                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=1{% endfilter %}">
+                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=1{% endfilter %}" title="Show more">
                                                 <span class="fa fa-chevron-left"></span>
                                             </a>
                                         {% endif %}
                                     </span>
                                 {% endif %}
-                                {% comment %}<a data-toggle="collapse" data-target="#panel-{{ facet.key }}-body">{% endcomment %}
-                                    {{ facet.label }}
-                                    {% if facet.options %}
-                                        ({{ facet.options|length }})
-                                    {% endif %}
-                                {% comment %}</a>{% endcomment %}
+                                
+                                {{ facet.label }}
+                                {% if facet.options %}
+                                    ({{ facet.options|length }})
+                                {% endif %}
                             </h4>
                         </div>
                         <div id="panel-{{ facet.key }}-body" class="panel-collapse collapse in">
@@ -188,16 +197,16 @@
                                     <table class="table">
                                         {% if facet.options.5 and facet.options.0.count %}
                                             <tr>
-                                                <th><a href="{% filter add_query_params:request.META.QUERY_STRING %}?_st_{{facet.key}}=o{% endfilter %}">
+                                                <th><a href="{% filter add_query_params:request.META.QUERY_STRING %}?_st_{{facet.key}}=o{% endfilter %}" title="Sort alphabetically">
                                                     {% if facet.sorted_by == 'o' %}<span class="glyphicon glyphicon-arrow-down"></span>{% endif %}
-                                                    Option</a></th>
-                                                <th class="count"><a href="{% filter add_query_params:request.META.QUERY_STRING %}?_st_{{facet.key}}=c{% endfilter %}">
+                                                    A-Z</a></th>
+                                                <th class="count"><a href="{% filter add_query_params:request.META.QUERY_STRING %}?_st_{{facet.key}}=c{% endfilter %}" title="Sort by count">
                                                     {% if facet.sorted_by == 'c' %}<span class="glyphicon glyphicon-arrow-up"></span>{% endif %}
                                                     Count</a></th>
                                             </tr>
                                         {% endif %}
                                         {% for option in facet.options %}
-                                            {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected or facet.expanded = 2 %}
+                                            {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected or facet.expanded == 2 %}
                                                 <tr
                                                     {% if option.selected %}class="active"{% endif %}
                                                     >
@@ -217,7 +226,7 @@
                                                 </tr>
                                             {% endif %}
                                         {% endfor %}
-                                        {% if facet.options.5 and not facet.expanded = 2 %}
+                                        {% if facet.options.5 and not facet.expanded == 2 %}
                                             <tr><td colspan="2">
                                                 {% if facet.expanded == 1 %}
                                                     <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=0{% endfilter %}" class="btn btn-default small btn-expand-facet">Show less</a>

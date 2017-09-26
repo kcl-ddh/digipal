@@ -19,13 +19,13 @@ IMAGE_URLS_RELATIVE = True
 
 IMAGE_SERVER_ZOOMIFY = 'http://%s%s?zoomify=%s/'
 IMAGE_SERVER_PATH = '/iip/iipsrv.fcgi'
-IMAGE_SERVER_URL  = 'http://%s%s' % (IMAGE_SERVER_HOST, IMAGE_SERVER_PATH)
+IMAGE_SERVER_URL = 'http://%s%s' % (IMAGE_SERVER_HOST, IMAGE_SERVER_PATH)
 
 MANAGERS = ADMINS
 STATICFILES_DIRS = (
-        # Put strings here, like '/home/html/static' or 'C:/www/django/static'.
-        # Always use forward slashes, even on Windows.
-        # Don't forget to use absolute paths, not relative paths.
+    # Put strings here, like '/home/html/static' or 'C:/www/django/static'.
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
 )
 
 SHOW_QUICK_SEARCH_SCOPES = True
@@ -54,29 +54,8 @@ By default, it is disabled. You can enable it by setting the variable LIGHTBOX i
 """
 LIGHTBOX = True
 
-# Mezzanine
-SITE_TITLE = 'ProjectName'
-
-# Social
-"""
-The following variables contains the URLs/username to social networking sites.
-- The TWITTER variable asks for the Twitter username.
-- The GITHUB variable asks for the relative URL to your Github project or account
-- The COMMENTS_DISQUS_SHORTNAME asks for the Disqus shortname
-"""
-TWITTER = 'TwitterUsername'
-GITHUB = 'GithubUsername/ProjectName'
-COMMENTS_DISQUS_SHORTNAME = "yourDisqusName"
-
 # Annotator Settings
-
-"""
-If True, this setting will reject every change to the DB. To be used in production websites.
-"""
-REJECT_HTTP_API_REQUESTS = False    # if True, prevents any change to the DB
-
 """
 This setting allows to set the number of zoom levels available in the OpenLayers layer.
 """
 ANNOTATOR_ZOOM_LEVELS = 7   # This setting sets the number of zoom levels of O
-

@@ -1,6 +1,6 @@
 from django.core.management.base import CommandError
 from dpbase import DPBaseCommand as BaseCommand
-from django.conf import settings
+from mezzanine.conf import settings
 from os.path import isdir
 import os
 import re

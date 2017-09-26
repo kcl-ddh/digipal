@@ -193,13 +193,8 @@
              * callback(google_api_client)
             */
             gapi_call: function(callback) {
-                //      var clientId = '540110892086-927kglgctu9s6lbv0aa4k3b80s1j9pmr.apps.googleusercontent.com';
-                //      var apiKey = 'AIzaSyATws00qmNrMh9LTfLy_VUOhcA2OjYj8Ps';
-                //      var scopes = 'https://www.googleapis.com/auth/plus.me';
-                //var clientId = '148045849681-nacb9abh96ti4omlm0ldjk0spju0pc22.apps.googleusercontent.com';
-                //var apiKey = 'AIzaSyCBfvqrlpUmHFJBlTIIISHrM8AUmqe2xHs';
-                var clientId = '5476717076-8g5hi8hum8g48180bkbslf9u2ov3mnmj.apps.googleusercontent.com';
-                var apiKey = 'AIzaSyBPAzXEowbmq1oQbp65HIOBm_8ntfAFAaE';
+                var clientId = window.digipal_settings.ARCHETYPE_GOOGLE_SHORTENER_CLIENTID; 
+                var apiKey = window.digipal_settings.ARCHETYPE_GOOGLE_SHORTENER_API_KEY;
                 var scopes = 'https://www.googleapis.com/auth/plus.me';
 
                 // TODO: Where does gapi come from?

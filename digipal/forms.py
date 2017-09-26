@@ -155,7 +155,7 @@ class FilterManuscriptsImages(forms.Form):
 
 def get_search_terms_classes():
     ret = ''
-    from django.conf import settings
+    from mezzanine.conf import settings
     if getattr(settings, 'AUTOCOMPLETE_PUBLIC_USER', True):
         ret = ' autocomplete '
     return ret

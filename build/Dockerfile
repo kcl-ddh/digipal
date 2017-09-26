@@ -25,13 +25,18 @@ RUN apt-get update -y && apt-get install -y \
     postgresql \
     python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev \
     nginx uwsgi-plugin-python \
-    supervisor \
+    supervisor wget vim \
+&& apt remove -y python3.5 \
+&& apt-get clean \
 && rm -rf /var/lib/apt/lists/*
 
-########################
-# LESSC
+#&& apt autoremove -y \
 
-RUN npm install -g less typescript; ln -s /usr/bin/nodejs /usr/bin/node
+########################
+# LESSC & TYPESCRIPT
+
+# 2.1.5 b/c 2.4.2 displays compilation errors on Text Viewer 
+RUN npm install -g less typescript@2.1.5; ln -s /usr/bin/nodejs /usr/bin/node
 
 ########################
 # IMAGE PROCESSING
@@ -40,32 +45,10 @@ RUN npm install -g less typescript; ln -s /usr/bin/nodejs /usr/bin/node
 # see https://github.com/ruven/iipsrv
 # install dependencies (see above)
 
-WORKDIR /root
-RUN git clone https://github.com/ruven/iipsrv.git
-WORKDIR /root/iipsrv
-# Deployed in /root/iipsrv/src/iipsrv.fcgi
-RUN ./autogen.sh && ./configure && make
-
-########################
-# DATABASE
-# see http://docs.docker.com/examples/postgresql_service/
-
-USER postgres
-
-# Create the database, the user and allow local and remote access using md5 auth.
-# Fixes issue with Django accessing the DB
-# Adjust PostgreSQL configuration so that remote connections to the database are possible.
-RUN /etc/init.d/postgresql start &&\
-        psql -c "CREATE USER app_digipal WITH PASSWORD 'dppsqlpass';" &&\
-        createdb -E 'utf-8' -T template0 -O app_digipal digipal &&\
-        sed -i 's/local\s*all\s*all\s*peer/local    all    all    md5/' $(psql -c "SHOW hba_file;" | grep conf | xargs) &&\
-        echo "host all  all    0.0.0.0/0  md5" >> $(psql -c "SHOW hba_file;" | grep conf | xargs)
-
 USER root
 
-########################
-# PYTHON + PIP
-RUN pip install --upgrade pip
+COPY build-iipsrv.sh /tmp/build-iipsrv.sh
+RUN bash /tmp/build-iipsrv.sh
 
 ########################
 # DIGIPAL FRAMEWORK
@@ -76,29 +59,41 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "2" && git clone https://github.com/kcl-ddh/digipal.git /home/digipal
+RUN echo "11" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
+
+COPY * build/
+
+########################
+# DATABASE
+# see http://docs.docker.com/examples/postgresql_service/
+# move psql data directory inside digipal_project
+RUN bash build/repair_digipal_project.sh
+
+########################
+# PYTHON + PIP
+RUN pip install --upgrade pip
+
+########################
+# DIGIPAL FRAMEWORK
+
 RUN echo "1" && pip install -r build/requirements.txt
 
-# Configure it
-RUN ln -s local_settings.template.py digipal/local_settings.py
-
 # Create tables, admin and site records, indexes
+
+RUN build/fix_permissions.sh
+
 RUN /etc/init.d/postgresql start &&\
-        python manage.py syncdb --noinput &&\
         python manage.py migrate &&\
         python manage.py loaddata build/data_init.json build/data_char.json build/data_menu.json build/data_test.json &&\
         python manage.py dpsearch index &&\
-        python manage.py dpsearch index_facets &&\
-        python manage.py collectstatic --noinput
+        python manage.py dpsearch index_facets
+
+USER root
 
 ########################
 # WEB SERVER
 
 RUN rm /etc/nginx/sites-enabled/default && ln -s /home/digipal/build/nginx.conf /etc/nginx/sites-enabled/digipal.conf
-
-# give files to www-data
-WORKDIR /home/
-RUN chown -R www-data:www-data digipal && chmod -R ug+rw digipal && chmod -R o-rw digipal
 
 ########################
 # SUPERVISOR
@@ -110,5 +105,8 @@ EXPOSE 80
 ########################
 # START-UP
 
-#CMD ["/bin/bash", "/home/digipal/build/startup.sh"]
-CMD ["/usr/bin/supervisord", "-c", "/home/digipal/build/supervisord.conf"]
+ENV SHELL /bin/bash
+
+VOLUME /home/digipal/digipal_project/
+
+CMD ["/bin/bash", "/home/digipal/build/startup.sh"]

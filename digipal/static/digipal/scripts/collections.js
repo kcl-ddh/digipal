@@ -41,6 +41,9 @@ function Collections() {
 			event.stopPropagation();
 			event.preventDefault();
 		});
+		if (!window.digipal_settings.ARCHETYPE_GOOGLE_SHORTENER_CLIENTID) {
+		    share_collection.hide();
+		}
 
 		var delete_collection = $('#delete_collection');
 		delete_collection.on('click', function() {

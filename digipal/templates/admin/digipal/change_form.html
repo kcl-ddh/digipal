@@ -1,7 +1,17 @@
 {% extends "admin/change_form.html" %}
 
 <!-- LOADING -->
-{% load i18n future admin_modify %}
+{% load i18n admin_modify admin_static %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <style type="text/css">
+        div.selector {
+            /* GN: widen selector widget so two list don't stack on Safari */
+            width: 704px;
+        }
+    </style>
+{% endblock %}
 
 {% block object-tools %}
     {% if change %}
@@ -10,9 +20,11 @@
             {% if not is_popup %}
                 <li><a href="history/" class="historylink">{% trans "History" %}</a></li>
                 {% if has_absolute_url %}
-                    <li><a href="{{ adminform.form.instance.get_absolute_url }}" class="viewsitelink">
-                        {% trans "View on site" %}
-                    </a></li>
+                    <li>
+                        <a href="{{ adminform.form.instance.get_absolute_url }}" class="viewsitelink">
+                            {% trans "View on site" %}
+                        </a>
+                    </li>
                 {% endif%}
             {% endif %}
         </ul>
@@ -22,6 +34,6 @@
 {% block javascripts %}
     {{ block.super }}
 
-    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/admin/digipal-edit-related-objects.js"></script>
+    <script type="text/javascript" src="{% static "digipal/scripts/admin/digipal-edit-related-objects.js" %}"></script>
 
 {% endblock %}

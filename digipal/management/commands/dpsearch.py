@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
+from mezzanine.conf import settings
 from os.path import isdir
 import os
 import shlex
@@ -8,7 +8,6 @@ import re
 from optparse import make_option
 import utils
 from utils import Logger
-from django.utils.datastructures import SortedDict
 from digipal.views.faceted_search.search_indexer import SearchIndexer
 from __builtin__ import True
 
@@ -59,41 +58,41 @@ Options:
     args = 'index'
     option_list = BaseCommand.option_list + (
         make_option('--dry-run',
-            action='store_true',
-            dest='dry-run',
-            default=False,
-            help='Dry run, don\'t change any data.'),
+                    action='store_true',
+                    dest='dry-run',
+                    default=False,
+                    help='Dry run, don\'t change any data.'),
         make_option('--if',
-            action='store',
-            dest='index_filter',
-            default=None,
-            help='The name of the index to work with (All if unspecified)'),
+                    action='store',
+                    dest='index_filter',
+                    default=None,
+                    help='The name of the index to work with (All if unspecified)'),
         make_option('--user',
-            action='store',
-            dest='user',
-            default='',
-            help='The name of a Django user'),
+                    action='store',
+                    dest='user',
+                    default='',
+                    help='The name of a Django user'),
         make_option('--qs',
-            action='store',
-            dest='qs',
-            default='',
-            help='A query string'),
+                    action='store',
+                    dest='qs',
+                    default='',
+                    help='A query string'),
         make_option('--limit',
-            action='store',
-            dest='limit',
-            default='',
-            help='number of hits to return'),
+                    action='store',
+                    dest='limit',
+                    default='',
+                    help='number of hits to return'),
         make_option('--field',
-            action='store',
-            dest='field',
-            default='',
-            help='field name'),
+                    action='store',
+                    dest='field',
+                    default='',
+                    help='field name'),
         make_option('--ctf',
-            action='store',
-            dest='content_type_filter',
-            default=None,
-            help='The name of the content type to work with (All if unspecified)'),
-        )
+                    action='store',
+                    dest='content_type_filter',
+                    default=None,
+                    help='The name of the content type to work with (All if unspecified)'),
+    )
 
     def handle(self, *args, **options):
         self.logger = utils.Logger()
@@ -103,7 +102,8 @@ Options:
         self.options = options
 
         if len(args) < 1:
-            raise CommandError('Please provide a command. Try "python manage.py help dpsearch" for help.')
+            raise CommandError(
+                'Please provide a command. Try "python manage.py help dpsearch" for help.')
         command = args[0]
 
         known_command = False
@@ -146,7 +146,8 @@ Options:
             self.index_graph_description()
 
         if self.is_dry_run():
-            self.log('Nothing actually written (remove --dry-run option for permanent changes).', 1)
+            self.log(
+                'Nothing actually written (remove --dry-run option for permanent changes).', 1)
 
         if not known_command:
             print Command.help
@@ -187,7 +188,8 @@ Options:
         ''' returns the absolute path to all the index folders
         (optionally filtered by --if command line option)'''
         from digipal.utils import get_all_files_under
-        ret = get_all_files_under(settings.SEARCH_INDEX_PATH, filters=self.get_filtered_indexes())
+        ret = get_all_files_under(
+            settings.SEARCH_INDEX_PATH, filters=self.get_filtered_indexes())
         return ret
 
     def info(self, options):
@@ -224,7 +226,8 @@ Options:
                 print results
 
     def get_index_info(self, path):
-        ret = {'date': 0, 'size': 0, 'fields': [], 'entries': '?', 'segments': []}
+        ret = {'date': 0, 'size': 0, 'fields': [],
+               'entries': '?', 'segments': []}
 
         # basic filesystem info
         from digipal.utils import get_all_files_under
@@ -248,19 +251,23 @@ Options:
             with index.searcher() as searcher:
                 ret['entries'] = searcher.doc_count()
                 for segment in index._segments():
-                    ret['segments'].append({'id': segment.segid, 'entries': segment.doc_count()})
+                    ret['segments'].append(
+                        {'id': segment.segid, 'entries': segment.doc_count()})
                 for item in index.schema.items():
-                    field_info = {'name': item[0], 'type': item[1].__class__.__name__, 'range': [None, None]}
+                    field_info = {
+                        'name': item[0], 'type': item[1].__class__.__name__, 'range': [None, None]}
                     #values = list(searcher.lexicon(item[0]))
                     values = list(searcher.field_terms(item[0]))
                     #values_filtered = [v for v in values if repr(v) not in ['-2147483640L', '-2147483641L', '-2147483520L']]
                     values_filtered = values
                     if field_info['type'] == 'NUMERIC' and 'date' in field_info['name']:
-                        values_filtered = [v for v in values if v < 5000 and v > -5000]
+                        values_filtered = [
+                            v for v in values if v < 5000 and v > -5000]
                     if not values_filtered:
                         values_filtered = [0]
                     field_info['unique_values'] = len(list(values))
-                    field_info['range'] = [repr(v)[0:12] for v in [min(values_filtered), max(values_filtered)]]
+                    field_info['range'] = [repr(v)[0:12] for v in [
+                        min(values_filtered), max(values_filtered)]]
                     ret['fields'].append(field_info)
 
                     if field_info['name'] == afield:
@@ -268,7 +275,8 @@ Options:
 
                 if query:
                     info = {}
-                    ret['results'] = self.whoosh_search(query, searcher, index, info)
+                    ret['results'] = self.whoosh_search(
+                        query, searcher, index, info)
 
         return ret
 
@@ -336,8 +344,8 @@ Options:
             print len(results)
             print results
             print results[0]
-            #print results[0].highlights('recid')
-            #print results[1].results
+            # print results[0].highlights('recid')
+            # print results[1].results
             #resultids = [result['recid'] for result in results]
 
     def index_all(self, options):
@@ -409,7 +417,6 @@ Options:
                         if len(parts) == 2:
                             self.GET[parts[0]] = parts[1]
 
-
         request = Req()
         request.set_user(self.options['user'])
         request.set_query_string(self.options['qs'])
@@ -435,7 +442,8 @@ Options:
         simp_ana = SimpleAnalyzer()
         print 'Building %s index...' % index_name
 
-        # build a single schema from the fields exposed by the different search types
+        # build a single schema from the fields exposed by the different search
+        # types
         print '\tSchema:'
         fields = {}
         for type in types:
@@ -445,12 +453,14 @@ Options:
                     field_type = info['whoosh']['type']
 
                     if index_name == 'autocomplete':
-                        # break the long text fields into terms, leave the others as single expression
+                        # break the long text fields into terms, leave the
+                        # others as single expression
                         if not (field_type.__class__ == NUMERIC):
                             if info.get('long_text', False):
                                 field_type = TEXT(analyzer=simp_ana)
                             else:
-                                field_type = ID(stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
+                                field_type = ID(
+                                    stored=True, analyzer=IDAnalyzer() | LowercaseFilter())
                     print '\t\t%s' % field_type
                     fields[info['whoosh']['name']] = field_type
 
@@ -486,9 +496,11 @@ Options:
         from whoosh.analysis.filters import LowercaseFilter
         print 'Building %s index...' % index_name
 
-        # build a single schema from the fields exposed by the different search types
+        # build a single schema from the fields exposed by the different search
+        # types
         print '\tSchema:'
-        fields = {'gid': ID(stored=True), 'description': KEYWORD(lowercase=True, scorable=True)}
+        fields = {'gid': ID(stored=True), 'description': KEYWORD(
+            lowercase=True, scorable=True)}
         #fields = {'gid': ID(stored=True), 'description': TEXT(analyzer=SimpleAnalyzer(ur'[.\s]', True))}
 
         from whoosh.fields import Schema
@@ -504,7 +516,8 @@ Options:
         from digipal.models import Graph
         for graph in Graph.objects.filter(graph_components__isnull=False).prefetch_related('graph_components', 'graph_components__component', 'graph_components__features').distinct():
             c += 1
-            doc = {'gid': unicode(graph.id), 'description': graph.get_serialised_description()}
+            doc = {'gid': unicode(
+                graph.id), 'description': graph.get_serialised_description()}
             writer.add_document(**doc)
 
         print '\t\tIndex %d graphs' % c
@@ -512,7 +525,8 @@ Options:
         writer.commit()
 
     def recreate_index(self, index_name, schema):
-        ret = SearchIndexer.recreate_whoosh_index(settings.SEARCH_INDEX_PATH, index_name, schema)
+        ret = SearchIndexer.recreate_whoosh_index(
+            settings.SEARCH_INDEX_PATH, index_name, schema)
         return ret
 
     def is_dry_run(self):

@@ -1,5 +1,5 @@
 {% extends "blog/blog_post_list.html" %}
-{% load mezzanine_tags comment_tags keyword_tags rating_tags i18n future disqus_tags html_escape %}
+{% load mezzanine_tags comment_tags keyword_tags rating_tags i18n disqus_tags html_escape %}
 
 {% block meta_title %}{{ blog_post.meta_title }}{% endblock %}
 
@@ -42,8 +42,8 @@
         {% blocktrans with sometime=blog_post.publish_date|date:"d M Y" %}{{ sometime }}{% endblocktrans %}</li>
         <li> <i class='glyphicon glyphicon-folder-open'></i>
 
-            {% for category in blog_post.category_list %}
-                {% if blog_post.category_list|length == 1 %}
+            {% for category in blog_post.categories.all %}
+                {% if blog_post.categories.count == 1 %}
                     <a href="{% url "blog_post_list_category" category.slug %}">{{ category }}</a></li>
                 {% else %}
                     {% if forloop.last %}
@@ -88,7 +88,7 @@
     {# ******************************* CONTENT **************************** #}
     {% block blog_post_detail_content %}
         {% editable blog_post.content %}
-            {{ blog_post.content|richtext_filter|dpfootnotes|safe }}
+            {{ blog_post.content|richtext_filters|dpfootnotes|safe }}
         {% endeditable %}
     {% endblock %}
 

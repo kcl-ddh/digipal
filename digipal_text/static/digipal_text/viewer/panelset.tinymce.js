@@ -180,6 +180,14 @@ var PanelSetPlugIn = function(editor, url) {
         return insertSpanOnSelectedDropdownOption(selectedValue, 'person', 'chars');
     }
 
+    function insertPlaceOnSelectedDropdownOption(selectedValue) {
+        return insertSpanOnSelectedDropdownOption(selectedValue, 'place', 'chars');
+    }
+
+    function insertDateTimeOnSelectedDropdownOption(selectedValue) {
+        return insertSpanOnSelectedDropdownOption(selectedValue, 'datetime', 'chars');
+    }
+
     function insertSpanOnSelectedDropdownOption(selectedValue, tag, cat) {
         addSpan({'tag': tag, 'attributes': {'cat': cat, 'type': selectedValue}, 'conditions': {'isparent': null}});
     }
@@ -232,7 +240,7 @@ var PanelSetPlugIn = function(editor, url) {
     
     // Locations
     editor.addButton('pslocation', function() {
-        var items = [{text: 'Locus', value: 'locus'}, {text: 'Entry', value: 'entry'}, {text: 'Section', value: 'section'}];
+        var items = [{text: 'Locus', value: 'locus'}, {text: 'Entry', value: 'entry'}];
     
         return {
             type: 'listbox',
@@ -249,17 +257,20 @@ var PanelSetPlugIn = function(editor, url) {
     });
     
     // Clauses
-    addDropDown('psclause', 'Address,Disposition,Witnesses', 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
+    addDropDown('psclause', window.text_editor_options.buttons.psclause, 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
 
     // Other Clauses
-    addDropDown('psClauseSecondary', 'Arenga,Boundaries,Holding,Injunction,Malediction,Narration,Notification,Prohibition,Salutation,Sealing,Subscription,Intitulatio,Warrandice', 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
+    addDropDown('psClauseSecondary', window.text_editor_options.buttons.psClauseSecondary, 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
 
     // Person
     addDropDown('psperson', 'Title,Name', 'Person', null, insertPersonOnSelectedDropdownOption);
 
     // Place
-    //addDropDown('psplace', 'Name', null, insertClauseOnSelectedDropdownOption);
+    addDropDown('psplace', 'Name', 'Place', null, insertPlaceOnSelectedDropdownOption);
 
+    // Date Time
+    addDropDown('psdatetime', 'Date', 'Temporal', null, insertDateTimeOnSelectedDropdownOption);
+    
     // H1
     editor.addButton('psh1', {
         text: 'H1',

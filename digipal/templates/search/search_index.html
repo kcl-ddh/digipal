@@ -52,12 +52,15 @@
             var refresh_rate = 2;
 
             // called each time the ajax content is refreshed
-            $(window).on('dploaded', function() {
+            setInterval(function(){
                 if ($('.is_running').val() == '1') {
-                    setTimeout(function(){ $('#search-ajax-fragment a.action-refresh').click(); }, refresh_rate*1000);
+                    $('#search-ajax-fragment a.action-refresh').click();
                 }
+            }, refresh_rate*1000);
+            
+            $('body').on('click', 'button[name=action]', function() {
+                $('input[name=action]').val($(this).val());
             });
-            $(window).trigger('dploaded');
             
             $('body').on('click', '[name=select-0]', function() {
             	var checked = $(this).is(':checked');

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
+from mezzanine.conf import settings
 import re
 from digipal import utils as dputils
 from optparse import make_option

@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url
-from django.conf import settings
+from mezzanine.conf import settings
 
 urlpatterns = patterns('digipal_text.views')
 

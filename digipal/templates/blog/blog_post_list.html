@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n future mezzanine_tags blog_tags keyword_tags disqus_tags pagination_tags html_escape %}
+{% load i18n mezzanine_tags blog_tags keyword_tags disqus_tags pagination_tags html_escape %}
 
 {% block meta_title %}{% if page %}{{ page.richtextpage.meta_title }}{% else %}{% trans "Blog" %}{% endif %}{% endblock %}
 
@@ -66,7 +66,7 @@
         {% if page %}
         {% block blog_post_list_pagecontent %}
         {% editable page.richtextpage.content %}
-        {{ page.richtextpage.content|richtext_filter|safe }}
+        {{ page.richtextpage.content|richtext_filters|safe }}
         {% endeditable %}
         {% endblock %}
         {% endif %}
@@ -97,11 +97,11 @@
         <a href="{% url "blog_post_list_author" author %}">{{ author.get_full_name|default:author.username }}</a></li>
         {% endwith %}
          <li><i class='fa fa-calendar'></i> {% blocktrans with sometime=blog_post.publish_date|date:"d M Y" %}{{ sometime }}{% endblocktrans %}</li>
-        {% if blog_post.category_list %}
+        {% if blog_post.categories.all %}
         <li><i class='glyphicon glyphicon-folder-open'></i>
 
-            {% for category in blog_post.category_list %}
-                {% if blog_post.category_list|length == 1 %}
+            {% for category in blog_post.categories.all %}
+                {% if blog_post.categories.count == 1 %}
                     <a href="{% url "blog_post_list_category" category.slug %}">{{ category }}</a></li>
                 {% else %}
                     {% if forloop.last %}
@@ -131,11 +131,12 @@
             </a>
         </li>
             {% endif %}
-        {% if blog_post.keyword_list %}
+        {% keywords_for blog_post as tags %}
+        {% if tags %}
             <li>
                <i class='glyphicon glyphicon-tag'></i>
                 {% spaceless %}
-                {% for tag in blog_post.keyword_list %}
+                {% for tag in tags %}
                     <a href="{% url "blog_post_list_tag" tag.slug %}" class="tag">{{ tag }}</a>{% if not forloop.last %}, {% endif %}
                 {% endfor %}
                 {% endspaceless %}
@@ -157,8 +158,8 @@
 
     {% block blog_post_list_post_content %}
     {% editable blog_post.content %}
-    {{  blog_post.content|removetags:"a i b span div strong em blockquote"|safe|truncatewords:50 }}
-    <p style='margin-top:1.5%;'><a href="{{ blog_post.get_absolute_url }}" class='btn btn-default btn-sm'>{% trans "Read more" %}</a></p>
+        {{  blog_post.content|safe|truncatewords:50 }}
+        <p style='margin-top:1.5%;'><a href="{{ blog_post.get_absolute_url }}" class='btn btn-default btn-sm'>{% trans "Read more" %}</a></p>
     {% endeditable %}
     {% endblock %}
     </div>

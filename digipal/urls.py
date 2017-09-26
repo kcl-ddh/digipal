@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-from django.conf import settings
+from mezzanine.conf import settings
 from django.contrib import admin
 from mezzanine.core.views import direct_to_template
 from patches import mezzanine_patches, compressor_patch

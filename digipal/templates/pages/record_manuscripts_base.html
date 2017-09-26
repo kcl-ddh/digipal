@@ -17,18 +17,18 @@
 {% block record_tabs %}
     <li class="{% if not tabid %}active in{% endif %}">
         <a href="{{ item_part.get_absolute_url }}" data-address-bar="1" data-target="#data" data-toggle="tab">Information</a></li>
-    <li class="{% if tabid = "descriptions" %}active in{% endif %} {% if item_part.historical_item.description_set.count > 0 %}{% else %}disabled{% endif %}">
+    <li class="{% if tabid == "descriptions" %}active in{% endif %} {% if item_part.historical_item.description_set.count > 0 %}{% else %}disabled{% endif %}">
         <a href="{{ item_part.get_absolute_url }}descriptions/"  data-address-bar="1" data-target="#descriptions" data-toggle="tab">Descriptions ({{ item_part.historical_item.description_set.count }})</a></li>
     {% if cansee.image %}
-        <li class="{% if tabid = "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
+        <li class="{% if tabid == "pages" %}active in{% endif %} {% if images.count > 0 %}{% else %}disabled{% endif %}">
             <a href="{{ item_part.get_absolute_url }}pages/" data-address-bar="1" data-target="#pages" data-toggle="tab">Manuscript Images ({{ images.count }})</a></li>
     {% endif %}
     {% if cansee.hand %}
-        <li class="{% if tabid = "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
+        <li class="{% if tabid == "hands" %}active in{% endif %} {% if hands.count > 0 %}{% else %}disabled{% endif %}">
             <a href="{{ item_part.get_absolute_url }}hands/" data-address-bar="1" data-target="#hands" data-toggle="tab">Hands ({{ hands.count }})</a></li>
     {% endif %}
     {% if cansee.textcontentxml %}
-        <li class="{% if tabid = "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
+        <li class="{% if tabid == "texts" %}active in{% endif %} {% if text_content_xmls.count > 0 %}{% else %}disabled{% endif %}">
             <a href="{{ item_part.get_absolute_url }}texts/" data-address-bar="1" data-target="#texts" data-toggle="tab">Texts ({{ text_content_xmls.count }})</a></li>
     {% endif %}
 {% endblock %}
@@ -114,7 +114,9 @@
                         <dd>{{ item_part.historical_item.historical_item_format|default:'Unspecified' }}</dd>
                         {% comment %}TODO: use item_part.historical_itemS {% endcomment %}
 
+                        {% block ms_date %}
                         <dt>Date</dt><dd>{{ item_part.historical_item.date|default:'Unspecified' }}</dd>
+                        {% endblock %}
 
                         {% if item_part.historical_item.itemorigin_set.all.count %}
                             <dt>Origin</dt>
@@ -141,7 +143,7 @@
                 {% endblock %}
             </div>
 
-            <div class='tab-pane fade {% if tabid = "descriptions" %}active in{% endif %}' id='descriptions'>
+            <div class='tab-pane fade {% if tabid == "descriptions" %}active in{% endif %}' id='descriptions'>
                 {% if item_part.historical_item.description_set.count %}
                     {% for historical_item in item_part.historical_items.all %}
                         {% for desc in historical_item.get_descriptions %}
@@ -165,7 +167,7 @@
 
             {% include "pages/tab_images.html" %}
 
-            <div class='tab-pane fade {% if tabid = "hands" %}active in{% endif %}' id='hands'>
+            <div class='tab-pane fade {% if tabid == "hands" %}active in{% endif %}' id='hands'>
                 {% if hands.count %}
                     <ul class="list-group">
                         {% for hand in hands %}

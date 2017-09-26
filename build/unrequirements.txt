@@ -1,0 +1,21 @@
+#
+# Run the following command to uninstall unused python packages
+#
+# pip uninstall -r requirements
+#
+# Then ALWAYS run this after:
+#
+# pip install -r requirements
+#
+# For maintainer of this file, 
+# please append new entries at the TOP of the file.
+# Because pip uninstall will stop of package already removed
+
+# upgrade
+django-iipimage
+# replaced by beautifulsoup4
+BeautifulSoup
+# replaced by a fork
+Digital-Lightbox 
+# replaced by Django 1.7 migration system
+South

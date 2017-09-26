@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
+from mezzanine.conf import settings
 from os.path import isdir
 import os
 import shlex
@@ -13,6 +13,7 @@ from digipal.models import Text
 from digipal.models import HistoricalItem, ItemPart
 from django.db.models import Q
 from digipal.models import *
+
 
 class Command(BaseCommand):
     help = """
@@ -84,36 +85,36 @@ Commands:
     #help = 'Manage the Digipal database'
     option_list = BaseCommand.option_list + (
         make_option('--db',
-            action='store',
-            dest='db',
-            default='default',
-            help='Database alias'),
+                    action='store',
+                    dest='db',
+                    default='default',
+                    help='Database alias'),
         make_option('--branch',
-            action='store',
-            dest='branch',
-            default='',
-            help='Branch name'),
+                    action='store',
+                    dest='branch',
+                    default='',
+                    help='Branch name'),
         make_option('--force',
-            action='store_true',
-            dest='force',
-            default=False,
-            help='Force changes despite warnings'),
+                    action='store_true',
+                    dest='force',
+                    default=False,
+                    help='Force changes despite warnings'),
         make_option('--table',
-            action='store',
-            dest='table',
-            default='',
-            help='Name of the table to backup'),
+                    action='store',
+                    dest='table',
+                    default='',
+                    help='Name of the table to backup'),
         make_option('--order',
-            action='store',
-            dest='order',
-            default='',
-            help='Sort order'),
+                    action='store',
+                    dest='order',
+                    default='',
+                    help='Sort order'),
         make_option('--dry-run',
-            action='store_true',
-            dest='dry-run',
-            default=False,
-            help='Dry run, don\'t change any data.'),
-        )
+                    action='store_true',
+                    dest='dry-run',
+                    default=False,
+                    help='Dry run, don\'t change any data.'),
+    )
 
     def show_version(self):
         import digipal
@@ -128,14 +129,17 @@ Commands:
         con.enter_transaction_management()
         con.managed()
 
-        # Find all the couple of fragment where the SHelfmark + locus only vary on the side info
+        # Find all the couple of fragment where the SHelfmark + locus only vary
+        # on the side info
         fragments = {}
         for fragment in ItemPart.objects.filter(type=1).order_by('id'):
-            #print (ur'Fragment #%d %s' % (fragment.id, fragment)).encode('ascii', 'ignore')
+            # print (ur'Fragment #%d %s' % (fragment.id,
+            # fragment)).encode('ascii', 'ignore')
             key = '%s, %s' % (fragment.current_item.shelfmark, fragment.locus)
             key = re.sub(ur'\W+', '', key.lower())
             val = fragments.get(key, [])
-            if not val: fragments[key] = val
+            if not val:
+                fragments[key] = val
             val.append(fragment)
 
         for key, val in fragments.iteritems():
@@ -161,7 +165,8 @@ Commands:
         con.leave_transaction_management()
 
     def merge_frg_verso_into_recto(self, fv, fr):
-        print ('Merge pair %s: #%s (verso) -> #%s (recto)' % (fv.display_label, fv.id, fr.id)).encode('ascii', 'ignore')
+        print ('Merge pair %s: #%s (verso) -> #%s (recto)' %
+               (fv.display_label, fv.id, fr.id)).encode('ascii', 'ignore')
 
         # last checks
         if fv.group != fr.group:
@@ -264,7 +269,7 @@ Commands:
                     # we got a verso, find the corresponding recto
                     for rf2 in rfs:
                         if (rf2.current_item == rf.current_item) and \
-                            re.sub(ur'\s', '', rf2.locus.lower()) == re.sub(ur'\s', '', rf.locus.lower().replace('verso', 'recto')):
+                                re.sub(ur'\s', '', rf2.locus.lower()) == re.sub(ur'\s', '', rf.locus.lower().replace('verso', 'recto')):
                             self.merge_rf_verso_into_recto(rf, rf2)
                             rfs_merged.append(rf2)
                             break
@@ -278,10 +283,11 @@ Commands:
                 ip.group_locus = None
                 ip.save()
 
-        # remove the reference to the CI if it already exists in one of the fragments
+        # remove the reference to the CI if it already exists in one of the
+        # fragments
         rfs = ItemPart.objects.filter(type=rf_type).order_by('id')
         for rf in rfs:
-            if rf.current_item and ItemPart.objects.filter(group = rf, current_item = rf.current_item).count():
+            if rf.current_item and ItemPart.objects.filter(group=rf, current_item=rf.current_item).count():
                 print '\tREMOVE CI (IP #%s, %s)' % (rf.id, rf)
                 rf.current_item = None
             else:
@@ -360,20 +366,23 @@ Commands:
         rfv.group = None
         rfv.delete()
 
+    @transaction.atomic
     def dropTables(self, options):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
         con = connections[options.get('db')]
         table_filter = options.get('table', '')
         if not table_filter:
-            raise CommandError('Please provide a table filter using the --table option.')
-        #if table_filter == 'ALL': table_filter = ''
+            raise CommandError(
+                'Please provide a table filter using the --table option.')
+        if table_filter == 'ALL':
+            table_filter = ''
 
         tables = con.introspection.table_names()
         tables.sort()
 
-        con.enter_transaction_management()
-        #con.managed()
-        con.disable_constraint_checking()
+        # con.enter_transaction_management()
+        # con.managed()
+        # con.disable_constraint_checking()
 
         c = 0
         for table in tables:
@@ -382,8 +391,8 @@ Commands:
                 utils.dropTable(con, table, self.is_dry_run())
                 c += 1
 
-        con.commit()
-        con.leave_transaction_management()
+        # con.commit()
+        # con.leave_transaction_management()
 
         print '\n%s tables' % c
 
@@ -395,9 +404,8 @@ Commands:
         if not order:
             order = 'n'
 
-        if table_filter == 'ALL': table_filter = ''
-
-
+        if table_filter == 'ALL':
+            table_filter = ''
 
         con = connections[options.get('db')]
 
@@ -407,7 +415,8 @@ Commands:
 
         cursor = con.cursor()
 
-        date_fields = ['last_login', 'modified', 'publish_date', 'submit_date', 'action_time', 'entry_time', 'applied']
+        date_fields = ['last_login', 'modified', 'publish_date',
+                       'submit_date', 'action_time', 'entry_time', 'applied']
 
         table_displays = {}
 
@@ -427,26 +436,28 @@ Commands:
                 c += 1
                 count = utils.sqlSelectCount(con, table)
                 # find datetime field
-                table_desc = con.introspection.get_table_description(cursor, table)
+                table_desc = con.introspection.get_table_description(
+                    cursor, table)
                 max_date = ''
                 table_key = ''
                 for field in table_desc:
                     #field_type = con.introspection.data_types_reverse.get(field[1], '')
-                    #if re.search('(?i)datetime', field_type):
+                    # if re.search('(?i)datetime', field_type):
                     #    print field[0]
                     field_name = field[0]
                     if field_name in date_fields:
-                        max_date = utils.sqlSelectMaxDate(con, table, field_name)
+                        max_date = utils.sqlSelectMaxDate(
+                            con, table, field_name)
                         if max_date and isinstance(max_date, datetime):
                             table_key = max_date.strftime("%Y%m%d%H%M%S")
                             max_date = max_date.strftime("%y-%m-%d %H:%M:%S")
                         else:
                             max_date = ''
 
-                        #print '%s = %s' % (field_name, max_date)
+                        # print '%s = %s' % (field_name, max_date)
                 #table_display = '%10s%20s %s' % (count, max_date, table)
                 table_info.append([count, max_date, table])
-                #print table_display
+                # print table_display
 
 #                 if table_key:
 #                     table_displays[table_key] = table_display
@@ -455,10 +466,13 @@ Commands:
 
         reverse = ('-' in order)
         key_index = 2
-        if 'c' in order: key_index = 0
-        if 'd' in order: key_index = 1
+        if 'c' in order:
+            key_index = 0
+        if 'd' in order:
+            key_index = 1
 
-        table_info = sorted(table_info, key=lambda t: t[key_index], reverse=reverse)
+        table_info = sorted(
+            table_info, key=lambda t: t[key_index], reverse=reverse)
 
         print '%10s%20s %s' % ('Count', 'Date', 'Name')
         for table in table_info:
@@ -480,7 +494,8 @@ Commands:
         print
         from digipal.models import Image
         from django.db.models import Q
-        images = Image.objects.filter((Q(locus__endswith=r'v') | Q(locus__endswith=r'r')), item_part__pagination=True).order_by('item_part', 'id')
+        images = Image.objects.filter((Q(locus__endswith=r'v') | Q(
+            locus__endswith=r'r')), item_part__pagination=True).order_by('item_part', 'id')
         if not images:
             print 'No problem found.'
         for image in images:
@@ -488,7 +503,8 @@ Commands:
                 item_part_name = '[Encoding error]'
                 try:
                     item_part_name = u'%s' % image.item_part
-                    item_part_name = item_part_name.encode('ascii', 'xmlcharrefreplace')
+                    item_part_name = item_part_name.encode(
+                        'ascii', 'xmlcharrefreplace')
                 except:
                     pass
                 print 'Image# %-5s: %-8s (ItemPart #%s: %s)' % (image.id, image.locus.encode('ascii', 'xmlcharrefreplace'), image.item_part.id, item_part_name)
@@ -498,7 +514,8 @@ Commands:
         print '3. Detect unnecessary commas from display labels (HistoricalItem, Scribe, ItemPart, Allograph and derived models)'
 
         import digipal.models
-        model_class_names = [c for  c in dir(digipal.models) if re.search('^[A-Z]', c)]
+        model_class_names = [c for c in dir(
+            digipal.models) if re.search('^[A-Z]', c)]
 
         c = 0
         for model_class_name in model_class_names:
@@ -523,9 +540,11 @@ Commands:
 
     def cleanlocus(self, item_partids, options):
         if len(item_partids) < 1:
-            raise CommandError('Please provide a list of item part IDs. e.g. dpdb cleanlocus 10 30')
+            raise CommandError(
+                'Please provide a list of item part IDs. e.g. dpdb cleanlocus 10 30')
         from digipal.models import Image
-        images = Image.objects.filter(item_part__in = item_partids).order_by('id')
+        images = Image.objects.filter(
+            item_part__in=item_partids).order_by('id')
         c = 0
         for image in images:
             image.locus = re.sub(ur'(.*)(r|v)$', ur'\1', image.locus)
@@ -562,20 +581,23 @@ Commands:
 
         migrate_fields = ['evidence', 'reference']
         table_mapping = {
-                            'charters':         'digipal_historicalitem', # ref is a char (folio number)
-                            'date evidence':     'digipal_dateevidence', # reference is a FK to reference, evidence char(128)
-                            'facsimiles':         '', # ??? no table in dst
-                            'ms dates':         'digipal_date', # evidence char
-                            'ms origins':         'digipal_itemorigin', # evidence char
-                            'ms owners':         'digipal_owner', # evidence char
-                            'place evidence':     'digipal_placeevidence', # ref FK, evidence char
-                            'references':         '', # 'digipal_reference', already imported
-                            'scribes':             'digipal_scribe', # ref char => legacy_reference
-                        }
+            # ref is a char (folio number)
+            'charters':         'digipal_historicalitem',
+            # reference is a FK to reference, evidence char(128)
+            'date evidence':     'digipal_dateevidence',
+            'facsimiles':         '',  # ??? no table in dst
+            'ms dates':         'digipal_date',  # evidence char
+            'ms origins':         'digipal_itemorigin',  # evidence char
+            'ms owners':         'digipal_owner',  # evidence char
+            'place evidence':     'digipal_placeevidence',  # ref FK, evidence char
+            'references':         '',  # 'digipal_reference', already imported
+            'scribes':             'digipal_scribe',  # ref char => legacy_reference
+        }
 
         # NEW_DIGIPAL_REFERENCE_ID = reference_mapping[LEGACY_REFERENCE_ID]
         reference_mapping = {}
-        cur_dst = utils.sqlSelect(con_dst, 'select id, legacy_id from digipal_reference where legacy_id > 0')
+        cur_dst = utils.sqlSelect(
+            con_dst, 'select id, legacy_id from digipal_reference where legacy_id > 0')
         for ref in cur_dst.fetchall():
             reference_mapping[ref[1]] = ref[0]
         cur_dst.close()
@@ -584,7 +606,7 @@ Commands:
             table_desc = con.introspection.get_table_description(cursor, table)
             for field in table_desc:
                 #field_type = con.introspection.data_types_reverse.get(field[1], '')
-                #if re.search('(?i)datetime', field_type):
+                # if re.search('(?i)datetime', field_type):
                 #    print field[0]
                 field_name = field[0]
                 if re.search('(?i)(reference|evidence)', field_name):
@@ -596,7 +618,8 @@ Commands:
 
                     field_name_dst = field_name.lower()
 
-                    table_dest_desc = con_dst.introspection.get_table_description(cursor_dst, table_dst)
+                    table_dest_desc = con_dst.introspection.get_table_description(
+                        cursor_dst, table_dst)
                     table_dest_field_names = [f[0] for f in table_dest_desc]
 
                     if field_name_dst == 'reference':
@@ -611,7 +634,8 @@ Commands:
                     print '\tcopy to %s.%s' % (table_dst, field_name_dst)
 
                     # scan all the legacy records
-                    cur_src = utils.sqlSelect(con, 'select id, `%s` from `%s` order by id' % (field_name, table))
+                    cur_src = utils.sqlSelect(
+                        con, 'select id, `%s` from `%s` order by id' % (field_name, table))
                     recs_src = cur_src.fetchall()
 
                     missing = 0
@@ -621,7 +645,8 @@ Commands:
                         select = 'select id, legacy_id, %s from %s where legacy_id > 0'
                         if table_dst == 'digipal_historicalitem':
                             select += ' and historical_item_type_id = 1'
-                        cur_dst = utils.sqlSelect(con_dst, select % (field_name_dst, table_dst))
+                        cur_dst = utils.sqlSelect(
+                            con_dst, select % (field_name_dst, table_dst))
                         recs_dst = {}
                         for rec_dst in cur_dst.fetchall():
                             if rec_dst[1] in recs_dst:
@@ -638,23 +663,30 @@ Commands:
                                 #'print '\tWARNING: records is missing (legacy_id #%s)' % rec[0]
                                 missing += 1
                                 continue
-                            (rec_dst_id, rec_dst_legacy_id, rec_dst_value) = recs_dst[rec[0]]
+                            (rec_dst_id, rec_dst_legacy_id,
+                             rec_dst_value) = recs_dst[rec[0]]
 
-                            #if rec_dst[2] and (u'%s' % rec_dst[2]).strip().lower() != (u'%s' % rec[1]).strip().lower():
+                            # if rec_dst[2] and (u'%s' %
+                            # rec_dst[2]).strip().lower() != (u'%s' %
+                            # rec[1]).strip().lower():
                             new_value = rec[1]
                             if field_name_dst == 'reference_id':
-                                new_value = reference_mapping.get(new_value, None)
+                                new_value = reference_mapping.get(
+                                    new_value, None)
                             else:
                                 if new_value is None:
                                     new_value = ''
-                            #print value_src
+                            # print value_src
 
                             if rec_dst_value and (rec_dst_value != new_value):
                                 print '\tWARNING: value is different (legacy_id #%s, "%s" <> "%s")' % (rec[0], rec[1], rec_dst_value)
                                 continue
 
-                            utils.sqlWrite(con_dst, ('update %s set %s = ' % (table_dst, field_name_dst)) + (' %s WHERE id = %s '), [new_value, rec_dst_id], self.is_dry_run())
-                            #print 'update %s set %s = %s WHERE id = %s ' % (table_dst, field_name_dst, new_value, rec_dst_id)
+                            utils.sqlWrite(con_dst, ('update %s set %s = ' % (table_dst, field_name_dst)) + (
+                                ' %s WHERE id = %s '), [new_value, rec_dst_id], self.is_dry_run())
+                            # print 'update %s set %s = %s WHERE id = %s ' %
+                            # (table_dst, field_name_dst, new_value,
+                            # rec_dst_id)
                             written += 1
 
                         print '\t%s records changed. %s missing legacy records ' % (written, missing)
@@ -680,7 +712,8 @@ Commands:
 
         print '2a. fix \'abbrev.stroke,\' => \'abbrev. stroke\' in Character to match the Allograph.name otherwise we\'ll still have plenty of duplicates.'
 
-        # fix 'abbrev.stroke,' => 'abbrev. stroke' otherwise we'll still have duplicates
+        # fix 'abbrev.stroke,' => 'abbrev. stroke' otherwise we'll still have
+        # duplicates
         from digipal.models import Character
         try:
             character = Character.objects.get(name='abbrev.stroke')
@@ -745,12 +778,10 @@ Commands:
         from django.template.defaultfilters import slugify
         from digipal.templatetags.html_escape import update_query_string
 
-
-
-        #content = '''  href="?k1=v1&k2=v2.1#anchor1=1" href="?k3=v3&k2=v2.2"  href="/home" '''
+        # content = '''  href="?k1=v1&k2=v2.1#anchor1=1" href="?k3=v3&k2=v2.2"  href="/home" '''
         #updates = '''k2=&k5=v5'''
-        #print content
-        #print update_query_string(content, updates)
+        # print content
+        # print update_query_string(content, updates)
 #         from digipal.models import ItemPart
 #         for ip in ItemPart.objects.all():
 #             desc = ip.historical_item.get_display_description()
@@ -777,15 +808,17 @@ Commands:
         # ST.id=253 => H.id=1150
 
         #rec = StewartRecord.objects.get(id=253)
-        #rec.import_steward_record()
+        # rec.import_steward_record()
 
-        #print Hand.objects.filter(descriptions__description__contains='sema').count()
+        # print
+        # Hand.objects.filter(descriptions__description__contains='sema').count()
 
     def get_duplicate_cis(self):
         from digipal.models import CurrentItem
         duplicates = {}
         for ci in CurrentItem.objects.all():
-            key = self.get_normalised_code('%s-%s' % (ci.repository.id, ci.shelfmark))
+            key = self.get_normalised_code(
+                '%s-%s' % (ci.repository.id, ci.shelfmark))
             if key not in duplicates:
                 duplicates[key] = []
             duplicates[key].append(ci)
@@ -812,9 +845,11 @@ Commands:
                 continue
             for cat in cat_nums:
                 if cat.source.name not in self.get_pseudo_types():
-                     self.print_warning('HI with non-Sawyer / Pelteret number', 1)
-                     other_cat_nums = '\t\t%s' % ','.join(['%s' % cn for cn in hi.catalogue_numbers.all()])
-                     continue
+                    self.print_warning(
+                        'HI with non-Sawyer / Pelteret number', 1)
+                    other_cat_nums = '\t\t%s' % ','.join(
+                        ['%s' % cn for cn in hi.catalogue_numbers.all()])
+                    continue
             if other_cat_nums:
                 print other_cat_nums
                 continue
@@ -824,8 +859,10 @@ Commands:
                 print '\t%s' % self.get_obj_label(ip)
                 correct_ip = None
                 # We also look for duplicates of the CIs (see JIRA-230)
-                duplicate_cis = self.get_duplicates_of_current_item(ip.current_item, True)
-                correct_ips = list(ItemPart.objects.filter(current_item__in=duplicate_cis).exclude(historical_items__historical_item_type__name='charter').order_by('id'))
+                duplicate_cis = self.get_duplicates_of_current_item(
+                    ip.current_item, True)
+                correct_ips = list(ItemPart.objects.filter(current_item__in=duplicate_cis).exclude(
+                    historical_items__historical_item_type__name='charter').order_by('id'))
 
                 if len(correct_ips) == 0:
                     self.print_warning('no correct IP found', 2)
@@ -837,14 +874,17 @@ Commands:
                     for cip in correct_ips:
                         if self.loci_are_the_same(ip.locus, cip.locus):
                             if correct_ip:
-                                self.print_warning('more than one IP with the same locus', 2)
+                                self.print_warning(
+                                    'more than one IP with the same locus', 2)
                             correct_ip = cip
                 if correct_ip is None:
                     self.print_warning('no IP with same locus', 2)
-                    print (u'\t\t\t%s <> %s' % (repr(ip.locus), u' | '.join(repr(u'%s' % cip.locus) for cip in correct_ips)))
+                    print (u'\t\t\t%s <> %s' % (repr(ip.locus), u' | '.join(
+                        repr(u'%s' % cip.locus) for cip in correct_ips)))
                     continue
                 if not self.loci_are_the_same(ip.locus, correct_ip.locus):
-                    self.print_warning('selected correct IP has a different locus', 2)
+                    self.print_warning(
+                        'selected correct IP has a different locus', 2)
                     print '\t\t\t%s' % self.get_obj_label(correct_ip)
                     print u'\t\t\t%s <> %s' % (repr(ip.locus), repr(correct_ip.locus))
                     continue
@@ -854,10 +894,11 @@ Commands:
                 print '\t\t%s (Correct)' % self.get_obj_label(correct_hi)
                 print '\t\t%s (Correct)' % self.get_obj_label(correct_ip)
 
-                # create new text record based on the data in hi connected to correct_ip
+                # create new text record based on the data in hi connected to
+                # correct_ip
                 ips_conversion[ip.id] = correct_ip.id
             his_to_delete.add(hi.id)
-                # delete ip
+            # delete ip
             # delete hi
 
         return ips_conversion, his_to_delete, ip_count
@@ -877,7 +918,7 @@ Commands:
                 for hi in HistoricalItem.objects.filter(id__in=hi_ids):
                     print '\t%s (cannot be deleted)' % self.get_obj_label(hi)
                     his_to_keep.add(hi.id)
-                    #his_to_delete.remove(hi)
+                    # his_to_delete.remove(hi)
 
         his_to_delete = his_to_delete - his_to_keep
 
@@ -888,12 +929,13 @@ Commands:
 
     def create_text_records(self, ips_conversion, his_to_delete):
         # create the Texts
-        #for hi in HistoricalItem.objects.filter(id__in=his_to_delete):
+        # for hi in HistoricalItem.objects.filter(id__in=his_to_delete):
         for hi in HistoricalItem.objects.all():
             # Find or Create the text record
 
             # Get the HI Sawyer Cat Num
-            hi_cat_nums = hi.catalogue_numbers.filter(source__name__in=self.get_pseudo_types())
+            hi_cat_nums = hi.catalogue_numbers.filter(
+                source__name__in=self.get_pseudo_types())
             if hi_cat_nums.count() < 1:
                 continue
 
@@ -925,7 +967,8 @@ Commands:
                 # update the text
                 text = texts[0]
             if len(texts) > 1:
-                self.print_warning('More than one Text with that cat number', 1)
+                self.print_warning(
+                    'More than one Text with that cat number', 1)
                 continue
             if not text.name:
                 text.name = hi.display_label
@@ -951,7 +994,7 @@ Commands:
                 text.languages.add(hi.language)
 
             # connect the text to the correct item part
-            ## Check what to do for
+            # Check what to do for
 #             for ip in hi.item_parts.filter(id__in=ips_conversion.keys()):
 #                 from django.db.utils import IntegrityError
 #                 if not TextItemPart.objects.filter(text=text, item_part_id=ips_conversion[ip.id]).count():
@@ -971,14 +1014,16 @@ Commands:
             # create descriptions
             for description in hi.description_set.filter(source__name__in=self.get_pseudo_types()):
                 print '\tCreate description'
-                Description(source=description.source, description=description.description, text=text).save()
+                Description(source=description.source,
+                            description=description.description, text=text).save()
 
             text.save()
 
             if len(texts) == 0:
                 # create cat nums
                 for hi_cat_num in hi_cat_nums:
-                    CatalogueNumber(source=hi_cat_num.source, number=hi_cat_num.number, text=text).save()
+                    CatalogueNumber(source=hi_cat_num.source,
+                                    number=hi_cat_num.number, text=text).save()
 
     def process_pseudo_items(self):
         from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
@@ -987,13 +1032,14 @@ Commands:
         con.managed()
         con.disable_constraint_checking()
 
-        #text.objects.all().delete()
+        # text.objects.all().delete()
         utils.fix_sequences(db_alias='default', silent=True)
 
         # See JIRA 86 and 223
         print '\n1. Find pseudo HIs and pseudo IPs\n'
 
-        his = HistoricalItem.objects.filter(historical_item_type__name='charter').exclude(historical_item_format__name='Single-sheet').order_by('id')
+        his = HistoricalItem.objects.filter(historical_item_type__name='charter').exclude(
+            historical_item_format__name='Single-sheet').order_by('id')
 
         ips_conversion, his_to_delete, ip_count = self.find_pseudo_items(his)
 
@@ -1002,7 +1048,8 @@ Commands:
         his_to_delete = self.protect_pseudo_his(ips_conversion, his_to_delete)
 
         # Integrity check: no pseudo-IP can also be a correct IP
-        ip_correct_and_pseudo = set(ips_conversion.keys()).intersection(ips_conversion.values())
+        ip_correct_and_pseudo = set(
+            ips_conversion.keys()).intersection(ips_conversion.values())
         if len(ip_correct_and_pseudo):
             print 'ERROR: pseudo-IP = correct-IP'
             print ip_correct_and_pseudo
@@ -1080,7 +1127,8 @@ Commands:
 
                     # Reconnect the IP to the new HI
                     print '\t\tConnect cloned HI (%s) to IP (%s)' % (self.get_obj_label(hi_new), self.get_obj_label(ip))
-                    ItemPartItem.objects.filter(historical_item=hi, item_part=ip).delete()
+                    ItemPartItem.objects.filter(
+                        historical_item=hi, item_part=ip).delete()
                     ItemPartItem(historical_item=hi_new, item_part=ip).save()
 
         self.fix_imcomplete_clones()
@@ -1120,23 +1168,23 @@ Commands:
                     for desc in hi.description_set.all():
                         print '\t\tCreate description'
                         Description(historical_item=hi_clone,
-                                source=desc.source,
-                                description=desc.description,
-                                text_id=desc.text_id,
-                                comments=desc.comments,
-                                summary=desc.summary
-                                ).save()
+                                    source=desc.source,
+                                    description=desc.description,
+                                    text_id=desc.text_id,
+                                    comments=desc.comments,
+                                    summary=desc.summary
+                                    ).save()
 
                     # create the collation
                     hi_clone.collation_set.all().delete()
                     for col in hi.collation_set.all():
                         print '\t\tCreate collation'
                         Collation(historical_item=hi_clone,
-                                fragment=col.fragment,
-                                leaves=col.leaves,
-                                front_flyleaves=col.front_flyleaves,
-                                back_flyleaves=col.back_flyleaves
-                                ).save()
+                                  fragment=col.fragment,
+                                  leaves=col.leaves,
+                                  front_flyleaves=col.front_flyleaves,
+                                  back_flyleaves=col.back_flyleaves
+                                  ).save()
 
     def get_cloned_hi(self, hi):
         ret = HistoricalItem()
@@ -1167,7 +1215,8 @@ Commands:
         # Have to copy all the cat nums!
         for cat_num in hi.catalogue_numbers.all():
             print '\t\t\tCreate cat num: %s' % cat_num
-            CatalogueNumber(historical_item=ret, number=cat_num.number, source=cat_num.source).save()
+            CatalogueNumber(historical_item=ret,
+                            number=cat_num.number, source=cat_num.source).save()
 
         # layout! None of them has a layout so we can ignore this part.
         if hi.layout_set.count() > 0:
@@ -1187,7 +1236,8 @@ Commands:
     def get_duplicates_of_current_item(self, ci, echo=False):
         if not hasattr(self, 'duplicate_cis'):
             self.duplicate_cis = self.get_duplicate_cis()
-        key = self.get_normalised_code('%s-%s' % (ci.repository.id, ci.shelfmark))
+        key = self.get_normalised_code(
+            '%s-%s' % (ci.repository.id, ci.shelfmark))
         ret = self.duplicate_cis[key][:]
         if len(ret) > 1 and echo:
             self.print_warning('Bridged CIs with similar names', 2)
@@ -1195,9 +1245,10 @@ Commands:
         return ret
 
     def get_normalised_code(self, code):
-        #return re.sub(ur'\W+', ur'.', locus.lower().strip())
+        # return re.sub(ur'\W+', ur'.', locus.lower().strip())
         code = code.lower()
-        # For CUL and Oxford Bodleian we ignore the number between parenthesis at the end
+        # For CUL and Oxford Bodleian we ignore the number between parenthesis
+        # at the end
         if (code.startswith('20-')) or (code.startswith('43-')):
             code = re.sub(ur'\(\d+\)\s*$', ur'', code)
         code = re.sub(ur'(\s|,|\.|-|_|\u2013)+', ur'_', code)
@@ -1225,12 +1276,14 @@ Commands:
 
         path = self.get_backup_path()
         if not path:
-            raise CommandError('Path variable DP_BACKUP_PATH not set in your settings file.')
+            raise CommandError(
+                'Path variable DP_BACKUP_PATH not set in your settings file.')
         if not isdir(path):
             raise CommandError('Backup path not found (%s).' % path)
 
         if len(args) < 1:
-            raise CommandError('Please provide a command. Try "python manage.py help dpdb" for help.')
+            raise CommandError(
+                'Please provide a command. Try "python manage.py help dpdb" for help.')
         command = args[0]
 
         self.args = args[1:]
@@ -1238,7 +1291,8 @@ Commands:
         known_command = False
 
         if options['db'] not in settings.DATABASES:
-            raise CommandError('Database settings not found ("%s"). Check DATABASE array in your settings.py.' % options['db'])
+            raise CommandError(
+                'Database settings not found ("%s"). Check DATABASE array in your settings.py.' % options['db'])
 
         db_settings = settings.DATABASES[options['db']]
 
@@ -1294,7 +1348,8 @@ Commands:
 
         if command == 'fixseq':
             # fix the sequence number for auto incremental fields (e.g. id)
-            # Unfortunately posgresql import does not update them so we have to run this after an import
+            # Unfortunately posgresql import does not update them so we have to
+            # run this after an import
             known_command = True
 
             c = utils.fix_sequences(options.get('db', 'default'), True)
@@ -1331,7 +1386,8 @@ Commands:
         if command == 'restore':
             known_command = True
             if len(args) < 2:
-                raise CommandError('Please provide the name of the backup you want to restore. Use "pyhon manage.py dpdb list".')
+                raise CommandError(
+                    'Please provide the name of the backup you want to restore. Use "pyhon manage.py dpdb list".')
 
             file_base_name = args[1]
             file = os.path.join(path, file_base_name) + '.sql'
@@ -1340,8 +1396,9 @@ Commands:
 
             arg_host = ''
             if db_settings['HOST']:
-                arg_host = ' -h %s ' % db_settings['HOST'] 
-            cmd = 'psql -q -U %s %s %s < %s > tmp' % (db_settings['USER'], arg_host, db_settings['NAME'], file)
+                arg_host = ' -h %s ' % db_settings['HOST']
+            cmd = 'psql -q -U %s %s %s < %s > tmp' % (
+                db_settings['USER'], arg_host, db_settings['NAME'], file)
             self.run_shell_command(cmd)
 
         if command == 'user':
@@ -1388,8 +1445,9 @@ Commands:
             output_file = os.path.join(path, file_base_name + '.sql')
             arg_host = ''
             if db_settings['HOST']:
-                arg_host = ' -h %s ' % db_settings['HOST'] 
-            cmd = 'pg_dump -c %s -U %s %s -f "%s" %s ' % (table_option, db_settings['USER'], arg_host, output_file, db_settings['NAME'])
+                arg_host = ' -h %s ' % db_settings['HOST']
+            cmd = 'pg_dump -c %s -U %s %s -f "%s" %s ' % (
+                table_option, db_settings['USER'], arg_host, output_file, db_settings['NAME'])
             self.run_shell_command(cmd)
             print 'Database saved to %s' % output_file
 
@@ -1402,7 +1460,8 @@ Commands:
         con_dst = connections['default']
         for col in cols:
             try:
-                sql = 'CREATE INDEX %s_%s ON %s (%s)' % (table, col, table, col)
+                sql = 'CREATE INDEX %s_%s ON %s (%s)' % (
+                    table, col, table, col)
                 utils.sqlWrite(con_dst, sql)
             except ProgrammingError, e:
                 if 'already exists' in '%s' % e:
@@ -1421,7 +1480,8 @@ Commands:
 
         self.set_settings('DP_BUILD_NUMBER', settings.DP_BUILD_NUMBER + 1)
         from datetime import datetime
-        self.set_settings('DP_BUILD_TIMESTAMP', datetime.now().strftime('%d/%m/%Y %H:%M:%S'))
+        self.set_settings('DP_BUILD_TIMESTAMP',
+                          datetime.now().strftime('%d/%m/%Y %H:%M:%S'))
         self.set_settings('DP_BUILD_BRANCH', self.options['branch'].strip())
         self.show_build_info()
 
@@ -1445,11 +1505,12 @@ Commands:
             if res != 0:
                 raise Exception('Exit code %s' % (res, ))
         except Exception, e:
-            #os.remove(input_path)
-            raise CommandError('Error executing command: %s (%s)' % (e, command))
+            # os.remove(input_path)
+            raise CommandError(
+                'Error executing command: %s (%s)' % (e, command))
         finally:
             # Tidy up by deleting the original image, regardless of
             # whether the conversion is successful or not.
-            #os.remove(input_path)
+            # os.remove(input_path)
             pass
         return ret

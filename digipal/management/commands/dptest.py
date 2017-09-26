@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand, CommandError
 from dpbase import DPBaseCommand
-from django.conf import settings
+from mezzanine.conf import settings
 from os.path import isdir
-import os, sys
+import os
+import sys
 import shlex
 import subprocess
 import re
@@ -14,6 +15,7 @@ from digipal.utils import natural_sort_key
 from digipal.templatetags.hand_filters import chrono
 from django.template.defaultfilters import slugify
 from time import sleep
+
 
 class Command(DPBaseCommand):
     help = """
@@ -65,26 +67,26 @@ Commands:
     args = 'locus|email'
     option_list = BaseCommand.option_list + (
         make_option('--db',
-            action='store',
-            dest='db',
-            default='default',
-            help='Name of the target database configuration (\'default\' if unspecified)'),
+                    action='store',
+                    dest='db',
+                    default='default',
+                    help='Name of the target database configuration (\'default\' if unspecified)'),
         make_option('--src',
-            action='store',
-            dest='src',
-            default='hand',
-            help='Name of the source database configuration (\'hand\' if unspecified)'),
+                    action='store',
+                    dest='src',
+                    default='hand',
+                    help='Name of the source database configuration (\'hand\' if unspecified)'),
         make_option('--table',
-            action='store',
-            dest='table',
-            default='',
-            help='Name of the tables to backup. This acts as a name filter.'),
+                    action='store',
+                    dest='table',
+                    default='',
+                    help='Name of the tables to backup. This acts as a name filter.'),
         make_option('--dry-run',
-            action='store_true',
-            dest='dry-run',
-            default=False,
-            help='Dry run, don\'t change any data.'),
-        )
+                    action='store_true',
+                    dest='dry-run',
+                    default=False,
+                    help='Dry run, don\'t change any data.'),
+    )
 
     def handle(self, *args, **options):
 
@@ -93,10 +95,52 @@ Commands:
         self.options = options
 
         if len(args) < 1:
-            raise CommandError('Please provide a command. Try "python manage.py help dpmigrate" for help.')
+            raise CommandError(
+                'Please provide a command. Try "python manage.py help dpmigrate" for help.')
         command = args[0]
 
         known_command = False
+
+        if command == 'test_admin':
+            '''
+            Send web request to all admin change list, add, and change_form pages
+            Usage: DJANGO_SITE_ROOT_URL DJANGO_SESSIONID
+            Example: http://localhost:8080 6o436pngqgpjg0bqd46fhge3a458t92x
+            '''
+            known_command = True
+
+            if len(args) < 3:
+                print 'Please provide a root URL, e.g. http://localhost:8080'
+                print 'And a sesion id, e.g. 6o436pngqgpjg0bqd46fhge3a458t92x'
+                exit()
+
+            root_url = args[1]
+            sessionid = args[2]
+
+            from django.contrib import admin
+            from django.core import urlresolvers
+            from utils import web_fetch
+            for amodel, aadmin in admin.site._registry.iteritems():
+                print amodel, aadmin
+
+                obj = amodel.objects.first()
+
+                url_part = '%s_%s' % (amodel._meta.app_label,
+                                      amodel._meta.model_name)
+
+                urls = [
+                    urlresolvers.reverse('admin:%s_add' % url_part),
+                    urlresolvers.reverse('admin:%s_changelist' % url_part)
+                ]
+                if obj:
+                    urls.append(urlresolvers.reverse(
+                        'admin:%s_change' % url_part, args=(obj.pk,)))
+
+                for url in urls:
+                    url = root_url + url
+                    res = web_fetch(url, sessionid=sessionid, noredirect=True)
+                    if res['status'] != '200':
+                        print 'WARNING: %s code returned by %s' % (res['status'], url)
 
         if command == 'hd':
             # 8546 </c> [1145, 1145, 1145, 1231, 1231, 1231, 1231, 1231, 1231, 1231]
@@ -115,7 +159,8 @@ Commands:
             # 1 <note place="bottom" n="15"> [777]
             # 3 <note place="bottom" n="16"> [817, 1065, 1188]
             # 3 <title level="m" > [659, 887, 336]
-            # 36 <title level="m"> [1227, 1227, 548, 13, 18, 21, 598, 604, 619, 619]
+            # 36 <title level="m"> [1227, 1227, 548, 13, 18, 21, 598, 604, 619,
+            # 619]
 
             els = {}
 
@@ -124,7 +169,7 @@ Commands:
             for hd in HandDescription.objects.all():
                 desc = hd.description
                 if desc and len(desc) > 0:
-                    #print hd.id, len(desc)
+                    # print hd.id, len(desc)
                     for el in re.findall(ur'(?ui)<[^>]+>', desc):
                         v = els.get(el, [])
                         v.append(hd.hand.id)
@@ -133,14 +178,14 @@ Commands:
             for el in sorted(els.keys()):
                 print len(els[el]), el, els[el][0:10]
 
-        if command =='record_path':
+        if command == 'record_path':
             known_command = True
             self.record_path(*args[1:])
 
-        if command =='download_images':
+        if command == 'download_images':
             known_command = True
             self.download_images(*args[1:])
-            
+
         if command == 'jsdates':
             known_command = True
             d = {
@@ -156,14 +201,14 @@ Commands:
             d2 = dputils.json_loads(ds)
             print repr(d2)
 
-        if command =='mem':
+        if command == 'mem':
             known_command = True
             self.test_mem(*args[1:])
 
-        if command =='cmp_locus':
+        if command == 'cmp_locus':
             known_command = True
             from digipal import utils as dputils
-            
+
             cases = [
                 ['1r', '2r', -1],
                 ['2r', '1r', 1],
@@ -177,34 +222,35 @@ Commands:
                 ['235br', '235bv', -1],
                 ['235br', '236r', -1],
             ]
-            
+
             fail_count = 0
             for case in cases:
                 res = dputils.cmp_locus(case[0], case[1])
                 if res != case[2]:
-                    fail_count += 1 
+                    fail_count += 1
                     print 'FAILED: %s, got %s' % (repr(case), res)
-            
+
             print '%s / %s' % (len(cases) - fail_count, len(cases))
 
         if command == 'get_locuses':
             from digipal.models import Image
-            existing_locations = dputils.sorted_natural(Image.objects.filter(item_part__display_label__icontains='ex').values_list('locus', flat=1), 0, 1)
+            existing_locations = dputils.sorted_natural(Image.objects.filter(
+                item_part__display_label__icontains='ex').values_list('locus', flat=1), 0, 1)
             print '\n'.join(existing_locations)
 
         if command == 'date_prob':
             known_command = True
             self.date_prob(*args[1:])
 
-        if command =='multivalued':
+        if command == 'multivalued':
             known_command = True
             self.multivalued(*args[1:])
 
-        if command =='cpip':
+        if command == 'cpip':
             known_command = True
             self.cpip(*args[1:])
 
-        if command =='unstatic':
+        if command == 'unstatic':
             known_command = True
             self.unstatic()
 
@@ -213,7 +259,7 @@ Commands:
             from digipal.models import HandDescription
             from digipal.utils import convert_xml_to_html
             for hd in HandDescription.objects.all():
-                #if hd.hand.id != 1226: continue
+                # if hd.hand.id != 1226: continue
                 print '-' * 80
                 print hd.id, hd.hand.id
                 print repr(hd.description)
@@ -230,7 +276,7 @@ Commands:
                     ['149v20-51r2', ['149v', '150r', '150v', '151r']],
                     ['277r1-8', ['277r']],
                     ['277v1', ['277v']],
-                ]
+            ]
             for case in cases:
                 result = expand_folio_range(case[0])
                 if ';'.join(result) != ';'.join(case[1]):
@@ -316,7 +362,7 @@ Commands:
             from digipal.models import Image
             print '0'
             #im0 = Image()
-            #im0.save()
+            # im0.save()
             print '1'
             im = Image.objects.get(id=400)
             im.iipimage = 'jp2/admin-upload/e/ebcf3583-dd40-431f-8327-92d6f7c1822b.jp2'
@@ -357,9 +403,9 @@ Commands:
     def unstatic(self):
         print 'unstatic'
         static_root = settings.STATIC_ROOT
-        
+
         is_verbose = self.is_verbose()
-        
+
         counts = {'deleted': 0, 'left': 0}
         if len(static_root) > 10:
             for root, subdirs, files in os.walk(static_root):
@@ -372,13 +418,13 @@ Commands:
                         if is_verbose:
                             print 'WARNING: leave transpiled (%s)' % os.path.relpath(path, static_root)
                         continue
-                    
+
                     try:
                         os.unlink(path)
                         counts['deleted'] += 1
                     except Exception, e:
                         print 'WARNING: %s not deleted (%s)' % (path, e)
-        
+
         print '%s deleted' % counts['deleted']
         print '%s left' % counts['left']
 
@@ -397,11 +443,13 @@ Commands:
 
         tct = TextContentType.objects.first()
 
-        ip = ItemPart.objects.exclude(id__in=TextContent.objects.all().values_list('item_part_id', flat=True)).first()
+        ip = ItemPart.objects.exclude(id__in=TextContent.objects.all(
+        ).values_list('item_part_id', flat=True)).first()
 
         print 'IP without text: %s' % ip
 
-        if not ip: return
+        if not ip:
+            return
 
         if 0:
             TextContent(item_part=ip, type=tct).save()
@@ -413,7 +461,8 @@ Commands:
 
         args = (None, ip.id, tct.slug, 'default', '', tct)
         kwargs = {'user': True}
-        utils.run_in_thread_advanced(text_api_view_text, args, kwargs, athreads=10, wait=True, print_results=True)
+        utils.run_in_thread_advanced(
+            text_api_view_text, args, kwargs, athreads=10, wait=True, print_results=True)
 
         # delete all the TC & TCX records for this IP
         TextContent.objects.filter(item_part=ip).delete()
@@ -436,7 +485,7 @@ Commands:
                             u'Record ID (MOA HI)': u'%s' % hi.id,
                             u'Evidence': u'%s' % u'| '.join([u'%s' % de.evidence for de in hi.date_evidences.all()]),
                             })
-                #print date, hi.id, hi.display_label
+                # print date, hi.id, hi.display_label
 
         write_rows_to_csv(file_path, rows, encoding='utf-8')
         print 'Written %s' % file_path
@@ -466,7 +515,7 @@ Commands:
             status = '='
             if vers[0] != vers[1]:
                 status = '>'
-                if  natural_sort_key(vers[0]) < natural_sort_key(vers[1]):
+                if natural_sort_key(vers[0]) < natural_sort_key(vers[1]):
                     status = '<'
             print '%3s %10s %10s %s' % (status, vers[0], vers[1], pkg)
 
@@ -483,7 +532,8 @@ Commands:
         writer = ix.writer()
         values = [u'Value One', u'Term Two', u'Value One;Term Two']
         i = 0
-        vf = lambda v: v.split(';')
+
+        def vf(v): return v.split(';')
         for value in values:
             i += 1
             writer.add_document(id=i, f1=vf(value))
@@ -567,7 +617,7 @@ Commands:
                 filename += '.jpg'
 
             print 'downloading %s to %s' % (aurl, filename)
-            #break
+            # break
 
             res = web_fetch(aurl)
             if res['error']:
@@ -591,7 +641,7 @@ Commands:
                 def incn(m):
                     # 0001
                     n = m.group(0)
-                    return ('%0'+str(len(n))+'d') % (int(n) + 1)
+                    return ('%0' + str(len(n)) + 'd') % (int(n) + 1)
 
                 # increment number
                 locus = re.sub(ur'\d+', incn, locus)
@@ -603,7 +653,9 @@ Commands:
 
         max_length = 2000
 
-        # e.g. pm dptest recim "http://xxxx/proxy?method=R&ark=btv1b6001165p.f320&l=6&r=5923,3407,731,1406&save" 157v.png
+        # e.g. pm dptest recim
+        # "http://xxxx/proxy?method=R&ark=btv1b6001165p.f320&l=6&r=5923,3407,731,1406&save"
+        # 157v.png
 
         # download all the parts
         print 'download tiles...'
@@ -618,16 +670,17 @@ Commands:
                 for x in range(0, 10):
                     for y in range(0, 10):
                         print '', x, y
-                        url = re.sub(ur'\d+,\d+,\d+,\d+', '%d,%d,%d,%d' % (y * max_length, x * max_length, max_length, max_length), url)
-                        #print url
+                        url = re.sub(ur'\d+,\d+,\d+,\d+', '%d,%d,%d,%d' %
+                                     (y * max_length, x * max_length, max_length, max_length), url)
+                        # print url
                         info = web_fetch(url)
                         #warning = ('OK' if info['status'] == '200' else 'ERROR!!!!!!!!!!')
                         status = info['status']
-                        #print status
+                        # print status
                         if not status == '200':
                             #tile_file = info['body']
                             break
-                        tile_name = '%d-%d.jpg' % (x,y)
+                        tile_name = '%d-%d.jpg' % (x, y)
                         write_file(tile_name, info['body'])
                         tile_numbers[0] = max(tile_numbers[0], x)
                         tile_numbers[1] = max(tile_numbers[1], y)
@@ -650,14 +703,15 @@ Commands:
             im = Image.new('RGB', size, 'white')
             for x in range(0, tile_numbers[0] + 1):
                 for y in range(0, tile_numbers[1] + 1):
-                    tile_name = '%d-%d.jpg' % (x,y)
+                    tile_name = '%d-%d.jpg' % (x, y)
                     panel = Image.open(tile_name).convert('RGB')
 
                     # paste that panel
                     box = [0, 0]
                     box.extend(panel.size)
                     crop = panel.crop(box)
-                    target_area = (x * max_length, y * max_length, x*max_length + crop.size[0], y*max_length + crop.size[1])
+                    target_area = (x * max_length, y * max_length, x *
+                                   max_length + crop.size[0], y * max_length + crop.size[1])
                     print '', x, y, crop.size, target_area
                     im.paste(crop, target_area)
 
@@ -704,7 +758,7 @@ Commands:
             #value = getattr(obj, path_name)
             if value:
                 rng = get_range_from_date(value)
-                #print u'%30s %s' % (rng, value)
+                # print u'%30s %s' % (rng, value)
                 if rng[0] and rng[0] > -5000:
                     if ret[0] is None:
                         ret[0] = rng[0]
@@ -728,7 +782,8 @@ Commands:
             query = HistoricalItem.objects.all()
         else:
             query = Date.objects.all()
-            #for d in Date.objects.filter(date__contains='Ca ').order_by('id'):
+            # for d in Date.objects.filter(date__contains='Ca
+            # ').order_by('id'):
 
         rid = None
         if len(args) == 2:
@@ -771,7 +826,8 @@ Commands:
 
     def adhoc_test(self, *args):
         from digipal import utils
-        #print utils.get_plain_text_from_html('''<p>a</p><p>b<a href="&gt;yo&lt;">c</a></p>''')
+        # print utils.get_plain_text_from_html('''<p>a</p><p>b<a
+        # href="&gt;yo&lt;">c</a></p>''')
         d = '670 (? for 937) or 937'
         #d = 'c. 950x68'
         print d
@@ -817,34 +873,36 @@ Commands:
         print ret.encode('ascii', 'ignore')
 
     def annotation_test(self):
-#         ips = ItemOrigin.objects.values_list('id', 'place__name')
-#         print ips
-#         return
-#
-#         fields = [
-#             'current_item__repository__place__name',
-#             'current_item__repository__name', 'current_item__shelfmark', 'locus', 'historical_items__date', 'group__historical_items__name', 'historical_items__name', 'hands__scribe__scriptorium__name', 'hands__script__name', 'historical_items__description__description', 'id', 'historical_items__catalogue_number',
-#             'historical_items__itemorigin__place__name',
-#             'subdivisions__current_item__repository__place__name',
-#             'subdivisions__current_item__repository__name',
-#             'current_item__repository__place__name',
-#             'current_item__repository__name',
-#             'hands__assigned_place__name',
-#             'hands__scribe__date', 'hands__assigned_date__date', 'hands__scribe__name', 'locus', 'subdivisions__current_item__shelfmark', 'current_item__shelfmark']
-#         ips = ItemPart.objects.all().values_list(*fields)
-#         ips[0]
+        #         ips = ItemOrigin.objects.values_list('id', 'place__name')
+        #         print ips
+        #         return
+        #
+        #         fields = [
+        #             'current_item__repository__place__name',
+        #             'current_item__repository__name', 'current_item__shelfmark', 'locus', 'historical_items__date', 'group__historical_items__name', 'historical_items__name', 'hands__scribe__scriptorium__name', 'hands__script__name', 'historical_items__description__description', 'id', 'historical_items__catalogue_number',
+        #             'historical_items__itemorigin__place__name',
+        #             'subdivisions__current_item__repository__place__name',
+        #             'subdivisions__current_item__repository__name',
+        #             'current_item__repository__place__name',
+        #             'current_item__repository__name',
+        #             'hands__assigned_place__name',
+        #             'hands__scribe__date', 'hands__assigned_date__date', 'hands__scribe__name', 'locus', 'subdivisions__current_item__shelfmark', 'current_item__shelfmark']
+        #         ips = ItemPart.objects.all().values_list(*fields)
+        #         ips[0]
         from django.contrib.auth.models import User
 
         ans = []
         # create an editorial annotation with internal note
         gj = u'{"type":"Feature","properties":{"saved":1},"geometry":{"type":"Polygon","coordinates":[[[2737,1476],[2775,1476],[2775,1420],[2737,1420],[2737,1476]]]},"crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
-        an = Annotation(image=Image.objects.all().first(), cutout='123', vector_id='v0', geo_json=gj, author=User.objects.all().first())
+        an = Annotation(image=Image.objects.all().first(), cutout='123',
+                        vector_id='v0', geo_json=gj, author=User.objects.all().first())
         an.internal_note = 'int note'
         ans.append(an)
 
         # create an editorial annotation with display note
         gj = u'{"type":"Feature","properties":{"saved":1},"geometry":{"type":"Polygon","coordinates":[[[2737,1476],[2775,1476],[2775,1420],[2737,1420],[2737,1476]]]},"crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
-        an = Annotation(image=Image.objects.all().first(), cutout='123', vector_id='v0', geo_json=gj, author=User.objects.all().first())
+        an = Annotation(image=Image.objects.all().first(), cutout='123',
+                        vector_id='v0', geo_json=gj, author=User.objects.all().first())
         an.display_note = 'disp note'
         ans.append(an)
 
@@ -854,7 +912,8 @@ Commands:
         gr.hand = Hand.objects.all().first()
         gr.save()
         gj = u'{"type":"Feature","properties":{"saved":1},"geometry":{"type":"Polygon","coordinates":[[[2737,1476],[2775,1476],[2775,1420],[2737,1420],[2737,1476]]]},"crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
-        an = Annotation(image=Image.objects.all().first(), cutout='123', vector_id='v0', geo_json=gj, author=User.objects.all().first())
+        an = Annotation(image=Image.objects.all().first(), cutout='123',
+                        vector_id='v0', geo_json=gj, author=User.objects.all().first())
         an.graph = gr
         ans.append(an)
 
@@ -919,13 +978,15 @@ Commands:
 
             def run(self):
                 now = datetime.now()
-                #print '#%d %s Request' % (self.index, str(now))
+                # print '#%d %s Request' % (self.index, str(now))
                 info = web_fetch(url)
                 now = datetime.now()
-                warning = ('OK' if info['status'] == '200' else 'ERROR!!!!!!!!!!')
+                warning = ('OK' if info['status'] ==
+                           '200' else 'ERROR!!!!!!!!!!')
                 self.status = info['status']
-                #print info['status']
-                #print '#%d %s %s %s' % (self.index, str(now), info['status'], warning)
+                # print info['status']
+                # print '#%d %s %s %s' % (self.index, str(now), info['status'],
+                # warning)
 
         test_count = int(count)
         ts = []
@@ -942,7 +1003,7 @@ Commands:
             error_count = sum([1 for t in ts if t.status == '500'])
             if alive_count != alive_count_old:
                 alive_count_old = alive_count
-                print 'waiting (%d died, %d left, %d errors)' % (test_count- alive_count, alive_count, error_count)
+                print 'waiting (%d died, %d left, %d errors)' % (test_count - alive_count, alive_count, error_count)
 #                 if error_count > 0:
 #                     exit()
             if alive_count:
@@ -963,7 +1024,8 @@ Commands:
 
         chrono('search:')
         idx = readFile('ica.idx')
-        matches = re.findall(ur'(?ui)\b%s(?:[^|]{0,40}\|\||\w*\b)' % re.escape(phrase), idx)
+        matches = re.findall(
+            ur'(?ui)\b%s(?:[^|]{0,40}\|\||\w*\b)' % re.escape(phrase), idx)
         chrono(':search')
         print (u'\n'.join(set(matches))).encode('ascii', 'ignore')
         print len(idx)
@@ -1020,33 +1082,33 @@ Commands:
         stats = []
 
         pages = [
-                '',
-                # main search
-                'digipal/search/',
-                'digipal/search/?terms=+&basic_search_type=manuscripts&ordering=&years=&result_type=',
-                # search graph
-                'digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',
-                # browse images
-                'digipal/page',
-                # image
-                'digipal/page/364/',
-                'digipal/page/364/allographs',
-                'digipal/page/364/copyright/',
-                # static pages
-                'about',
-                'about/how-to-use-digipal/',
-                'about/feedback/',
-                # blog and news
-                'blog/category/blog/',
-                'blog/category/news/',
-                'blog/bl-labs-launch-palaeographers-speak-with-forked-ascenders/',
-                # records
-                'digipal/hands/278/?basic_search_type=manuscripts&result_type=hands',
-                'digipal/scribes/96/',
-                'digipal/manuscripts/715/',
-                # collection
-                'digipal/lightbox/',
-                ]
+            '',
+            # main search
+            'digipal/search/',
+            'digipal/search/?terms=+&basic_search_type=manuscripts&ordering=&years=&result_type=',
+            # search graph
+            'digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',
+            # browse images
+            'digipal/page',
+            # image
+            'digipal/page/364/',
+            'digipal/page/364/allographs',
+            'digipal/page/364/copyright/',
+            # static pages
+            'about',
+            'about/how-to-use-digipal/',
+            'about/feedback/',
+            # blog and news
+            'blog/category/blog/',
+            'blog/category/news/',
+            'blog/bl-labs-launch-palaeographers-speak-with-forked-ascenders/',
+            # records
+            'digipal/hands/278/?basic_search_type=manuscripts&result_type=hands',
+            'digipal/scribes/96/',
+            'digipal/manuscripts/715/',
+            # collection
+            'digipal/lightbox/',
+        ]
 
         #pages = ['digipal/search/graph/?script_select=&character_select=&allograph_select=punctus+elevatus&component_select=&feature_select=&terms=&submitted=1&view=images',]
         #pages = ['digipal/page/362/',]
@@ -1122,9 +1184,10 @@ Commands:
                         msg = 'Script included twice: %s' % script_names[0]
                     scripts[script_names[0]] = 1
             if line.find('</script') > -1 and script_open_line is not None:
-                msg = 'Inline script (%d lines, starts at %s)' % (ln - script_open_line, script_open_line)
+                msg = 'Inline script (%d lines, starts at %s)' % (
+                    ln - script_open_line, script_open_line)
                 script_open_line = None
-            styles =  re.findall(ur'''style\s*=\s*['"]([^"']*)''', line)
+            styles = re.findall(ur'''style\s*=\s*['"]([^"']*)''', line)
             for style in styles:
                 style = re.sub(ur'(?:height|width)\s*:\s*[^;]*', ur'', style)
                 style = style.replace(' ', '')
@@ -1144,7 +1207,8 @@ Commands:
         import bs4
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(body)
-        print (' title: %s' % re.sub(ur'\s+', ' ', soup.title.string.replace('\n', ''))).encode('ascii', 'ignore')
+        print (' title: %s' % re.sub(ur'\s+', ' ',
+                                     soup.title.string.replace('\n', ''))).encode('ascii', 'ignore')
 
         # find all the headers
         print 'heading:'
@@ -1162,18 +1226,21 @@ Commands:
                     break
 
             if not has_container:
-                print ('    ? : Bootstrap ERROR: Rows must be placed within a .container (fixed-width) or .container-fluid (full-width) for proper alignment and padding\n\t\t%s ' % self.get_opening_tag(row)).encode('ascii', 'ignore')
+                print ('    ? : Bootstrap ERROR: Rows must be placed within a .container (fixed-width) or .container-fluid (full-width) for proper alignment and padding\n\t\t%s ' %
+                       self.get_opening_tag(row)).encode('ascii', 'ignore')
 
         # check that all cols are under a row
         for col in soup.find_all('div'):
             cl = ' '.join(col.get('class', []))
             if re.search(ur'\bcol-\w\w-\d\b', cl):
                 if col.parent.name != 'div' or ('row' not in col.parent.get('class', [])):
-                    print ('    ? : Bootstrap ERROR: Content should be placed within columns, and only columns may be immediate children of rows\n\t\t[ %s ] under [ %s ]' % (self.get_opening_tag(col), self.get_opening_tag(col.parent))).encode('ascii', 'ignore')
+                    print ('    ? : Bootstrap ERROR: Content should be placed within columns, and only columns may be immediate children of rows\n\t\t[ %s ] under [ %s ]' % (
+                        self.get_opening_tag(col), self.get_opening_tag(col.parent))).encode('ascii', 'ignore')
 
         # HTML validation
         if 1:
-            import urllib2, time
+            import urllib2
+            import time
             attempts = 0
             ok = True
             while True:
@@ -1186,14 +1253,18 @@ Commands:
                 except urllib2.HTTPError:
                     time.sleep(1)
                     ok = False
-                if ok: break
-                if attempts > 2: break
+                if ok:
+                    break
+                if attempts > 2:
+                    break
 
             if ok:
                 for info in vld.warnings:
-                    ret.append('%6s: [W3C WARNING] %s' % (info['line'], info['message']))
+                    ret.append('%6s: [W3C WARNING] %s' %
+                               (info['line'], info['message']))
                 for info in vld.errors:
-                    ret.append('%6s: [W3C ERROR  ] %s' % (info['line'], info['message']))
+                    ret.append('%6s: [W3C ERROR  ] %s' %
+                               (info['line'], info['message']))
             else:
                 ret.append('\tFailed to call W3C validation.')
 
@@ -1203,7 +1274,8 @@ Commands:
         # we calculate a better offset for the annotations by searching for a
         # best match of one annotation along a line between the old (cropped)
         # and new (uncropped) image.
-        # pm dptest adjust_offsets crop_offsets.json c:\vol\digipal2\images\originals\bl\backup_bl_from_server\bl
+        # pm dptest adjust_offsets crop_offsets.json
+        # c:\vol\digipal2\images\originals\bl\backup_bl_from_server\bl
 
         ###
         # UPDATE THE LOCAL DB FROM THE STG BEFORE RUNNING THIS!!!
@@ -1215,15 +1287,19 @@ Commands:
         c = -1
         ca = 0
         for rel_path, info in images['images'].iteritems():
-            images['images'][rel_path]['offset'].append(images['images'][rel_path]['offset'][1])
-            images['images'][rel_path]['offset'].append(images['images'][rel_path]['offset'][2])
-            if images['images'][rel_path]['offset'][3] < 0: images['images'][rel_path]['offset'][3] = 0
-            if images['images'][rel_path]['offset'][4] > 0: images['images'][rel_path]['offset'][4] = 0
+            images['images'][rel_path]['offset'].append(
+                images['images'][rel_path]['offset'][1])
+            images['images'][rel_path]['offset'].append(
+                images['images'][rel_path]['offset'][2])
+            if images['images'][rel_path]['offset'][3] < 0:
+                images['images'][rel_path]['offset'][3] = 0
+            if images['images'][rel_path]['offset'][4] > 0:
+                images['images'][rel_path]['offset'][4] = 0
 
-            #if rel_path != ur'arundel_60\83v': continue
-            #if rel_path != ur'add_46204\recto': continue
-            #if rel_path != ur'cotton_caligula_axv\152v': continue
-            #if rel_path != ur'harley_5915\13r': continue
+            # if rel_path != ur'arundel_60\83v': continue
+            # if rel_path != ur'add_46204\recto': continue
+            # if rel_path != ur'cotton_caligula_axv\152v': continue
+            # if rel_path != ur'harley_5915\13r': continue
             c += 1
             print '%s (%d left)' % (rel_path, len(images['images']) - c)
 
@@ -1234,7 +1310,8 @@ Commands:
                 continue
 
             # find an annotation in the database
-            a = Annotation.objects.filter(image__iipimage__endswith=rel_path.replace('\\', '/')+'.jp2')
+            a = Annotation.objects.filter(
+                image__iipimage__endswith=rel_path.replace('\\', '/') + '.jp2')
             if a.count() == 0:
                 print '\tskipped (no annotation)'
                 continue
@@ -1270,7 +1347,8 @@ Commands:
                             diff0 = sps[x + xs, ys] - dps[box[0][0] + xs, ys]
                             diff = abs(diff0)
                         else:
-                            diff += abs(sps[x + xs, ys] - dps[box[0][0] + xs, ys] - diff0)
+                            diff += abs(sps[x + xs, ys] -
+                                        dps[box[0][0] + xs, ys] - diff0)
                 if diff < min_info[1]:
                     min_info = [x, diff]
             print '\tbest match at x = %s (diff = %s)' % (min_info[0], min_info[1])
@@ -1279,7 +1357,7 @@ Commands:
             print '\toffset: %s; detected: %s' % (repr(info['offset']), offsetx)
             if info['offset'][1] != offsetx:
                 print '\t******************************************'
-                #if info['offset'][1] < 0 and offsetx != 0:
+                # if info['offset'][1] < 0 and offsetx != 0:
                 #    print '\t!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
 
         print '%d images with annotations.' % ca
@@ -1294,21 +1372,22 @@ Commands:
 
         counts = {'image': 0, 'annotation': 0}
         for path, info in images['images'].iteritems():
-            #if path != 'harley_5915\\13r': continue
-            #if path != 'harley_585\\191v': continue
-            #if path != 'arundel_60\\83v': continue
+            # if path != 'harley_5915\\13r': continue
+            # if path != 'harley_585\\191v': continue
+            # if path != 'arundel_60\\83v': continue
             offsets = info['offset']
             if offsets[0]:
                 print path.replace('\\', '/')
-                #continue
+                # continue
                 print '\t%s' % repr(offsets)
-                imgs = Image.objects.filter(iipimage__endswith=path.replace('\\', '/')+'.jp2')
+                imgs = Image.objects.filter(
+                    iipimage__endswith=path.replace('\\', '/') + '.jp2')
                 c = imgs.count()
                 if c == 0:
-                    #print '\tWARNING: Image record not found.'
+                    # print '\tWARNING: Image record not found.'
                     continue
                 if c > 1:
-                    #print '\tWARNING: More than one Image record not found.'
+                    # print '\tWARNING: More than one Image record not found.'
                     continue
 
                 annotations = imgs[0].annotation_set.filter().distinct()
@@ -1316,20 +1395,21 @@ Commands:
                     counts['image'] += 1
                     for annotation in annotations:
                         counts['annotation'] += 1
-                        #print
-                        #print annotation.id, annotation.vector_id
-                        #print annotation.cutout
-                        #print annotation.geo_json
-                        annotation.cutout = self.get_uncropped_cutout(annotation, info)
-                        annotation.geo_json = self.get_uncropped_geo_json(annotation, offsets)
+                        # print
+                        # print annotation.id, annotation.vector_id
+                        # print annotation.cutout
+                        # print annotation.geo_json
+                        annotation.cutout = self.get_uncropped_cutout(
+                            annotation, info)
+                        annotation.geo_json = self.get_uncropped_geo_json(
+                            annotation, offsets)
 
-                        #print annotation.cutout
-                        #print annotation.geo_json
+                        # print annotation.cutout
+                        # print annotation.geo_json
                         annotation.save()
                     print '\t%d annotations' % annotations.count()
 
-        #print counts
-
+        # print counts
 
     # TODO: remove, only temporary
     def get_uncropped_cutout(self, annotation, image_info):
@@ -1366,21 +1446,24 @@ Commands:
 
             # axis: 0 for x; 1 for y
             d = 0
-            if i in (2, 4): d = 1
+            if i in (2, 4):
+                d = 1
             offset = offsets[3 + d]
             nl = size[d]
             l = nl - abs(offset)
             #if (offset < 0) or (i > 2): offset = 0
-            if (i > 2): offset = 0
+            if (i > 2):
+                offset = 0
             #if (i > 1): offset = 0
 
             r = ((r * l) + offset) / nl
 
             rgn.append(r)
 
-        #print rgn
-        ret = re.sub(ur'RGN=[^&]+', ur'RGN=' + ','.join(['%.6f' % r for r in rgn]), ret)
-        #print ret
+        # print rgn
+        ret = re.sub(ur'RGN=[^&]+', ur'RGN=' +
+                     ','.join(['%.6f' % r for r in rgn]), ret)
+        # print ret
 
         return ret
 
@@ -1420,9 +1503,9 @@ Commands:
 
         coo = geo_json['geometry']['coordinates'][0]
         for c in coo:
-            #if offsets[1] > 0:
+            # if offsets[1] > 0:
             c[0] = int(c[0] + offsets[3])
-            #if offsets[2] > 0:
+            # if offsets[2] > 0:
             #c[1] = int(c[1] - offsets[4])
 
         # convert the coordinates
@@ -1476,11 +1559,11 @@ Commands:
         print '\nDifferent\n'
         different = sorted(different)
         for f in different:
-            #if not(f == 'add_46204\\recto'): continue
+            # if not(f == 'add_46204\\recto'): continue
             src['images'][f]['offset'] = self.get_image_offset(src, dst, f)
             print f
             print '', src['images'][f]['offset']
-            #print '', src['images'][f]['offset']
+            # print '', src['images'][f]['offset']
 
         # save the offsets
         print
@@ -1524,17 +1607,21 @@ Commands:
         '''
         from PIL import Image
 
-        cropped_path = os.path.join(dst['root'], f) + '.' + dst['images'][f]['ext']
-        uncropped_path = os.path.join(src['root'], f) + '.' + src['images'][f]['ext']
+        cropped_path = os.path.join(
+            dst['root'], f) + '.' + dst['images'][f]['ext']
+        uncropped_path = os.path.join(
+            src['root'], f) + '.' + src['images'][f]['ext']
         cropped_img = Image.open(cropped_path)
         uncropped_img = Image.open(uncropped_path)
 
-        ret = [False, uncropped_img.size[0] - cropped_img.size[0], uncropped_img.size[1] - cropped_img.size[1]]
+        ret = [False, uncropped_img.size[0] - cropped_img.size[0],
+               uncropped_img.size[1] - cropped_img.size[1]]
 
-        corner_diffs = [self.are_corner_identical(cropped_img, uncropped_img, *pos) for pos in [[0,0],[-1,0],[-1,-1],[0,-1]]]
+        corner_diffs = [self.are_corner_identical(
+            cropped_img, uncropped_img, *pos) for pos in [[0, 0], [-1, 0], [-1, -1], [0, -1]]]
         min_index = corner_diffs.index(min(corner_diffs))
         if min_index == 0:
-             ret = [True, -ret[1], -ret[2]]
+            ret = [True, -ret[1], -ret[2]]
         if min_index == 1:
             ret = [True, ret[1], -ret[2]]
         if min_index == 2:
@@ -1542,8 +1629,7 @@ Commands:
         if min_index == 3:
             ret = [True, -ret[1], ret[2]]
 
-
-        #print corner_diffs
+        # print corner_diffs
 
 #         if self.are_corner_identical(cropped_img, uncropped_img, 0, 0):
 #             ret = [True, -ret[1], -ret[2]]
@@ -1575,22 +1661,26 @@ Commands:
 
         # scan direction for x and y dimensions
         dir = [fromx, fromy]
-        if dir[0] == 0: dir[0] = 1
-        if dir[1] == 0: dir[1] = 1
+        if dir[0] == 0:
+            dir[0] = 1
+        if dir[1] == 0:
+            dir[1] = 1
 
         # initial position in each image
         pos = [[fromx, fromy], [fromx, fromy]]
 
-        # convert -1 pos (relative to right or bottom edge) to absolute position
+        # convert -1 pos (relative to right or bottom edge) to absolute
+        # position
         for i in (0, 1):
             for j in (0, 1):
-                if pos[i][j] == -1: pos[i][j] = imgs[i].size[j] + pos[i][j]
+                if pos[i][j] == -1:
+                    pos[i][j] = imgs[i].size[j] + pos[i][j]
 
         def is_color_identical(p0, p1):
             # not strictly true but it's a good approximation
             return sum(p0) == sum(p1)
 
-        avgs = [[0,0,0], [0,0,0]]
+        avgs = [[0, 0, 0], [0, 0, 0]]
 
         for k in range(0, 400):
             p0 = imgps[0][pos[0][0], pos[0][1]]
@@ -1602,7 +1692,7 @@ Commands:
             pos[1][0] += dir[0]
             pos[1][1] += dir[1]
 
-        #print sum([avgs[0]]) / 3.0 / 100.0
+        # print sum([avgs[0]]) / 3.0 / 100.0
 
         return ret
 
@@ -1635,10 +1725,10 @@ Commands:
                     st = os.stat(file)
                     key = re.sub(ur'\.[^.]+$', ur'', file_relative)
                     ret[key] = {
-                                'ext': extension[1:],
-                                'size': st.st_size,
-                                'date': st.st_mtime,
-                                }
+                        'ext': extension[1:],
+                        'size': st.st_size,
+                        'date': st.st_mtime,
+                    }
                     try:
                         im = Image.open(file)
                         ret[key]['x'] = im.size[0]
@@ -1684,25 +1774,26 @@ Commands:
 
                     # create the dir
                     dir_name = os.path.join(base_dir, dir_name)
-                    #print dir_name, file_name
+                    # print dir_name, file_name
                     if not os.path.exists(dir_name):
                         os.mkdir(dir_name)
-                    file_name = os.path.join(dir_name, file_name) + re.sub(ur'^.*(\.[^.]+)$', ur'\1', file_name_old)
+                    file_name = os.path.join(
+                        dir_name, file_name) + re.sub(ur'^.*(\.[^.]+)$', ur'\1', file_name_old)
                     if not os.path.exists(file_name):
                         #shutil.copyfile(os.path.join(base_dir, file_name_old), file_name)
                         print file_name
                 else:
                     print 'No match (%s)' % line[1]
 
-
     def test_natsort(self, options):
         #[ ItemPart.objects.filter(display_label__icontains='royal')]
-        sms = ['A.897.abc.ixv', 'Hereford Cathedral Library O.IX.2', 'Hereford Cathedral Library O.VI.11']
+        sms = ['A.897.abc.ixv', 'Hereford Cathedral Library O.IX.2',
+               'Hereford Cathedral Library O.VI.11']
         for s in sms:
             print s, natural_sort_key(s)
         print sorted(sms, key=lambda i: natural_sort_key(i))
-        #print natural_sort_key('A.897.abc.ixv')
-        #print natural_sort_key('Hereford Cathedral Library O.IX.2')
+        # print natural_sort_key('A.897.abc.ixv')
+        # print natural_sort_key('Hereford Cathedral Library O.IX.2')
         #'Hereford Cathedral Library O.VI.11'
         return
 
@@ -1748,47 +1839,47 @@ Commands:
         from digipal.models import Image
         i = Image()
         for l in [
-                    ('10r', ('10', 'r')),
-                    ('10v', ('10', 'v')),
-                    ('11', ('11', None)),
-                    ('', (None, None)),
-                    (None, (None, None)),
-                    ('1 10 r', ('10', 'r')),
-                    ('1 10 r 9 v8', ('9', 'v'))
-                ]:
+            ('10r', ('10', 'r')),
+            ('10v', ('10', 'v')),
+            ('11', ('11', None)),
+            ('', (None, None)),
+            (None, (None, None)),
+            ('1 10 r', ('10', 'r')),
+            ('1 10 r 9 v8', ('9', 'v'))
+        ]:
             i.locus = l[0]
             i.update_number_and_side_from_locus()
             print '%s => %s, %s' % (i.locus, i.folio_number, i.folio_side)
             if i.folio_number != l[1][0] or i.folio_side != l[1][1]:
                 print '\tERROR, expected %s, %s.' % (l[1][0], l[1][1])
 
-
     def test_mem(self):
         import gc
         objs = gc.get_objects()
-        
+
         # total size
         print '%s used by %s objects in the GC' % (hs(sum(sys.getsizeof(o) for o in objs)), len(objs))
-        
+
         # find biggest objects
         limit = 1000000
         l = 40
-        
+
         def ostr(o):
             try:
                 return '%s' % str(o)[:l]
             except Exception, e:
                 return '??? %s' % type(e)
-        
+
         def list_objs(objs):
             for i in range(0, min(limit, len(objs))):
-                print '',i, hs(sys.getsizeof(objs[i])), type(objs[i]), ostr(objs[i])
+                print '', i, hs(sys.getsizeof(objs[i])), type(objs[i]), ostr(objs[i])
 
         objs = sorted(objs, key=lambda o: sys.getsizeof(o), reverse=True)
         list_objs(objs)
 
         objs = sorted(objs, key=lambda o: ostr(o))
         list_objs(objs)
+
 
 def hs(size):
     return '%.3f MB' % (1.0 * size / 1024.0 / 1024.0)

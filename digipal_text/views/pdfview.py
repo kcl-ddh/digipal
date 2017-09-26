@@ -53,7 +53,7 @@ def includeCss(html):
     return ret
 
 def read_static_file(web_path):
-    from django.conf import settings
+    from mezzanine.conf import settings
     from django.conf.urls.static import static
     
     file_path = '%s/%s' % (settings.STATIC_ROOT, re.sub('^'+re.escape(settings.STATIC_URL), '', web_path))

@@ -749,6 +749,8 @@ TEXT_EDITOR_OPTIONS = {
 # LOCAL SETTINGS #
 ##################
 
+CUSTOM_APPS = []
+
 # from PROJECT_PACKAGE.local_settings import *'
 # Where PROJECT_PACKAGE is the Django package for your project
 try:
@@ -791,6 +793,9 @@ if 'TEXT_EDITOR_OPTIONS_CUSTOM' in locals():
 #
 if not COMPRESS_ENABLED:
     CACHES['django-compressor'] = CACHES['default']
+
+
+INSTALLED_APPS = INSTALLED_APPS + tuple(CUSTOM_APPS)
 
 ####################
 # DYNAMIC SETTINGS #

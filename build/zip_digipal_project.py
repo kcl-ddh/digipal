@@ -66,7 +66,9 @@ class ProjectZipper(object):
         dbname = DB['NAME']
         password = DB['PASSWORD']
         os.environ['PGPASSWORD'] = password
-        command = 'pg_dump -c --if-exists -U %s %s --exclude-table-data=digipal_text_textcontentxmlcopy %s %s > "%s"' % (
+        # removed --if-exists because it requires pg_dump 9.4+ > version installed on older archetype-docker
+        # without --if-exists the restoration will show harmless warnings
+        command = 'pg_dump -c -U %s %s --exclude-table-data=digipal_text_textcontentxmlcopy %s %s > "%s"' % (
             username, dbname, host, port, sql_path)
         print command
         os.system(command)

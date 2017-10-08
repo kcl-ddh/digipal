@@ -134,7 +134,7 @@ class ProjectZipper(object):
             self.settings.PROJECT_ROOT, 'urls.py'), 'urls.py.bk')
 
         # Now zip it all
-        run_cmd('gzip -f9 %s' % self.get_tar_path())
+        run_cmd('gzip -f1 %s' % self.get_tar_path())
 
         print 'Download your backup at: %s' % (os.path.join(self.settings.STATIC_URL, 'archetype.tar.gz'), )
 #                                                         ))

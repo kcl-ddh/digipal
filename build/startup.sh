@@ -2,11 +2,15 @@
 # Starts services (DB, Web, Image server)
 # Wait until site is running
 
+echo "------------------------------"
+echo "STARTING CONTAINER..."
+
 function on_stop_container {
     echo "Stopping container..."
     echo "Stopping container..." >> /home/digipal/digipal_project/logs/docker.log
     chmod o+rwx -R /home/digipal/digipal_project
     kill -s TERM `cat /home/digipal/supervisord.pid`
+    echo "------------------------------"
 }
 
 trap "on_stop_container" SIGTERM

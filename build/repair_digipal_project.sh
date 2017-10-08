@@ -9,18 +9,26 @@ if [ ! -e "digipal_project/__init__.py" ]; then
     echo "RESTORE digipal_project from github"
     git checkout digipal_project
 
-    if [ ! -e "digipal_project/archetype.tar.gz" ]; then
-        if [ -e "build/archetype.tar.gz" ]; then
-            echo "RESTORE demo site"
-            cp build/archetype.tar.gz digipal_project/.
+    if [ ! -e digipal_project/archetype.tar ]; then
+        if [ ! -e "digipal_project/archetype.tar.gz" ]; then
+            if [ -e "build/archetype.tar.gz" ]; then
+                echo "RESTORE demo site"
+                cp build/archetype.tar.gz digipal_project/.
+            fi
+        fi
+    
+        if [ -e "digipal_project/archetype.tar.gz" ]; then
+            pushd digipal_project
+            gunzip -f digipal_project/archetype.tar.gz
+            popd
         fi
     fi
 
-    if [ -e digipal_project/archetype.tar.gz ]; then
+    if [ -e digipal_project/archetype.tar ]; then
         # TODO: restore archetype.zip under digipal_project
         echo "deploy digipal_project"
         rm -rf digipal_project/customisations digipal_project/templates digipal_project/static digipal_project/media digipal_project/images digipal_project/logs digipal_project/django_cache digipal_project/search
-        tar -xzf digipal_project/archetype.tar.gz -C digipal_project
+        tar -xf digipal_project/archetype.tar -C digipal_project
     fi
 fi
 
@@ -62,27 +70,10 @@ EOF
 
     if [ -e "digipal_project/archetype.sql" ]; then
         echo "RESTORE DATABASE"
-        su postgres -c "psql --quiet digipal < digipal_project/archetype.sql" > /dev/null
-
-        # Special case for pre-django 1.7 database.
-        # python migrate --fake-initial cannot run straight after import 
-        # otherwise it will fail on existing tables (b/c some do not exists
-        # so django doesnt fake anything). We can't run it before either
-        # as the django migrations create records that will conflict with 
-        # database.
-        if ! grep 'django_migrations' digipal_project/archetype.sql; then
-            # TODO: test if v1.2.2, we don't support v1.0 (yet)
-            echo "Pre Django 1.7 database"
-            if grep -n '0089_auto__chg' digipal_project/archetype.sql; then
-                echo "UPGRADE DB from 1.2.2"
-                su postgres -c "psql --quiet digipal < build/schema_upgrades/1.2.2.sql" > /dev/null
-            else
-                echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                echo "!! ERROR: DATABASE CANNOT BE UPGRADED YET  !!"
-                echo "!! DigiPal Docker v1.0                     !!"
-                echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-            fi
-        fi
+        chmod o+r digipal_project/archetype.sql
+        chmod o+r -R build
+        chmod o+xr -R build/restore_database.sh
+        su -c build/restore_database.sh -s /bin/bash postgres
     fi
 
     service postgresql stop

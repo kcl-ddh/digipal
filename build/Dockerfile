@@ -1,10 +1,10 @@
-# To build DigiPal Framework Image with Docker:
+# To build DigiPal Framework Image with Docker (takes ~7 mins):
 #
-# docker build -t gnoelddh/digipal build --no-cache
+# docker build -t kingsdigitallab/archetype build --no-cache
 #
 # Then run the container like this:
 #
-# docker run -ti -p 8080:80 gnoelddh/digipal
+# docker run -ti -p 8080:80 kingsdigitallab/archetype
 #
 # Now you can browse to http://localhost/ from your host machine
 # Note that this version is for local use only, not for production.

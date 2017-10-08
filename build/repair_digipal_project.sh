@@ -19,7 +19,7 @@ if [ ! -e "digipal_project/__init__.py" ]; then
     
         if [ -e "digipal_project/archetype.tar.gz" ]; then
             pushd digipal_project
-            gunzip -f digipal_project/archetype.tar.gz
+            gunzip -f archetype.tar.gz
             popd
         fi
     fi

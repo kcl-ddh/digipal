@@ -17,6 +17,8 @@
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 
+/* jshint strict: true */
+/* jshint browser: true */
 
 /**
  * dputils namespace
@@ -27,6 +29,7 @@
  *
  */
 (function($) {
+    "use strict";
     $(function() {
         window.dputils = {
 
@@ -44,7 +47,7 @@
                 window.setTimeout(f, 0);
             },
 
-            focusWithoutScrolling($el) {
+            focusWithoutScrolling: function($el) {
                 var x = $(document).scrollLeft(), y = $(document).scrollTop();
                 $el.focus();
                 window.scrollTo(x, y);
@@ -94,7 +97,7 @@
             setCookie: function(c_name,value,exdays) {
                 var exdate=new Date();
                 exdate.setDate(exdate.getDate() + exdays);
-                var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+                var c_value=encodeURIComponent(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
                 document.cookie=c_name + "=" + c_value;
             },
 
@@ -105,7 +108,7 @@
                 if (document.cookie && document.cookie != '') {
                     var cookies = document.cookie.split(';');
                     for (var i = 0; i < cookies.length; i++) {
-                        var cookie = jQuery.trim(cookies[i]);
+                        var cookie = $.trim(cookies[i]);
                         // Does this cookie string begin with the name we want?
                         if (cookie.substring(0, name.length + 1) == (name + '=')) {
                             cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
@@ -162,7 +165,7 @@
             
             slugify: function(string) {
                 var ret = string;
-                ret = ret.replace(/(^\W+)|(\W+$)/g, '').replace(/\W+/g, '-').toLowerCase()
+                ret = ret.replace(/(^\W+)|(\W+$)/g, '').replace(/\W+/g, '-').toLowerCase();
                 return ret;
             },
 
@@ -198,16 +201,16 @@
                 var scopes = 'https://www.googleapis.com/auth/plus.me';
 
                 // TODO: Where does gapi come from?
-                gapi.client.setApiKey(apiKey);
+                window.gapi.client.setApiKey(apiKey);
 
-                gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, function() { callback(gapi.client) });
+                window.gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, function() { callback(window.gapi.client); });
             },
 
             /* call google shortener api
              *  callback(short_url)
             */
             gapi_shorten_url: function(long_url, callback) {
-                dputils.gapi_call(function(google_api_client) {
+                window.dputils.gapi_call(function(google_api_client) {
 
                     google_api_client.load('urlshortener', 'v1', function() {
 
@@ -288,7 +291,7 @@
             */
             elastic_element: function($target, callback, min, margin) {
                 var on_resize = function(e) {
-                    var height = dputils.get_elastic_height($target, min, margin);
+                    var height = window.dputils.get_elastic_height($target, min, margin);
                     $target.css('height', height);
                     callback();
                 };
@@ -525,7 +528,7 @@
                     var map = this_.getMap();
                     var layers = map.getLayers().getArray();
                     for (var i = 0; i < layers.length; i++) {
-                        if (layers[i] instanceof ol.layer.Vector) {
+                        if (layers[i] instanceof window.ol.layer.Vector) {
                             var extent = layers[i].getSource().getExtent();
                             map.getView().fit(extent, map.getSize());
                             break;
@@ -540,7 +543,7 @@
                 element.className = 'rotate-north ol-unselectable ol-control';
                 element.appendChild(button);
 
-                ol.control.Control.call(this, {
+                window.ol.control.Control.call(this, {
                     element: element,
                     target: options.target
                 });
@@ -550,12 +553,13 @@
         };
     });
 
-})(jQuery);
+})(window.jQuery);
 
 /**
  * Initialisation after any page load.
  */
 (function($) {
+    "use strict";
     $(function() {
 
         /*
@@ -578,7 +582,7 @@
         $('a[data-target][href]').on('click', function(e) {
             var href = $(this).attr('href');
             if (href.search(/^(#|\.)/) == -1) {
-                dputils.update_address_bar(href, $(this).data('update-address-bar'));
+                window.dputils.update_address_bar(href, $(this).data('update-address-bar'));
                 e.preventDefault();
             }
         });
@@ -634,7 +638,7 @@
         $(window).trigger('dputils:ready');
 
     });
-})(jQuery);
+})(window.jQuery);
 
 /**
  * Expand thumbnails on mouse overs.
@@ -651,6 +655,7 @@
  *
  */
 (function($) {
+    "use strict";
     $(function() {
 
         function show_expanded_img(event, img, hide) {
@@ -661,6 +666,7 @@
                 return;
             }
 
+            var expanded_img = null;
             // get or create the div that contains the image
             var expanded_div = $('#img-expand-div');
             // difference between size of the div and size of the contained image
@@ -670,12 +676,12 @@
                 // we create a permanent div
                 $('body').append('<div id="img-expand-div" style="background-color:white;line-height:0px;display:none;position:fixed;top:0px;padding:20px;margin:10px;border:1px solid grey; box-shadow: 5px 5px 5px #888888; z-index: 10000;"><img style="border:1px solid grey;" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="/><p>Loading the image, please wait...</p></div>');
                 expanded_div = $('#img-expand-div');
-                var expanded_img = expanded_div.children('img');
+                expanded_img = expanded_div.children('img');
                 expanded_img.load(function () { expanded_img.show(); expanded_div.children('p').hide(); });
             }
 
             if (!hide) {
-                var expanded_img = expanded_div.children('img');
+                expanded_img = expanded_div.children('img');
                 expanded_img.hide();
                 expanded_div.children('p').show();
 
@@ -689,7 +695,7 @@
                 var img_ratio = thumbnail_img.width() / thumbnail_img.height();
                 var expanded_max_height = $(window).height() - total_padding;
 
-                var max_expanded_width = [(thumbnail_img.offset()).left - total_padding, $(window).width() - expanded_img_x[1] - total_padding]
+                var max_expanded_width = [(thumbnail_img.offset()).left - total_padding, $(window).width() - expanded_img_x[1] - total_padding];
 
                 // 0 if expanded image appears on the left, 1 if it appears on the right.
                 // Choose the widest side.
@@ -729,7 +735,7 @@
         $('.img-expand').mouseenter(function(event){ show_expanded_img(event, this, false); });
         $('.img-expand').mouseleave(function(event){ show_expanded_img(event, this, true); });
     });
-})(jQuery);
+})(window.jQuery);
 
 
 /**
@@ -746,6 +752,7 @@
  *
  */
 (function($) {
+    "use strict";
     $(function() {
         function load_lazy_images() {
             // load lazy images which are now visible in the browser window.
@@ -787,7 +794,7 @@
 
         document.load_lazy_images = load_lazy_images;
     });
-})(jQuery);
+})(window.jQuery);
 
 
 /**
@@ -811,6 +818,7 @@ Depends on:
 
 **/
 (function($) {
+    "use strict";
     window.lisort = function(li, ondone) {
         var w = window;
         w.$dragged_element = null;
@@ -823,7 +831,7 @@ Depends on:
             w.$dragged_element.addClass('dragging');
             //w.$dragged_element_before = $dragged_element.prev('li');
         }).on('drag', function(e) {
-        	console.log(e);
+        	//console.log(e);
         });
     
         $li.siblings('li:not(.lisort)').addClass('lisort').on('dragenter', function(e) {
@@ -842,4 +850,4 @@ Depends on:
         });
 
     };
-})(jQuery);
+})(window.jQuery);

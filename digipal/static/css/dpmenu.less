@@ -42,8 +42,10 @@ nav.primary-nav {
 
     .navbar-collapse {
 
-        // prevent bg images from banner to cover navbar
-        z-index: 3;
+        // Prevents bg images from banner to cover navbar.
+        // Also make the drop-down menus go on top of everything else, e.g.
+        // autocomplete, map.
+        z-index: 1003;
         position: relative;
 
         // bg color for main menu

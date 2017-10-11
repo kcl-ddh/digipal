@@ -2126,6 +2126,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         create_table_index_data = {
             'entries_hands': ['hands', 'entry'],
             'exon_master': ['revisedellisnos', 'hundred', 'shire', 'fief'],
+            'exon_mapping': ['lng', 'vill', 'exonellisref'],
         }
 
         fields = create_table_index_data.get(table_name, None)

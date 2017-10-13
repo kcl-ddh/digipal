@@ -18,6 +18,7 @@
  */
 
 /* jshint strict: true */
+/* jshint esversion: 3 */
 /* jshint browser: true */
 
 /**
@@ -73,7 +74,7 @@
                 var slider = $slider.slider({
                     change: onchange,
                     slide: onchange,
-                    max: $input.data('max') || 100,
+                    max: $input.data('max') || 100
                 });
                 // update slider when input change
                 $input.on('change keyup', function(e) {
@@ -394,7 +395,7 @@
                     //minResolution: options.resolutions[options.resolutions.length - 1],
                     maxResolution: options.max_resolution,
                     //numZoomLevels: options.resolutions.length,
-                    numZoomLevels: window.digipal_settings.ANNOTATOR_ZOOM_LEVELS,
+                    numZoomLevels: window.digipal_settings.ANNOTATOR_ZOOM_LEVELS
                     //numZoomLevels: options.zoom_levels,
                 };
 

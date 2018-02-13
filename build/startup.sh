@@ -23,6 +23,7 @@ do
   echo "waiting for site... ($i)"
   wget http://localhost:80 -t 1 -qO- &> /dev/null
   if [ "$?" -eq "0" ]; then
+    cat /home/digipal/digipal/__init__.py
     echo "=================="
     echo "WEBSITE IS RUNNING"
     echo "=================="

@@ -4,7 +4,7 @@
 #
 # Then run the container like this:
 #
-# docker run -ti -p 8080:80 kingsdigitallab/archetype
+# docker stop archetype; docker rm archetype; mkdir ~/archetype; docker pull kingsdigitallab/archetype:latest; docker run -d --name archetype -v ~/archetype:/home/digipal/digipal_project:cached -p 9080:80 kingsdigitallab/archetype:latest; echo "INSTALLED";
 #
 # Now you can browse to http://localhost/ from your host machine
 # Note that this version is for local use only, not for production.
@@ -12,7 +12,7 @@
 #
 # To create image from container:
 # 
-# docker commit -c 'ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' -c 'ENV SHELL /bin/bash' -c 'CMD ["/bin/bash", "/home/digipal/build/startup.sh"]' CONTAINER kingsdigitallab/archetype:VERSION
+# docker commit -c 'ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' -c 'ENV SHELL /bin/bash' -c 'VOLUME /home/digipal/digipal_project' -c 'CMD ["/bin/bash", "/home/digipal/build/startup.sh"]' CONTAINER kingsdigitallab/archetype:VERSION
 #
 
 FROM ubuntu:latest

@@ -32,6 +32,11 @@ if [ ! -e "digipal_project/__init__.py" ]; then
     fi
 fi
 
+# make sure static exists otherwise collectstatic will crash
+if [ ! -e "digipal_project/static" ]; then
+    mkdir digipal_project/static
+fi
+
 # configure and copy default DB into digipal_project
 if [ ! -e "digipal_project/database" ]; then
     mkdir digipal_project/database

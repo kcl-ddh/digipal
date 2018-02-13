@@ -132,6 +132,8 @@
             var divid = 'text-area-' + TextViewer.textAreaNumber;
             this.$content.append('<div id="'+ divid + '"></div>');
             var me = this;
+            
+            var text_editor_options = window.text_editor_options;
 
             var options = {
                 skin : 'digipal',
@@ -141,7 +143,7 @@
                     me.componentIsReady('tinymce');
                 },
                 plugins: ['paste', 'code', 'panelset'],
-                toolbar: window.text_editor_options.toolbars.default,
+                toolbar: text_editor_options.toolbars[me.contentType] || text_editor_options.toolbars.default,
                 paste_word_valid_elements: 'i,em,p,span',
                 paste_postprocess: function(plugin, args) {
                     //args.node is a temporary div surrounding the content that will be inserted
@@ -152,7 +154,7 @@
                 menubar : false,
                 statusbar: false,
                 height: '15em',
-                content_css : '/static/digipal_text/viewer/tinymce.css?v=12,/static/digipal_text/viewer/tinymce_custom.css?v=12'
+                content_css : '/static/digipal_text/viewer/tinymce.css?v=12,/static/digipal_text/viewer/tinymce_custom.css?v=15'
             };
 
             if (this.contentType == 'codicology') {

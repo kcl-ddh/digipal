@@ -1,11 +1,10 @@
-var PanelSetPlugIn = function(editor, url) {
-    
-    var $ = jQuery;
-    
-    this.dpmup = {
-        'psex': {'tooltip': 'Expansion of abbreviation', 'text': '()', 'cat': 'chars'},
-    };
-    
+/*jshint -W070 */
+
+var dpTextEditorUtils = function (editor) {
+    "use strict";
+
+    var $ = window.jQuery;
+
     function beforeChange() {
         //editor.undoManager.add();
     }
@@ -35,6 +34,152 @@ var PanelSetPlugIn = function(editor, url) {
             return ret;
         });
     }
+    
+    function addSpan(options, isDiv) {
+        // options
+        //  tag: element name
+        //  attributes: {'name': 'val'}
+        //  conditions: {'collapsed': false, 'overlap': false, 'isparent': false, 'blank': false}
+        //  processing: {'keep_spaces': false}
+        options.attributes = options.attributes || {};
+        var attrStr = '';
+        for (var k in options.attributes) {
+            attrStr += ' data-dpt-'+k+'="'+options.attributes[k]+'"';
+        }
+        
+        var tag = isDiv ? 'div' : 'span';
+        options.xml = '<'+tag+' data-dpt="' + options.tag + '" ' + attrStr + '>{}</'+tag+'>';
+        addXML(options);
+    }
+
+    function addXML(options) {
+        // options:
+        //  xml: '<span data-dpt="building" data-dpt-property="name">{}</span>'
+        //  conditions: {'collapsed': false, 'overlap': false, 'isparent': false, 'blank': false}
+        //  processing: {'keep_spaces': false}
+        options.conditions = options.conditions || {};
+        options.conditions = $.extend({'collapsed': false, 'overlap': false, 'isparent': false, 'blank': false}, options.conditions);
+        var conds = options.conditions;
+        if ((conds.collapsed !== null) && (conds.collapsed !== editor.selection.isCollapsed())) return;
+        var parents = getSelectionParents();
+        if ((conds.overlap !== null) && (conds.overlap !== (parents[0] !== parents[1]))) return;
+        var sel_cont = editor.selection.getContent();
+        if ((conds.blank !== null) && (conds.blank !== (sel_cont.match(/^\s*$/g) !== null))) return;
+        if ((conds.isparent !== null) && (conds.isparent !== (sel_cont.match(/</g) !== null))) return;
+        
+        var parts = sel_cont.match(/^(\s*)(.*?)(\s*)$/);
+        
+        var newContent = parts[1] + options.xml.replace('{}', parts[2]) + parts[3];
+
+        setContent(newContent);
+    }
+
+    /*
+    * Adds a drop down to the editor toolbar
+    *
+    *   buttonid: dropdown identifier/key
+    *   items: [{text: 'my first option', value: 'first_option'}, ...]
+    *       (if value ommitted, it is derived from the text)
+    *       also accepts a comma separated list of labels
+    *       also accepts an aray of labels
+    *   label: a label for the drop down
+    *   tooltip: (optional, default = label)
+    *   onSelectFunction(selected_option_value): select option event handler
+    */
+    function addDropDown(buttonid, items, label, tooltip, onSelectFunction) {
+        editor.addButton(buttonid, function() {
+            tooltip = tooltip || label;
+            
+            // 'a,b,c' => 'a', 'b', 'c'
+            if (items.split) {
+                items = items.split(',');
+            }
+    
+            // ['',] => [{},]
+            if (items.map) {
+                items = items.map(function(obj) {
+                    return (obj.split ? {'text': obj} : obj);
+                });
+            }
+
+            // add missing .value
+            for (var i in items) {
+                items[i].value = items[i].value || items[i].text.toLowerCase();
+            }
+            
+            return {
+                type: 'listbox',
+                text: label,
+                tooltip: tooltip,
+                values: items,
+                fixedWidth: true,
+                onclick: function(e) {
+                    if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
+                        onSelectFunction(e.control.settings.value);
+                    }
+                }
+            };
+        });
+    }
+
+    function addButtonsFromSettings(options) {
+        if (options.buttons) {
+            $.each(options.buttons, function(bkey, definition) {
+                if (definition.xml) {
+                    // 'scbuilding': {'label': 'Infrastructure Building', 'xml': '<span data-dpt="building" data-dpt-property="name">{}</span>'},
+                    editor.addButton(bkey, {
+                        text: definition.label,
+                        tooltip: definition.tooltip || definition.label,
+                        icon: false,
+                        onclick: function() {
+                            addXML({'xml': definition.xml, 'conditions': definition.conditions});
+                        }
+                    });
+                }
+            });
+            $.each(options.buttons, function(bkey, definition) {
+                if (definition.buttons) {
+                    // 'scthings': {'label': 'Things', 'buttons': 'scbuilding,scbuilding']},
+                    var items = [];
+                    $.each(definition.buttons, function(idx, btnKey) {
+                        var button = editor.buttons[btnKey];
+                        if (button) {
+                            items.push({
+                                'text': button.text || button.tooltip || btnKey,
+                                'value': btnKey,
+                            });
+                        }
+                    });
+                    addDropDown(bkey, items, definition.label, null, function(btnKey) {
+                        editor.buttons[btnKey].onclick();
+                    });
+                }
+            });
+        }
+    }
+    
+    return({
+        beforeChange: beforeChange,
+        afterChange: afterChange,
+        setContent: setContent,
+        getSelectionParents: getSelectionParents,
+        addSpan: addSpan,
+        addDropDown: addDropDown,
+        addButtonsFromSettings: addButtonsFromSettings,
+    });
+};
+
+var PanelSetPlugIn = function(editor, url) {
+    "use strict";
+
+    var $ = window.jQuery;
+    
+    var utils = dpTextEditorUtils(editor);
+    
+    this.dpmup = {
+        'psex': {'tooltip': 'Expansion of abbreviation', 'text': '()', 'cat': 'chars'},
+    };
+    
     
     // Add a button that opens a window
     editor.addButton('pslinebreak', {
@@ -67,35 +212,6 @@ var PanelSetPlugIn = function(editor, url) {
         }
     });
     
-    function addSpan(options, isDiv) {
-        // options
-        //  tag: element name
-        //  attributes: {'name': 'val'}
-        //  conditions: {'collapsed': false, 'overlap': false, 'isparent': false, 'blank': false}
-        //  processing: {'keep_spaces': false}
-        options.conditions = options.conditions || {};
-        options.conditions = $.extend({'collapsed': false, 'overlap': false, 'isparent': false, 'blank': false}, options.conditions);
-        var conds = options.conditions;
-        if ((conds.collapsed !== null) && (conds.collapsed !== editor.selection.isCollapsed())) return;
-        var parents = getSelectionParents();
-        if ((conds.overlap !== null) && (conds.overlap !== (parents[0] !== parents[1]))) return;
-        var sel_cont = editor.selection.getContent();
-        if ((conds.blank !== null) && (conds.blank !== (sel_cont.match(/^\s*$/g) !== null))) return;
-        if ((conds.isparent !== null) && (conds.isparent !== (sel_cont.match(/</g) !== null))) return;
-        
-        // TODO: keep spaces outside the newly created span
-        options.attributes = options.attributes || {};
-        var attrStr = '';
-        for (var k in options.attributes) {
-            attrStr += ' data-dpt-'+k+'="'+options.attributes[k]+'"';
-        }
-        
-        var parts = sel_cont.match(/^(\s*)(.*?)(\s*)$/);
-        
-        var tag = isDiv ? 'div' : 'span';
-        var newContent = parts[1] + '<'+tag+' data-dpt="' + options.tag + '" ' + attrStr + '>' + parts[2] + '</'+tag+'>' + parts[3];
-        setContent(newContent);
-    }
     
     // Expansion
     // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-expan.html
@@ -104,7 +220,7 @@ var PanelSetPlugIn = function(editor, url) {
         tooltip: 'Expansion of abbreviation',
         icon: false,
         onclick: function() {
-            addSpan({'tag': 'ex', 'attributes': {'cat': 'chars'}});
+            utils.addSpan({'tag': 'ex', 'attributes': {'cat': 'chars'}});
         }
     });
 
@@ -114,7 +230,7 @@ var PanelSetPlugIn = function(editor, url) {
         tooltip: 'Supplied text',
         icon: false,
         onclick: function() {
-            addSpan({'tag': 'supplied', 'attributes': {'cat': 'chars'}});
+            utils.addSpan({'tag': 'supplied', 'attributes': {'cat': 'chars'}});
         }
     });
 
@@ -125,7 +241,7 @@ var PanelSetPlugIn = function(editor, url) {
         tooltip: 'Deleted',
         icon: 'strikethrough',
         onclick: function() {
-            addSpan({'tag': 'del', 'attributes': {'cat': 'words'}, 'conditions': {'isparent': null}});
+            utils.addSpan({'tag': 'del', 'attributes': {'cat': 'words'}, 'conditions': {'isparent': null}});
         }
     });
 
@@ -138,11 +254,11 @@ var PanelSetPlugIn = function(editor, url) {
         onclick: function() {
             // remove parent tags
             // TODO: don't remove non data-dpt?
-            var parents = getSelectionParents();
+            var parents = utils.getSelectionParents();
             
             var changed = false;
             
-            beforeChange();
+            utils.beforeChange();
 
             $(parents).each(function (index, parent) {
                 // don't remove second parent if same as first
@@ -152,7 +268,7 @@ var PanelSetPlugIn = function(editor, url) {
                     $panelset_parent.replaceWith($panelset_parent.html());
                     // TODO: not exact... $panelset_parent can be empty
                     changed = true;
-                    afterChange(!changed);
+                    utils.afterChange(!changed);
                 }
             });
             
@@ -166,7 +282,7 @@ var PanelSetPlugIn = function(editor, url) {
                     $(el).replaceWith($(el).html());
                 });
                 
-                setContent($selection.html());
+                utils.setContent($selection.html());
                 changed = true;
             }
         }
@@ -189,54 +305,9 @@ var PanelSetPlugIn = function(editor, url) {
     }
 
     function insertSpanOnSelectedDropdownOption(selectedValue, tag, cat) {
-        addSpan({'tag': tag, 'attributes': {'cat': cat, 'type': selectedValue}, 'conditions': {'isparent': null}});
+        utils.addSpan({'tag': tag, 'attributes': {'cat': cat, 'type': selectedValue}, 'conditions': {'isparent': null}});
     }
 
-    /*
-    * Adds a drop down to the editor toolbar
-    *
-    *   buttonid: dropdown identifier/key
-    *   items: [{text: 'my first option', value: 'first_option'}, ...]
-    *       (if value ommitted, it is derived from the text)
-    *       also accepts a comma separated list of labels
-    *       also accepts an aray of labels
-    *   label: a label for the drop down
-    *   tooltip: (optional, default = label)
-    *   onSelectFunction(selected_option_value): select option event handler
-    */
-    function addDropDown(buttonid, items, label, tooltip, onSelectFunction) {
-        editor.addButton(buttonid, function() {
-            tooltip = tooltip || label;
-            
-            // 'a,b,c' => 'a', 'b', 'c'
-            if (items.split) {
-                items = items.split(',');
-            }
-    
-            // [] => {}
-            if (items.map) {
-                items = items.map(function(obj) {return {'text': obj};});
-            }
-
-            // add missing .value
-            for (var i in items) {
-                items[i].value = items[i].value || items[i].text.toLowerCase();
-            }
-            
-            return {
-                type: 'listbox',
-                text: label,
-                tooltip: tooltip,
-                values: items,
-                fixedWidth: true,
-                onclick: function(e) {
-                    if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
-                        onSelectFunction(e.control.settings.value);
-                    }
-                }
-            };
-        });
-    }
     
     // Locations
     editor.addButton('pslocation', function() {
@@ -250,26 +321,26 @@ var PanelSetPlugIn = function(editor, url) {
             fixedWidth: true,
             onclick: function(e) {
                 if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
-                    addSpan({'tag': 'location', 'attributes': {'loctype': e.control.settings.value}});
+                    utils.addSpan({'tag': 'location', 'attributes': {'loctype': e.control.settings.value}});
                 }
             }
         };
     });
     
     // Clauses
-    addDropDown('psclause', window.text_editor_options.buttons.psclause, 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
+    utils.addDropDown('psclause', window.text_editor_options.buttons.psclause, 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
 
     // Other Clauses
-    addDropDown('psClauseSecondary', window.text_editor_options.buttons.psClauseSecondary, 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
+    utils.addDropDown('psClauseSecondary', window.text_editor_options.buttons.psClauseSecondary, 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
 
     // Person
-    addDropDown('psperson', 'Title,Name', 'Person', null, insertPersonOnSelectedDropdownOption);
+    utils.addDropDown('psperson', 'Title,Name', 'Person', null, insertPersonOnSelectedDropdownOption);
 
     // Place
-    addDropDown('psplace', 'Name', 'Place', null, insertPlaceOnSelectedDropdownOption);
+    utils.addDropDown('psplace', 'Name', 'Place', null, insertPlaceOnSelectedDropdownOption);
 
     // Date Time
-    addDropDown('psdatetime', 'Date', 'Temporal', null, insertDateTimeOnSelectedDropdownOption);
+    utils.addDropDown('psdatetime', 'Date', 'Temporal', null, insertDateTimeOnSelectedDropdownOption);
     
     // H1
     editor.addButton('psh1', {
@@ -280,9 +351,9 @@ var PanelSetPlugIn = function(editor, url) {
             var sel_cont = editor.selection.getContent();
             if (sel_cont.indexOf('</p>') > -1) {
                 sel_cont = sel_cont.replace(/>(\d+\.?\s+[^<]{3,65})<\/p/gi, '><span data-dpt="heading" data-dpt-cat="words" data-dpt-level="1">$1</span></p');
-                setContent(sel_cont);
+                utils.setContent(sel_cont);
             } else {
-                addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'level': '1'}});
+                utils.addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'level': '1'}});
             }
         }
     });
@@ -293,7 +364,7 @@ var PanelSetPlugIn = function(editor, url) {
         tooltip: 'Heading 2',
         /* icon: 'strikethrough', */
         onclick: function() {
-            addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'level': '2'}});
+            utils.addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'level': '2'}});
         }
     });
     
@@ -303,7 +374,7 @@ var PanelSetPlugIn = function(editor, url) {
         text: 'Hand',
         tooltip: 'The name of a hand. e.g. alpha',
         onclick: function() {
-            addSpan({'tag': 'record', 'attributes': {'model': 'hand'}});
+            utils.addSpan({'tag': 'record', 'attributes': {'model': 'hand'}});
         }
     });
     
@@ -314,7 +385,7 @@ var PanelSetPlugIn = function(editor, url) {
         text: 'Side',
         tooltip: 'Page side (Hair, Flesh)',
         onclick: function() {
-            addSpan({'tag': 'page_side', 'attributes': {'cat': 'chars'}});
+            utils.addSpan({'tag': 'page_side', 'attributes': {'cat': 'chars'}});
         }
     });
     
@@ -322,7 +393,7 @@ var PanelSetPlugIn = function(editor, url) {
         text: 'Dims',
         tooltip: 'The dimensions of the page (e.g. 25.1 cm x 15.6 cm)',
         onclick: function() {
-            addSpan({'tag': 'page_dimensions', 'attributes': {'cat': 'chars'}});
+            utils.addSpan({'tag': 'page_dimensions', 'attributes': {'cat': 'chars'}});
         }
     });
 
@@ -330,7 +401,7 @@ var PanelSetPlugIn = function(editor, url) {
         text: 'Colour',
         tooltip: 'The colour of the page',
         onclick: function() {
-            addSpan({'tag': 'page_colour', 'attributes': {'cat': 'chars'}});
+            utils.addSpan({'tag': 'page_colour', 'attributes': {'cat': 'chars'}});
         }
     });
 
@@ -353,32 +424,32 @@ var PanelSetPlugIn = function(editor, url) {
     
 
     var cods = [
-                {text: 'Perforations count', value: '1', attrs: {'object':'perforation', 'property':'count'}, },
-                {text: 'Perforation shape', value: '2', attrs: {'object':'perforation', 'property':'shape'}, },
-                {text: 'Perforation location', value: '3', attrs: {'object':'perforation', 'property':'location'}, },
+        {text: 'Perforations count', value: '1', attrs: {'object':'perforation', 'property':'count'}, },
+        {text: 'Perforation shape', value: '2', attrs: {'object':'perforation', 'property':'shape'}, },
+        {text: 'Perforation location', value: '3', attrs: {'object':'perforation', 'property':'location'}, },
 
-                {text: 'Size of ruled area', value: '7', attrs: {'object':'ruling', 'property':'count'}, },
-                {text: 'Number of ruled lines', value: '7', attrs: {'object':'ruling', 'property':'count'}, },
-                {text: 'Distance between ruled lines', value: '8', attrs: {'object':'ruling', 'property':'distance'}, },
-                {text: 'Ruling method', value: '9', attrs: {'object':'ruling', 'property':'method'}, },
+        {text: 'Size of ruled area', value: '7', attrs: {'object':'ruling', 'property':'count'}, },
+        {text: 'Number of ruled lines', value: '7', attrs: {'object':'ruling', 'property':'count'}, },
+        {text: 'Distance between ruled lines', value: '8', attrs: {'object':'ruling', 'property':'distance'}, },
+        {text: 'Ruling method', value: '9', attrs: {'object':'ruling', 'property':'method'}, },
 
-                {text: 'Signature location', value: '7', attrs: {'object':'signature', 'property':'location'}, },
-                {text: 'Signature label', value: '7', attrs: {'object':'signature', 'property':'label'}, },
-                {text: 'Signature appearance', value: '8', attrs: {'object':'signature', 'property':'appearance'}, },
+        {text: 'Signature location', value: '7', attrs: {'object':'signature', 'property':'location'}, },
+        {text: 'Signature label', value: '7', attrs: {'object':'signature', 'property':'label'}, },
+        {text: 'Signature appearance', value: '8', attrs: {'object':'signature', 'property':'appearance'}, },
 
-                {text: 'Foliation location', value: '7', attrs: {'object':'foliation', 'property':'location'}, },
-                {text: 'Foliation label', value: '7', attrs: {'object':'foliation', 'property':'label'}, },
-                {text: 'Foliation appearance', value: '8', attrs: {'object':'foliation', 'property':'appearance'}, },
+        {text: 'Foliation location', value: '7', attrs: {'object':'foliation', 'property':'location'}, },
+        {text: 'Foliation label', value: '7', attrs: {'object':'foliation', 'property':'label'}, },
+        {text: 'Foliation appearance', value: '8', attrs: {'object':'foliation', 'property':'appearance'}, },
 
-                {text: 'Bifolium conjoint', value: '4', attrs: {'object':'bifolium', 'property':'conjoint'}, },
-                {text: 'Quire number', value: '5', attrs: {'object':'quire', 'property':'number'}, },
-                {text: 'Column count', value: '6', attrs: {'object':'column', 'property':'count'}, },
-                {text: 'Column size', value: '6', attrs: {'object':'column', 'property':'size'}, },
-                
-                {text: 'Parchment color', value: '10', attrs: {'object':'parchment', 'property':'color'}, },
-                {text: 'Parchment side', value: '11', attrs: {'object':'parchment', 'property':'side'}, },
-                {text: 'Parchment size', value: '12', attrs: {'object':'parchment', 'property':'size'}, }
-                ];
+        {text: 'Bifolium conjoint', value: '4', attrs: {'object':'bifolium', 'property':'conjoint'}, },
+        {text: 'Quire number', value: '5', attrs: {'object':'quire', 'property':'number'}, },
+        {text: 'Column count', value: '6', attrs: {'object':'column', 'property':'count'}, },
+        {text: 'Column size', value: '6', attrs: {'object':'column', 'property':'size'}, },
+        
+        {text: 'Parchment color', value: '10', attrs: {'object':'parchment', 'property':'color'}, },
+        {text: 'Parchment side', value: '11', attrs: {'object':'parchment', 'property':'side'}, },
+        {text: 'Parchment size', value: '12', attrs: {'object':'parchment', 'property':'size'}, }
+    ];
     
     function addButton(aitems, button_key, button_label, filters) {
     
@@ -400,7 +471,7 @@ var PanelSetPlugIn = function(editor, url) {
                 onclick: function(e) {
                     if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
                         var settings = e.control.settings;
-                        addSpan({'tag': 'codesc', 'attributes': settings.attrs});
+                        utils.addSpan({'tag': 'codesc', 'attributes': settings.attrs});
                         editor.focus();
                     }
                 }
@@ -424,7 +495,7 @@ var PanelSetPlugIn = function(editor, url) {
         text: 'Annotation',
         tooltip: 'The ID of an annotation to include in the description. e.g. #101 to include Annotation 101.',
         onclick: function() {
-            addSpan({'tag': 'record', 'attributes': {'model': 'graph'}});
+            utils.addSpan({'tag': 'record', 'attributes': {'model': 'graph'}});
         }
     });
 
@@ -436,11 +507,11 @@ var PanelSetPlugIn = function(editor, url) {
             if (!editor.selection.isCollapsed()) {
                 var sel_cont = editor.selection.getContent();
                 sel_cont = sel_cont.replace(/(OF\s*)?\b(\d{1,4}(r|v))[^\s;,\]<]*/g,
-                            function($0, $1){
-                                return $1 ? $0+$1 : '<span data-dpt="stint" data-dpt-cat="chars">'+$0+'</span>';
-                            }
-                        );
-                setContent(sel_cont);
+                    function($0, $1){
+                        return $1 ? $0+$1 : '<span data-dpt="stint" data-dpt-cat="chars">'+$0+'</span>';
+                    }
+                );
+                utils.setContent(sel_cont);
             }
         }
     });
@@ -459,40 +530,14 @@ var PanelSetPlugIn = function(editor, url) {
                         if (l == sel_cont.length) break;
                     }
                     
-                    setContent(sel_cont);
+                    utils.setContent(sel_cont);
                 } else {
-                    addSpan({'tag': 'record', 'attributes': {'model': 'character'}});
+                    utils.addSpan({'tag': 'record', 'attributes': {'model': 'character'}});
                 }
             }
         }
     });
     
-//    editor.addButton('psstints', {
-//        text: 'Stints',
-//        tooltip: 'A block containing stints ranges.',
-//        /* icon: 'strikethrough', */
-//        onclick: function() {
-//            addSpan({'tag': 'stints', 'attributes': {'cat': 'paragraphs'}, 'conditions': {'isparent': null}}, true);
-//        }
-//    });
-    
-    // Heading
-//    editor.addButton('psheading', function() {
-//        var items = [{text: 'Heading 1', value: 'h1'}, {text: 'Heading 2', value: 'h2'}];
-//
-//        return {
-//            type: 'listbox',
-//            text: 'Heading',
-//            tooltip: 'Heading',
-//            values: items,
-//            fixedWidth: true,
-//            onclick: function(e) {
-//                if (e.target.tagName !== 'BUTTON' && $(e.target).parent()[0].tagName != 'BUTTON') {
-//                    addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'type': e.control.settings.value}});
-//                }
-//            }
-//        };
-//    });
     
     // Paragraph merger
     editor.addButton('psparagraph', {
@@ -501,7 +546,7 @@ var PanelSetPlugIn = function(editor, url) {
         onclick: function() {
             if (editor.selection.isCollapsed()) return;
 
-            var parents = getSelectionParents();
+            var parents = utils.getSelectionParents();
             
             // get the p above each parent
             // make sure the
@@ -517,6 +562,13 @@ var PanelSetPlugIn = function(editor, url) {
         }
     });
     
+    // -------------------------------------------------------------------
+    // Add buttons from settings.py:TEXT_EDITOR_OPTIONS
+    // LEAVE this at the end, as the code can refer to previously defined buttons
+    if (window.text_editor_options) {
+        utils.addButtonsFromSettings(window.text_editor_options);
+    }
+
 };
 
 window.tinymce.PluginManager.add('panelset', PanelSetPlugIn);

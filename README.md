@@ -1,4 +1,4 @@
-Latest version: **2.2.1**, Feb 2018. See the [[Change Log]] for more details.
+Latest version: **2.2.1**, Feb 2018. See the [Change Log](https://github.com/kcl-ddh/digipal/wiki/Change-log) for more details.
 
 # Archetype
 

@@ -10,6 +10,10 @@
 # Note that this version is for local use only, not for production.
 # You can use it to try out DigiPal or to start your own research.
 #
+# To create image from container:
+# 
+# docker commit -c 'ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' -c 'ENV SHELL /bin/bash' -c 'CMD ["/bin/bash", "/home/digipal/build/startup.sh"]' CONTAINER kingsdigitallab/archetype:VERSION
+#
 
 FROM ubuntu:latest
 

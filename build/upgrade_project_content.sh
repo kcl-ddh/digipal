@@ -8,7 +8,8 @@ source build/repair_digipal_project.sh
 service postgresql start
 python manage.py migrate --fake-initial --no-initial-data --noinput
 python manage.py migrate --no-initial-data --noinput
-python manage.py collectstatic --noinput >> digipal_project/logs/docker.log
+# make sure upgraded files are always copied (-c, so ignore misleading timestamps)
+python manage.py collectstatic -c --noinput >> digipal_project/logs/docker.log
 if [ ! -e "digipal_project/search/faceted" ]; then
     source build/fix_permissions.sh
     su www-data -s /bin/bash -c "python manage.py dpsearch index_facets"

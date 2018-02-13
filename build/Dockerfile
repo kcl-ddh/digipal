@@ -12,8 +12,23 @@
 #
 # To create image from container:
 # 
-# docker commit -c 'ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' -c 'ENV SHELL /bin/bash' -c 'VOLUME /home/digipal/digipal_project' -c 'CMD ["/bin/bash", "/home/digipal/build/startup.sh"]' CONTAINER kingsdigitallab/archetype:VERSION
-#
+# # make Archetype changes, test and commit to new tag in master
+# git commit; git push
+# git push origin :refs/tags/2.2.1; git tag -f 2.2.1 COMMIT; 
+# # re-create :latest container
+# docker stop newversion; docker rm newversion; docker run -ti --name newversion kingsdigitallab/archetype:latest bash
+# # upgrade from inside container
+# git config core.fileMode false; git pull; git checkout 2.2.1
+# exit
+# # commit as a new image
+# docker commit -c 'ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' -c 'ENV SHELL /bin/bash' -c 'VOLUME /home/digipal/digipal_project' -c 'CMD ["/bin/bash", "/home/digipal/build/startup.sh"]' newversion kingsdigitallab/archetype:VERSION
+# # Test image
+# docker stop archetype; docker rm archetype; mkdir ~/archetype; docker run -d --name archetype -v ~/archetype:/home/digipal/digipal_project:cached -p 9080:80 kingsdigitallab/archetype:2.2.1; echo "INSTALLED";
+# # Push image to dockerhub
+# docker push kingsdigitallab/archetype:2.2.1
+# # Update the latest and push it
+# docker tag kingsdigitallab/archetype:2.2.1 kingsdigitallab/archetype:latest
+# docker push kingsdigitallab/archetype:latest
 
 FROM ubuntu:latest
 

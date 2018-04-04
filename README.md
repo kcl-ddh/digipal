@@ -13,6 +13,8 @@ Archetype (formely known as 'The DigiPal Framework') is freely-available general
 
 The DigiPal Project formally ended on 30 September 2014, but the code is still being updated and extended as part of the follow-on projects listed above.
 
+[Contributors](https://github.com/kcl-ddh/digipal/wiki/Contributors)
+
 For further information on using the framework please see the [GitHub Wiki pages](https://github.com/kcl-ddh/digipal/wiki).
 
 _The research leading to these results has received funding from the European Union Seventh Framework Programme (FP7) under grant agreement no. 263751, and the Arts and Humanities Research Council (AHRC) under Grant Reference nos. AH/L013975/1 and AH/L008041/1._

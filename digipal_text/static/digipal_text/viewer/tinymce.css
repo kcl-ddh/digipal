@@ -455,7 +455,8 @@ span[data-dpt] > span[data-dpt] {
 .preview.deleted.mce-content-body span[data-dpt=del] {
     display: inline;
 }
-.preview.mce-content-body span[data-dpt=del][data-dpt-rend=erasure] {
+.preview.mce-content-body span[data-dpt=del][data-dpt-rend=erasure],
+.preview.mce-content-body span[data-dpt=del][data-dpt-reason=erasure] {
     text-decoration: none;
 }
 

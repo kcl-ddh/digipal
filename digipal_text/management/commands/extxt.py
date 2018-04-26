@@ -10,16 +10,21 @@ import os
 
 # pm dpxml convert exon\source\rekeyed\converted\EXON-1-493-part1.xml exon\source\rekeyed\conversion\xml2word.xslt > exon\source\rekeyed\word\EXON-word.html
 # pm extxt wordpre exon\source\rekeyed\word\EXON-word.html exon\source\rekeyed\word\EXON-word2.html
-# pandoc "exon\source\rekeyed\word\EXON-word2.html" -o "exon\source\rekeyed\word\EXON-word.docx"
+# pandoc "exon\source\rekeyed\word\EXON-word2.html" -o
+# "exon\source\rekeyed\word\EXON-word.docx"
 
 import unicodedata
 from exon.customisations.digipal_text.models import Entry
 #from xhtml2pdf.pisa import showLogging
+
+
 def remove_accents(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
     return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
 
+
 MAX_LINES_PER_PAGE = 50
+
 
 class Command(BaseCommand):
     help = """
@@ -76,28 +81,28 @@ Commands:
 
     optcod
         Optimisation of the codicological sequence
-        
+
     uploadfrag ODT_FILE [--dry-run]
         Import a fragment of a transcription
-        
+
     missing
-        Sow missing entries in the tarnscription
+        Sow missing entries in the transcription
 
 """
 
     args = 'locus|email'
     option_list = BaseCommand.option_list + (
         make_option('--db',
-            action='store',
-            dest='db',
-            default='default',
-            help='Name of the target database configuration (\'default\' if unspecified)'),
+                    action='store',
+                    dest='db',
+                    default='default',
+                    help='Name of the target database configuration (\'default\' if unspecified)'),
         make_option('--dry-run',
-            action='store_true',
-            dest='dry-run',
-            default=False,
-            help='Dry run, don\'t change any data.'),
-        )
+                    action='store_true',
+                    dest='dry-run',
+                    default=False,
+                    help='Dry run, don\'t change any data.'),
+    )
 
     def handle(self, *args, **options):
 
@@ -168,7 +173,7 @@ Commands:
         if command == 'uploadpart':
             known_command = True
             self.upload(is_fragment=1)
-            
+
         if command == 'uploadfrag':
             known_command = True
             self.uploadfrag()
@@ -212,7 +217,7 @@ Commands:
         cs = CodicologicalSequence()
         cs.getContext()
         cs.sort()
-        
+
     def test(self, command):
         if command == 'test_entries':
             for entry in Entry.objects.all().iterator():
@@ -231,9 +236,10 @@ Commands:
             found = 0
             if file.startswith("LatNames"):
                 file_path = os.path.join(root, file)
-                for row in dputils.read_all_lines_from_csv(file_path, encoding='utf-8'):
+                for row in dputils.read_all_lines_from_csv(
+                        file_path, encoding='utf-8'):
                     pair = ['', '']
-                    for k,v in row.iteritems():
+                    for k, v in row.iteritems():
                         if k.endswith('ot'):
                             pair[1] = v
                         if k.endswith('n'):
@@ -262,7 +268,6 @@ Commands:
 
         write_rows_to_csv(out_path, rows, headings=headings, encoding='utf-8')
         print 'Written %s' % out_path
-
 
     def gdb2csv(self):
         file_path = 'gdb.csv'
@@ -308,8 +313,10 @@ Commands:
         recs = dputils.sql_select_dict(query)
 
         def add_entryhand(rec, scribe_column_number):
-            # add one record in EntryHand from a scribe column in exon_reference_system record
-            scribes = [s.strip().lower() for s in (rec['scribe%s' % scribe_column_number] or '').split(',')]
+            # add one record in EntryHand from a scribe column in
+            # exon_reference_system record
+            scribes = [s.strip().lower() for s in (
+                rec['scribe%s' % scribe_column_number] or '').split(',')]
 
             for scribe in scribes:
                 if scribe:
@@ -324,7 +331,13 @@ Commands:
                     if not hand_label:
                         hand_label = 'unknown'
                         certainty = 0
-                    EntryHand(entry_number=rec['entry_number'], item_part_id=1, hand_label=hand_label, order=rec['order'], correction=correction, certainty=certainty).save()
+                    EntryHand(
+                        entry_number=rec['entry_number'],
+                        item_part_id=1,
+                        hand_label=hand_label,
+                        order=rec['order'],
+                        correction=correction,
+                        certainty=certainty).save()
 
         print 'insert EntryHand records'
         for rec in recs:
@@ -333,7 +346,8 @@ Commands:
                 for i in [1, 2, 3]:
                     add_entryhand(rec, i)
 
-        # Use this query to find all hands with labels not found in digipal_hand
+        # Use this query to find all hands with labels not found in
+        # digipal_hand
         '''
         select eh.hand_label, count(*), min(entry_number), max(entry_number)
         from digipal_text_entryhand eh
@@ -352,14 +366,23 @@ Commands:
         file_path = 'trefs.csv'
 
         from digipal_text.models import TextContentXML
-        content_xml = TextContentXML.objects.filter(text_content__type__slug='translation').first()
+        content_xml = TextContentXML.objects.filter(
+            text_content__type__slug='translation').first()
         from digipal_text.views import viewer
 
         #root = dputils.get_xml_from_unicode((ur'<root>%s</root>' % content_xml.content), True)
         content = u'<root>%s</root>' % content_xml.content
-        headings = ['RevisedEllisNos', 'Exon X-ref 1', 'Exon X-ref 2', 'Exon X-ref 3', 'Exon X-ref 4', 'Exon X-ref 5', 'GDB X ref 1', 'GDB X ref 2', 'GDB X ref 3']
+        headings = [
+            'RevisedEllisNos',
+            'Exon X-ref 1',
+            'Exon X-ref 2',
+            'Exon X-ref 3',
+            'Exon X-ref 4',
+            'Exon X-ref 5',
+            'GDB X ref 1',
+            'GDB X ref 2',
+            'GDB X ref 3']
         rows = []
-
 
         # commented out so we work from text file instead of XML record
 ##         for unit in viewer.get_all_units(content, 'entry'):
@@ -377,17 +400,19 @@ Commands:
             refs2 = {'GDB': '', 'EDB': ''}
 
             # commented out so we work from text file instead of XML record
-##             for ref in unit_xml.findall("//span[@data-dpt='supplied'][@data-dpt-type='reference']"):
+# for ref in
+# unit_xml.findall("//span[@data-dpt='supplied'][@data-dpt-type='reference']"):
 
             ref = m[1]
 
             if 1:
-##                ref = dputils.get_unicode_from_xml(ref, text_only=True)
+                ##                ref = dputils.get_unicode_from_xml(ref, text_only=True)
                 refs.append(ref)
                 if len(ref) > 100:
                     print 'WARNING: long ref %s' % len(ref)
                     continue
-                ref = re.sub(ur'(?musi)\b(but|or|see|also|and|duplicated|by)\b', '', ref)
+                ref = re.sub(
+                    ur'(?musi)\b(but|or|see|also|and|duplicated|by)\b', '', ref)
                 parts = re.split(ur'(EDB|GDB)', ref)
 
                 i = 0
@@ -396,7 +421,8 @@ Commands:
                         t = parts[i]
                         i += 1
                         if i < len(parts):
-                            if refs2[t]: refs2[t] += ' + '
+                            if refs2[t]:
+                                refs2[t] += ' + '
                             refs2[t] += parts[i].strip(' ;,.=')
                     i += 1
 
@@ -408,7 +434,7 @@ Commands:
                     sp = '+'
                     if 'EDB' in k:
                         sp += ','
-                    for p in re.split('['+sp+']', v):
+                    for p in re.split('[' + sp + ']', v):
                         i += 1
                         col = 'Exon X-ref '
                         if 'GDB' in k:
@@ -422,8 +448,9 @@ Commands:
         write_rows_to_csv(file_path, rows, headings=headings, encoding='utf-8')
         print 'Written %s' % file_path
 
-
-        #for ref in re.findall(ur'(?musi)<span data-dpt="supplied" data-dpt-type="reference" data-dpt-cat="chars">()</span>', text.content):
+        # for ref in re.findall(ur'(?musi)<span data-dpt="supplied"
+        # data-dpt-type="reference" data-dpt-cat="chars">()</span>',
+        # text.content):
 
     def entries2csv_command(self):
         headings = ['entry', 'translation', 'transcription']
@@ -435,14 +462,18 @@ Commands:
         rows = {}
 
         for ctype in ['translation', 'transcription']:
-            text = TextContentXML.objects.filter(text_content__item_part__id=1, text_content__type__slug=ctype).first()
+            text = TextContentXML.objects.filter(
+                text_content__item_part__id=1,
+                text_content__type__slug=ctype).first()
             print text.id
             content = u'<root>%s</root>' % text.content
             units = viewer.get_all_units(content, 'entry')
             for unit in units:
                 entryid = unit['unitid']
-                if entryid not in rows: rows[entryid] = {}
-                rows[entryid][ctype] = dputils.get_plain_text_from_xmltext(unit['content'])
+                if entryid not in rows:
+                    rows[entryid] = {}
+                rows[entryid][ctype] = dputils.get_plain_text_from_xmltext(
+                    unit['content'])
                 rows[entryid]['entry'] = unit['unitid']
 
         rows = [rows[k] for k in sorted_natural(rows.keys())]
@@ -459,29 +490,40 @@ Commands:
         # get all start => quire from CSV
         file_path = self.cargs[0]
         locus_quire = {}
-        for row in dputils.read_all_lines_from_csv(file_path, encoding='utf-8'):
+        for row in dputils.read_all_lines_from_csv(
+                file_path, encoding='utf-8'):
             locus_quire[row['start']] = row['quire']
 
-        locuses = sorted_natural(locus_quire.keys(), roman_numbers=True, is_locus=True)
+        locuses = sorted_natural(
+            locus_quire.keys(),
+            roman_numbers=True,
+            is_locus=True)
 
         # now get all images from DB
         from digipal.models import Image
-        images = {image.locus: image for image in Image.objects.filter(item_part_id=1)}
-        locuses_images = sorted_natural(images.keys(), roman_numbers=True, is_locus=True)
+        images = {
+            image.locus: image for image in Image.objects.filter(
+                item_part_id=1)}
+        locuses_images = sorted_natural(
+            images.keys(), roman_numbers=True, is_locus=True)
 
         # let's move in // through those two sorted list
         i1 = 0
         i2 = 0
         while i1 < len(locuses):
             quire = locus_quire[locuses[i1]]
-            if i2 >= len(locuses_images): break
+            if i2 >= len(locuses_images):
+                break
 
             while locuses_images[i2] != locuses[i1]:
                 i2 += 1
-                if i2 >= len(locuses_images): break
-            if i2 >= len(locuses_images): break
+                if i2 >= len(locuses_images):
+                    break
+            if i2 >= len(locuses_images):
+                break
 
-            next_quire_start = locuses[i1 + 1] if i1 < (len(locuses) - 1) else '100000r'
+            next_quire_start = locuses[i1 +
+                                       1] if i1 < (len(locuses) - 1) else '100000r'
             while locuses_images[i2] != next_quire_start:
                 image = images[locuses_images[i2]]
                 if quire != image.quire and image.quire is not None:
@@ -491,7 +533,8 @@ Commands:
                     image.save()
                 print image.locus, image.quire
                 i2 += 1
-                if i2 >= len(locuses_images): break
+                if i2 >= len(locuses_images):
+                    break
 
             i1 += 1
 
@@ -523,24 +566,25 @@ Commands:
         from digipal_text.models import TextContentXML
 
         #text = TextContentXML.objects.filter(text_content__type__slug='translation').first()
-        text = TextContentXML.objects.filter(text_content__type__slug='transcription').first()
+        text = TextContentXML.objects.filter(
+            text_content__type__slug='transcription').first()
         content = u'<root>%s</root>' % text.content
         from digipal import utils
         xml = utils.get_xml_from_unicode(content, True)
 
         # Warnings about $|£ within <add>
-        for pattern in [".//span[@data-dpt='interlineation']//span[@data-dpt-loctype='entry']", ".//span[@data-dpt='marginal']//span[@data-dpt-loctype='entry']", ".//span[@data-dpt='interlineation-to-margin']//span[@data-dpt-loctype='entry']"]:
-        #for pattern in [".//p//span[@data-dpt-loctype='entry']"]:
+        for pattern in [".//span[@data-dpt='interlineation']//span[@data-dpt-loctype='entry']",
+                        ".//span[@data-dpt='marginal']//span[@data-dpt-loctype='entry']", ".//span[@data-dpt='interlineation-to-margin']//span[@data-dpt-loctype='entry']"]:
+            #for pattern in [".//p//span[@data-dpt-loctype='entry']"]:
             for element in xml.findall(pattern):
                 etext = utils.get_xml_element_text(element)
                 print etext
 #             if etext and re.search(ur'[\$£]', etext):
 #                 self.msg('entry within <add> (%s)', repr(etext))
 
-
     def handentry_command(self):
         raise Exception('DEPRECATED, please use setentryhand command.')
-        
+
         #hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')
         #entries = self.get_entries()
 
@@ -556,7 +600,8 @@ Commands:
         print '-' * 40
 
         tl_entries = self.get_entry_numbers_from_translation()
-        all_entries = sorted_natural(list(set(entries_hands.keys() + tl_entries)))
+        all_entries = sorted_natural(
+            list(set(entries_hands.keys() + tl_entries)))
 
         # print results
         if 0:
@@ -596,12 +641,15 @@ Commands:
                 hands = entries_hands[entry]
                 row['hands'] = [hand for hand in hands if hand[0] != '_']
                 row['nbhands'] = len(row['hands'])
-                row['notes'] = [hand.replace('_', '') for hand in hands if hand[0] == '_']
-                if row['nbhands'] == 0: row['notes'].append('NO_HAND')
+                row['notes'] = [hand.replace('_', '')
+                                for hand in hands if hand[0] == '_']
+                if row['nbhands'] == 0:
+                    row['notes'].append('NO_HAND')
                 #for col in ['hands', 'notes']:
                 for col in ['notes']:
                     row[col] = ', '.join(row[col])
-                if not row['hands']: row['hands'] = ['']
+                if not row['hands']:
+                    row['hands'] = ['']
                 for hand in row['hands']:
                     rowc = deepcopy(row)
                     rowc['hands'] = hand
@@ -615,17 +663,20 @@ Commands:
 
     def get_entry_numbers_from_translation(self, ttype='translation'):
         from digipal_text.models import TextContentXML
-        tcx = TextContentXML.objects.filter(text_content__type__slug=ttype).first()
+        tcx = TextContentXML.objects.filter(
+            text_content__type__slug=ttype).first()
         content = tcx.content
 
-        ret = re.findall(ur'<span data-dpt="location" data-dpt-loctype="entry">\s*(\d+[ab]\d+)\s*</span>', content)
+        ret = re.findall(
+            ur'<span data-dpt="location" data-dpt-loctype="entry">\s*(\d+[ab]\d+)\s*</span>',
+            content)
 
         return ret
 
     def command_missing(self):
         tl_entries = self.get_entry_numbers_from_translation()
         tc_entries = self.get_entry_numbers_from_translation('transcription')
-        
+
         print ', '.join(dputils.sorted_natural(list(set(tl_entries).difference(set(tc_entries))), 1, 1))
 
     def find_missing_entries(self):
@@ -653,7 +704,8 @@ Commands:
         pages = {}
         for entry in sorted_natural(list(missing)):
             entry_page = re.sub(ur'(.*[ab]).*', ur'\1', entry)
-            if entry_page == entry: continue
+            if entry_page == entry:
+                continue
             if entry_page not in pages.keys():
                 print '-' * 10
                 pages[entry_page] = 0
@@ -668,7 +720,7 @@ Commands:
                 cnt += 1
                 pages_str += ', ' + page.replace('a', 'r').replace('b', 'v')
                 if pages[page] > 1:
-                    pages_str += ' ('+str(pages[page])+')'
+                    pages_str += ' (' + str(pages[page]) + ')'
         print pages_str
         print cnt
 
@@ -756,8 +808,12 @@ Commands:
             if page not in lines_hands:
                 self.msg('page %s not in stints but in text', page)
                 continue
-            if (len(lines_entries[page]) != len(lines_hands[page])) and (len(lines_hands[page]) != MAX_LINES_PER_PAGE):
-                self.msg('page %s: %s lines in text vs %s lines in stints', page, len(lines_entries[page]), len(lines_hands[page]))
+            if (len(lines_entries[page]) != len(lines_hands[page])) and (
+                    len(lines_hands[page]) != MAX_LINES_PER_PAGE):
+                self.msg(
+                    'page %s: %s lines in text vs %s lines in stints', page, len(
+                        lines_entries[page]), len(
+                        lines_hands[page]))
 
             line0 = -1
             for line_entries in lines_entries[page]:
@@ -795,7 +851,8 @@ Commands:
                         if hand not in ret[entry]:
                             ret[entry].append(hand)
 
-                    if len(line_entries) != len(hands) and len(line_entries) > 1 and len(hands) > 1:
+                    if len(line_entries) != len(hands) and len(
+                            line_entries) > 1 and len(hands) > 1:
                         msg = '_AMBIGUOUS'
                         if msg not in ret[entry]:
                             ret[entry].append(msg)
@@ -803,7 +860,8 @@ Commands:
             if page == diag:
                 print '\ndebug %s' % page
 
-                for i in range(0, max(len([l for l in lines_entries[diag] if l]), len([l for l in lines_hands[diag] if l]))):
+                for i in range(0, max(len([l for l in lines_entries[diag] if l]), len(
+                        [l for l in lines_hands[diag] if l]))):
                     entries = ''
                     if len(lines_entries[diag]) > i:
                         entries = ', '.join(lines_entries[diag][i])
@@ -815,7 +873,8 @@ Commands:
                 shown = {}
                 for line_entries in lines_entries[page]:
                     for entry in line_entries:
-                        if entry in shown: continue
+                        if entry in shown:
+                            continue
                         shown[entry] = 1
                         print entry, ret[entry]
                 #exit()
@@ -862,7 +921,8 @@ Commands:
                 for i in range(0, last):
                     page = pages[i]
 
-                    # get number of lines on this page according to the rekeyed text
+                    # get number of lines on this page according to the rekeyed
+                    # text
                     lines_on_page = MAX_LINES_PER_PAGE
                     if page in lines_entries:
                         lines_on_page = len(lines_entries[page])
@@ -877,7 +937,10 @@ Commands:
                     lns = [1, lines_on_page]
 
                     if lns[1] < lns[0]:
-                        self.msg('empty stint range %s (%s)', sinfo['hand'], sinfo['extent'])
+                        self.msg(
+                            'empty stint range %s (%s)',
+                            sinfo['hand'],
+                            sinfo['extent'])
 
                     # use line numbers from stint extent
                     if i == 0:
@@ -885,11 +948,11 @@ Commands:
                     if i == last - 1:
                         lns[1] = sinfo['x'][1][2] or lns[1]
 
-                    for ln in range(int(lns[0]), int(lns[1])+1):
+                    for ln in range(int(lns[0]), int(lns[1]) + 1):
                         #ret[page][ln-1].append('%s (%s)' % (sinfo['hand'], sinfo['extent']))
                         if print_lines:
-                            print page, ln-1, lns
-                        l = ret[page][ln-1]
+                            print page, ln - 1, lns
+                        l = ret[page][ln - 1]
                         # pos important!
                         # to avoid [[tau], [alpha, tau], [alpha]]
                         # TODO: doesn't work with more than 2 hands per line!
@@ -925,7 +988,8 @@ Commands:
 
         # get rekeyed text from file
         from digipal import utils
-        content = utils.read_file('exon/source/rekeyed/converted/EXON-1-493.hands.xml')
+        content = utils.read_file(
+            'exon/source/rekeyed/converted/EXON-1-493.hands.xml')
         xml = utils.get_xml_from_unicode(content)
 
         # Warnings about $|£ within <add>
@@ -935,7 +999,7 @@ Commands:
                 self.msg('entry within <add> (%s)', repr(etext))
 
         # remove all nested <add>s
-        parent_map = {c:p for p in xml.iter() for c in p}
+        parent_map = {c: p for p in xml.iter() for c in p}
         for element in xml.findall('.//add//add'):
             parent_map[element].remove(element)
             # don't use remove(), it deletes the tail (text after element)
@@ -944,7 +1008,6 @@ Commands:
         content = utils.get_unicode_from_xml(xml)
 
         #utils.write_file('exon/source/rekeyed/converted/EXON-1-493.hands2.xml', content)
-
 
         # TODO:
         # remove all the marginal text
@@ -1039,9 +1102,11 @@ Commands:
         ret = []
 
         from digipal_text.models import TextContentXML
-        text = TextContentXML.objects.filter(text_content__type__slug='translation').first()
+        text = TextContentXML.objects.filter(
+            text_content__type__slug='translation').first()
 
-        for entry in re.findall(ur'<span data-dpt="location" data-dpt-loctype="entry">(\d+)([ab])(\d+)</span>', text.content):
+        for entry in re.findall(
+                ur'<span data-dpt="location" data-dpt-loctype="entry">(\d+)([ab])(\d+)</span>', text.content):
             entry = list(entry)
             entry[1] = 'r' if entry[0] == 'a' else 'v'
             ret.append({'entry': ''.join(entry), 'x': entry})
@@ -1118,9 +1183,11 @@ Commands:
             print '%s (%s): %s' % (tic['name'], len(tic['entries']), ', '.join([entry['hundred'] for entry in tic['entries']]))
 
         # create adjacency matrix of the 'before' graph
-        # bm[hundred1][hundred2] = 3 means that hundred1 precedes hundred2 3 times
+        # bm[hundred1][hundred2] = 3 means that hundred1 precedes hundred2 3
+        # times
 
         bm = {}
+
         def add_count(h1, h2):
             if h1 not in bm:
                 bm[h1] = {}
@@ -1128,15 +1195,16 @@ Commands:
                 bm[h1][h2] = 0
             bm[h1][h2] += 1
 
-
         for tic in tics:
             i = 0
             treated = {}
             for entry in tic['entries']:
-                if entry['hundred'] in treated: continue
+                if entry['hundred'] in treated:
+                    continue
                 h = entry['hundred']
-                if h not in bm: bm[h] = {}
-                for entry2 in tic['entries'][i+1:]:
+                if h not in bm:
+                    bm[h] = {}
+                for entry2 in tic['entries'][i + 1:]:
                     add_count(h, entry2['hundred'])
                 i += 1
                 treated[entry['hundred']] = 1
@@ -1146,7 +1214,8 @@ Commands:
             print h1, bm[h1]
 
         print '\nReenterance'
-        for r in sorted([(h1, bm[h1][h1]) for h1 in bm if h1 in bm[h1]], key=lambda r: r[1], reverse=True):
+        for r in sorted([(h1, bm[h1][h1]) for h1 in bm if h1 in bm[h1]],
+                        key=lambda r: r[1], reverse=True):
             print r[1], r[0]
 
         print '\nConflicts'
@@ -1167,8 +1236,10 @@ Commands:
                             del sbm[h1][h2]
                         else:
                             if not (bm[h2][h1] * 3 <= bm[h1][h2]):
-                                if sbm[h2] and h1 in sbm[h2]: del sbm[h2][h1]
-                                if sbm[h1] and h2 in sbm[h1]: del sbm[h1][h2]
+                                if sbm[h2] and h1 in sbm[h2]:
+                                    del sbm[h2][h1]
+                                if sbm[h1] and h2 in sbm[h1]:
+                                    del sbm[h1][h2]
 
         # create a new order
         hs = []
@@ -1179,7 +1250,8 @@ Commands:
             hs.insert(0, sbmo[0])
 
             for h in sbm:
-                if sbmo[0] in sbm[h]: del sbm[h][sbmo[0]]
+                if sbmo[0] in sbm[h]:
+                    del sbm[h][sbmo[0]]
 
             del sbm[sbmo[0]]
 
@@ -1188,12 +1260,9 @@ Commands:
         print 'cost: ', self.get_cost_from_hundreds(tics, hs)
         self.setoptorder(shire, hs, column='')
 
-
-
     def hundorderga(self):
         shire = self.cargs[0]
         tics = self.get_tics_from_shire(shire)
-
 
         # vr is numerical hundredal order supplied by the team
         vr = {}
@@ -1234,8 +1303,6 @@ Commands:
         #vr = [u'Winnianton', u'Tybesta', u'Rillaton', u'Connerton', u'Rialton', u'Pawton', u'Stratton', u'Fawton']
         #vr = [u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Ottery St Mary', u'Molland', u'Wonford', u'Budleigh', u'Witheridge', u'Tiverton', u'Halberton', u'Kerswell', u'Axminster', u'Alleriga', u'Colyton', u'Chillington', u'Axmouth', u'Teignbridge', u'Ermington', u'unknown', u'Diptford', u'Plympton', u'Walkhampton']
 
-
-
         vr = [hundreds[label] for label in vr]
         #vr = range(0, len(vr))
         ##vr2 = [u'Yeovil: Tintinhull', u'North Petherton', u'Cannington', u'South Petherton', u'Sheriffs Brompton', u'Cheddar', u'Cutcombe', u'Carhampton', u'Bedminster', u'Minehead', u'Williton', u'Bulstone', u'Andersfield', u'Kingsbury', u'Wiveliscombe', u'Wellington', u'Winterstoke', u'Abdick', u'Chew', u'Frome: Frome', u'Brompton Regis', u'Dulverton', u'Lydeard', u'Bempstone', u'Wells', u'Bruton: Bruton', u'Cleeve', u'Loxley', u'Winsford', u'Creech', u'North Curry', u'Crewkerne', u'Congresbury', u'Somerton', u'Coker', u'Pitminster', u'Taunton', u'Milverton', u'Bruton: Wincanton', u'Bath', u'Yeovil: Lyatts', u'Martock', u'Hartcliffe', u'Yeovil: Houndsborough', u'Bruton: Blachethorna', u'Huntspill', u'Whitestone', u'Reynaldsway', u'Frome: Kilmersdon', u'Monkton', u'Portbury', u'Keynsham', u'Milborne/Horethorne', u'Chewton', u'South Brent', u'Frome: Wellow', u'Frome: Frome/Downhead', u'Yeovil: Stone']
@@ -1270,7 +1337,10 @@ Commands:
         from digipal.optimiser import Optimiser
 
         optimiser = Optimiser()
-        optimiser.reset(seed=seed, costfn=lambda v: self.get_cost(tics, v), printfn=lambda v: self.print_candidate(v, tics, hundreds))
+        optimiser.reset(
+            seed=seed, costfn=lambda v: self.get_cost(
+                tics, v), printfn=lambda v: self.print_candidate(
+                v, tics, hundreds))
         optimiser.start()
         vs = optimiser.getSolution()
 
@@ -1371,6 +1441,7 @@ Wiltshire (None)
 NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
             '''
+
     def get_tics_from_shire(self, shire):
         ret = []
 
@@ -1388,7 +1459,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 info = shire_data
                 break
 
-
         print 'optimise... %s' % shire
 
         if info:
@@ -1404,9 +1474,11 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 for entry in tic['entries_all']:
                     hundred = entry['hundred']
                     # discard '-'
-                    if len(hundred) < 2: continue
+                    if len(hundred) < 2:
+                        continue
                     # discard missing ellis number
-                    if entry['ellisref'] in [None, '-', '']: continue
+                    if entry['ellisref'] in [None, '-', '']:
+                        continue
 
                     if last_hundred is None or last_hundred != hundred:
                         tic['entries'].append(entry)
@@ -1418,7 +1490,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             ret = tics
 
         return ret
-
 
     def print_candidate(self, v1, tics, hundreds):
         print '-' * 10
@@ -1442,8 +1513,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 # 8 11 10 not ok
                 # 10 11 10 OK
                 if last_ho is not None and\
-                    last_ho > ho and\
-                    last_last_ho != ho:
+                        last_ho > ho and\
+                        last_last_ho != ho:
                     ret += 1
                 last_last_ho = last_ho
                 last_ho = ho
@@ -1452,11 +1523,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
     def get_cost_from_hundreds(self, tics, hs):
         ''' hs = [first_hundred_name, second_hundred_name, ...] '''
-        return self.get_cost_from_function(tics, lambda entry: hs.index(entry['hundred']))
+        return self.get_cost_from_function(
+            tics, lambda entry: hs.index(entry['hundred']))
 
     def get_cost(self, tics, v1):
         ''' v1 = [first_hundred_entry_ho, ...] '''
-        return self.get_cost_from_function(tics, lambda entry: v1.index(entry['ho']))
+        return self.get_cost_from_function(
+            tics, lambda entry: v1.index(entry['ho']))
 
     def get_vector_labels(self, hundreds, v1):
         hr = {}
@@ -1476,7 +1549,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             key = json.dumps(match)
             matches[key] = matches.get(key, 0) + 1
 
-        for key, freq in sorted([(key, freq) for key, freq in matches.iteritems()], key=lambda item: (item[1], item[0])):
+        for key, freq in sorted([(key, freq) for key, freq in matches.iteritems(
+        )], key=lambda item: (item[1], item[0])):
             print '%3d %s' % (freq, key)
             if replacement:
                 print '\t\t -> %s' % json.dumps(re.sub(pattern, replacement, json.loads(key)))
@@ -1538,11 +1612,14 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         merged_into = {}
         merged = {}
         for node in xml.findall(xpath):
-            if id(node) in merged: continue
-            if node.tail is not None: continue
+            if id(node) in merged:
+                continue
+            if node.tail is not None:
+                continue
             for dup in node.itersiblings():
                 # same tag and attribute?
-                if not(dup.tag == node.tag and '|'.join(sorted(node.values())) == '|'.join(sorted(dup.values()))):
+                if not(dup.tag == node.tag and '|'.join(
+                        sorted(node.values())) == '|'.join(sorted(dup.values()))):
                     break
 
                 # merge
@@ -1554,7 +1631,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                     dup.tail = None
 
                 merged[id(dup)] = 1
-                if dup.tail is not None: break
+                if dup.tail is not None:
+                    break
 
         #print 'Merged into %s groups (%s)' % (len(merged_into.keys()), xpath)
 
@@ -1563,35 +1641,36 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
     def uploadfrag(self):
         if len(self.cargs) != 1:
             print 'ERROR: this command requires one argument, the path to the ODT file to import.'
-            return 
+            return
         input_path = self.cargs[0]
-        
+
         import glob
         input_paths = glob.glob(input_path)
-        
+
         for input_path in input_paths:
             if not os.path.exists(input_path):
                 print 'ERROR: file not found: %s' % input_path
                 return
             print input_path
-            
+
             xml_path = 'part.xml'
             # exon/source/rekeyed/word/dec16/edb-1-24.odt
             dputils.extract_file_from_zip(input_path, 'content.xml', xml_path)
-    
+
             html_path = 'part.html'
             xslt_path = 'exon/source/rekeyed/conversion/odt2xml.xslt'
             from django.core import management
-            management.call_command('dpxml', 'convert', xml_path, xslt_path, html_path)
-            
+            management.call_command(
+                'dpxml', 'convert', xml_path, xslt_path, html_path)
+
             management.call_command('extxt', 'uploadpart', html_path, 4)
-    
+
     def upload(self, is_fragment=0):
         # If is_fragment is 1 the input HTML file is considered to be a fragment,
         # the rest of the text will remain untouched in the database.
-        # If is_framgent is 0, the whole text in the database is replaced with 
+        # If is_framgent is 0, the whole text in the database is replaced with
         # input  HTML document.
-        
+
         input_path = self.cargs[0]
         recordid = self.cargs[1]
 
@@ -1602,7 +1681,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # extract body
         l0 = len(content)
-        content = regex.sub(ur'(?musi).*<body*?>(.*)</body>.*', ur'<p>\1</p>', content)
+        content = regex.sub(
+            ur'(?musi).*<body*?>(.*)</body>.*',
+            ur'<p>\1</p>',
+            content)
         if len(content) == l0:
             print 'ERROR: could not find <body> element'
             return
@@ -1616,13 +1698,16 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # unescape XML tags coming from MS Word
         # E.g. &lt;margin&gt;Д‘ mМѓ&lt;/margin&gt;
-        content = regex.sub(ur'(?musi)&lt;(/?[a-z]+)(&gt;)?', ur'<\1>', content)
-        
-        # Tags we don't want to keep because no longer useful or  
+        content = regex.sub(
+            ur'(?musi)&lt;(/?[a-z]+)(&gt;)?',
+            ur'<\1>',
+            content)
+
+        # Tags we don't want to keep because no longer useful or
         # never agreed to use them
         tags_to_remove = ur'symbol|gildum|nsc|f'
-        content = regex.sub(ur'</?('+tags_to_remove+')/?>', '', content)
-        
+        content = regex.sub(ur'</?(' + tags_to_remove + ')/?>', '', content)
+
         # removed the misplaced anchors. Can't convert them.
         #print len(regex.findall(ur'&gt;|&lt;', content))
         content = regex.sub(ur'&gt;|&lt;', ur'', content)
@@ -1643,22 +1728,34 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # Line breaks from editor (<br/> => ¦)
         # Hyphenation: remove the line break after <br/> (see EXON-87)
         # e.g. Turche-| tillus => Turche-|tillus (8b2)
-        # Che-|<br/>\nneuuel 
+        # Che-|<br/>\nneuuel
         # Turche-|<br/>\ntillus
         content = regex.sub(ur'(?mui)(-\|?<br/>)\s+', ur'\1', content)
         # Editorial LB, no hyphenation
-        content = regex.sub(ur'(?musi)<br/>', ur'<span data-dpt="lb" data-dpt-src="prj">¦</span>', content)
+        content = regex.sub(
+            ur'(?musi)<br/>',
+            ur'<span data-dpt="lb" data-dpt-src="prj">¦</span>',
+            content)
 
         # line breaks from MS (| => |) (-| => -|)
-        content = regex.sub(ur'(?musi)(-?)\s*\|', ur'<span data-dpt="lb" data-dpt-src="ms">\1|</span>', content)
+        content = regex.sub(
+            ur'(?musi)(-?)\s*\|',
+            ur'<span data-dpt="lb" data-dpt-src="ms">\1|</span>',
+            content)
 
         # line breaks from MS (| => |)
         #content = regex.sub(ur'(?musi)-\|', ur'<span data-dpt="lb" data-dpt-src="ms">|</span>', content)
 
         # [---] Erasure
-        content = regex.sub(ur'(?musi)(\[-+\])', ur'<span data-dpt="del" data-dpt-rend="erasure">\1</span>', content)
+        content = regex.sub(
+            ur'(?musi)(\[-+\])',
+            ur'<span data-dpt="del" data-dpt-rend="erasure">\1</span>',
+            content)
         # [...] Gap
-        content = regex.sub(ur'(?musi)(\[\.+\])', ur'<span data-dpt="gap">\1</span>', content)
+        content = regex.sub(
+            ur'(?musi)(\[\.+\])',
+            ur'<span data-dpt="gap">\1</span>',
+            content)
 
         #content = regex.sub(ur'(?musi)<br/>', ur'</p><p>', content)
 
@@ -1672,7 +1769,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = regex.sub(ur'(?mus)<st>\s*p\s*</st>', ur'ṕ', content)
         content = regex.sub(ur'(?mus)<st>\s*P\s*</st>', ur'Ṕ', content)
         # p with top tilde
-        content = regex.sub(ur'(?mus)<st>\s*p\u0303\s*</st>', ur'ꝑ\u0306', content)
+        content = regex.sub(
+            ur'(?mus)<st>\s*p\u0303\s*</st>',
+            ur'ꝑ\u0306',
+            content)
         # <st>s</st> => s
         content = regex.sub(ur'(?mus)<st>\s*s\s*</st>', ur'ś', content)
         content = regex.sub(ur'(?mus)<st>\s*S\s*</st>', ur'Ś', content)
@@ -1680,16 +1780,19 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = regex.sub(ur'(?mus)<st>\s*q\s*</st>', ur'ƣ', content)
         content = regex.sub(ur'(?mus)<st>\s*Q\s*</st>', ur'Ƣ', content)
         # q with tilde and bottom left tail (lots of them)
-        content = regex.sub(ur'(?mus)<st>\s*q\u0303\s*</st>', ur'q\u0303\u0317', content)
+        content = regex.sub(
+            ur'(?mus)<st>\s*q\u0303\s*</st>',
+            ur'q\u0303\u0317',
+            content)
         # <st>L</st> => Ł
         content = regex.sub(ur'(?mus)<st>\s*ll\s*</st>', ur'łł', content)
         content = regex.sub(ur'(?mus)<st>\s*LL\s*</st>', ur'ŁŁ', content)
         content = regex.sub(ur'(?mus)<st>\s*l\s*</st>', ur'ł', content)
         content = regex.sub(ur'(?mus)<st>\s*L\s*</st>', ur'Ł', content)
-        
+
         # ÷ means ÷[est]
         content = regex.sub(ur'÷(?!\[)', ur'÷[est]', content)
-        
+
         # <u> =>
         content = regex.sub(ur'(?musi)</?u>', ur'', content)
 
@@ -1705,24 +1808,35 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # TODO: check for false pos. or make the rule more strict
         #content = re.sub(ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', ur'</p><span data-dpt="location" data-dpt-loctype="locus">\1\3</span><p>', content)
         self.sides = {'': 'r', 'b': 'v', 'a': 'r'}
+
         def get_side(m):
             side = self.sides.get(m.group(3), m.group(3))
-            ret = ur'</p><p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span></p><p>' % (m.group(1), side)
+            ret = ur'</p><p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span></p><p>' % (
+                m.group(1), side)
             return ret
-        content = re_sub_fct(content, ur'(?musi)\[fol\.?\s(\d+)\.?(\s*([rvab]?)\.?)\]', get_side, regex)
+        content = re_sub_fct(
+            content,
+            ur'(?musi)\[fol\.?\s(\d+)\.?(\s*([rvab]?)\.?)\]',
+            get_side,
+            regex)
 
         # Entry number
         # [1a3]
         # TODO: check for false pos. or make the rule more strict
-        content = regex.sub(ur'(?musi)(§?)\[(\d+(a|b)\d+)\s*]', ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>', content)
-        
+        content = regex.sub(
+            ur'(?musi)(§?)\[(\d+(a|b)\d+)\s*]',
+            ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>',
+            content)
+
         # TABLES
-        # We don't want <table> inside a <p> 
-        content = content.replace(ur'<table>', ur'</p><table>').replace(ur'</table>', ur'</table><p>')
+        # We don't want <table> inside a <p>
+        content = content.replace(ur'<table>',
+                                  ur'</p><table>').replace(ur'</table>',
+                                                           ur'</table><p>')
         # E.g. if we have entries in table cells, then the previous conversions
         # will produce this:
         # <td><p></p><p>ENTRY NUMBER: ENTRY CONTENT</p></td>
-        #     ^^^^                              
+        #     ^^^^
         # remove elements with blank content
         content = regex.sub(ur'(?mus)<(\w+)[^>]*?>(\s*)</\1>', ur'\2', content)
 
@@ -1730,26 +1844,29 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # convert to ()
         content = regex.sub(ur'\[([^\]\[]*\s[^\[\]]*)\]', ur'(\1)', content)
 
-        # Tironian sign, special mark up. Similar to expansions. Show it as 'et' or 7. 
+        # Tironian sign, special mark up. Similar to expansions. Show it as 'et' or 7.
         # Can have it on its own or at the end of a word (ten7 -> tenet).
-        # MUST be careful not to catch entry or folio numbers! 
-        # TODO: make it more robust. 
+        # MUST be careful not to catch entry or folio numbers!
+        # TODO: make it more robust.
         # At the mo. we convert all 7 outside of a location span
-        # and outside a <sup> 
-        content = regex.sub(ur'(?<!(<span data-dpt="location"[^>]+>[\dabrv]*|<sup>))7', ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>', content)
+        # and outside a <sup>
+        content = regex.sub(
+            ur'(?<!(<span data-dpt="location"[^>]+>[\dabrv]*|<sup>))7',
+            ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>',
+            content)
 
         # <margin></margin>
         if 1:
             content = content.replace(u'<margin>', u'#MSTART#')
             content = content.replace(u'</margin>', u'#MEND#')
-            
+
         # to check which entities are left
         ##ocs = set(regex.findall(ur'(?musi)(&[#\w]+;)', content))
 
         # fix accidental edit
         # SPACE</sup> => </sup>SPACE
         content = regex.sub(ur'(\s+)(</(?:sup|sub|i)>)', ur'\2\1', content)
-        
+
         self.c = 0
 
         def markup_expansions(match):
@@ -1758,7 +1875,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
             #if '[' not in m: return m
 
-            # don't convert if starts with digit as it's most likely a folio or entry number
+            # don't convert if starts with digit as it's most likely a folio or
+            # entry number
             if m[0] <= '9' and m[0] >= '0':
                 return m
 
@@ -1772,13 +1890,14 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             abbr = regex.sub(ur'\[.*?\]', ur'', m)
 
             # o<sup>o</sup> -> <sup>o</sup>
-            abbr = regex.sub(ur'(\w)(<sup>\1</sup>|<sub>\1</sub>)', ur'\2', abbr)
+            abbr = regex.sub(
+                ur'(\w)(<sup>\1</sup>|<sub>\1</sub>)', ur'\2', abbr)
 
             # EXP
             #exp = m.replace(ur';[', ur'[')
             exp = m
             exp = regex.sub(ur'\[(.*?)\]', ur'<i>\1</i>', exp)
-            
+
             # Remove all digits in expansions
             # e.g. hid4as
             exp = regex.sub(ur'\d', ur'', exp)
@@ -1804,7 +1923,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
             ##exp = regex.sub(ur'ṕ', ur'p', exp)
             exp = regex.sub(ur'ƒ', ur'f', exp)
-            
+
             # b~ (Latin small letter b with middle tilde)
             exp = regex.sub(ur'ᵬ', ur'b', exp)
             # latin capital letter b with stroke
@@ -1816,9 +1935,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             # q
             exp = regex.sub(ur'ƣ', ur'q', exp)
             exp = regex.sub(ur'Ƣ', ur'Q', exp)
-            # 
+            #
             exp = regex.sub(ur'ɋ', ur'q', exp)
-            
+
             # l/ -> l
             exp = regex.sub(ur'ł', ur'l', exp)
             exp = regex.sub(ur'Ł', ur'L', exp)
@@ -1846,30 +1965,47 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
 
             if abbr != exp and exp:
-#                 if len(abbr) > len(exp):
-#                     # potentially spurious expansions
-#                     print repr(abbr), repr(exp)
-                ret = ur'<span data-dpt="abbr">%s</span><span data-dpt="exp">%s</span>' % (abbr, exp)
+                #                 if len(abbr) > len(exp):
+                #                     # potentially spurious expansions
+                #                     print repr(abbr), repr(exp)
+                ret = ur'<span data-dpt="abbr">%s</span><span data-dpt="exp">%s</span>' % (
+                    abbr, exp)
 
             ##print repr(m), repr(ret)
 
             return ret
 
-        content = re_sub_fct(content, ur'(?musi)(:|;|÷|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+', markup_expansions, regex)
+        content = re_sub_fct(
+            content,
+            ur'(?musi)(:|;|÷|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+',
+            markup_expansions,
+            regex)
 
         # (supplied) expansions without abbreviation
         # Wide angle brackets
         # Bal〈dwini〉 =>
         content = regex.sub(ur'(?musi)〈〉', ur'', content)
-        content = regex.sub(ur'(?musi)〈\s*([^〈〉]{1,100})\s*〉', ur'<span data-dpt="supplied">\1</span>', content)
+        content = regex.sub(
+            ur'(?musi)〈\s*([^〈〉]{1,100})\s*〉',
+            ur'<span data-dpt="supplied">\1</span>',
+            content)
 
         # Interlineation
         # e.g. e{n}t
-        content = regex.sub(ur'(?musi)\{\s*([^{}]{1,300})\s*\}', ur'<span data-dpt="interlineation">\1</span>', content)
+        content = regex.sub(
+            ur'(?musi)\{\s*([^{}]{1,300})\s*\}',
+            ur'<span data-dpt="interlineation">\1</span>',
+            content)
 
         # remove accidental spaces in sup/sub
-        content = regex.sub(ur'(?musi)(<sup>)\s*(.*?)\s*(</sup>)', ur'\1\2\3', content)
-        content = regex.sub(ur'(?musi)(<sub>)\s*(.*?)\s*(</sub>)', ur'\1\2\3', content)
+        content = regex.sub(
+            ur'(?musi)(<sup>)\s*(.*?)\s*(</sup>)',
+            ur'\1\2\3',
+            content)
+        content = regex.sub(
+            ur'(?musi)(<sub>)\s*(.*?)\s*(</sub>)',
+            ur'\1\2\3',
+            content)
 
         content = self.convert_exceptions(content)
 
@@ -1879,24 +2015,30 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # & => et
         #content = content.replace(ur'&amp;', ur'<i>et</i>')
         # Safe to assume &amp are not inside expension: [ & ]
-        content = content.replace(ur'&amp;', ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>et</i></span>')
+        content = content.replace(
+            ur'&amp;',
+            ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>et</i></span>')
 
         # Margin conversion
         if 1:
-            content = regex.sub(ur'(?musi)#MSTART#(.*?)#MEND#', lambda m: self.convert_margin(m), content)
-            content = content.replace(u'#MSTART#', u'<span data-dpt="note" data-dpt-place="margin">')
+            content = regex.sub(
+                ur'(?musi)#MSTART#(.*?)#MEND#',
+                lambda m: self.convert_margin(m),
+                content)
+            content = content.replace(
+                u'#MSTART#', u'<span data-dpt="note" data-dpt-place="margin">')
             content = content.replace(u'#MEND#', u'</span>')
 
         #
         content = regex.sub(ur'</p>', u'</p>\n', content)
 
         self.replace_fragment(content, recordid, is_fragment=is_fragment)
-        
+
     def convert_margin(self, match):
         # Move the margin WITHIN the <p>
         # e.g. we have a lot of these: <margin><p>...</margin></p>
         # we turn them into <p><margin>...</margin></p>
-        # This function will split all the margin elements 
+        # This function will split all the margin elements
         # around the p elements. Generating new elements.
         # We then remove all empty margin elements.
 
@@ -1906,20 +2048,27 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # so margins are within <p> and not the opposite
         ret = ret.replace(ur'<p>', ur'#MEND#<p>#MSTART#')
         ret = ret.replace(ur'</p>', ur'#MEND#</p>#MSTART#')
-        
+
         if ret != match.group(0):
             # recursive processing for newly created margins
-            ret = re.sub(ur'(?musi)#MSTART#(.*?)#MEND#', lambda m: self.convert_margin(m), ret)
-        
+            ret = re.sub(
+                ur'(?musi)#MSTART#(.*?)#MEND#',
+                lambda m: self.convert_margin(m),
+                ret)
+
         # Now remove an empty margin.
         # This will occur when margin started just before p,
         # that bit will now close also just before p and should
         # be removed.
         # Need a good definition of 'empty'
-        stripped = re.sub(ur'(?musi)\s+', ur'', dputils.get_plain_text_from_html(match.group(1)).strip())
+        stripped = re.sub(
+            ur'(?musi)\s+',
+            ur'',
+            dputils.get_plain_text_from_html(
+                match.group(1)).strip())
         if not stripped:
             ret = ur''
-        
+
         return ret
 
     def replace_fragment(self, content, recordid, is_fragment=0):
@@ -1928,21 +2077,26 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         if is_fragment:
             # Detect the range of locuses from the new content, e.g. 5r-6r
-            locations = re.findall(ur'<span data-dpt="location" data-dpt-loctype="locus">\s*([^<]+)\s*</span>', content)
+            locations = re.findall(
+                ur'<span data-dpt="location" data-dpt-loctype="locus">\s*([^<]+)\s*</span>',
+                content)
             if len(locations) < 2:
-                raise Exception('ERROR: the input fragment should contain locuses. e.g. <span data-dpt="location" data-dpt-loctype="locus">1r</span>')
+                raise Exception(
+                    'ERROR: the input fragment should contain locuses. e.g. <span data-dpt="location" data-dpt-loctype="locus">1r</span>')
             locations = locations[0], locations[-1]
             #locations = '1r', '0v'
             print 'Input fragment: %s-%s' % (locations[0], locations[1])
-            
+
             # Get the matching range in the existing text.
             # e.g. 5r-6r
             # Complication if we have missing locuses in the existing text:
             #     Existing text: 1,2,3, 7,8
             #     Search for 5r-6r
             #     We return 3v-7r
-            existing_locations = re.findall(ur'<span data-dpt="location" data-dpt-loctype="locus">\s*([^<]+)\s*</span>', text_content_xml.content or '')
-            
+            existing_locations = re.findall(
+                ur'<span data-dpt="location" data-dpt-loctype="locus">\s*([^<]+)\s*</span>',
+                text_content_xml.content or '')
+
             from digipal_text.views.viewer import get_fragment_extent
             matching_locations = [None, None]
             dir = 1
@@ -1951,9 +2105,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                     if dputils.cmp_locus(locations[i], location) != -dir:
                         matching_locations[i] = location
                 dir = -1
-            
+
             print 'Matching fragment: %s-%s' % (matching_locations[0], matching_locations[1])
-            
+
             # Get the existing fragment extent from the matching location
             # Simple case: Search for 5r-6r, matched with 5r-6r
             #    We return [beginning of 5r, end of 6r]
@@ -1962,7 +2116,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             matching_extent = [0, -1]
             for i in [0, 1]:
                 if matching_locations[i] is not None:
-                    extent = get_fragment_extent(text_content_xml.content, 'locus', location=matching_locations[i])
+                    extent = get_fragment_extent(
+                        text_content_xml.content, 'locus', location=matching_locations[i])
                     if extent is not None:
                         posi = i
                         if matching_locations[i] != locations[i]:
@@ -1970,22 +2125,27 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                             posi = 1 - posi
                         else:
                             if i == 0 and existing_locations and locations[i] == existing_locations[0]:
-                                # starts at the first page, shall we include the part before that as well?
-                                pre = re.sub(ur'(?musi)<span data-dpt="location" data-dpt-loctype="locus">.*', '', content)
+                                # starts at the first page, shall we include
+                                # the part before that as well?
+                                pre = re.sub(
+                                    ur'(?musi)<span data-dpt="location" data-dpt-loctype="locus">.*', '', content)
                                 pre = re.sub(ur'(?musi)<[^>]+>', '', pre)
                                 pre = re.sub(ur'(?musi)\s+', '', pre)
                                 if len(pre) > 1:
                                     extent[posi] = 0
                         pos = extent[posi]
                         matching_extent[i] = pos
-            
+
             print 'Matching extent: %s-%s (full extent %s-%s)' % (matching_extent[0], matching_extent[1], 0, len(text_content_xml.content))
-            
+
             # replacement
             new_content = text_content_xml.content
             markers = ['', '']
-            if self.is_dry_run(): markers = ['[[[', ']]]']
-            text_content_xml.content = new_content[:matching_extent[0]] + markers[0] + content + markers[1] + new_content[matching_extent[1]:]
+            if self.is_dry_run():
+                markers = ['[[[', ']]]']
+            text_content_xml.content = new_content[:matching_extent[0]] + \
+                markers[0] + content + markers[1] + \
+                new_content[matching_extent[1]:]
         else:
             # replacement
             text_content_xml.content = content
@@ -1995,23 +2155,23 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         else:
             file_name = 'tcx%s.new.xml' % text_content_xml.id
             dputils.write_file(file_name, text_content_xml.content)
-            print 'WARNING: nothing saved, remove --dry-run to apply changes. (Written new output in %s, look for "[[[" and "]]]").' % file_name 
-            
+            print 'WARNING: nothing saved, remove --dry-run to apply changes. (Written new output in %s, look for "[[[" and "]]]").' % file_name
+
     def is_dry_run(self):
         return self.options.get('dry-run', False)
-        
+
     def convert_exceptions(self, content):
         '''Convert exceptions to the rules, as described by FT.'''
         # _underlined_, /italics/
         ret = content
         # 417b1: ual&{bat} -> ual/e_t_/{bat}
         ret = re.sub(ur'(ual)#AMP#(<span data-dpt="interlineation">bat</span>)',
-            ur'\1<span data-dpt="abbr">&amp;</span><span data-dpt="exp">e<span data-dpt="del" data-dpt-type="supplied">t</span></span>\2',
-            ret)
+                     ur'\1<span data-dpt="abbr">&amp;</span><span data-dpt="exp">e<span data-dpt="del" data-dpt-type="supplied">t</span></span>\2',
+                     ret)
         # 490a6: ten_&_{en} -> ten/_e_/{en}/t/
         ret = re.sub(ur'(ten)<span data-dpt="del" data-dpt-type="supplied">#AMP#</span><span data-dpt="interlineation">en</span>',
-            ur'\1<span data-dpt="del" data-dpt-type="supplied"><span data-dpt="abbr">&amp;</span><span data-dpt="exp">e</span></span><span data-dpt="interlineation">en</span><span data-dpt="exp">et</span>',
-            ret)
+                     ur'\1<span data-dpt="del" data-dpt-type="supplied"><span data-dpt="abbr">&amp;</span><span data-dpt="exp">e</span></span><span data-dpt="interlineation">en</span><span data-dpt="exp">et</span>',
+                     ret)
         return ret
 
     def word_preprocess(self):
@@ -2063,10 +2223,16 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # q2drag4 -> q[ua]2drag4[enarias]
         pattern = ur'(?mus)([^\w<>\[\]/;])(q<sup>2</sup>drag<sup>4</sup>)([^\w<>\[\]/&])'
-        content = re.sub(pattern, ur'\1q[u]a<sup>a</sup>drag<sup>4</sup>[enarias]\3', content)
+        content = re.sub(
+            pattern,
+            ur'\1q[u]a<sup>a</sup>drag<sup>4</sup>[enarias]\3',
+            content)
         # q2drag̃ -> q[ua]2drag[enarias]
         pattern = ur'(?mus)([^\w<>\[\]/;])(q<sup>2</sup>)(drag̃)([^\w<>\[\]/&])'
-        content = re.sub(pattern, ur'\1q[u]a<sup>a</sup>\3[enarias]\4', content)
+        content = re.sub(
+            pattern,
+            ur'\1q[u]a<sup>a</sup>\3[enarias]\4',
+            content)
         # q2dragenar~ -> q[ua]2dragenar~[ias]
         pattern = ur'(?mus)([^\w<>\[\]/;])(q<sup>2</sup>)(dragenar̃)([^\w<>\[\]/&])'
         content = re.sub(pattern, ur'\1q[u]a<sup>a</sup>\3[ias]\4', content)
@@ -2162,7 +2328,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # quadrag4 -> quadrag4[enarias]
         pattern = ur'(?mus)([^\w<>\[\]/;])(quadrag<sup>4</sup>)([^\w<>\[\]/&])'
-        content = re.sub(pattern, ur'\1quadrag<sup>4</sup>[enarias]\3', content)
+        content = re.sub(
+            pattern,
+            ur'\1quadrag<sup>4</sup>[enarias]\3',
+            content)
 
         # seru4 -> seru4[um]
         pattern = ur'(?mus)([^\w<>\[\]/;]seru)(<sup>4</sup>)([^\w<>\[\]/&])'
@@ -2194,7 +2363,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # un9qisq: / un9q1sq -> un9[us]q[u]1isq:[ue]
         pattern = ur'(?mus)([^\w<>\[\]/;])(un<sup>9</sup>)(q<sup>(i|1)</sup>)(sq:?)([^\w<>\[\]/&])'
-        content = re.sub(pattern, ur'\1\2[us]q[u]<sup>i</sup>i\5[ue]\6', content)
+        content = re.sub(
+            pattern,
+            ur'\1\2[us]q[u]<sup>i</sup>i\5[ue]\6',
+            content)
 
         # d-
         # d- -> denarios
@@ -2298,11 +2470,12 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # numbers
         pattern = ur'(?mus)\.?(\s*)(\b[IVXl]+)\.([^\w<>\[\]])'
-        content = re.sub(pattern, lambda pat: ur'%s.%s.%s' % (pat.group(1), pat.group(2).lower(), pat.group(3)), content)
+        content = re.sub(
+            pattern, lambda pat: ur'%s.%s.%s' %
+            (pat.group(1), pat.group(2).lower(), pat.group(3)), content)
 
         # write result
         write_file(output_path, content)
 
     def msg(self, message, *args, **kwargs):
         self.cm.msg(message, *args, **kwargs)
-

@@ -2133,10 +2133,10 @@ class Image(models.Model):
             if matches:
                 self.folio_number = matches[0]
             else:
-                if 'seal' in self.locus:
+                if 'seal' in self.locus.lower():
                     # appear after all other folios
                     self.folio_number = 'x'
-                if 'front' in self.locus:
+                if 'front' in self.locus.lower():
                     # appear before anything else
                     self.folio_number = '0'
 

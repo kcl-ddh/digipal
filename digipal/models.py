@@ -2120,17 +2120,25 @@ class Image(models.Model):
     def update_number_and_side_from_locus(self):
         ''' sets self.folio_number and self.folio_side from self.locus
             e.g. self.locus = '10r' => self.folio_number = 10, self.folio_side = 'r'
+            Front => (None, None)
+            327(2) => (327, v)
+
+            See dptest.py test_locus() for test cases
         '''
         self.folio_number = None
         self.folio_side = None
-        self.locus = self.locus.strip()
+        self.locus = (self.locus or '').strip()
         if self.locus:
-            m = re.search(ur'(\d+)', self.locus[::-1])
-            if m:
-                self.folio_number = m.group(1)[::-1]
+            matches = re.findall(ur'(\d+)', self.locus)
+            if matches:
+                self.folio_number = matches[0]
             else:
                 if 'seal' in self.locus:
+                    # appear after all other folios
                     self.folio_number = 'x'
+                if 'front' in self.locus:
+                    # appear before anything else
+                    self.folio_number = '0'
 
             locus = u'%s' % self.locus
             locus = re.sub(ur'(?i)face', 'recto', locus)
@@ -2138,12 +2146,14 @@ class Image(models.Model):
             locus = re.sub(ur'(?i)recto', 'r', locus)
             locus = re.sub(ur'(?i)verso', 'v', locus)
 
-            m = re.search(ur'(?:[^a-z]|^)([rv])(?:[^a-z]|$)', locus[::-1])
-            if m:
-                self.folio_side = m.group(1)[::-1]
+            matches = re.findall(ur'(?:[^a-z]|^)([rv])(?:[^a-z]|$)', locus)
+            if matches:
+                self.folio_side = matches[0]
         else:
             # that way unset locus are displayed below set locus
             self.folio_number = 'y'
+
+        return self.folio_number, self.folio_side
 
     def path(self):
         """Returns the path of the image on the image server. The server path

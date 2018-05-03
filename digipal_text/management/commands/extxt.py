@@ -1577,6 +1577,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         ret = content
         ret = ret.replace(ur'[|', ur']|')
         ret = ret.replace(ur'[|', ur']|')
+
+        ret = ret.replace(u'numbered74', u'numbered 74')
+
         return ret
 
     def test_merge_repeated_elements(self):
@@ -1690,7 +1693,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             return
 
         #self.test_merge_repeated_elements()
-        #exit()
         content = self.merge_repeated_elements(content)
 
         # Remove spaces at the beginning of each line
@@ -1725,12 +1727,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # remove elements with blank content
         content = regex.sub(ur'(?mus)<(\w+)[^>]*?>(\s*)</\1>', ur'\2', content)
 
-        # Line breaks from editor (<br/> => ¦)
         # Hyphenation: remove the line break after <br/> (see EXON-87)
         # e.g. Turche-| tillus => Turche-|tillus (8b2)
         # Che-|<br/>\nneuuel
         # Turche-|<br/>\ntillus
         content = regex.sub(ur'(?mui)(-\|?<br/>)\s+', ur'\1', content)
+
+        # Line breaks from editor (<br/> => ¦)
         # Editorial LB, no hyphenation
         content = regex.sub(
             ur'(?musi)<br/>',
@@ -1763,6 +1766,8 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # http://unicode-search.net/unicode-namesearch.pl?term=p
         # http://skaldic.abdn.ac.uk/m.php?p=mufichars&i=1&v=Q
         # http://junicode.sourceforge.net/
+        # <st>G</st> => G-
+        content = regex.sub(ur'(?mus)<st>\s*G\s*</st>', ur'Ǥ', content)
         # <st>B</st> => B-
         content = regex.sub(ur'(?mus)<st>\s*B\s*</st>', ur'Ƀ', content)
         # <st>p</st> => ṕ
@@ -1840,9 +1845,25 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # remove elements with blank content
         content = regex.sub(ur'(?mus)<(\w+)[^>]*?>(\s*)</\1>', ur'\2', content)
 
-        # now all remaining [] with a space inside are notes or accidental markup
-        # convert to ()
-        content = regex.sub(ur'\[([^\]\[]*\s[^\[\]]*)\]', ur'(\1)', content)
+        # now all remaining [] with a space inside are notes or accidental
+        # markup convert to ()
+        def sub_note(match):
+            note = match.group(1)
+
+            # assume 7 in notes are NEVER tironians or et
+            note = note.replace('7', '#SEVEN#')
+
+            ret = ur'<span data-dpt="note" data-dpt-type="editorial" data-dpt-place="inline">{}</span>'.format(
+                note
+            )
+
+            return ret
+
+        content = regex.sub(
+            ur'\[([^\]\[]*\s[^\[\]]*)\]',
+            sub_note,
+            content
+        )
 
         # Tironian sign, special mark up. Similar to expansions. Show it as 'et' or 7.
         # Can have it on its own or at the end of a word (ten7 -> tenet).
@@ -1894,8 +1915,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 ur'(\w)(<sup>\1</sup>|<sub>\1</sub>)', ur'\2', abbr)
 
             # EXP
-            #exp = m.replace(ur';[', ur'[')
+            # exp = m.replace(ur';[', ur'[')
             exp = m
+            exp = exp.replace(ur'];', ur']')
+            exp = exp.replace(ur';[', ur'[')
             exp = regex.sub(ur'\[(.*?)\]', ur'<i>\1</i>', exp)
 
             # Remove all digits in expansions
@@ -1937,10 +1960,15 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             exp = regex.sub(ur'Ƣ', ur'Q', exp)
             #
             exp = regex.sub(ur'ɋ', ur'q', exp)
+            #
+            exp = regex.sub(ur'ф', ur'q', exp)
 
             # l/ -> l
             exp = regex.sub(ur'ł', ur'l', exp)
             exp = regex.sub(ur'Ł', ur'L', exp)
+
+            #
+            exp = regex.sub(ur'ː', ur'.', exp)
 
             # e.g. st~
             exp = remove_accents(exp)
@@ -1950,7 +1978,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             # E.g. &amp; => &
             # ;
             # ((see first rule for EXP))
-            exp = regex.sub(ur';([^\s|])', ur'\1', exp)
+            ## exp = regex.sub(ur';([^\s|])', ur'\1', exp)
             # :
             exp = regex.sub(ur':', ur'', exp)
             # ÷
@@ -1965,13 +1993,22 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
 
             if abbr != exp and exp:
-                #                 if len(abbr) > len(exp):
-                #                     # potentially spurious expansions
-                #                     print repr(abbr), repr(exp)
-                ret = ur'<span data-dpt="abbr">%s</span><span data-dpt="exp">%s</span>' % (
-                    abbr, exp)
-
-            ##print repr(m), repr(ret)
+                if not abbr.strip():
+                    # e.g. [blank]
+                    # this should be marked-up as an editorial note
+                    # Note that there are some errors in the source doc
+                    # where a space is present before the [
+                    # Around 20 in total.
+                    # e.g. deñ [arios]
+                    ret = ur'<span data-dpt="note" data-dpt-type="editorial" data-dpt-place="inline">{}</span>'.format(
+                        exp
+                    )
+                else:
+                    #                 if len(abbr) > len(exp):
+                    #                     # potentially spurious expansions
+                    #                     print repr(abbr), repr(exp)
+                    ret = ur'<span data-dpt="abbr">%s</span><span data-dpt="exp">%s</span>' % (
+                        abbr, exp)
 
             return ret
 
@@ -2008,6 +2045,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             content)
 
         content = self.convert_exceptions(content)
+
+        # restore the 7s
+        content = content.replace('#SEVEN#', '7')
 
         # convert #AMP# to &amp;
         content = content.replace(ur'#AMP#', ur'&amp;')

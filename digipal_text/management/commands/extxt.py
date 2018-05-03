@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand
-from mezzanine.conf import settings
 from optparse import make_option
 from digipal import utils as dputils
 from digipal.utils import sorted_natural
@@ -2001,7 +2000,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                     # Around 20 in total.
                     # e.g. deñ [arios]
                     ret = ur'<span data-dpt="note" data-dpt-type="editorial" data-dpt-place="inline">{}</span>'.format(
-                        exp
+                        regex.sub('</?i>', '', exp)
                     )
                 else:
                     #                 if len(abbr) > len(exp):

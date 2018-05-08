@@ -327,11 +327,17 @@ var PanelSetPlugIn = function(editor, url) {
         };
     });
     
-    // Clauses
-    utils.addDropDown('psclause', window.text_editor_options.buttons.psclause, 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
+    if (window.text_editor_options && window.text_editor_options.buttons) {
+        // Clauses
+        if (window.text_editor_options.buttons.psclause) {
+            utils.addDropDown('psclause', window.text_editor_options.buttons.psclause, 'Main Clauses', null, insertClauseOnSelectedDropdownOption);
+        }
 
-    // Other Clauses
-    utils.addDropDown('psClauseSecondary', window.text_editor_options.buttons.psClauseSecondary, 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
+        // Other Clauses
+        if (window.text_editor_options.buttons.psClauseSecondary) {
+            utils.addDropDown('psClauseSecondary', window.text_editor_options.buttons.psClauseSecondary, 'Other Clauses', null, insertClauseOnSelectedDropdownOption);
+        }
+    }
 
     // Person
     utils.addDropDown('psperson', 'Title,Name', 'Person', null, insertPersonOnSelectedDropdownOption);

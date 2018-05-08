@@ -3,7 +3,7 @@ from copy import deepcopy
 
 FACETED_SEARCH = {
     'fragments': {
-        'overview':     {'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'page_sizes': [-1]},
+        'overview': {'icon': 'stats', 'label': 'Overview', 'key': 'overview', 'page_sizes': [-1]},
         'view_default': {'icon': 'list', 'label': 'List View', 'key': 'list'},
 
         'field_mapping_empty': {None: 'unspecified', '': 'unspecified'},
@@ -21,8 +21,8 @@ def get_fragment(key, default=None, original=False):
 FACETED_SEARCH.update({
     'visualisation': {
         # VISUALISATION SETTINGS
-        'field_x':          'hi_date',
-        'field_conflate':   'item_part',
+        'field_x': 'hi_date',
+        'field_conflate': 'item_part',
         # a list of facet keys that can be used to categorise the visualisation
         # e.g. ['hi_type', 'clause_type', 'medieval_archive', 'issuer', 'issuer_type'],
         # if empty, all possible facets are available
@@ -135,8 +135,12 @@ FACETED_SEARCH.update({
                  'path_result': 'item_part.current_item.repository.name', 'count': True, 'search': True, 'viewable': True, 'type': 'title'},
                 {'key': 'shelfmark', 'label': 'Shelfmark', 'path': 'item_part.current_item.shelfmark',
                  'search': True, 'viewable': True, 'type': 'code'},
-                {'key': 'locus', 'label': 'Locus', 'path': 'locus', 'search': True, 'viewable': True, 'type': 'code', 'sort_fct': lambda r: u'%s %s %s' % (
-                    r.folio_number or '', r.folio_side or '', r.locus or ''), 'mapping': get_fragment('field_mapping_empty')},
+                {'key': 'locus', 'label': 'Locus', 'path': 'locus',
+                 'search': True, 'viewable': True, 'type': 'code',
+                 'sort_fct': lambda r: u'%s %s %s' % (
+                     r.folio_number or '', r.folio_side or '', r.locus or ''
+                 ),
+                 'mapping': get_fragment('field_mapping_empty')},
                 {'key': 'annotations', 'label_col': 'Ann.', 'label': 'Annotations',
                  'path': 'annotation_set.all.count', 'type': 'int', 'viewable': True},
                 {'key': 'thumbnail', 'label_col': 'Thumb.', 'label': 'Thumbnail',
@@ -596,12 +600,14 @@ class FacettedType(object):
                 'count', False) or field.get('filter', False)]
         return ret
 
-    def addFieldsToOption(self, option='filter_order', keys=None, after_key=None):
+    def addFieldsToOption(self, option='filter_order',
+                          keys=None, after_key=None):
         for key in keys:
             self.addFieldToOption(option=option, key=key, after_key=after_key)
             after_key = key
 
-    def addFieldToOption(self, option='filter_order', key=None, after_key=None):
+    def addFieldToOption(self, option='filter_order',
+                         key=None, after_key=None):
         l = self.options.get(option, None)
         if l:
             try:
@@ -618,7 +624,8 @@ class FacettedType(object):
     @classmethod
     def areFieldOptionsShown(cls, field):
         '''Should the field values be retrieved and displayed as facet options?'''
-        return cls.isFieldAFacet(field) and not field.get('hide_options', field['type'] in ['date'])
+        return cls.isFieldAFacet(field) and not field.get(
+            'hide_options', field['type'] in ['date'])
 
     def setDateRange(self, rng):
         for f in self.fields:

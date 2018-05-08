@@ -455,7 +455,8 @@ span[data-dpt] > span[data-dpt] {
 .preview.deleted.mce-content-body span[data-dpt=del] {
     display: inline;
 }
-.preview.mce-content-body span[data-dpt=del][data-dpt-rend=erasure] {
+.preview.mce-content-body span[data-dpt=del][data-dpt-rend=erasure],
+.preview.mce-content-body span[data-dpt=del][data-dpt-reason=erasure] {
     text-decoration: none;
 }
 
@@ -522,8 +523,12 @@ LB spans or by unit markers */
 .preview.mce-content-body span[data-dpt=location]:after {
     display: inline;
 }
+
 /* Used by proof-reader to identify more easily the expansions */
 .preview.highlight-expansions.mce-content-body i {
     border-bottom: 1px dashed grey;
+}
+.preview.mce-content-body span[data-dpt=exp] i {
+    font-style: normal;
 }
 

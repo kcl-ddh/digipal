@@ -164,6 +164,8 @@ ul.dropdown-menu.dpbs-clicked {
 
 .status-bar {
     min-height: 2em;
+    max-height: 1em;
+    overflow-y: hidden;
     background-color: #f8f8f8;
 }
 
@@ -311,4 +313,12 @@ body.page-text-viewer {
 
 .chzn-container .chzn-results li.unlinked {
     color: orange;
+}
+
+/* attributions */
+
+.text-attribution {
+    text-align: center;
+    font-weight: 600;
+    font-size: larger;
 }

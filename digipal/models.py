@@ -3393,7 +3393,6 @@ class CarouselItem(models.Model):
             The HTML is marked safe and the links are properly escaped (e.g. &amp;)
             so no further trasnform is needed in the template.
         '''
-        from django.utils.html import escape
         ret = self.title
         if ret.find('<a>') == -1:
             ret = '<a href="%s">%s</a>' % (escape(self.link), ret)
@@ -3401,9 +3400,40 @@ class CarouselItem(models.Model):
             ret = ret.replace('<a>', '<a href="%s">' % escape(self.link))
         return mark_safe(ret)
 
+
+class ContentAttribution(models.Model):
+    title = models.CharField(
+        max_length=128,
+        help_text='A unique shorthand/label for this attribution',
+        unique=True,
+    )
+    message = HTMLField(
+        blank=True, null=True,
+        help_text="Shown under the text in the Text Viewer. Please don't exceed six words."
+    )
+    short_message = HTMLField(
+        blank=True,
+        null=True,
+        help_text="Shown under the text in the Text Viewer. Please don't exceed six words."
+    )
+
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True,
+                                    editable=False)
+
+    def __unicode__(self):
+        return self.title
+
+    def get_short_message(self):
+        ret = self.short_message or ''
+
+        ret = re.sub(ur'</?(p|div)\b[^>]*>', ur'', ret)
+        ret = re.sub(ur'(<a)\b', ur'\1 target="_blank" ', ret)
+
+        return ret
+
+
 # Import of Stewart's database
-
-
 class StewartRecord(models.Model):
     scragg = models.CharField(
         max_length=300, null=True, blank=True, default='')

@@ -178,11 +178,13 @@ class TextUnit(object):
     def id(self):
         return ur'%s:%s' % (self.content_xml.id, self.unitid)
 
-    def get_absolute_url(self, qs=None, metas=None, location_type=None, location=None):
+    def get_absolute_url(self, qs=None, metas=None,
+                         location_type=None, location=None):
         # TODO: fix it, broken for EXON b/c url now contains more specific info and # fragment
         # return '%s/entry/%s/' % (self.content_xml.get_absolute_url(),
         # self.unitid)
-        return '%s' % self.content_xml.get_absolute_url(qs=qs, metas=metas, location_type=location_type, location=location)
+        return '%s' % self.content_xml.get_absolute_url(
+            qs=qs, metas=metas, location_type=location_type, location=location)
 
     def get_thumb(self, request=None):
         '''Returns the Annotation object for this TextUnit.
@@ -232,6 +234,9 @@ class TextContent(models.Model):
         'digipal.ItemPart', blank=False, null=False, related_name='text_contents')
     text = models.ForeignKey('digipal.Text', blank=True,
                              null=True, related_name='text_contents')
+    attribution = models.ForeignKey(
+        'digipal.ContentAttribution', blank=True, null=True
+    )
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
@@ -256,7 +261,8 @@ class TextContent(models.Model):
 
         return ret
 
-    def get_absolute_url(self, unset=False, qs='', metas=None, location_type=None, location=None, content_types=None):
+    def get_absolute_url(self, unset=False, qs='', metas=None,
+                         location_type=None, location=None, content_types=None):
         '''
             Returns the url to view this text content.
             unset: if True the panels types and content are unspecified
@@ -403,15 +409,18 @@ class TextContentXML(models.Model):
                 'sort_order').first()
         super(TextContentXML, self).save(*args, **kwargs)
 
-    def get_absolute_url(self, unset=False, qs=None, metas=None, location_type=None, location=None, content_types=None):
-        return self.text_content.get_absolute_url(unset=unset, qs=qs, metas=metas, location_type=location_type, location=location, content_types=content_types)
+    def get_absolute_url(self, unset=False, qs=None, metas=None,
+                         location_type=None, location=None, content_types=None):
+        return self.text_content.get_absolute_url(
+            unset=unset, qs=qs, metas=metas, location_type=location_type, location=location, content_types=content_types)
 
     def save_copy(self):
         '''Save a compressed copy of this content into the Copy table'''
         TextContentXMLCopy.create_from_content_xml(self)
 
     def is_private(self):
-        return self.status.slug not in ['live', 'published', 'public', 'online']
+        return self.status.slug not in [
+            'live', 'published', 'public', 'online']
 
     # TODO: make this function overridable
     def convert(self):
@@ -422,7 +431,7 @@ class TextContentXML(models.Model):
         It is called by the auto-convert button on the Text Editor to
         clean and mark-up editorial conventions. E.g. | => <br/>
 
-        For specific projects, inherit this class and override this method. 
+        For specific projects, inherit this class and override this method.
         Keep generic conversion here.
         '''
         content = self.content
@@ -441,7 +450,8 @@ class TextAnnotation(models.Model):
         unique_together = ['annotation', 'elementid']
 
     def __unicode__(self):
-        return 'Annotation of "%s" in image "%s"' % (self.get_friendly_name(), self.annotation.image)
+        return 'Annotation of "%s" in image "%s"' % (
+            self.get_friendly_name(), self.annotation.image)
 
     def get_friendly_name(self):
         ''' return a friendly name for the element this annotation refers to'''
@@ -479,7 +489,8 @@ class EntryHand(models.Model):
                            'hand_label', 'order', 'correction']
 
     def __unicode__(self):
-        return u'%s %ss %s' % (self.hand_label, self.get_intervention_label(), self.entry_number)
+        return u'%s %ss %s' % (
+            self.hand_label, self.get_intervention_label(), self.entry_number)
 
     def get_intervention_label(self):
         ret = 'begin'
@@ -541,6 +552,6 @@ module_path = os.path.basename(
 from importlib import import_module
 try:
     import_module(module_path)
-except ImportError, e:
+except ImportError as e:
     # Ingore, customisations are optional
     pass

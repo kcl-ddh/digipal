@@ -117,6 +117,7 @@ class TextContentAdmin(reversion.VersionAdmin):
 
     fieldsets = (
         (None, {'fields': ('item_part', 'text', 'type', 'languages')}),
+        ('Attribution', {'fields': ('attribution', )}),
         ('Actions', {'fields': ('action_edit', )}),
     )
 

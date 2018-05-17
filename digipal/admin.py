@@ -21,7 +21,7 @@ from digipal.models import Allograph, AllographComponent, Alphabet, Annotation, 
     Reference, Region, Repository, \
     Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
     StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
-    CarouselItem, ApiTransform, AuthenticityCategory, KeyVal
+    CarouselItem, ApiTransform, AuthenticityCategory, KeyVal, ContentAttribution
 from mezzanine.conf import settings
 import reversion
 import django_admin_customisations
@@ -1150,6 +1150,15 @@ class AuthenticityCategoryAdmin(DigiPalModelAdmin):
     ordering = ['name']
 
 
+class ContentAttributionAdmin(DigiPalModelAdmin):
+    model = ContentAttribution
+
+    list_display = ['id', 'title', 'modified', 'created']
+    list_display_links = list_display
+    search_fields = ['id', 'title', 'message']
+    ordering = ['title']
+
+
 class KeyValAdmin(DigiPalModelAdmin):
     model = KeyVal
 
@@ -1225,6 +1234,7 @@ admin.site.register(RequestLog, RequestLogAdmin)
 admin.site.register(ApiTransform, ApiTransformAdmin)
 admin.site.register(Text, TextAdmin)
 admin.site.register(AuthenticityCategory, AuthenticityCategoryAdmin)
+admin.site.register(ContentAttribution, ContentAttributionAdmin)
 admin.site.register(KeyVal, KeyValAdmin)
 
 # Let's add the Keywords to the admin interface

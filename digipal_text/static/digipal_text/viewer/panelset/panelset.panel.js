@@ -30,6 +30,8 @@
 
         this.panelSet = null;
         
+        this.attributionShort = '';
+        
         //  undefined: no edit mode at all
         //  true: editing
         //  false: not editing
@@ -61,6 +63,8 @@
         this.callApi = function(title, url, onSuccess, requestData, synced) {
             var me = this;
 
+            this.setMessage(title+'...', 'info');
+
             // pre-process requestData
             if (requestData) {
                 if (requestData.sub_location && requestData.sub_location.length) {
@@ -82,17 +86,22 @@
                 }
             };
             var onSuccessWrapper = function(data, textStatus, jqXHR) {
+                var status_message = ''; 
+                me.attributionShort = data.attribution_short;
+                
                 data.status = data.status || 'success';
-                data.message = data.message || 'done ('+title+').';
+                status_message = data.message || 'done ('+title+').';;
                 if (data.locations) {
                     me.updateLocations(data.locations, data.is_fake);
                 }
                 if (data.status === 'success') {
                     onSuccess(data, textStatus, jqXHR);
+                    if (data.attribution_short) {
+                        status_message = data.attribution_short;
+                    }
                 }
-                me.setMessage(data.message, data.status);
+                me.setMessage(status_message, data.status);
             };
-            this.setMessage(title+'...', 'info');
 
             var ret = null;
             if (!this.callApiFake(url, onSuccessWrapper)) {
@@ -144,7 +153,11 @@
             // status = success|info|warning|error
             if (this.$statusBar) {
                 this.$statusBar.find('.message').html(message).removeClass('message-success message-info message-warning message-error').addClass('message-'+status);
-                this.$statusBar.find('.time').html(TextViewer.getStrFromTime(new Date()));
+                var timestamp = '';
+                if (me.editingMode == true) {
+                    timestamp = TextViewer.getStrFromTime(new Date());
+                }
+                this.$statusBar.find('.time').html(timestamp);
             }
         };
 

@@ -10,7 +10,7 @@ from django.db.models.query import EmptyResultSet
 psutil = None
 try:
     import psutil
-except:
+except Exception:
     pass
 
 #_nsre = re.compile(ur'(?iu)([0-9]+|(?:\b[mdclxvi]+\b))')
@@ -68,7 +68,8 @@ def natural_sort_key(s, roman_numbers=False, is_locus=False):
                 # substition
                 s = s[:m.start(1)] + str(number) + s[m.end(1):]
 
-    return [int(text) if text.isdigit() else text.lower() for text in re.split(_nsre, s)]
+    return [int(text) if text.isdigit() else text.lower()
+            for text in re.split(_nsre, s)]
 
 
 def plural(value, count=2):
@@ -343,7 +344,7 @@ def get_int_from_roman_number(input):
         return None
     input = input.upper()
     nums = ['M', 'D', 'C', 'L', 'X', 'V', 'I']
-    ints = [1000, 500, 100, 50,  10,  5,   1]
+    ints = [1000, 500, 100, 50, 10, 5, 1]
     places = []
     for c in input:
         if not c in nums:
@@ -414,7 +415,8 @@ def remove_accents(input_str):
     # Otherwise the ellipsis \u2026 is tranformed into '...' and the output string will have a different length
     # return remove_combining_marks(unicodedata.normalize('NFKD',
     # unicode(input_str)))
-    return remove_combining_marks(unicodedata.normalize('NFD', unicode(input_str)))
+    return remove_combining_marks(
+        unicodedata.normalize('NFD', unicode(input_str)))
 
 
 def remove_combining_marks(input_str):
@@ -423,7 +425,8 @@ def remove_combining_marks(input_str):
         u'c   \u00c7'
     '''
     import unicodedata
-    return u"".join([c for c in unicode(input_str) if not unicodedata.combining(c)])
+    return u"".join([c for c in unicode(input_str)
+                     if not unicodedata.combining(c)])
 
 
 def write_file(file_path, content, encoding='utf8'):
@@ -451,7 +454,7 @@ def get_one2one_object(model, field_name):
         from django.core.exceptions import ObjectDoesNotExist
         try:
             getattr(model, field_name)
-        except ObjectDoesNotExist, e:
+        except ObjectDoesNotExist as e:
             pass
 
     return ret
@@ -479,7 +482,8 @@ def get_string_from_xml(xmltree, remove_root=False):
     return ret
 
 
-def get_unicode_from_xml(xmltree, encoding='utf-8', text_only=False, remove_root=False):
+def get_unicode_from_xml(xmltree, encoding='utf-8',
+                         text_only=False, remove_root=False):
     # if text_only = True => strip all XML tags
     # EXCLUDE the TAIL
     if text_only:
@@ -544,7 +548,7 @@ def get_xslt_transform(source, template, error=None, remove_empty_xmlns=False):
     xslt = get_xml_from_unicode(template)
     try:
         transform = ET.XSLT(xslt)
-    except Exception, e:
+    except Exception as e:
         for entry in e.error_log:
             print '%s: %s (line %s, %s)' % (entry.type_name, entry.message, entry.line, entry.column)
         raise e
@@ -559,9 +563,9 @@ def is_xml_well_formed(xml_string):
     try:
         get_xml_from_unicode(xml_string, add_root=True)
         return True
-    except ET.XMLSyntaxError, e:
+    except ET.XMLSyntaxError as e:
         return False
-    except ET.ParseError, e:
+    except ET.ParseError as e:
         return False
 
 
@@ -597,7 +601,7 @@ def get_int(obj, default=0):
     '''
     try:
         ret = int(obj)
-    except:
+    except Exception:
         ret = default
     return ret
 
@@ -839,7 +843,8 @@ def get_range_from_date_simple(str):
     return ret
 
 
-def get_all_files_under(root, file_types='fd', filters=[], extensions=[], direct_children=False, can_return_root=False):
+def get_all_files_under(root, file_types='fd', filters=[], extensions=[
+], direct_children=False, can_return_root=False):
     '''Returns a list of absolute paths to all the files under root.
         root is an absolute path
         file_types = types of files to return: f for files, d for directories
@@ -889,7 +894,7 @@ def remove_param_from_request(request, key):
     ret = request
     # print dir(ret.GET)
     ret.GET = ret.GET.copy()
-    if ret.GET.has_key('jx'):
+    if 'jx' in ret.GET:
         del ret.GET['jx']
     ret.META = ret.META.copy()
     ret.META['QUERY_STRING'] = re.sub(
@@ -944,7 +949,8 @@ def add_keywords(obj, keywords='', remove=False):
     # read the keywords from the DB
     from mezzanine.generic.models import Keyword, AssignedKeyword
     existing_keywords = {}
-    for kw in Keyword.objects.extra(where=["lower(title) in (%s)" % ', '.join(["'%s'" % kw.lower() for kw in keywords])]):
+    for kw in Keyword.objects.extra(where=["lower(title) in (%s)" % ', '.join([
+                                    "'%s'" % kw.lower() for kw in keywords])]):
         existing_keywords[kw.title.lower()] = kw
 
     if remove:
@@ -964,7 +970,8 @@ def add_keywords(obj, keywords='', remove=False):
         # now existing_keywords has all the requested keywords
         # assign them to the object
         from mezzanine.generic.fields import KeywordsField
-        for field in [f for f in obj._meta.virtual_fields if f.__class__ == KeywordsField]:
+        for field in [
+                f for f in obj._meta.virtual_fields if f.__class__ == KeywordsField]:
             field.save_form_data(obj, u','.join(
                 [unicode(kw.id) for kw in existing_keywords.values()]))
 
@@ -1172,7 +1179,7 @@ def re_sub_fct(content, apattern, fct, are=None, show_bar=False):
 
 
 def dplog(message, level='DEBUG'):
-    '''Log a debug message. 
+    '''Log a debug message.
     Logged iff level >= settings.DIGIPAL_LOG_LEVEL
     '''
     import logging
@@ -1295,7 +1302,8 @@ def run_in_thread(fct, args, kwargs):
     return thread
 
 
-def run_in_thread_advanced(fct, args, kwargs, athreads=1, wait=False, print_results=False):
+def run_in_thread_advanced(
+        fct, args, kwargs, athreads=1, wait=False, print_results=False):
     '''Runs one function in multiple separate threads'''
     threads = []
     for i in range(0, athreads):
@@ -1353,7 +1361,7 @@ def gc_collect():
     gc.collect()
 
 
-def get_plain_text_from_xmltext(xml_str):
+def get_plain_text_from_xmltext(xml_str, keep_links=False):
     '''Returns a plain text version of the XML <value>.
         For INDEXING PURPOSE.
         Strip tags, remove some abbreviations, ...
@@ -1365,6 +1373,13 @@ def get_plain_text_from_xmltext(xml_str):
     # Remove abbreviations and location elements
     import regex
     ret = xml_str
+
+    if keep_links:
+        ret = regex.sub(
+            ur'<a[^>]+href="(.*?)"[^>]*>(.*?)</a>',
+            ur'\2 [\1]',
+            ret)
+
     ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', ret)
     ret = regex.sub(ur'<span data-dpt="location".*?</span>', ur'', ret)
 
@@ -1403,7 +1418,7 @@ def run_shell_command(command):
     ret = True
     try:
         os.system(command)
-    except Exception, e:
+    except Exception as e:
         raise Exception('Error executing command: %s (%s)' % (e, command))
     finally:
         pass
@@ -1477,10 +1492,10 @@ def call_management_command(command, *args, **kwargs):
             worker can be killed.
         * celery: best approach but introduces two new services (celery and redis
             , DB and cache brokers are not reliable)
-        * p = multiprocessing.Process(fct); p.start() # fct => call_management() 
+        * p = multiprocessing.Process(fct); p.start() # fct => call_management()
             causes weird issues on Windows
             probably due concurrent modification of shared resources/variables.
-        * os.fork(): not supported by Windows?. Approach is similar to previous 
+        * os.fork(): not supported by Windows?. Approach is similar to previous
             one, anyway.
     '''
 
@@ -1521,7 +1536,7 @@ def call_management_command(command, *args, **kwargs):
             try:
                 call_command('dpsearch', 'index_facets',
                              index_filter=reindexes_str)
-            except Exception, e:
+            except Exception as e:
                 KeyVal.set('k2.c', 'ERROR: %s' % repr(e))
             else:
                 KeyVal.set('k2.c', repr(datetime.now()))
@@ -1594,7 +1609,8 @@ def get_json_response(data):
     return ret
 
 
-def get_csv_response_from_rows(rows, charset='latin-1', headings=None, filename='response.csv'):
+def get_csv_response_from_rows(
+        rows, charset='latin-1', headings=None, filename='response.csv'):
     # returns a http response with a CSV content created from rows
     # rows is a list of dictionaries
 
@@ -1614,7 +1630,8 @@ def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
     output: write a csv file [file_path] with all the rows
     '''
     with open(file_path, 'wb') as csvfile:
-        for line in generate_csv_lines_from_rows(rows, encoding=encoding, headings=headings):
+        for line in generate_csv_lines_from_rows(
+                rows, encoding=encoding, headings=headings):
             csvfile.write(line)
 
 
@@ -1627,7 +1644,7 @@ def generate_csv_lines_from_rows(rows, encoding=None, headings=None):
     '''
     Returns a generator of lines of comma separated values
     from a list of rows
-    each row is a dictionary: column_name => value 
+    each row is a dictionary: column_name => value
     '''
     encoding = encoding or 'Latin-1'
     if len(rows):
@@ -1646,7 +1663,8 @@ def generate_csv_lines_from_rows(rows, encoding=None, headings=None):
             yield writer.writerow(row_encoded)
 
 
-def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=None, same_as_above=None):
+def read_all_lines_from_csv(
+        file_path, ignore_incomplete_lines=False, encoding=None, same_as_above=None):
     '''
         Read a CSV file and returns an ARRAY where
         each entry correspond to a line in the file.
@@ -1663,13 +1681,21 @@ def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=N
         same_as_above = list of strings which mean that the value
             should be the same as in the above row
     '''
-    encoding = encoding or 'Latin-1'
     ret = []
 
-    import csv
+    import csv, chardet
     csv_path = file_path
     line_index = 0
     with open(csv_path, 'rb') as csvfile:
+        if encoding is None:
+            charres = chardet.detect(csvfile.read())
+            csvfile.seek(0)
+            if charres['confidence'] < 0.5:
+                encoding = 'Latin-1'
+            else:
+                encoding = charres['encoding']
+        print('encoding: %s' % encoding)
+
         csvreader = csv.reader(csvfile)
 
         columns = []
@@ -1874,7 +1900,7 @@ def get_latest_docker_version(cached_days=1):
         try:
             response = urllib2.urlopen(version_url)
             content = response.read()
-        except Exception, e:
+        except Exception as e:
             pass
 
         if content:

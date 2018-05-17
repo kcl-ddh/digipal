@@ -22,6 +22,9 @@
 
     <body>
         <div class="">
+            <div class="text-attribution">
+                {{ response.attribution|safe }}
+            </div>
             <div class="panel-content mce-content-body preview ct-{{content_type_key}} {{display_classes}}">
                 {% if response.status == 'error' %}
                     {{ response.status }}: {{ response.message }}

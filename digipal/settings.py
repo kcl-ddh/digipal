@@ -592,32 +592,35 @@ make_path(DJANGO_CACHE_PATH)
 
 # CACHING (make sure it is persistent otherwise files are recompiled each time
 # the app restarts)
+# FILE_BASED_CACHE_BACKEND = 'django.core.cache.backends.filebased.FileBasedCache'
+FILE_BASED_CACHE_BACKEND = 'digipal.middleware.FileBasedCacheArchetype'
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     },
     'django-compressor': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'BACKEND': FILE_BASED_CACHE_BACKEND,
         'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'django_compressor'),
         'TIMEOUT': 60 * 60 * 24,
         'MAX_ENTRIES': 300,
     },
     'digipal_faceted_search': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'BACKEND': FILE_BASED_CACHE_BACKEND,
         'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'faceted_search'),
         'TIMEOUT': 60 * 60 * 24,
         # 'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     },
     'digipal_compute': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'BACKEND': FILE_BASED_CACHE_BACKEND,
         'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'compute'),
         'TIMEOUT': 60 * 60 * 24,
         # 'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     },
     'digipal_text_patterns': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'BACKEND': FILE_BASED_CACHE_BACKEND,
         'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'text_patterns'),
         'TIMEOUT': 60 * 60 * 24,
         # 'TIMEOUT': 1,

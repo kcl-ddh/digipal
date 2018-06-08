@@ -1676,14 +1676,13 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         input_path = self.cargs[0]
         recordid = self.cargs[1]
 
-        import regex
         from digipal.utils import re_sub_fct
         from digipal.utils import read_file
         content = read_file(input_path)
 
         # extract body
         l0 = len(content)
-        content = regex.sub(
+        content = re.sub(
             ur'(?musi).*<body*?>(.*)</body>.*',
             ur'<p>\1</p>',
             content)
@@ -1695,26 +1694,32 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = self.merge_repeated_elements(content)
 
         # Remove spaces at the beginning of each line
-        content = regex.sub(ur'(?musi)^ +', ur'', content)
+        content = re.sub(ur'(?musi)^ +', ur'', content)
 
         # unescape XML tags coming from MS Word
         # E.g. &lt;margin&gt;Д‘ mМѓ&lt;/margin&gt;
-        content = regex.sub(
-            ur'(?musi)&lt;(/?[a-z]+)(&gt;)?',
-            ur'<\1>',
-            content)
+        def sub_word_element(match):
+            ret = match.group(0)
+            # print ret
+            return '<%s%s%s>' % (match.group(1), match.group(2), match.group(3))
+        content = re.sub(
+            # ur'(?musi)&lt;(/?[a-z]+)(&gt;)?',
+            ur'(?musi)&lt;\s*(/?)\s*(.*?)\s*(/?)\s*&gt;',
+            sub_word_element,
+            content
+        )
 
         # Tags we don't want to keep because no longer useful or
         # never agreed to use them
         tags_to_remove = ur'symbol|gildum|nsc|f'
-        content = regex.sub(ur'</?(' + tags_to_remove + ')/?>', '', content)
+        content = re.sub(ur'</?(' + tags_to_remove + ')/?>', '', content)
 
         # removed the misplaced anchors. Can't convert them.
-        #print len(regex.findall(ur'&gt;|&lt;', content))
-        content = regex.sub(ur'&gt;|&lt;', ur'', content)
+        # print len(re.findall(ur'&gt;|&lt;', content))
+        content = re.sub(ur'&gt;|&lt;', ur'', content)
 
         #print u'\n'.join(list(set(re.findall(ur'(?musi)\S+&\S*|\S*&\S+', content))))
-        #print u'\n'.join(list(set(regex.findall(ur'(?musi)(?:<st>)[^<]+', content))))
+        # print u'\n'.join(list(set(re.findall(ur'(?musi)(?:<st>)[^<]+', content))))
         #exit()
 
         # convert &amp; to #AMP#
@@ -1724,84 +1729,84 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = self.convert_errors(content)
 
         # remove elements with blank content
-        content = regex.sub(ur'(?mus)<(\w+)[^>]*?>(\s*)</\1>', ur'\2', content)
+        content = re.sub(ur'(?mus)<(\w+)[^>]*?>(\s*)</\1>', ur'\2', content)
 
         # Hyphenation: remove the line break after <br/> (see EXON-87)
         # e.g. Turche-| tillus => Turche-|tillus (8b2)
         # Che-|<br/>\nneuuel
         # Turche-|<br/>\ntillus
-        content = regex.sub(ur'(?mui)(-\|?<br/>)\s+', ur'\1', content)
+        content = re.sub(ur'(?mui)(-\|?<br/>)\s+', ur'\1', content)
 
         # Line breaks from editor (<br/> => ¦)
         # Editorial LB, no hyphenation
-        content = regex.sub(
+        content = re.sub(
             ur'(?musi)<br/>',
             ur'<span data-dpt="lb" data-dpt-src="prj">¦</span>',
             content)
 
         # line breaks from MS (| => |) (-| => -|)
-        content = regex.sub(
+        content = re.sub(
             ur'(?musi)(-?)\s*\|',
             ur'<span data-dpt="lb" data-dpt-src="ms">\1|</span>',
             content)
 
         # line breaks from MS (| => |)
-        #content = regex.sub(ur'(?musi)-\|', ur'<span data-dpt="lb" data-dpt-src="ms">|</span>', content)
+        # content = re.sub(ur'(?musi)-\|', ur'<span data-dpt="lb" data-dpt-src="ms">|</span>', content)
 
         # [---] Erasure
-        content = regex.sub(
+        content = re.sub(
             ur'(?musi)(\[-+\])',
             ur'<span data-dpt="del" data-dpt-rend="erasure">\1</span>',
             content)
         # [...] Gap
-        content = regex.sub(
+        content = re.sub(
             ur'(?musi)(\[\.+\])',
             ur'<span data-dpt="gap">\1</span>',
             content)
 
-        #content = regex.sub(ur'(?musi)<br/>', ur'</p><p>', content)
+        # content = re.sub(ur'(?musi)<br/>', ur'</p><p>', content)
 
         # Promote style constructs to special chars
         # http://unicode-search.net/unicode-namesearch.pl?term=p
         # http://skaldic.abdn.ac.uk/m.php?p=mufichars&i=1&v=Q
         # http://junicode.sourceforge.net/
         # <st>G</st> => G-
-        content = regex.sub(ur'(?mus)<st>\s*G\s*</st>', ur'Ǥ', content)
+        content = re.sub(ur'(?mus)<st>\s*G\s*</st>', ur'Ǥ', content)
         # <st>B</st> => B-
-        content = regex.sub(ur'(?mus)<st>\s*B\s*</st>', ur'Ƀ', content)
+        content = re.sub(ur'(?mus)<st>\s*B\s*</st>', ur'Ƀ', content)
         # <st>p</st> => ṕ
-        content = regex.sub(ur'(?mus)<st>\s*p\s*</st>', ur'ṕ', content)
-        content = regex.sub(ur'(?mus)<st>\s*P\s*</st>', ur'Ṕ', content)
+        content = re.sub(ur'(?mus)<st>\s*p\s*</st>', ur'ṕ', content)
+        content = re.sub(ur'(?mus)<st>\s*P\s*</st>', ur'Ṕ', content)
         # p with top tilde
-        content = regex.sub(
+        content = re.sub(
             ur'(?mus)<st>\s*p\u0303\s*</st>',
             ur'ꝑ\u0306',
             content)
         # <st>s</st> => s
-        content = regex.sub(ur'(?mus)<st>\s*s\s*</st>', ur'ś', content)
-        content = regex.sub(ur'(?mus)<st>\s*S\s*</st>', ur'Ś', content)
+        content = re.sub(ur'(?mus)<st>\s*s\s*</st>', ur'ś', content)
+        content = re.sub(ur'(?mus)<st>\s*S\s*</st>', ur'Ś', content)
         # <st>q</st> => ƣ
-        content = regex.sub(ur'(?mus)<st>\s*q\s*</st>', ur'ƣ', content)
-        content = regex.sub(ur'(?mus)<st>\s*Q\s*</st>', ur'Ƣ', content)
+        content = re.sub(ur'(?mus)<st>\s*q\s*</st>', ur'ƣ', content)
+        content = re.sub(ur'(?mus)<st>\s*Q\s*</st>', ur'Ƣ', content)
         # q with tilde and bottom left tail (lots of them)
-        content = regex.sub(
+        content = re.sub(
             ur'(?mus)<st>\s*q\u0303\s*</st>',
             ur'q\u0303\u0317',
             content)
         # <st>L</st> => Ł
-        content = regex.sub(ur'(?mus)<st>\s*ll\s*</st>', ur'łł', content)
-        content = regex.sub(ur'(?mus)<st>\s*LL\s*</st>', ur'ŁŁ', content)
-        content = regex.sub(ur'(?mus)<st>\s*l\s*</st>', ur'ł', content)
-        content = regex.sub(ur'(?mus)<st>\s*L\s*</st>', ur'Ł', content)
+        content = re.sub(ur'(?mus)<st>\s*ll\s*</st>', ur'łł', content)
+        content = re.sub(ur'(?mus)<st>\s*LL\s*</st>', ur'ŁŁ', content)
+        content = re.sub(ur'(?mus)<st>\s*l\s*</st>', ur'ł', content)
+        content = re.sub(ur'(?mus)<st>\s*L\s*</st>', ur'Ł', content)
 
         # ÷ means ÷[est]
-        content = regex.sub(ur'÷(?!\[)', ur'÷[est]', content)
+        content = re.sub(ur'÷(?!\[)', ur'÷[est]', content)
 
         # <u> =>
-        content = regex.sub(ur'(?musi)</?u>', ur'', content)
+        content = re.sub(ur'(?musi)</?u>', ur'', content)
 
         # <del>de his</del> =>
-        ##content = regex.sub(ur'(?musi)<del>(.*?)</del>', ur'', content)
+        # #content = re.sub(ur'(?musi)<del>(.*?)</del>', ur'', content)
 
         # move all spaces outside [ro ] => [ro]
         content = re.sub(ur'(?musi)\[(\s+)', ur'\1[', content)
@@ -1822,12 +1827,12 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             content,
             ur'(?musi)\[fol\.?\s(\d+)\.?(\s*([rvab]?)\.?)\]',
             get_side,
-            regex)
+            re)
 
         # Entry number
         # [1a3]
         # TODO: check for false pos. or make the rule more strict
-        content = regex.sub(
+        content = re.sub(
             ur'(?musi)(§?)\[(\d+(a|b)\d+)\s*]',
             ur'</p><p>\1<span data-dpt="location" data-dpt-loctype="entry">\2</span>',
             content)
@@ -1842,7 +1847,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # <td><p></p><p>ENTRY NUMBER: ENTRY CONTENT</p></td>
         #     ^^^^
         # remove elements with blank content
-        content = regex.sub(ur'(?mus)<(\w+)[^>]*?>(\s*)</\1>', ur'\2', content)
+        content = re.sub(ur'(?mus)<(\w+)[^>]*?>(\s*)</\1>', ur'\2', content)
 
         # now all remaining [] with a space inside are notes or accidental
         # markup convert to ()
@@ -1858,7 +1863,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
             return ret
 
-        content = regex.sub(
+        content = re.sub(
             ur'\[([^\]\[]*\s[^\[\]]*)\]',
             sub_note,
             content
@@ -1870,22 +1875,26 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # TODO: make it more robust.
         # At the mo. we convert all 7 outside of a location span
         # and outside a <sup>
-        content = regex.sub(
+        content = re.sub(
             ur'(?<!(<span data-dpt="location"[^>]+>[\dabrv]*|<sup>))7',
             ur'<span data-dpt="g" data-dpt-ref="#tironian">et</span>',
             content)
 
         # <margin></margin>
         if 1:
-            content = content.replace(u'<margin>', u'#MSTART#')
-            content = content.replace(u'</margin>', u'#MEND#')
+            content = self.correct_margin_markups(content)
+            # apparently space char tolerance here is unnecessary
+            # as <margin > in Word doc is correctly converted
+            # but I can't find out where that's done so leave it there.
+            content = re.sub(ur'<\s*margin\s*>', u'#MSTART#', content)
+            content = re.sub(ur'<\s*/\s*margin\s*>', u'#MEND#', content)
 
         # to check which entities are left
-        ##ocs = set(regex.findall(ur'(?musi)(&[#\w]+;)', content))
+        # #ocs = set(re.findall(ur'(?musi)(&[#\w]+;)', content))
 
         # fix accidental edit
         # SPACE</sup> => </sup>SPACE
-        content = regex.sub(ur'(\s+)(</(?:sup|sub|i)>)', ur'\2\1', content)
+        content = re.sub(ur'(\s+)(</(?:sup|sub|i)>)', ur'\2\1', content)
 
         self.c = 0
 
@@ -1907,10 +1916,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             # abbr =
 
             # ABBR
-            abbr = regex.sub(ur'\[.*?\]', ur'', m)
+            abbr = re.sub(ur'\[.*?\]', ur'', m)
 
             # o<sup>o</sup> -> <sup>o</sup>
-            abbr = regex.sub(
+            abbr = re.sub(
                 ur'(\w)(<sup>\1</sup>|<sub>\1</sub>)', ur'\2', abbr)
 
             # EXP
@@ -1918,24 +1927,24 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             exp = m
             exp = exp.replace(ur'];', ur']')
             exp = exp.replace(ur';[', ur'[')
-            exp = regex.sub(ur'\[(.*?)\]', ur'<i>\1</i>', exp)
+            exp = re.sub(ur'\[(.*?)\]', ur'<i>\1</i>', exp)
 
             # Remove all digits in expansions
             # e.g. hid4as
-            exp = regex.sub(ur'\d', ur'', exp)
+            exp = re.sub(ur'\d', ur'', exp)
 
             # SPECIAL CHARS
             # http://www.fileformat.info/info/unicode/char/1d6c/index.htm
             # d- (latin small letter d with stroke)
-            exp = regex.sub(ur'đ', ur'd', exp)
-            exp = regex.sub(ur'Đ', ur'D', exp)
+            exp = re.sub(ur'đ', ur'd', exp)
+            exp = re.sub(ur'Đ', ur'D', exp)
             # h-
             # CYRILLIC SMALL LETTER TSHE (U+045B)
-            exp = regex.sub(ur'ћ', ur'h', exp)
+            exp = re.sub(ur'ћ', ur'h', exp)
             # LATIN SMALL LETTER H WITH STROKE (U+0127)
             # ! glyph is almost identical to previous one but stroke is thicker!
-            exp = regex.sub(ur'ħ', ur'h', exp)
-            exp = regex.sub(ur'Ħ', ur'H', exp)
+            exp = re.sub(ur'ħ', ur'h', exp)
+            exp = re.sub(ur'Ħ', ur'H', exp)
             # ƥ -> p (e.g. 1v super illos)
             exp = exp.replace(ur'ƥ', ur'p')
             exp = exp.replace(ur'ꝑ', ur'p')
@@ -1943,31 +1952,31 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             # ƹ
             exp = exp.replace(ur'ƹ', 'r')
 
-            ##exp = regex.sub(ur'ṕ', ur'p', exp)
-            exp = regex.sub(ur'ƒ', ur'f', exp)
+            # #exp = re.sub(ur'ṕ', ur'p', exp)
+            exp = re.sub(ur'ƒ', ur'f', exp)
 
             # b~ (Latin small letter b with middle tilde)
-            exp = regex.sub(ur'ᵬ', ur'b', exp)
+            exp = re.sub(ur'ᵬ', ur'b', exp)
             # latin capital letter b with stroke
-            exp = regex.sub(ur'ƀ', ur'b', exp)
-            exp = regex.sub(ur'Ƀ', ur'B', exp)
+            exp = re.sub(ur'ƀ', ur'b', exp)
+            exp = re.sub(ur'Ƀ', ur'B', exp)
             # latin b with hook
-            exp = regex.sub(ur'ɓ', ur'b', exp)
-            exp = regex.sub(ur'Ɓ', ur'B', exp)
+            exp = re.sub(ur'ɓ', ur'b', exp)
+            exp = re.sub(ur'Ɓ', ur'B', exp)
             # q
-            exp = regex.sub(ur'ƣ', ur'q', exp)
-            exp = regex.sub(ur'Ƣ', ur'Q', exp)
+            exp = re.sub(ur'ƣ', ur'q', exp)
+            exp = re.sub(ur'Ƣ', ur'Q', exp)
             #
-            exp = regex.sub(ur'ɋ', ur'q', exp)
+            exp = re.sub(ur'ɋ', ur'q', exp)
             #
-            exp = regex.sub(ur'ф', ur'q', exp)
+            exp = re.sub(ur'ф', ur'q', exp)
 
             # l/ -> l
-            exp = regex.sub(ur'ł', ur'l', exp)
-            exp = regex.sub(ur'Ł', ur'L', exp)
+            exp = re.sub(ur'ł', ur'l', exp)
+            exp = re.sub(ur'Ł', ur'L', exp)
 
             #
-            exp = regex.sub(ur'ː', ur'.', exp)
+            exp = re.sub(ur'ː', ur'.', exp)
 
             # e.g. st~
             exp = remove_accents(exp)
@@ -1977,19 +1986,19 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             # E.g. &amp; => &
             # ;
             # ((see first rule for EXP))
-            ## exp = regex.sub(ur';([^\s|])', ur'\1', exp)
+            # # exp = re.sub(ur';([^\s|])', ur'\1', exp)
             # :
-            exp = regex.sub(ur':', ur'', exp)
+            exp = re.sub(ur':', ur'', exp)
             # ÷
-            exp = regex.sub(ur'÷', ur'', exp)
+            exp = re.sub(ur'÷', ur'', exp)
             # ʇ
-            exp = regex.sub(ur'ʇ', ur'', exp)
+            exp = re.sub(ur'ʇ', ur'', exp)
 
             # remove sub/sup from the expanded form as it usually contains abbreviation mark
             # ? Exception: hiđ4[ae]ϛ {ϛ 7 dim̃[idia] uirga.}
             # here we keep ϛ because it is used as an insertion sign
             # general removal
-            exp = regex.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
+            exp = re.sub(ur'<su(p|b)>.*?</su(p|b)>', ur'', exp)
 
             if abbr != exp and exp:
                 if not abbr.strip():
@@ -2000,7 +2009,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                     # Around 20 in total.
                     # e.g. deñ [arios]
                     ret = ur'<span data-dpt="note" data-dpt-type="editorial" data-dpt-place="inline">{}</span>'.format(
-                        regex.sub('</?i>', '', exp)
+                        re.sub('</?i>', '', exp)
                     )
                 else:
                     #                 if len(abbr) > len(exp):
@@ -2015,30 +2024,30 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             content,
             ur'(?musi)(:|;|÷|\w|(<sup>.*?</sup>)|(<sub>.*?</sub>)|\[|\])+',
             markup_expansions,
-            regex)
+            re)
 
         # (supplied) expansions without abbreviation
         # Wide angle brackets
         # Bal〈dwini〉 =>
-        content = regex.sub(ur'(?musi)〈〉', ur'', content)
-        content = regex.sub(
+        content = re.sub(ur'(?musi)〈〉', ur'', content)
+        content = re.sub(
             ur'(?musi)〈\s*([^〈〉]{1,100})\s*〉',
             ur'<span data-dpt="supplied">\1</span>',
             content)
 
         # Interlineation
         # e.g. e{n}t
-        content = regex.sub(
+        content = re.sub(
             ur'(?musi)\{\s*([^{}]{1,300})\s*\}',
             ur'<span data-dpt="interlineation">\1</span>',
             content)
 
         # remove accidental spaces in sup/sub
-        content = regex.sub(
+        content = re.sub(
             ur'(?musi)(<sup>)\s*(.*?)\s*(</sup>)',
             ur'\1\2\3',
             content)
-        content = regex.sub(
+        content = re.sub(
             ur'(?musi)(<sub>)\s*(.*?)\s*(</sub>)',
             ur'\1\2\3',
             content)
@@ -2060,18 +2069,62 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # Margin conversion
         if 1:
-            content = regex.sub(
+            content = re.sub(
                 ur'(?musi)#MSTART#(.*?)#MEND#',
                 lambda m: self.convert_margin(m),
-                content)
+                content
+            )
             content = content.replace(
                 u'#MSTART#', u'<span data-dpt="note" data-dpt-place="margin">')
             content = content.replace(u'#MEND#', u'</span>')
 
         #
-        content = regex.sub(ur'</p>', u'</p>\n', content)
+        content = re.sub(ur'</p>', u'</p>\n', content)
 
         self.replace_fragment(content, recordid, is_fragment=is_fragment)
+
+    def correct_margin_markups(self, content):
+        '''AC-34: fix issues like <margin>XXX<margin>
+        into <margin>XXX</margin>.
+        Or <margin>XXX<margin/>
+        into <margin>XXX</margin>.
+        '''
+        ret = content
+
+        # return ret
+
+        self.is_margin_open = 0
+        self.last_margin_pos = 0
+        def sub_margin(match):
+            pos = match.start(0)
+            ret = re.sub(ur'\s', '', match.group(1))
+            dist = pos - self.last_margin_pos
+
+            valid = ret.startswith('/') == self.is_margin_open
+            if not valid:
+                message = ''
+                if dist < 100 and self.is_margin_open:
+                    ret = u'/' + ret
+                    message = '(fixed: %s -> </margin>)' % match.group(0)
+                print('INVALID margin [%s] %s' % (self.get_entry_from_match(match), message))
+            self.is_margin_open = not ret.startswith('/')
+
+            self.last_margin_pos = pos
+
+            return u'<%s>' % ret
+
+        ret = re.sub(ur'<(\s*/?\s*margin\s*)/?\s*>', sub_margin, ret)
+
+        return ret
+
+    def get_entry_from_match(self, match):
+        '''Returns the entry number that precedes a regex match.
+        E.g. 29a2'''
+        ret = None
+        loc = re.findall(ur'\d+[ab]\d+', match.string, pos=0, endpos=match.start(0))
+        if loc:
+            ret = loc[-1]
+        return ret
 
     def convert_margin(self, match):
         # Move the margin WITHIN the <p>
@@ -2081,7 +2134,12 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # around the p elements. Generating new elements.
         # We then remove all empty margin elements.
 
+        self.margin = getattr(self, 'margin', -1) + 1
+
         ret = match.group(0)
+
+        if '#MSTART#' in match.group(1):
+            print('WARNING: nested margin (%s)' % self.get_entry_from_match(match))
 
         # split the margin around the <p>s
         # so margins are within <p> and not the opposite
@@ -2220,8 +2278,6 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         from digipal.utils import write_file, read_file
 
         # regex will consider t̃ as \w, re as \W
-        import regex as re
-
         content = read_file(input_path)
 
         # expansions

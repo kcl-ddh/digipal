@@ -736,6 +736,14 @@ CHARACTER_ABBREV_STROKE = 'abbrev.stroke'
 
 ITEM_PART_DEFAULT_LOCUS = 'face'
 
+# ##
+
+# set this to True in your local_settings if the site is maintained
+# by King's Digital Lab. LEAVE IT False here.
+# This will show the KDL cookie/privacy policy at the bottom of the page
+# ONLY is this is True AND DEBUG = False
+KDL_MAINTAINED = False
+
 ####
 
 TEXT_EDITOR_OPTIONS = {

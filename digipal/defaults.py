@@ -25,6 +25,7 @@ register_setting(
         'QUICK_SEARCH_TO_FACETS',
         'ARCHETYPE_THUMB_LENGTH_MIN', 'ARCHETYPE_THUMB_LENGTH_MAX',
         'FOOTER_LOGO_LINE', 'DEBUG', 'ARCHETYPE_SEARCH_HELP_URL',
+        'KDL_MAINTAINED',
         # A way to silence Mezzanine warning when django calls
         # dir(context['settings'])
         # where context['settings'] is a TemplateSettings()

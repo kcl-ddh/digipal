@@ -11,6 +11,7 @@ register_setting(
         'QUICK_SEARCH_TO_FACETS',
         'MIN_THUMB_LENGTH', 'MAX_THUMB_LENGTH',
         'FOOTER_LOGO_LINE'
+        'KDL_MAINTAINED',
     ),
     append=True,
 )

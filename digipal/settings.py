@@ -718,6 +718,47 @@ LIGHTBOX = False
 GRAPH_TOOLTIP_SHORT = u'{allograph} by {hand}\n {locus}'
 GRAPH_TOOLTIP_LONG = u'{allograph} by {hand}\n {ip} {locus}\n ({hi_date})'
 
+======= merged... and commented
+# Hand/Legacy
+#HISTORICAL_ITEM_TYPES = ['charter', 'manuscript']
+#INSTITUTION_TYPES = ['medieval institution', 'modern repository']
+#UNKOWN_PLACE_NAME = '000000'
+
+#SOURCE_CLA = 'cla'
+#SOURCE_GNEUSS = 'gneuss'
+#SOURCE_KER = 'ker'
+#SOURCE_SCRAGG = 'scragg'
+#SOURCE_SAWYER = 'sawyer'
+#SOURCE_SAWYER_KW = 'electronic'
+#SOURCE_PELTERET = 'pelteret'
+# the id of the source record for this project
+#SOURCE_PROJECT_ID = 8
+#SOURCE_PROJECT_NAME = 'DigiPal Project'
+#CHARACTER_ABBREV_STROKE = 'abbrev.stroke'
+
+#ITEM_PART_DEFAULT_LOCUS = 'face'
+
+# ##
+
+# set this to True in your local_settings if the site is maintained
+# by King's Digital Lab. LEAVE IT False here.
+# This will show the KDL cookie/privacy policy at the bottom of the page
+# ONLY is this is True AND DEBUG = False
+KDL_MAINTAINED = False
+
+####
+
+#TEXT_EDITOR_OPTIONS = {
+#    'buttons': {
+#        'psclause': 'Address,Disposition,Witnesses',
+#        'psClauseSecondary': 'Arenga,Boundaries,Holding,Injunction,Malediction,Narration,Notification,Prohibition,Salutation,Sealing,Subscription,Intitulatio,Warrandice'
+#    },
+#    'toolbars': {
+#        'default': 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | psperson | pslocation | psex pssupplied psdel | code ',
+#    }
+#}
+#>>>>>>> 12c2926... If KDL_MAINTAINED = True in local_settings.py and DEBUG = False, the site will show a notice from KDL about maintenance and policies.
+
 ##################
 # LOCAL SETTINGS #
 ##################

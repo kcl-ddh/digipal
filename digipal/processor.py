@@ -51,4 +51,5 @@ def quick_search(request):
             'dapi_content_type_response': get_dapi_content_type_response,
             'DIGIPAL_SETTINGS': json.dumps(get_contextable_digipal_settings()),
             'DEBUG': settings.DEBUG,
+            'KDL_MAINTAINED': settings.KDL_MAINTAINED,
             }

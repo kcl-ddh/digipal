@@ -718,7 +718,7 @@ LIGHTBOX = False
 GRAPH_TOOLTIP_SHORT = u'{allograph} by {hand}\n {locus}'
 GRAPH_TOOLTIP_LONG = u'{allograph} by {hand}\n {ip} {locus}\n ({hi_date})'
 
-======= merged... and commented
+# ======= merged... and commented
 # Hand/Legacy
 #HISTORICAL_ITEM_TYPES = ['charter', 'manuscript']
 #INSTITUTION_TYPES = ['medieval institution', 'modern repository']

@@ -12,6 +12,8 @@
 
         <!-- DigiPal - build number {{ settings.DP_BUILD_NUMBER }} - build date {{ settings.DP_BUILD_TIMESTAMP }} - {{ digipal_version }} ({{ settings.DP_BUILD_BRANCH }}) -->
 
+        <!--{{ KDL_MAINTANED }}, {{DEBUG}} -->
+
         {% if nofollow %}
             <meta name="robots" content="nofollow" />
         {% endif %}
@@ -247,7 +249,7 @@
         {% block extra_js %}{% endblock %}
         
         {% block kdl_maintained %}
-          {% if settings.KDL_MAINTAINED and not DEBUG %}
+          {% if KDL_MAINTAINED and not DEBUG %}
               <script defer="defer" src="https://rawgit.com/kingsdigitallab/sla-acpp/develop/js/sla.js" type="text/javascript"></script>
           {% endif %}
         {% endblock %}

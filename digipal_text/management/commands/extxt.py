@@ -1506,9 +1506,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         return ret
 
     def test_merge_repeated_elements(self):
-        input = u'''regis <span data-dpt="del" data-dpt-rend="underlined">.xliiii. hiđ[as] 7 dim</span><span data-dpt="del" data-dpt-rend="underlined"><sup>4</sup></span><span data-dpt="del" data-dpt-rend="underlined">[idiam] 7 dim</span><span data-dpt="del" data-dpt-rend="underlined"><sup>4</sup></span><span data-dpt="del" data-dpt-rend="underlined">[idiam] uirga〈m〉.</span>7 de'''
+        input = u'''regis <span data-dpt="del" data-dpt-rend="underlined">.xliiii. hiđ[as] 7 dim</span><span data-dpt="del" data-dpt-rend="underlined"><sup>4</sup></span><span data-dpt="del" data-dpt-rend="underlined">[idiam] 7 dim</span><span data-dpt="del" data-dpt-rend="underlined"><sup>4</sup></span><span data-dpt="del" data-dpt-rend="underlined">[idiam] uirga〈m〉.</span>7 de'''
         output = self.merge_repeated_elements(input)
-        expected = u'''regis <span data-dpt="del" data-dpt-rend="underlined">.xliiii. hiđ[as] 7 dim<sup>4</sup>[idiam] 7 dim<sup>4</sup>[idiam] uirga〈m〉.</span>7 de'''
+        expected = u'''regis <span data-dpt="del" data-dpt-rend="underlined">.xliiii. hiđ[as] 7 dim<sup>4</sup>[idiam] 7 dim<sup>4</sup>[idiam] uirga〈m〉.</span>7 de'''
 
         if output != expected:
             print input
@@ -1859,9 +1859,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # (supplied) expansions without abbreviation
         # Wide angle brackets
-        # Bal〈dwini〉 =>
-        content = regex.sub(ur'(?musi)〈〉', ur'', content)
-        content = regex.sub(ur'(?musi)〈\s*([^〈〉]{1,100})\s*〉', ur'<span data-dpt="supplied">\1</span>', content)
+        # Bal〈dwini〉 =>
+        content = regex.sub(ur'(?musi)〈〉', ur'', content)
+        content = regex.sub(ur'(?musi)〈\s*([^〈〉]{1,100})\s*〉', ur'<span data-dpt="supplied">\1</span>', content)
 
         # Interlineation
         # e.g. e{n}t
@@ -1876,10 +1876,30 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # convert #AMP# to &amp;
         content = content.replace(ur'#AMP#', ur'&amp;')
 
+        # <i>et</i> -> et
+        # Added by PAS, Sept. 2018, for new instructions in treating <i>et</i>
+        # Need to be careful not to make a mess with &
+        content = content.replace(
+             ur'<i>Et</i>',
+             ur'#ETCAPS#')
+        content = content.replace(
+             ur'<i>et</i>',
+             ur'#ET#')
+
         # & => et
         #content = content.replace(ur'&amp;', ur'<i>et</i>')
         # Safe to assume &amp are not inside expension: [ & ]
-        content = content.replace(ur'&amp;', ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>et</i></span>')
+        content = content.replace(
+            ur'&amp;',
+            ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>et</i></span>')
+
+        # Convert #ET# back to correct entity. PAS, Sept. 2018
+        content = content.replace(
+             ur'#ETCAPS#',
+             ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>Et</i></span>')
+        content = content.replace(
+             ur'#ET#',
+             ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>et</i></span>')
 
         # Margin conversion
         if 1:

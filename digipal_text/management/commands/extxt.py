@@ -2066,7 +2066,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = content.replace(
             ur'<i>Et</i>',
             ur'#ETCAPS#')
-         content = content.replace(
+        content = content.replace(
             ur'<i>et</i>',
             ur'#ET#')
 

@@ -2060,11 +2060,29 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # convert #AMP# to &amp;
         content = content.replace(ur'#AMP#', ur'&amp;')
 
+        # <i>et</i> -> et
+        # Added by PAS, Sept. 2018, for new instructions in treating <i>et</i>
+        # Need to be careful not to make a mess with &
+        content = content.replace(
+            ur'<i>Et</i>',
+            ur'#ETCAPS#')
+         content = content.replace(
+            ur'<i>et</i>',
+            ur'#ET#')
+
         # & => et
         #content = content.replace(ur'&amp;', ur'<i>et</i>')
         # Safe to assume &amp are not inside expension: [ & ]
         content = content.replace(
             ur'&amp;',
+            ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>et</i></span>')
+
+        # Convert #ET# back to correct entity. PAS, Sept. 2018
+        content = content.replace(
+            ur'#ETCAPS#',
+            ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>Et</i></span>')
+        content = content.replace(
+            ur'#ET#',
             ur'<span data-dpt="abbr">&amp;</span><span data-dpt="exp"><i>et</i></span>')
 
         # Margin conversion

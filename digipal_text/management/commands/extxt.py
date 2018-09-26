@@ -2037,8 +2037,15 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # Interlineation
         # e.g. e{n}t
+        # NB that interlinations can be fairly long, so we need a decent range of characters (PAS, Sept. 2018)
         content = re.sub(
-            ur'(?musi)\{\s*([^{}]{1,300})\s*\}',
+            ur'(?musi)\{\s*([^{}]{1,1900})\s*\}',
+            ur'<span data-dpt="interlineation">\1</span>',
+            content)
+
+        # There can also be insertions inside insertions, so let's look again to make sure we caught them all (PAS, Sept 2018)
+        content = re.sub(
+            ur'(?musi)\{\s*([^{}]{1,1900})\s*\}',
             ur'<span data-dpt="interlineation">\1</span>',
             content)
 

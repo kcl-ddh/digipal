@@ -27,7 +27,8 @@ importlib==1.0.3
 # if it fails, try 'sudo apt-get install libxml2-dev libxslt1-dev python-dev', then run again
 lxml==3.4.0
 # if it fails, try 'sudo apt-get install libpq-dev', then run again
-psycopg2==2.5.4
+#psycopg2==2.5.4
+psycopg2-binary
 
 # We force this version. To replace buggy template in the one installed
 # with Mezzanine 3.1.5

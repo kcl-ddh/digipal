@@ -6,7 +6,7 @@
 #
 
 beautifulsoup4==4.6.0
-git+git://github.com/geoffroy-noel-ddh/Digital-Lightbox
+git+https://github.com/geoffroy-noel-ddh/Digital-Lightbox
 Django==1.8.18
 Mezzanine==4.2.3
 regex
@@ -17,11 +17,12 @@ disqus-python==0.4.2
 django-appconf==1.0.2
 django-compress==1.0.1
 django-compressor==1.5
-git+git://github.com/geoffroy-noel-ddh/django-iipimage.git
-#git+git://github.com/Gbuomprisco/django-pagination.git@a4f31508609aa39063dfa087c26aade471f1480e#egg=django_pagination-dev
-git+git://github.com/geoffroy-noel-ddh/django-pagination
+git+https://github.com/geoffroy-noel-ddh/django-iipimage.git
+git+https://github.com/geoffroy-noel-ddh/django-pagination
 django-reversion==1.8.7
 django-tinymce==2.6.0
+# derived requirements, only needed to force the version down
+django-contrib-comments<1.9.0
 feedparser==5.1.3
 importlib==1.0.3
 # if it fails, try 'sudo apt-get install libxml2-dev libxslt1-dev python-dev', then run again

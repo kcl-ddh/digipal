@@ -1102,8 +1102,12 @@ def get_types(request):
         ret = faceted_settings.FACETED_SEARCH
 
     from digipal.utils import is_model_visible
-    ret = [FacetedModel(ct) for ct in ret['types'] if not ct.get(
-        'disabled', False) and is_model_visible(ct['model'], request)]
+    ret = [
+        FacetedModel(ct)
+        for ct in ret['types']
+        if not ct.get('disabled', False)
+        and is_model_visible(ct['model'], request)
+    ]
 
     return ret
 

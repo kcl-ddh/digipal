@@ -1598,7 +1598,7 @@ class ItemPart(models.Model):
         Otherwise use the HistoricalItem.display_label
         '''
         old_label = self.display_label
-        if self.custom_label.strip():
+        if self.custom_label and self.custom_label.strip():
             self.display_label = self.custom_label.strip()
         else:
             if self.current_item:

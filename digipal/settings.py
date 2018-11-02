@@ -753,6 +753,14 @@ TEXT_EDITOR_OPTIONS = {
     },
     'toolbars': {
         'default': 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | psperson | pslocation | psex pssupplied psdel | code ',
+    },
+    'panels': {
+        'north': {
+            'ratio': 0.6
+        },
+        'east': {
+            'ratio': 0.5
+        },
     }
 }
 

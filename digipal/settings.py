@@ -806,8 +806,25 @@ RUNNING_DEVSERVER = (len(sys.argv) > 1 and sys.argv[1] == 'runserver')
 if RUNNING_DEVSERVER and DEBUG and os.environ.get('RUN_MAIN', None) != 'true':
     LOGGING = {}
 
+
+import collections
+
+
+def merge_dic(d, u):
+    # like d.update(u) but it will only enrich d rather than remove missing
+    # entries
+    # see https://stackoverflow.com/a/3233356/3748764
+    for k, v in u.iteritems():
+        if isinstance(v, collections.Mapping):
+            d[k] = merge_dic(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+
 if 'TEXT_EDITOR_OPTIONS_CUSTOM' in locals():
-    TEXT_EDITOR_OPTIONS.update(locals()['TEXT_EDITOR_OPTIONS_CUSTOM'])
+    # TEXT_EDITOR_OPTIONS.update(locals()['TEXT_EDITOR_OPTIONS_CUSTOM'])
+    merge_dic(TEXT_EDITOR_OPTIONS, locals()['TEXT_EDITOR_OPTIONS_CUSTOM'])
 
 #
 if not COMPRESS_ENABLED:

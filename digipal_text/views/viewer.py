@@ -86,6 +86,82 @@ def text_viewer_view(request, item_partid=0,
     return render(request, 'digipal_text/text_viewer.html', context)
 
 
+def tinymce_generated_css_view(request, item_partid=0):
+    '''This view generate a css file based on 
+        settings.py:TEXT_EDITOR_OPTIONS_CUSTOM['buttons']
+
+        'btnPersonName': {'label': 'Person Name', 'tei': '<rs type="person" subtype="name">{}</rs>'},
+
+        =>
+
+        span[data-tei='rs'][data-tei-type='person'][data-tei-subtype='name'] {
+
+        }
+    '''
+
+    rules = '''
+    span[data-dpt='rs'][data-dpt-type='person'][data-dpt-subtype='name'] {
+        background-color: lightgreen;
+    }
+    span[data-dpt='rs'][data-dpt-type='person'][data-dpt-subtype='name']:before {
+        content: "Person Name";
+    }
+    .preview.mce-content-body span[data-dpt]:before {
+        display: inline-block;
+    }
+    '''
+    options = settings.TEXT_EDITOR_OPTIONS
+
+    buttons = []
+    for button in options.get('buttons', {}).values():
+        # see panelset.tinymce.js addButtonsFromSettings()
+        if not isinstance(button, dict):
+            continue
+        xml = button.get('xml', None)
+        tei = button.get('tei', None)
+        tag = button.get('tag', 'span')
+        color = button.get('color', '#b0ffb0')
+        label = button.get('label', '???')
+        if tei:
+            xml = tei
+            xml = re.sub(ur'(\w+)\s*=', ur'data-dpt-\1=', xml)
+            xml = re.sub(ur'<\/(\w+)', ur'</' + tag, xml)
+            xml = re.sub(ur'<(\w+)', ur'<' + tag + ur' data-dpt="\1"', xml)
+        if not xml:
+            continue
+
+        # print(xml)
+        selector = re.sub(
+            ur'''([\w-]+)\s*=\s*(["'][^"']+["'])''', ur'[\1=\2]', xml)
+        selector = re.sub(ur'[\s<]', ur'', selector)
+        selector = re.sub(ur'>.*', ur'', selector)
+
+        color_int = 0
+        color_darker = color
+        try:
+            color_int = int(color.replace('#', ''), 16)
+        except ValueError, e:
+            pass
+        if color_int:
+            color_darker = max(0, color_int - 0x808080)
+            color_darker = "#%0.6X" % color_darker
+
+        # selector = '''[data-dpt='rs'][data-dpt-type='person'][data-dpt-subtype='name']'''
+        abutton = {
+            'selector': selector,
+            'label': label,
+            'background_color': color,
+            'color': color_darker,
+        }
+        buttons.append(abutton)
+
+    context = {
+        'buttons': buttons,
+        'show_highlights_in_preview': options.get('show_highlights_in_preview', 0),
+    }
+    return render(request, 'digipal_text/tinymce_generated_css.html', context, content_type='text/css')
+
+
 def update_viewer_context(context, request):
     ''' To be overridden '''
     # TODO: design a better overriding model

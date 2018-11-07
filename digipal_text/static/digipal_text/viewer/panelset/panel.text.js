@@ -135,6 +135,9 @@
             
             var text_editor_options = window.text_editor_options;
 
+            var v = Math.floor(Date.now() / 1000);
+            var static_path = '/static/digipal_text/viewer/';
+
             var options = {
                 skin : 'digipal',
                 selector: '#' + divid,
@@ -154,10 +157,13 @@
                 menubar : false,
                 statusbar: false,
                 height: '15em',
-                content_css : '/static/digipal_text/viewer/tinymce.css?v=12,/static/digipal_text/viewer/tinymce_custom.css?v=15'
+                content_css : static_path + 'tinymce.css?v='+v+
+                    ','+static_path+'tinymce_custom.css?v='+v+
+                    ',/digipal/manuscripts/1/texts/view/tinymce_generated.css?v='+v
             };
 
             if (this.contentType == 'codicology') {
+                // move thst to Exon project
                 options.toolbar = 'psclear undo redo pssave | psh1 psh2 | italic | pshand | pscodparch pscodfol pscodsign pscodperf pscodruling pscodothers | code';
                 options.paste_as_text = true;
                 options.paste_postprocess = function(plugin, args) {
@@ -190,7 +196,7 @@
     PanelTextWrite.prototype = Object.create(PanelText.prototype);
 
     PanelTextWrite.prototype._ready = function() {
-        PanelText.prototype._ready.call(this);
+        var ret = PanelText.prototype._ready.call(this);
         
         var me = this;
 

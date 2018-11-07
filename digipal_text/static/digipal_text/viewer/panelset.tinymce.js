@@ -125,7 +125,21 @@ var dpTextEditorUtils = function (editor) {
     function addButtonsFromSettings(options) {
         if (options.buttons) {
             $.each(options.buttons, function(bkey, definition) {
-                if (definition.xml) {
+                if (definition.xml || definition.tei) {
+                    definition.conditions = definition.conditions || {'isparent': null};
+
+                    // converts tei to xml
+                    // e.g. 'tei': '<rs type="occupation">{}</rs>'}
+                    // => 'xml': '<span data-dpt="rs" data-dpt-type="occupation">{}</span>'
+                    if (definition.tei) {
+                        var xml = definition.tei;
+                        var tag = definition.tag || 'span';
+                        xml = xml.replace(/(\w+)\s*=/g, 'data-dpt-$1=');
+                        xml = xml.replace(/<\/(\w+)/g, '</'+tag);
+                        xml = xml.replace(/<(\w+)/g, '<'+tag+' data-dpt="$1"');
+                        definition.xml = xml;
+                    } 
+                
                     // 'scbuilding': {'label': 'Infrastructure Building', 'xml': '<span data-dpt="building" data-dpt-property="name">{}</span>'},
                     editor.addButton(bkey, {
                         text: definition.label,

@@ -1,0 +1,21 @@
+{% for button in buttons %}
+    .mce-content-body {{ button.selector|safe }} 
+    {
+        background-color: {{ button.background_color }};
+    }
+    {% if not show_highlights_in_preview %}
+        .preview.mce-content-body {{ button.selector|safe }} {
+            background-color: inherit;
+        } 
+    {% endif %}
+    .mce-content-body {{ button.selector|safe }}:before {
+        content: "{{ button.label|safe }}";
+        color: {{ button.color }};
+    }
+{% endfor %}
+
+{% if show_highlights_in_preview %}
+    .preview.mce-content-body span[data-dpt]:before {
+        display: inline-block;
+    }
+{% endif %}

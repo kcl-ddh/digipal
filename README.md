@@ -6,6 +6,7 @@ Archetype (formely known as 'The DigiPal Framework') is freely-available general
 - [Writing in Old English from the eleventh century (DigiPal)](http://digipal.eu)
 - [The palaeography and codicology of the Exon Domesday Book (Exon Domesday/The Conqueror's Commissioners)](http://www.exondomesday.ac.uk)
 - [Twelfth-century cursive charters from Scotland (Models of Authority)](https://www.modelsofauthority.ac.uk)
+- [Medieval manuscripts from Visigothic Spain (VisigothicPal)](http://visigothicpal.com)
 - Fragments of manuscripts from Scandinavia written in the eleventh century (ScandiPal)
 - The decoration and script of fifteenth-century manuscripts in Hebrew from the Iberian Peninsula (SephardiPal)
 - Inscriptions in Greek, Latin and both from the province of Thracia (InsPal)
@@ -15,6 +16,6 @@ The DigiPal Project formally ended on 30 September 2014, but the code is still b
 
 [Contributors](https://github.com/kcl-ddh/digipal/wiki/Contributors)
 
-For further information on using the framework please see the [GitHub Wiki pages](https://github.com/kcl-ddh/digipal/wiki).
+For further information on using Archetype please see the [GitHub Wiki pages](https://github.com/kcl-ddh/digipal/wiki).
 
 _The research leading to these results has received funding from the European Union Seventh Framework Programme (FP7) under grant agreement no. 263751, and the Arts and Humanities Research Council (AHRC) under Grant Reference nos. AH/L013975/1 and AH/L008041/1._

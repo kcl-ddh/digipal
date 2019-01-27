@@ -14,7 +14,7 @@ import os
 
 import unicodedata
 from exon.customisations.digipal_text.models import Entry
-#from xhtml2pdf.pisa import showLogging
+# from xhtml2pdf.pisa import showLogging
 
 
 def remove_accents(input_str):
@@ -286,7 +286,7 @@ Commands:
                 rows.append({'REF': lines[0], 'CONTENT': entry})
             else:
                 if size > 3:
-                    #print repr(lines[0]), size
+                    # print repr(lines[0]), size
                     pass
 
         headings = ['REF', 'CONTENT']
@@ -369,7 +369,7 @@ Commands:
             text_content__type__slug='translation').first()
         from digipal_text.views import viewer
 
-        #root = dputils.get_xml_from_unicode((ur'<root>%s</root>' % content_xml.content), True)
+        # root = dputils.get_xml_from_unicode((ur'<root>%s</root>' % content_xml.content), True)
         content = u'<root>%s</root>' % content_xml.content
         headings = [
             'RevisedEllisNos',
@@ -384,7 +384,7 @@ Commands:
         rows = []
 
         # commented out so we work from text file instead of XML record
-##         for unit in viewer.get_all_units(content, 'entry'):
+# #         for unit in viewer.get_all_units(content, 'entry'):
         input_file = 'exon/source/analysis/offlinedb/3exon-translation-4.txt'
         content = dputils.read_file(input_file)
 
@@ -394,7 +394,7 @@ Commands:
             unit['unitid'] = m[0]
 
             row = {h: '' for h in headings}
-##             unit_xml = dputils.get_xml_from_unicode(u'<root>%s</root>' % unit['content'], True)
+# #             unit_xml = dputils.get_xml_from_unicode(u'<root>%s</root>' % unit['content'], True)
             refs = []
             refs2 = {'GDB': '', 'EDB': ''}
 
@@ -405,7 +405,7 @@ Commands:
             ref = m[1]
 
             if 1:
-                ##                ref = dputils.get_unicode_from_xml(ref, text_only=True)
+                # #                ref = dputils.get_unicode_from_xml(ref, text_only=True)
                 refs.append(ref)
                 if len(ref) > 100:
                     print 'WARNING: long ref %s' % len(ref)
@@ -521,7 +521,7 @@ Commands:
             if i2 >= len(locuses_images):
                 break
 
-            next_quire_start = locuses[i1 +
+            next_quire_start = locuses[i1 + 
                                        1] if i1 < (len(locuses) - 1) else '100000r'
             while locuses_images[i2] != next_quire_start:
                 image = images[locuses_images[i2]]
@@ -564,7 +564,7 @@ Commands:
     def marginal_entries(self):
         from digipal_text.models import TextContentXML
 
-        #text = TextContentXML.objects.filter(text_content__type__slug='translation').first()
+        # text = TextContentXML.objects.filter(text_content__type__slug='translation').first()
         text = TextContentXML.objects.filter(
             text_content__type__slug='transcription').first()
         content = u'<root>%s</root>' % text.content
@@ -574,7 +574,7 @@ Commands:
         # Warnings about $|£ within <add>
         for pattern in [".//span[@data-dpt='interlineation']//span[@data-dpt-loctype='entry']",
                         ".//span[@data-dpt='marginal']//span[@data-dpt-loctype='entry']", ".//span[@data-dpt='interlineation-to-margin']//span[@data-dpt-loctype='entry']"]:
-            #for pattern in [".//p//span[@data-dpt-loctype='entry']"]:
+            # for pattern in [".//p//span[@data-dpt-loctype='entry']"]:
             for element in xml.findall(pattern):
                 etext = utils.get_xml_element_text(element)
                 print etext
@@ -584,10 +584,10 @@ Commands:
     def handentry_command(self):
         raise Exception('DEPRECATED, please use setentryhand command.')
 
-        #hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')
-        #entries = self.get_entries()
+        # hands = TextContentXML.objects.filter(text_content__type__slug=='codicology')
+        # entries = self.get_entries()
 
-        #self.find_certainties()
+        # self.find_certainties()
 
         if 0:
             self.find_missing_entries()
@@ -622,7 +622,7 @@ Commands:
         '''
             Write the entries-hand info into a CSV file called entries-hands.csv
         '''
-        #headings = ['entry', 'hands', 'nbhands', 'notes', 'certainty']
+        # headings = ['entry', 'hands', 'nbhands', 'notes', 'certainty']
         headings = ['entry', 'hands', 'nbhands', 'notes']
         file_path = 'entries-hands.csv'
 
@@ -644,7 +644,7 @@ Commands:
                                 for hand in hands if hand[0] == '_']
                 if row['nbhands'] == 0:
                     row['notes'].append('NO_HAND')
-                #for col in ['hands', 'notes']:
+                # for col in ['hands', 'notes']:
                 for col in ['notes']:
                     row[col] = ', '.join(row[col])
                 if not row['hands']:
@@ -800,7 +800,7 @@ Commands:
 
         for page in pages:
 
-            #print page
+            # print page
             if page not in lines_entries:
                 self.msg('page %s not in text but in stints (possible)', page)
                 continue
@@ -845,7 +845,7 @@ Commands:
                                 # there is one hand for each entry
                                 # Otherwise all hands assigned to all entries
                                 hand = '_ASSUMED'
-                                #continue
+                                # continue
 
                         if hand not in ret[entry]:
                             ret[entry].append(hand)
@@ -876,7 +876,7 @@ Commands:
                             continue
                         shown[entry] = 1
                         print entry, ret[entry]
-                #exit()
+                # exit()
 
         return ret
 
@@ -914,7 +914,7 @@ Commands:
                 ]
             '''
             for sinfo in stints:
-                #print sinfo['hand'], sinfo['extent'], sinfo.get('note', '')
+                # print sinfo['hand'], sinfo['extent'], sinfo.get('note', '')
                 pages = self.get_page_numbers_from_stint(sinfo)
                 last = len(pages)
                 for i in range(0, last):
@@ -948,7 +948,7 @@ Commands:
                         lns[1] = sinfo['x'][1][2] or lns[1]
 
                     for ln in range(int(lns[0]), int(lns[1]) + 1):
-                        #ret[page][ln-1].append('%s (%s)' % (sinfo['hand'], sinfo['extent']))
+                        # ret[page][ln-1].append('%s (%s)' % (sinfo['hand'], sinfo['extent']))
                         if print_lines:
                             print page, ln - 1, lns
                         l = ret[page][ln - 1]
@@ -959,7 +959,7 @@ Commands:
                         if ln == int(lns[1]):
                             pos = 0
                         l.insert(pos, '%s' % sinfo['hand'])
-                        #print page, ln-1, sinfo['hand']
+                        # print page, ln-1, sinfo['hand']
 
         return ret
 
@@ -1002,11 +1002,11 @@ Commands:
         for element in xml.findall('.//add//add'):
             parent_map[element].remove(element)
             # don't use remove(), it deletes the tail (text after element)
-            #element.remove()
+            # element.remove()
 
         content = utils.get_unicode_from_xml(xml)
 
-        #utils.write_file('exon/source/rekeyed/converted/EXON-1-493.hands2.xml', content)
+        # utils.write_file('exon/source/rekeyed/converted/EXON-1-493.hands2.xml', content)
 
         # TODO:
         # remove all the marginal text
@@ -1023,9 +1023,9 @@ Commands:
         content = re.sub(ur'(?musi)<!--.*?-->', '', content)
 
         for page in re.split(ur'<margin>\s*fol\.?\s*', content):
-            #print '-' * 10
-            #pn = re.findall(ur'^[^<]+', page)
-            #pn = pn[0].strip()
+            # print '-' * 10
+            # pn = re.findall(ur'^[^<]+', page)
+            # pn = pn[0].strip()
 
             # read the folio number
             pnm = re.search(ur'^(\d+)\.?\s*(b\.?)?</margin>', page)
@@ -1087,7 +1087,7 @@ Commands:
 
                     ret[pn].append(entries)
 
-                    #print pn, l, ret[pn][l-1]
+                    # print pn, l, ret[pn][l-1]
 
         return ret
 
@@ -1299,32 +1299,32 @@ Commands:
         # vr = [B, A]
         vr = [vr[k] for k in sorted_natural(vr.keys())]
         # vr = [1, 0]
-        #vr = [u'Winnianton', u'Tybesta', u'Rillaton', u'Connerton', u'Rialton', u'Pawton', u'Stratton', u'Fawton']
-        #vr = [u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Ottery St Mary', u'Molland', u'Wonford', u'Budleigh', u'Witheridge', u'Tiverton', u'Halberton', u'Kerswell', u'Axminster', u'Alleriga', u'Colyton', u'Chillington', u'Axmouth', u'Teignbridge', u'Ermington', u'unknown', u'Diptford', u'Plympton', u'Walkhampton']
+        # vr = [u'Winnianton', u'Tybesta', u'Rillaton', u'Connerton', u'Rialton', u'Pawton', u'Stratton', u'Fawton']
+        # vr = [u'Lifton', u'South Tawton', u'Black Torrington', u'Hartland', u'Merton', u'Fremington', u'North Tawton', u'Crediton', u'Exminster', u'Braunton', u'Bampton', u'Shirwell', u'South Molton', u'Cliston', u'Silverton', u'Hemyock', u'Ottery St Mary', u'Molland', u'Wonford', u'Budleigh', u'Witheridge', u'Tiverton', u'Halberton', u'Kerswell', u'Axminster', u'Alleriga', u'Colyton', u'Chillington', u'Axmouth', u'Teignbridge', u'Ermington', u'unknown', u'Diptford', u'Plympton', u'Walkhampton']
 
         vr = [hundreds[label] for label in vr]
-        #vr = range(0, len(vr))
-        ##vr2 = [u'Yeovil: Tintinhull', u'North Petherton', u'Cannington', u'South Petherton', u'Sheriffs Brompton', u'Cheddar', u'Cutcombe', u'Carhampton', u'Bedminster', u'Minehead', u'Williton', u'Bulstone', u'Andersfield', u'Kingsbury', u'Wiveliscombe', u'Wellington', u'Winterstoke', u'Abdick', u'Chew', u'Frome: Frome', u'Brompton Regis', u'Dulverton', u'Lydeard', u'Bempstone', u'Wells', u'Bruton: Bruton', u'Cleeve', u'Loxley', u'Winsford', u'Creech', u'North Curry', u'Crewkerne', u'Congresbury', u'Somerton', u'Coker', u'Pitminster', u'Taunton', u'Milverton', u'Bruton: Wincanton', u'Bath', u'Yeovil: Lyatts', u'Martock', u'Hartcliffe', u'Yeovil: Houndsborough', u'Bruton: Blachethorna', u'Huntspill', u'Whitestone', u'Reynaldsway', u'Frome: Kilmersdon', u'Monkton', u'Portbury', u'Keynsham', u'Milborne/Horethorne', u'Chewton', u'South Brent', u'Frome: Wellow', u'Frome: Frome/Downhead', u'Yeovil: Stone']
+        # vr = range(0, len(vr))
+        # #vr2 = [u'Yeovil: Tintinhull', u'North Petherton', u'Cannington', u'South Petherton', u'Sheriffs Brompton', u'Cheddar', u'Cutcombe', u'Carhampton', u'Bedminster', u'Minehead', u'Williton', u'Bulstone', u'Andersfield', u'Kingsbury', u'Wiveliscombe', u'Wellington', u'Winterstoke', u'Abdick', u'Chew', u'Frome: Frome', u'Brompton Regis', u'Dulverton', u'Lydeard', u'Bempstone', u'Wells', u'Bruton: Bruton', u'Cleeve', u'Loxley', u'Winsford', u'Creech', u'North Curry', u'Crewkerne', u'Congresbury', u'Somerton', u'Coker', u'Pitminster', u'Taunton', u'Milverton', u'Bruton: Wincanton', u'Bath', u'Yeovil: Lyatts', u'Martock', u'Hartcliffe', u'Yeovil: Houndsborough', u'Bruton: Blachethorna', u'Huntspill', u'Whitestone', u'Reynaldsway', u'Frome: Kilmersdon', u'Monkton', u'Portbury', u'Keynsham', u'Milborne/Horethorne', u'Chewton', u'South Brent', u'Frome: Wellow', u'Frome: Frome/Downhead', u'Yeovil: Stone']
         seed = [vr]
-        ##seed.append([hundreds[label] for label in vr2])
+        # #seed.append([hundreds[label] for label in vr2])
 
-        #seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 26, 22, 4, 15, 34, 10, 5, 24, 23, 25, 19, 0, 33, 27, 20, 11, 29, 14, 30, 28, 6, 9, 16, 1, 3])
-        #seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 22, 4, 15, 10, 5, 24, 34, 23, 25, 19, 0, 27, 33, 20, 11, 3, 14, 29, 30, 6, 9, 28, 16, 1, 26])
+        # seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 26, 22, 4, 15, 34, 10, 5, 24, 23, 25, 19, 0, 33, 27, 20, 11, 29, 14, 30, 28, 6, 9, 16, 1, 3])
+        # seed.append([12, 32, 7, 21, 13, 17, 18, 31, 2, 8, 22, 4, 15, 10, 5, 24, 34, 23, 25, 19, 0, 27, 33, 20, 11, 3, 14, 29, 30, 6, 9, 28, 16, 1, 26])
 
 #             seed.append([13, 31, 16, 38, 10, 4, 42, 9, 5, 27, 43, 0, 14, 39, 35, 21, 28, 25, 37, 32, 36, 29, 34, 6, 7, 40, 11, 41, 23, 2, 33, 17, 19, 3, 24, 12, 22, 26, 20, 1, 30, 15, 8, 18])
 #
 #             seed.append([26, 27, 31, 43, 0, 37, 42, 41, 9, 16, 34, 29, 33, 11, 28, 21, 12, 2, 19, 4, 24, 6, 20, 10, 17, 39, 14, 1, 40, 7, 35, 30, 3, 22, 5, 15, 13, 38, 8, 36, 18, 32, 25, 23])
 #             seed.append([43, 13, 9, 21, 0, 5, 11, 42, 19, 31, 20, 41, 29, 23, 24, 32, 16, 39, 30, 27, 14, 28, 34, 26, 2, 25, 4, 6, 33, 1, 35, 10, 17, 40, 7, 3, 37, 38, 15, 8, 12, 22, 18, 36])
 
-        #seed.append([4, 5, 27, 9, 34, 26, 33, 0, 37, 29, 6, 14, 43, 31, 41, 16, 21, 32, 10, 28, 11, 39, 2, 19, 35, 3, 12, 17, 22, 23, 40, 13, 24, 36, 38, 20, 1, 30, 42, 7, 15, 8, 18, 25])
-        #seed.append([13, 31, 16, 38, 10, 4, 42, 9, 5, 27, 43, 0, 14, 39, 35, 21, 28, 25, 37, 32, 36, 29, 34, 6, 7, 40, 11, 41, 23, 2, 33, 17, 19, 3, 24, 12, 22, 26, 20, 1, 30, 15, 8, 18])
+        # seed.append([4, 5, 27, 9, 34, 26, 33, 0, 37, 29, 6, 14, 43, 31, 41, 16, 21, 32, 10, 28, 11, 39, 2, 19, 35, 3, 12, 17, 22, 23, 40, 13, 24, 36, 38, 20, 1, 30, 42, 7, 15, 8, 18, 25])
+        # seed.append([13, 31, 16, 38, 10, 4, 42, 9, 5, 27, 43, 0, 14, 39, 35, 21, 28, 25, 37, 32, 36, 29, 34, 6, 7, 40, 11, 41, 23, 2, 33, 17, 19, 3, 24, 12, 22, 26, 20, 1, 30, 15, 8, 18])
 
-        #seed.append([20, 0, 1, 9, 5, 7, 24, 27, 41, 38, 43, 46, 21, 2, 10, 11, 44, 30, 4, 12, 34, 25, 37, 39, 42, 33, 23, 22, 13, 28, 3, 14, 32, 15, 16, 45, 17, 8, 40, 6, 26, 18, 36, 29, 31, 35, 19])
-        #seed.append([44, 20, 45, 41, 37, 46, 0, 9, 5, 7, 24, 27, 21, 2, 4, 22, 34, 10, 25, 11, 30, 12, 13, 28, 3, 38, 23, 14, 16, 32, 43, 17, 40, 26, 42, 15, 8, 18, 36, 33, 29, 1, 31, 19, 35, 39, 6])
-        #seed.append([38, 36, 20, 0, 15, 1, 46, 42, 9, 44, 31, 5, 7, 39, 40, 24, 27, 21, 41, 2, 10, 11, 45, 34, 30, 35, 4, 33, 25, 12, 22, 23, 13, 6, 28, 3, 37, 14, 16, 43, 32, 17, 26, 8, 18, 29, 19])
+        # seed.append([20, 0, 1, 9, 5, 7, 24, 27, 41, 38, 43, 46, 21, 2, 10, 11, 44, 30, 4, 12, 34, 25, 37, 39, 42, 33, 23, 22, 13, 28, 3, 14, 32, 15, 16, 45, 17, 8, 40, 6, 26, 18, 36, 29, 31, 35, 19])
+        # seed.append([44, 20, 45, 41, 37, 46, 0, 9, 5, 7, 24, 27, 21, 2, 4, 22, 34, 10, 25, 11, 30, 12, 13, 28, 3, 38, 23, 14, 16, 32, 43, 17, 40, 26, 42, 15, 8, 18, 36, 33, 29, 1, 31, 19, 35, 39, 6])
+        # seed.append([38, 36, 20, 0, 15, 1, 46, 42, 9, 44, 31, 5, 7, 39, 40, 24, 27, 21, 41, 2, 10, 11, 45, 34, 30, 35, 4, 33, 25, 12, 22, 23, 13, 6, 28, 3, 37, 14, 16, 43, 32, 17, 26, 8, 18, 29, 19])
 
-        #seed.append([24, 7, 57, 29, 30, 10, 11, 41, 37, 51, 19, 1, 17, 47, 2, 45, 25, 21, 48, 33, 5, 4, 27, 13, 14, 12, 16, 15, 18, 8, 44, 6, 23, 53, 49, 54, 40, 20, 32, 28, 52, 35, 55, 34, 31, 39, 9, 42, 36, 0, 22, 26, 56, 43, 46, 3, 38, 50])
-        #seed.append([17, 51, 39, 30, 10, 46, 31, 25, 11, 19, 49, 13, 1, 47, 48, 12, 5, 7, 27, 4, 14, 16, 2, 37, 15, 20, 57, 33, 22, 18, 8, 28, 23, 50, 45, 41, 35, 32, 55, 6, 40, 52, 34, 9, 56, 29, 44, 0, 26, 3, 21, 53, 54, 38, 42, 24, 36, 43])
+        # seed.append([24, 7, 57, 29, 30, 10, 11, 41, 37, 51, 19, 1, 17, 47, 2, 45, 25, 21, 48, 33, 5, 4, 27, 13, 14, 12, 16, 15, 18, 8, 44, 6, 23, 53, 49, 54, 40, 20, 32, 28, 52, 35, 55, 34, 31, 39, 9, 42, 36, 0, 22, 26, 56, 43, 46, 3, 38, 50])
+        # seed.append([17, 51, 39, 30, 10, 46, 31, 25, 11, 19, 49, 13, 1, 47, 48, 12, 5, 7, 27, 4, 14, 16, 2, 37, 15, 20, 57, 33, 22, 18, 8, 28, 23, 50, 45, 41, 35, 32, 55, 6, 40, 52, 34, 9, 56, 29, 44, 0, 26, 3, 21, 53, 54, 38, 42, 24, 36, 43])
 
         self.print_candidate(vr, tics, hundreds)
 
@@ -1447,6 +1447,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         from exon.customisations.digipal_lab.views.hundreds import get_hundreds_view_context
 
         class MyRequest:
+
             def __init__(self, request):
                 self.REQUEST = request
 
@@ -1506,7 +1507,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             last_ho = None
             last_last_ho = None
             for entry in tic['entries']:
-                #ho = v1.index(entry['ho'])
+                # ho = v1.index(entry['ho'])
                 ho = get_hhunber_from_entry(entry)
 
                 # 8 11 10 not ok
@@ -1582,9 +1583,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         return ret
 
     def test_merge_repeated_elements(self):
-        input = u'''regis <span data-dpt="del" data-dpt-rend="underlined">.xliiii. hiđ[as] 7 dim</span><span data-dpt="del" data-dpt-rend="underlined"><sup>4</sup></span><span data-dpt="del" data-dpt-rend="underlined">[idiam] 7 dim</span><span data-dpt="del" data-dpt-rend="underlined"><sup>4</sup></span><span data-dpt="del" data-dpt-rend="underlined">[idiam] uirga〈m〉.</span>7 de'''
+        input = u'''regis <span data-dpt="del" data-dpt-rend="underlined">.xliiii. hiđ[as] 7 dim</span><span data-dpt="del" data-dpt-rend="underlined"><sup>4</sup></span><span data-dpt="del" data-dpt-rend="underlined">[idiam] 7 dim</span><span data-dpt="del" data-dpt-rend="underlined"><sup>4</sup></span><span data-dpt="del" data-dpt-rend="underlined">[idiam] uirga〈m〉.</span>7 de'''
         output = self.merge_repeated_elements(input)
-        expected = u'''regis <span data-dpt="del" data-dpt-rend="underlined">.xliiii. hiđ[as] 7 dim<sup>4</sup>[idiam] 7 dim<sup>4</sup>[idiam] uirga〈m〉.</span>7 de'''
+        expected = u'''regis <span data-dpt="del" data-dpt-rend="underlined">.xliiii. hiđ[as] 7 dim<sup>4</sup>[idiam] 7 dim<sup>4</sup>[idiam] uirga〈m〉.</span>7 de'''
 
         if output != expected:
             print input
@@ -1604,7 +1605,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         #     e.g. a <del> splitting parts of abbreviated/expanded words, dim|4
         xml = dputils.get_xml_from_unicode(content, add_root=True)
 
-        #self.merge_repeated_elements_xpath(xml, './/span[@data-dpt="del"][@data-dpt-rend="underlined"]')
+        # self.merge_repeated_elements_xpath(xml, './/span[@data-dpt="del"][@data-dpt-rend="underlined"]')
         self.merge_repeated_elements_xpath(xml, './/span[@data-dpt="del"]')
 
         ret = dputils.get_unicode_from_xml(xml, remove_root=True)
@@ -1636,7 +1637,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 if dup.tail is not None:
                     break
 
-        #print 'Merged into %s groups (%s)' % (len(merged_into.keys()), xpath)
+        # print 'Merged into %s groups (%s)' % (len(merged_into.keys()), xpath)
 
         dputils.strip_xml_tags(xml, './/TOBEREMOVED')
 
@@ -1690,7 +1691,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             print 'ERROR: could not find <body> element'
             return
 
-        #self.test_merge_repeated_elements()
+        # self.test_merge_repeated_elements()
         content = self.merge_repeated_elements(content)
 
         # Remove spaces at the beginning of each line
@@ -1702,6 +1703,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             ret = match.group(0)
             # print ret
             return '<%s%s%s>' % (match.group(1), match.group(2), match.group(3))
+
         content = re.sub(
             # ur'(?musi)&lt;(/?[a-z]+)(&gt;)?',
             ur'(?musi)&lt;\s*(/?)\s*(.*?)\s*(/?)\s*&gt;',
@@ -1718,9 +1720,9 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # print len(re.findall(ur'&gt;|&lt;', content))
         content = re.sub(ur'&gt;|&lt;', ur'', content)
 
-        #print u'\n'.join(list(set(re.findall(ur'(?musi)\S+&\S*|\S*&\S+', content))))
+        # print u'\n'.join(list(set(re.findall(ur'(?musi)\S+&\S*|\S*&\S+', content))))
         # print u'\n'.join(list(set(re.findall(ur'(?musi)(?:<st>)[^<]+', content))))
-        #exit()
+        # exit()
 
         # convert &amp; to #AMP#
         content = content.replace('&amp;', '#AMP#')
@@ -1815,7 +1817,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # Folio number
         # [fol. 1. b.] or [fol. 1.] or  [fol 510. b]
         # TODO: check for false pos. or make the rule more strict
-        #content = re.sub(ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', ur'</p><span data-dpt="location" data-dpt-loctype="locus">\1\3</span><p>', content)
+        # content = re.sub(ur'(?musi)\[fol.\s(\d+)\.(\s*(b?)\.?)\]', ur'</p><span data-dpt="location" data-dpt-loctype="locus">\1\3</span><p>', content)
         self.sides = {'': 'r', 'b': 'v', 'a': 'r'}
 
         def get_side(m):
@@ -1823,6 +1825,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             ret = ur'</p><p><span data-dpt="location" data-dpt-loctype="locus">%s%s</span></p><p>' % (
                 m.group(1), side)
             return ret
+
         content = re_sub_fct(
             content,
             ur'(?musi)\[fol\.?\s(\d+)\.?(\s*([rvab]?)\.?)\]',
@@ -1902,7 +1905,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             m = match.group(0)
             ret = m
 
-            #if '[' not in m: return m
+            # if '[' not in m: return m
 
             # don't convert if starts with digit as it's most likely a folio or
             # entry number
@@ -1910,7 +1913,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 return m
 
             self.c += 1
-            #if self.c > 100: exit()
+            # if self.c > 100: exit()
 
             # ũ[ir]g̃[a]
             # abbr =
@@ -2028,12 +2031,10 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # (supplied) expansions without abbreviation
         # Wide angle brackets
-        # Bal〈dwini〉 =>
-        content = re.sub(ur'(?musi)〈〉', ur'', content)
-        content = re.sub(
-            ur'(?musi)〈\s*([^〈〉]{1,100})\s*〉',
-            ur'<span data-dpt="supplied">\1</span>',
-            content)
+        # Bal〈dwini〉 =>
+        content = re.sub(ur'(?musi)〈〉', ur'', content)
+        content = re.sub(ur'(?musi)〈\s*([^〈〉]{1,100})\s*〉',
+                         ur'<span data-dpt="supplied">\1</span>', content)
 
         # Interlineation
         # e.g. e{n}t
@@ -2079,7 +2080,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
             ur'#ET#')
 
         # & => et
-        #content = content.replace(ur'&amp;', ur'<i>et</i>')
+        # content = content.replace(ur'&amp;', ur'<i>et</i>')
         # Safe to assume &amp are not inside expension: [ & ]
         content = content.replace(
             ur'&amp;',
@@ -2121,6 +2122,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         self.is_margin_open = 0
         self.last_margin_pos = 0
+
         def sub_margin(match):
             pos = match.start(0)
             ret = re.sub(ur'\s', '', match.group(1))
@@ -2207,7 +2209,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
                 raise Exception(
                     'ERROR: the input fragment should contain locuses. e.g. <span data-dpt="location" data-dpt-loctype="locus">1r</span>')
             locations = locations[0], locations[-1]
-            #locations = '1r', '0v'
+            # locations = '1r', '0v'
             print 'Input fragment: %s-%s' % (locations[0], locations[1])
 
             # Get the matching range in the existing text.
@@ -2308,7 +2310,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
 
         # expansions
         # m_0 -> m[od]o_0
-        #self.get_unique_matches(pattern, content)
+        # self.get_unique_matches(pattern, content)
         pattern = ur'(?mus)([^\w<>\[\]])(m<sup>0</sup>)([^\w<>\[\]&])'
         content = re.sub(pattern, ur'\1m[od]o<sup>o</sup>\3', content)
 
@@ -2370,7 +2372,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         content = re.sub(pattern, ur'\1\2[ra]\3', content)
         # cap2 -> cap[ra]a !?
         pattern = ur'(?mus)([^\w<>\[\]/;]cap)(<sup>2</sup>)([^\w<>\[\]/&])'
-        #content = re.sub(pattern, ur'\1[r]a<sup>a</sup>\3', content)
+        # content = re.sub(pattern, ur'\1[r]a<sup>a</sup>\3', content)
         content = re.sub(pattern, ur'\1<sup>2</sup>[ra]\3', content)
 
         # p2ti -> p2[ra]ti
@@ -2592,7 +2594,7 @@ NO REF TO ENTRY NUMBERS => NO ORDER!!!!
         # numbers
         pattern = ur'(?mus)\.?(\s*)(\b[IVXl]+)\.([^\w<>\[\]])'
         content = re.sub(
-            pattern, lambda pat: ur'%s.%s.%s' %
+            pattern, lambda pat: ur'%s.%s.%s' % 
             (pat.group(1), pat.group(2).lower(), pat.group(3)), content)
 
         # write result

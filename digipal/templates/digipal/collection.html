@@ -4,21 +4,21 @@
 {% block meta_title %}Collection{% endblock %}
 
 {% block main %}
-    
+
     <div class="page-header row">
         <h1 class='pull-left' data-placement='bottom'>
             <a href="/digipal/collection/"><span class='fa fa-folder-open small'></span> Manage My Collections</a> / <span title='Rename Collection' data-placement='right' data-toggle='tooltip' data-container='body' class='collection-title' contenteditable></span>
         </h1>
         <div class='col-md-4 pull-right align-right'>
             <button id='delete-collection' data-placement='bottom' data-toggle='tooltip' data-container='body' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-remove"></span> Delete</button>
-    
+
             <button data-placement='bottom' data-toggle='tooltip' data-container='body' title='Switch to print view' id='print' class="btn btn-default btn-sm"><span class="glyphicon glyphicon-print"></span> Print</button>
-    
+
             <button id='share-collection' data-placement='bottom' data-toggle='tooltip' data-container='body' class="btn btn-sm btn-default"><span class="glyphicon glyphicon-share"></span> Share</button>
         </div>
-    
+
     </div>
-    
+
     <div class="row">
         <div class="container">
             <div class='pull-left buttons-toolbar'>
@@ -33,13 +33,13 @@
                     <option value="14">Manuscript</option>
                 </select>
             </div>
-    
+
             <div class='pull-right'>
                 <ul class="nav nav-pills">
                     <li title="" data-toggle="tooltip" data-container="body" class="active" data-original-title="Change View to Table">
                         <a data-target="#table" data-toggle="pill">Table</a>
                     </li>
-    
+
                     <li title="" data-toggle="tooltip" data-container="body" class="" data-original-title="Change View to Grid">
                         <a data-target="#grid" data-toggle="pill">Grid</a>
                     </li>
@@ -47,7 +47,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="container">
         <div class="row">
             <div class="tabbable">
@@ -56,33 +56,33 @@
                         <div id='container_basket'></div>
                     </div>
                     <div class="tab-pane fade" id='grid'>
-    
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div class='loading-div'>
         <p>Loading Data. Please wait...</p>
         <p>
           <img src="/static/digipal/images/ajax-loader.gif" alt = 'Loading ...' />
         </p>
     </div>
-    
+
     {% csrf_token %}
 
 {% endblock %}
 
 {% block extra_js %}
     {{ block.super }}
-    
+
     {% if perms.digipal.add_annotation %}
     <script>
         var isAdmin = true;
     </script>
     {% endif %}
-    <script src='https://apis.google.com/js/client.js'></script>
+    <script src='//apis.google.com/js/client.js'></script>
     <script src ='/static/digipal/scripts/collections-utils.js'></script>
     <script src ='/static/digipal/scripts/lightbox_basket.js'></script>
 {% endblock %}

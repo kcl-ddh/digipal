@@ -20,7 +20,6 @@ from mezzanine.conf import settings
 from digipal.templatetags.hand_filters import chrono
 from digipal.utils import dplog
 
-
 register = template.Library()
 
 from django.views.decorators.csrf import csrf_exempt
@@ -126,7 +125,7 @@ def get_features_from_graph(graph, only_features=False, allographs_cache=None):
         obj['allographs'] = allograph
         allographs_cache.append(a)
 
-    #vector_id = graph.annotation.vector_id
+    # vector_id = graph.annotation.vector_id
     hand_id = graph.hand.id
     allograph_id = graph.idiograph.allograph.id
     image_id = graph.annotation.image.id
@@ -159,7 +158,7 @@ def get_features_from_graph(graph, only_features=False, allographs_cache=None):
 
     obj['features'] = dict_features
     obj['aspects'] = aspects
-    #obj['vector_id'] = vector_id
+    # obj['vector_id'] = vector_id
     obj['image_id'] = image_id
     obj['hand_id'] = hand_id
     obj['allograph_id'] = allograph_id
@@ -240,8 +239,8 @@ def image(request, image_id):
 
     is_admin = has_edit_permission(request, Image)
 
-    #annotations_count = image.annotation_set.all().values('graph').count()
-    #annotations = image.annotation_set.all()
+    # annotations_count = image.annotation_set.all().values('graph').count()
+    # annotations = image.annotation_set.all()
     annotations = Annotation.objects.filter(image_id=image_id, graph__isnull=False).exclude_hidden(
         is_admin).select_related('graph__hand', 'graph__idiograph__allograph')
     dimensions = {
@@ -295,10 +294,12 @@ def image(request, image_id):
     from digipal.models import OntographType
     from digipal.utils import is_model_visible
 
-    images = image.item_part.images.exclude(
-        id=image.id).prefetch_related('hands', 'annotation_set')
-    images = Image.filter_permissions_from_request(images, request)
-    images = Image.sort_query_set_by_locus(images, True)
+    images = Image.objects.none()
+    if image.item_part:
+        images = image.item_part.images.exclude(
+            id=image.id).prefetch_related('hands', 'annotation_set')
+        images = Image.filter_permissions_from_request(images, request)
+        images = Image.sort_query_set_by_locus(images, True)
 
     from digipal_text.models import TextContentXML
 
@@ -401,7 +402,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
 
     annotations = []
     an = {}
-    #hands = []
+    # hands = []
     for a in annotation_list_with_graph:
         # if len(annotations) > 1: break
         an = {}
@@ -428,14 +429,14 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
 
         an['feature'] = '%s' % (a.graph.idiograph.allograph)
         an['graph'] = '%s' % (a.graph.id)
-        #hand = a.graph.hand.label
+        # hand = a.graph.hand.label
         # hands.append(a.graph.hand.id)
 
         an['display_note'] = a.display_note
         an['internal_note'] = a.internal_note
         an['id'] = unicode(a.id)
 
-        #gc_list = GraphComponent.objects.filter(graph=a.graph)
+        # gc_list = GraphComponent.objects.filter(graph=a.graph)
         gc_list = a.graph.graph_components.all()
 
         if gc_list:
@@ -456,7 +457,7 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
     for e in editorial_annotations:
         an = {}
         annotations.append(an)
-        #an['geo_json'] = vectors[unicode(e.id)]['geometry']
+        # an['geo_json'] = vectors[unicode(e.id)]['geometry']
         geo = e.get_geo_json_as_dict().get('geometry', None)
         if geo:
             an['geo_json'] = geo
@@ -587,9 +588,9 @@ def image_metadata(request, image_id):
 
 def image_copyright(request, image_id):
     context = {}
-    #image = Image.objects.get(id=image_id)
-    #repositories = Repository.objects.filter(currentitem__itempart__images=image_id)
-    #context['copyright'] = repository.values_list('copyright_notice', flat = True)
+    # image = Image.objects.get(id=image_id)
+    # repositories = Repository.objects.filter(currentitem__itempart__images=image_id)
+    # context['copyright'] = repository.values_list('copyright_notice', flat = True)
     # TODO: check this path
 
     return render_to_response('pages/copyright.html', context,
@@ -614,7 +615,7 @@ def images_lightbox(request, collection_name):
             for annotation in annotations_list:
 
                 try:
-                    #annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name, manuscript]
+                    # annotation[thumbnail, graph_id, graph_label, hand_label, scribe_name, place_name, date_date, vector_id, image_id, hand_id, scribe_id, allograph, allogaph_name, character_name, manuscript]
                     try:
                         scribe = annotation.graph.hand.scribe.name
                         scribe_id = annotation.graph.hand.scribe.id
@@ -627,7 +628,7 @@ def images_lightbox(request, collection_name):
                         date = 'Unknown'
                     full_size = u'<img alt="%s" src="%s" />' % (
                         annotation.graph, annotation.get_cutout_url(True))
-                    #annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label, full_size])
+                    # annotations.append([annotation.thumbnail(), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id, scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label, full_size])
                     annotations.append([html_escape.annotation_img(annotation), annotation.graph.id, annotation.graph.display_label, annotation.graph.hand.label, scribe, place_name, date, annotation.vector_id, annotation.image.id, annotation.graph.hand.id,
                                         scribe_id, annotation.graph.idiograph.allograph.human_readable(), annotation.graph.idiograph.allograph.name, annotation.graph.idiograph.allograph.character.name, annotation.image.display_label, full_size])
                 except:
@@ -638,7 +639,7 @@ def images_lightbox(request, collection_name):
             images_list = list(Image.objects.filter(id__in=graphs['images']))
             images_list.sort(key=lambda t: graphs['images'].index(t.id))
             for image in images_list:
-                #images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
+                # images.append([image.thumbnail(100, 100), image.id, image.display_label, list(image.item_part.hands.values_list('label'))])
                 hand_labels = []
                 if image.item_part:
                     hand_labels = list(
@@ -747,8 +748,8 @@ def save(request, graphs):
                             # set the author only when the annotation is
                             # created
                             annotation.author = request.user
-                        #annotation.before = clean['before']
-                        #annotation.after = clean['after']
+                        # annotation.before = clean['before']
+                        # annotation.after = clean['after']
                         allograph = clean['allograph']
                         hand = clean['hand']
 
@@ -867,7 +868,7 @@ def save(request, graphs):
         except Exception as e:
             data['success'] = False
             data['errors'] = [u'Internal error: %s' % e]
-            #tb = sys.exc_info()[2]
+            # tb = sys.exc_info()[2]
 
         return HttpResponse(json.dumps(data), content_type='application/json')
 
@@ -950,7 +951,7 @@ def save_editorial(request, graphs):
         except Exception as e:
             data['success'] = False
             data['errors'] = [u'Internal error: %s' % e]
-            #tb = sys.exc_info()[2]
+            # tb = sys.exc_info()[2]
 
         return HttpResponse(json.dumps(data), content_type='application/json')
 

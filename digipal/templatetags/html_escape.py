@@ -9,8 +9,8 @@ from django.template.base import parse_bits
 from django.utils.http import urlencode
 
 register = template.Library()
-#from mezzanine import template as mezzzanine_template
-#register = mezzzanine_template.Library()
+# from mezzanine import template as mezzzanine_template
+# register = mezzzanine_template.Library()
 
 
 @stringfilter
@@ -18,7 +18,9 @@ def spacify(value, autoescape=None):
     if autoescape:
         esc = conditional_escape
     else:
+
         def esc(x): return x
+
     return mark_safe(re.sub('\s', '%20', esc(value)))
 
 
@@ -33,7 +35,7 @@ def sql_query(value):
     format a sql query qith line breaks
     e.g. {{ my_query|sql_query }}
     """
-    #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    # value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
     value = re.sub(ur'(?musi)\b(select|from|where|order\s+by|and|group|left\s+join|right\s+join)\b',
                    ur'<br/><strong>\1</strong>', value)
     return mark_safe(value)
@@ -48,7 +50,7 @@ def anchorify(value):
     a single special char, or identical slugs for strings where only one
     special char varies.
     """
-    #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    # value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
     value = re.sub(ur'(?u)[^\w\s-]', u'', value).strip()
     return mark_safe(re.sub(u'[-\s]+', u'-', value))
 
@@ -109,7 +111,7 @@ def update_query_params_internal(content, updates, url_wins=False):
     for m in matches[::-1]:
         url = max(m.groups())
         new_url = update_query_string(url, updates, url_wins)
-        content = content[0:m.start()] + (template %
+        content = content[0:m.start()] + (template % 
                                           new_url) + content[m.end():]
 
     return mark_safe(content)
@@ -172,7 +174,7 @@ def tag_terms(value, terms=None):
         # TODO: other issue is highlight of non field values, e.g. (G.) added at the end each description
         #         or headings.
         for re_term in get_regexp_from_terms(terms, True):
-            #value = re.sub(ur'(?iu)(>[^<]*)('+re_term+ur')', ur'\1<span class="found-term">\2</span>', u'>'+value)[1:]
+            # value = re.sub(ur'(?iu)(>[^<]*)('+re_term+ur')', ur'\1<span class="found-term">\2</span>', u'>'+value)[1:]
             pos = 1
             pattern = re.compile(ur'(?iu)(>[^<]*?)(' + re_term + ur')')
             # print re_term
@@ -295,8 +297,8 @@ def annotation_img(annotation, *args, **kwargs):
     if annotation:
         info = annotation.get_cutout_url_info(
             fixlen=kwargs.get('fixlen', None))
-        #dims = annotation.image.get_region_dimensions(url)
-        #kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
+        # dims = annotation.image.get_region_dimensions(url)
+        # kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
         if info['url']:
             ret = img(info['url'], alt=annotation.graph, rotation=annotation.rotation, holes=annotation.get_holes(),
                       width=info['dims'][0], height=info['dims'][1], frame_width=info['frame_dims'][0],
@@ -398,7 +400,7 @@ def img(src, *args, **kwargs):
 
     if 'rotation' in kwargs:
         rotation = float(kwargs['rotation'])
-        ##style += ';position:relative;max-width:none;'
+        # #style += ';position:relative;max-width:none;'
         if rotation > 0.0 or kwargs.get('force_rotation', False):
             style += ur';transform:rotate(%(r)sdeg); -ms-transform:rotate(%(r)sdeg); -webkit-transform:rotate(%(r)sdeg);' % {
                 'r': rotation}
@@ -407,7 +409,7 @@ def img(src, *args, **kwargs):
         more += ur' data-lazy-img-src="%s" ' % escape(src)
 
         # a serialised white dot GIF image
-        #src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+        # src = ur'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
         # TODO: don't hard-code the path!
         src = ur'/static/digipal/images/blank.gif'
 
@@ -417,7 +419,7 @@ def img(src, *args, **kwargs):
         vs = []
         if a in kwargs:
             vs.append(int(kwargs.get(a)))
-            #more += ur' %s="%s" ' % (a, vs[-1])
+            # more += ur' %s="%s" ' % (a, vs[-1])
             style += ';%s:%dpx;' % (a, vs[-1])
         if 'frame_' + a in kwargs:
             vs.append(int(kwargs.get('frame_' + a)))
@@ -603,7 +605,7 @@ def record_field(content_type, record, field):
 def dplink(parser, token):
     '''
     Usage: {% dplink OBJ %}CONTENT{% enddplink %}
-    Where: 
+    Where:
         OBJ is a model instance, e.g. an ItemPart
         CONTENT is some html
     Output:
@@ -611,18 +613,19 @@ def dplink(parser, token):
         <a href="LINK TO OBJ">CONTENT</a>
 
         Otherwise:
-        CONTENT 
+        CONTENT
     '''
 
     def get_link_from_obj(obj=None):
-        ret = {'content': '%s' % obj, 'url': ur''}
+        ret = {'content': u'%s' % obj, 'url': ur''}
         if obj:
             f = getattr(obj, 'get_absolute_url')
             if f:
-                ret['url'] = '%s' % f()
+                ret['url'] = u'%s' % f()
         return ret
 
     class DPLinkNode(template.base.TagHelperNode):
+
         def __init__(self, nodelist, args, kwargs):
             super(DPLinkNode, self).__init__(
                 takes_context=False, args=args, kwargs=kwargs)
@@ -668,7 +671,7 @@ def dpfootnotes(html):
     '''
 
     # For testing
-    #ret = example
+    # ret = example
     ret = html
 
     # return ret
@@ -724,9 +727,9 @@ def dpfootnotes(html):
 #
 #     return ret
 
-
 # see https://djangosnippets.org/snippets/545/
 # {% captureas VAR %}...{% endcaptureas %}
+
 
 @register.tag(name='captureas')
 def do_captureas(parser, token):
@@ -741,6 +744,7 @@ def do_captureas(parser, token):
 
 
 class CaptureasNode(template.Node):
+
     def __init__(self, nodelist, varname):
         self.nodelist = nodelist
         self.varname = varname

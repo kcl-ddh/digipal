@@ -16,8 +16,8 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/viewer.css"/>
     {# We need this for the readonly version although tinymce may also load it a second time for its iframe #}
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/tinymce.css?v={% now "U:u" %}"/>
-    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/tinymce_custom.css?v={% now "U:u" %}"/>
     <link rel="stylesheet" href="tinymce_generated.css?v={% now "U:u" %}"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/tinymce_custom.css?v={% now "U:u" %}"/>
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.css"/>
     <link rel="stylesheet" href="{{ STATIC_URL }}digipal/openlayers3/ol.css"/>
 {% endblock %}
@@ -139,11 +139,11 @@
 
 {% block extra_js %}
     {{ block.super }}
-    
+
     <script>
         window.text_editor_options = {{ text_editor_options|safe }};
     </script>
-    
+
     <script src="{{ STATIC_URL }}digipal_text/jqlayout/jquery.layout.min.js"></script>
     {# TODO: include min on production #}
     <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.min.js"></script>
@@ -197,7 +197,7 @@
             if ($(window).width() <= 800) {
                 $.each(panelset.layout.panes, function(pane) {
                     if (pane !== false) {
-                    	panelset.layout[pane == 'center' ? 'open' : 'close'](pane);
+                      panelset.layout[pane == 'center' ? 'open' : 'close'](pane);
                     }
                 });
             }

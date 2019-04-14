@@ -584,7 +584,7 @@ class FacettedType(object):
         view = None
         for v in views:
             if v['key'] == key:
-                view = view
+                view = v
                 break
         if not view and not enable:
             view = {'key': key}

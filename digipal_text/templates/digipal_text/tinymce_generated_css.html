@@ -1,12 +1,15 @@
 {% for button in buttons %}
-    .mce-content-body {{ button.selector|safe }} 
+    .mce-content-body {{ button.selector|safe }}
+    {% if show_highlights_in_preview %}
+    , .preview.mce-content-body {{ button.selector|safe }}
+    {% endif %}
     {
         background-color: {{ button.background_color }};
     }
     {% if not show_highlights_in_preview %}
         .preview.mce-content-body {{ button.selector|safe }} {
             background-color: inherit;
-        } 
+        }
     {% endif %}
     .mce-content-body {{ button.selector|safe }}:before {
         content: "{{ button.label|safe }}";

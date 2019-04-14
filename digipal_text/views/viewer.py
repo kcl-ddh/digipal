@@ -87,7 +87,7 @@ def text_viewer_view(request, item_partid=0,
 
 
 def tinymce_generated_css_view(request, item_partid=0):
-    '''This view generate a css file based on 
+    '''This view generate a css file based on
         settings.py:TEXT_EDITOR_OPTIONS_CUSTOM['buttons']
 
         'btnPersonName': {'label': 'Person Name', 'tei': '<rs type="person" subtype="name">{}</rs>'},
@@ -122,6 +122,8 @@ def tinymce_generated_css_view(request, item_partid=0):
         tag = button.get('tag', 'span')
         color = button.get('color', '#b0ffb0')
         label = button.get('label', '???')
+        is_plain = button.get('plain', 0)
+
         if tei:
             xml = tei
             xml = re.sub(ur'(\w+)\s*=', ur'data-dpt-\1=', xml)
@@ -145,6 +147,11 @@ def tinymce_generated_css_view(request, item_partid=0):
         if color_int:
             color_darker = max(0, color_int - 0x808080)
             color_darker = "#%0.6X" % color_darker
+
+        if is_plain:
+            color = 'transparent'
+            color_darker = 'transparent'
+            label = ''
 
         # selector = '''[data-dpt='rs'][data-dpt-type='person'][data-dpt-subtype='name']'''
         abutton = {

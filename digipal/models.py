@@ -1771,6 +1771,7 @@ class TextItemPart(models.Model):
         'Text', related_name="text_instances", blank=False, null=False)
     locus = models.CharField(max_length=20, blank=True, null=True)
     date = models.CharField(max_length=128, blank=True, null=True)
+    name = models.CharField(max_length=200, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(
         auto_now=True, editable=False)
@@ -1779,11 +1780,12 @@ class TextItemPart(models.Model):
         unique_together = ['item_part', 'text']
 
     def __unicode__(self):
+        if self.name:
+            return '%s, %s' % (self.text.name, self.name)
         locus = ''
         if self.locus:
             locus = u' (%s)' % self.locus
-        return u'%s in %s%s' % (
-            self.text.name, self.item_part.display_label, locus)
+        return u'%s in %s%s' % (self.text.name, self.item_part.display_label, locus)
 
 # LatinStyleText in legacy db
 

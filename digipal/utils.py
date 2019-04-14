@@ -489,16 +489,19 @@ def get_unicode_from_xml(xmltree, encoding='utf-8',
     if text_only:
         return get_xml_element_text(xmltree)
     else:
+        import regex as re
+
         if hasattr(xmltree, 'getroot'):
             xmltree = xmltree.getroot()
         ret = ET.tostring(xmltree, encoding=encoding).decode('utf-8')
         if xmltree.tail is not None and ret[0] == '<':
             # remove the tail
-            import regex as re
             ret = re.sub(ur'[^>]+$', '', ret)
 
         if remove_root:
-            ret = ret.replace('<root>', '').replace('</root>', '')
+            ret = re.sub('(?musi).*<root>', '', ret)
+            ret = re.sub('(?musi)</root>.*', '', ret)
+            # ret.replace('<root>', '').replace('</root>', '')
 
         return ret
 

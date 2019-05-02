@@ -24,23 +24,31 @@
 
 {% block main %}
 
-<div class="tv-main-toolbar">
-    <span class="tvmt-heading">Text Viewer</span>
-    -
-    <span class="tvmt-itempart">
-        <a href="{{ item_part.get_absolute_url }}">
-            {{ item_part.display_label }}
-            {% if item_part.is_suspect %}(Suspect){% endif %}
-        </a>
-    </span>
+{% block viewer_top %}
+    <div class="tv-main-toolbar">
+        {% block viewer_title %}
+            <span class="tvmt-heading">Text Viewer</span>
+            -
+            <span class="tvmt-itempart">
+                <a href="{{ item_part.get_absolute_url }}">
+                    {{ item_part.display_label }}
+                    {% if item_part.is_suspect %}(Suspect){% endif %}
+                </a>
+            </span>
+        {% endblock %}
 
-    <div class="ui-layout-above ui-layout-pane-above">
-        <div class="btn-toolbar">
-            <div class="location-buttons btn-group"></div>
-            <span class="location-description">&nbsp</span>
+        {% block viewer-title-extra %}
+
+        {% endblock %}
+
+        <div class="ui-layout-above ui-layout-pane-above">
+            <div class="btn-toolbar">
+                <div class="location-buttons btn-group"></div>
+                <span class="location-description">&nbsp</span>
+            </div>
         </div>
     </div>
-</div>
+{% endblock %}
 
 {# Template for the frame #}
 <div id="text-viewer">

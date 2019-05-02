@@ -1321,6 +1321,9 @@ class CurrentItem(models.Model):
 
     @classmethod
     def get_or_create(cls, shelfmark, repository):
+        '''repository must be: "city, archive name
+        Returns None if repository or shelfmark is invalid
+        "'''
         ret = None
         shelfmark = shelfmark.strip()
         repository = repository.strip()
@@ -2822,7 +2825,7 @@ class Graph(models.Model):
                 if key == 'desc':
                     r = (self.get_description_as_str() or u'')
             except Exception as e:
-                print 'EXCEPTION: graph.get_label() => "%s"' % e
+                print('EXCEPTION: graph.get_label() => "%s"' % e)
                 r = r.upper()
             return ur'%s' % r
 

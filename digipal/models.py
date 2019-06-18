@@ -3011,7 +3011,7 @@ class Annotation(models.Model):
     def get_cutout_url_info(self, esc=False, rotated=False, fixlen=None):
         # Returns cutout info about this annotation
         # as a dictionary.
-        # If fixlen is None, the length is 
+        # If fixlen is None, the length is
         #  !!! between settings.MIN_THUMB_LENGTH and settings.MAX_THUMB_LENGTH
         # if fixlen is between 0 and 1, the length is fixlen * orginal size
         #
@@ -3543,13 +3543,13 @@ class KeyVal(models.Model):
             ret = default
         else:
             ret = dputils.json_loads(ret)
-            
+
         return ret
 
     @classmethod
     def setjs(cls, key, val):
         cls.set(key, dputils.json_dumps(val))
-    
+
     @classmethod
     def get(cls, key, default=None):
         ret = default
@@ -3557,7 +3557,7 @@ class KeyVal(models.Model):
         if keyval:
             ret = keyval.val
         return ret
-        
+
     @classmethod
     def set(cls, key, val):
         keyval, created = cls.objects.get_or_create(key=key)
@@ -3631,6 +3631,11 @@ def set_additional_models_methods():
                 attribute.get_absolute_url = model_get_absolute_url
             attribute.get_admin_url = model_get_admin_url
 
+def total_seconds(timedelta):
+    '''Backport timedelta.total_seconds from python 2.7 to python 2.6
+    https://docs.python.org/2.7/library/datetime.html#datetime.timedelta.total_seconds
+    '''
+    return (timedelta.seconds + timedelta.days * 24 * 3600)
 
 set_additional_models_methods()
 

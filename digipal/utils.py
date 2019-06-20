@@ -252,13 +252,13 @@ def get_regexp_from_terms(terms, as_list=False):
         for t2 in terms:
             for t in variations(t2):
                 t = re.escape(t)
-                
+
                 if not t: continue
-    
+
                 if 1:
                     if t[-1] in ['i', 'y']:
                         t = t[:-1] + '(y|i|ie|ies)'
-    
+
                 if 0:
                     if t[-1] == u's':
                         t += u'?'
@@ -268,11 +268,11 @@ def get_regexp_from_terms(terms, as_list=False):
         #                 t += ur'?'
         #             t = ur'\b%ss?\b' % t
                 t = ur'\b%s\b' % t
-    
+
                 # convert all \* into \W*
                 # * is for searches like 'digi*'
                 t = t.replace(ur'\*', ur'\w*')
-    
+
                 ret.append(t)
 
     if not as_list:
@@ -1273,11 +1273,11 @@ def get_plain_text_from_xmltext(xml_str):
     ret = xml_str
     ret = regex.sub(ur'<span data-dpt="abbr">.*?</span>', ur'', ret)
     ret = regex.sub(ur'<span data-dpt="location".*?</span>', ur'', ret)
-    
-    # Remove deleted elements 
+
+    # Remove deleted elements
     # <span data-dpt="del" data-dpt-type="supplied">di</span>
     ret = regex.sub(ur'(?musi)<span data-dpt="del"[^>]*>[^<]*</span>', '', ret)
-    
+
     ret = ret.replace(u'</p>', ' ')
 
     # Remove all tags
@@ -1288,14 +1288,14 @@ def get_plain_text_from_xmltext(xml_str):
 
     # remove | (editorial line breaks) and other supplied signs <>
     ret = ret.replace(u'〈', '').replace(u'〉', '').replace(u'¦', '')
-    
+
     # used between words in MOA
     ret = ret.replace(ur'', ';')
-    
+
     # MS line breaks:
     ret = regex.sub(ur'(?musi)-\s*\|', u'#HY#', ret)
     # insert a CR to preserve rendering and also avoid joining words
-    # accross the MS line break. 
+    # accross the MS line break.
     ret = ret.replace(u'|', u'\r')
     # reunite hyphenated parts even when they are separated by spaces
     ret = regex.sub(ur'\s*#HY#\s*', u'', ret)
@@ -1316,24 +1316,24 @@ def run_shell_command(command):
 
 def get_python_path():
     # return the full path to python executable that runs this script
-    
+
     # basic approach, get it directly from sys.
     # This is technically correct.
     # However one caveat is when systemwide python is called with the libs
     # from a virtualenv. In that case calling that python will not be able
-    # to run django due to missing packages. 
+    # to run django due to missing packages.
     import sys, os
     python_path = sys.executable
-    
+
     # TODO
     # best approach would be to use the above and set the PYTHONPATH
     # but not easy and cross OS to pass sys.path within Popen()
-    # If this works we don't need the code below to find virtualenv python 
+    # If this works we don't need the code below to find virtualenv python
     lib_path = (os.pathsep).join(sys.path)
-    
+
     # another is to find python within the virtual env
     if 0:
-        # simple case, but again may not work if system-wide python 
+        # simple case, but again may not work if system-wide python
         # called with virtualenv libs... (e.g. EXON server)
         # In that case VIRTUAL_ENV is not set.
         virtualenv = os.environ.get('VIRTUAL_ENV')
@@ -1354,53 +1354,53 @@ def get_python_path():
             if os.path.exists(ppath):
                 python_path = ppath
                 break
-            
+
     return python_path
 
 def call_management_command(command, *args, **kwargs):
     '''
     Execute a Django management command in a SEPARATE PROCESS.
-    
+
     e.g. call_management_command('command', 'arg1', 'arg2', option1=val1, option2=val2)
     is executed as:
     python manage.py command arg1 arg2 --option1=val1 --option2=val2
-    
+
     Note that the option names can be different from the internal names used
     by the management command. So not exactly the same as django call_command()
-    
+
     Approach:
     We use Popen() to start another python process running the dhjango command.
     That process seems to inherit from our virtual env settings.
     And it will survive its parent.
     I.e. it's like doing a 'nohup ... &' from the command line
-    
+
     Alternatives:
         * call command from this process: too long, browser will time out, web
             worker can be killed.
         * celery: best approach but introduces two new services (celery and redis
             , DB and cache brokers are not reliable)
-        * p = multiprocessing.Process(fct); p.start() # fct => call_management() 
+        * p = multiprocessing.Process(fct); p.start() # fct => call_management()
             causes weird issues on Windows
             probably due concurrent modification of shared resources/variables.
-        * os.fork(): not supported by Windows?. Approach is similar to previous 
+        * os.fork(): not supported by Windows?. Approach is similar to previous
             one, anyway.
     '''
-    
-    # django manage command line 
+
+    # django manage command line
     command_django = '%s %s %s' % (
-        command, 
-        ' '.join(args), 
+        command,
+        ' '.join(args),
         (' '.join(['--%s=%s' % (k, v) for k, v in kwargs.iteritems()]))
     )
-    
+
     # shell command line
     from django.conf import settings
     import sys
-    
+
     python_path = get_python_path()
-    
+
     command_shell = '%s %s %s' % (python_path, os.path.join(settings.PROJECT_ROOT, '..', 'manage.py'), command_django)
-    
+
     if 1:
         # run the command in a child process, calling python
         from subprocess import Popen
@@ -1421,7 +1421,7 @@ def call_management_command(command, *args, **kwargs):
                 call_command('dpsearch', 'index_facets', index_filter=reindexes_str)
             except Exception, e:
                 KeyVal.set('k2.c', 'ERROR: %s' % repr(e))
-            else: 
+            else:
                 KeyVal.set('k2.c', repr(datetime.now()))
             exit()
         ##p = Process(target=f, args=(','.join(reindexes),))
@@ -1436,15 +1436,15 @@ def json_dumps(data):
         if isinstance(obj, datetime):
             serial = obj.isoformat()
             return serial
-        raise TypeError ("Type not serializable")    
+        raise TypeError ("Type not serializable")
     return json.dumps(data, default=json_serial)
 
 def json_loads(data):
     #from datetime import datetime
     from django.utils.dateparse import parse_datetime
     import json
-    
-    # convert all dates in a list of dictionary from string to datetime 
+
+    # convert all dates in a list of dictionary from string to datetime
     def convert_dates(dic):
         if isinstance(dic, list):
             for i in range(0, len(dic)):
@@ -1455,7 +1455,7 @@ def json_loads(data):
                         v = re.sub('(\+\d{2}):(\d{2})$', ur'\1\2', v)
                         dic[i] = parse_datetime(v)
                 elif isinstance(dic[i], dict) or isinstance(dic[i], list):
-                    convert_dates(dic[i]) 
+                    convert_dates(dic[i])
         if isinstance(dic, dict):
             for k, v in dic.iteritems():
                 if isinstance(v, basestring):
@@ -1464,13 +1464,13 @@ def json_loads(data):
                         v = re.sub('(\+\d{2}):(\d{2})$', ur'\1\2', v)
                         dic[k] = parse_datetime(v)
                 elif isinstance(v, dict) or isinstance(v, list):
-                    convert_dates(v) 
+                    convert_dates(v)
 
-    ret = None    
+    ret = None
     if data and data.strip():
         ret = json.loads(data)
         convert_dates(ret)
-    
+
     return ret
 
 ########################
@@ -1488,13 +1488,13 @@ def get_json_response(data):
 
 def get_csv_response_from_rows(rows, charset='latin-1', headings=None, filename='response.csv'):
     # returns a http response with a CSV content created from rows
-    # rows is a list of dictionaries 
-    
+    # rows is a list of dictionaries
+
     from django.http import StreamingHttpResponse
     ret = StreamingHttpResponse(generate_csv_lines_from_rows(rows, encoding=charset, headings=headings), content_type="text/csv")
     ret['Content-Disposition'] = 'attachment; filename="%s"' % filename
-    
-    return ret 
+
+    return ret
 
 def write_rows_to_csv(file_path, rows, encoding=None, headings=None):
     '''
@@ -1515,7 +1515,7 @@ def generate_csv_lines_from_rows(rows, encoding=None, headings=None):
     '''
     Returns a generator of lines of comma separated values
     from a list of rows
-    each row is a dictionary: column_name => value 
+    each row is a dictionary: column_name => value
     '''
     encoding = encoding or 'Latin-1'
     if len(rows):
@@ -1524,9 +1524,9 @@ def generate_csv_lines_from_rows(rows, encoding=None, headings=None):
         # Can't use DictWriter b/c it .writerow() doesn't return anything.
         # Normal csv.writer does return the buffer.
         writer = csv.writer(pseudo_buffer)
-        
+
         headings = headings or rows.keys()
-        
+
         yield writer.writerow(headings)
         for row in rows:
             row_encoded = [unicode(row.get(k, '')).encode(encoding, 'replace') for k in headings]
@@ -1600,7 +1600,7 @@ def read_all_lines_from_csv(file_path, ignore_incomplete_lines=False, encoding=N
 ########################
 
 def get_short_uid(adatetime=None):
-    # The time in milliseconds in base 36 
+    # The time in milliseconds in base 36
     # e.g. 2016-11-12 23:14:29.337677+05:00 -> LMXOd7f65 (9 chars)
     # result is URL safe
     # If adatetime is None, uses now()
@@ -1614,7 +1614,7 @@ def get_short_uid(adatetime=None):
             s.append(b64[r])
             if n == 0: break
         return ''.join(reversed(s))
-    
+
     ret = adatetime or datetime.utcnow()
     ret = '%s%s%s%s%s%s' % (b64[ret.month], b64[ret.day], b64[ret.hour], b64[ret.minute], b64[ret.second], num_encode(long('%s%s' % (ret.year - 2000, ret.microsecond))))
     #ret = ret.isoformat()
@@ -1628,7 +1628,7 @@ from datetime import datetime, timedelta, tzinfo
 
 # A UTC class.
 # Core Python has limited support time-zone aware datetimes
-# We add UTC  
+# We add UTC
 # http://stackoverflow.com/a/2331635/3748764
 class UTC(tzinfo):
     """UTC"""
@@ -1657,7 +1657,7 @@ def cmp_locus(l1, l2):
     # 0 if =
     l1 = natural_sort_key(l1, 1, 1)
     l2 = natural_sort_key(l2, 1, 1)
-    
+
     if l1 < l2: return -1
     elif l1 > l2: return 1
 
@@ -1688,16 +1688,22 @@ def extract_file_from_zip(zip_path, file_path, output_path):
     '''Extract a single file from a ZIP into the given path.'''
     #cmd = 'unzip -p %s content.xml > %s' % (input_path, outfile)
     import zipfile
-    
+
     with open(zip_path, 'rb') as fh:
         z = zipfile.ZipFile(fh)
         write_file(output_path, z.read(file_path), encoding=None)
 
 def is_display_narrow(request):
     ret = False
-    
+
     # TODO: test and make it more robust
     #print u'\n'.join([ur'%s = %s' % (k,v) for k,v in request.META.iteritems()])
     ret = bool(re.search(ur'(?i)\b(mobile|opera mini|android|iphone|webos)\b', request.META.get('HTTP_USER_AGENT')))
-    
+
     return ret
+
+def total_seconds(timedelta):
+    '''Backport timedelta.total_seconds from python 2.7 to python 2.6
+    https://docs.python.org/2.7/library/datetime.html#datetime.timedelta.total_seconds
+    '''
+    return (timedelta.seconds + timedelta.days * 24 * 3600)

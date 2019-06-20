@@ -3631,11 +3631,6 @@ def set_additional_models_methods():
                 attribute.get_absolute_url = model_get_absolute_url
             attribute.get_admin_url = model_get_admin_url
 
-def total_seconds(timedelta):
-    '''Backport timedelta.total_seconds from python 2.7 to python 2.6
-    https://docs.python.org/2.7/library/datetime.html#datetime.timedelta.total_seconds
-    '''
-    return (timedelta.seconds + timedelta.days * 24 * 3600)
 
 set_additional_models_methods()
 

@@ -553,7 +553,7 @@ def get_xslt_transform(source, template, error=None, remove_empty_xmlns=False):
         transform = ET.XSLT(xslt)
     except Exception as e:
         for entry in e.error_log:
-            print '%s: %s (line %s, %s)' % (entry.type_name, entry.message, entry.line, entry.column)
+            print('%s: %s (line %s, %s)' % (entry.type_name, entry.message, entry.line, entry.column))
         raise e
     newdom = transform(dom)
     #print(ET.tostring(newdom, pretty_print=True))
@@ -966,7 +966,7 @@ def add_keywords(obj, keywords='', remove=False):
         # create missing keywords
         for kw in keywords:
             if kw.lower() not in existing_keywords:
-                print 'create %s' % kw
+                print('create %s' % kw)
                 existing_keywords[kw.lower()] = Keyword(title=kw)
                 existing_keywords[kw.lower()].save()
 
@@ -1713,7 +1713,7 @@ def read_all_lines_from_csv(
                 continue
 
             # -> unicode
-            line = [v.decode(encoding) for v in line]
+            line = [v.decode(encoding).strip() for v in line]
 
             # heading line
             if not columns:

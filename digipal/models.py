@@ -1281,10 +1281,15 @@ class Repository(models.Model):
         if len(parts) == 2:
             city, name = parts
             place = Place.get_or_create(city)
-            repos = Repository.objects.filter(name__iexact=name, place=place)
-            if repos.count():
-                ret = repos[0]
-            else:
+            ret = Repository.objects.filter(
+                short_name__iexact=name, place=place
+            ).first()
+            if not ret:
+                ret = Repository.objects.filter(
+                    name__iexact=name, place=place
+                ).first()
+
+            if not ret:
                 ret = Repository(name=name, place=place)
                 ret.save()
         return ret

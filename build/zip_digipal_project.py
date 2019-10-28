@@ -129,9 +129,9 @@ class ProjectZipper(object):
             self.add_path_to_tar(os.path.join(
                 self.settings.PROJECT_ROOT, 'settings.py'), 'settings.py.bk')
         self.add_path_to_tar(os.path.join(
-            self.settings.PROJECT_ROOT, 'local_settings.py'), 'local_settings.py.bk')
+            self.settings.PROJECT_ROOT, 'local_settings.py'), 'local_settings.py')
         self.add_path_to_tar(os.path.join(
-            self.settings.PROJECT_ROOT, 'urls.py'), 'urls.py.bk')
+            self.settings.PROJECT_ROOT, 'urls.py'), 'urls.py')
 
         # Now zip it all
         run_cmd('gzip -f1 %s' % self.get_tar_path())

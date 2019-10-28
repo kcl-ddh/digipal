@@ -19,6 +19,13 @@ _nsre_romans = re.compile(ur'(?iu)(?:\.\s*)([ivxlcdm]+\b)')
 _nsre = re.compile(ur'(?iu)([0-9]+)')
 
 
+def total_seconds(timedelta):
+    '''Backport timedelta.total_seconds from python 2.7 to python 2.6
+    https://docs.python.org/2.7/library/datetime.html#datetime.timedelta.total_seconds
+    '''
+    return (timedelta.seconds + timedelta.days * 24 * 3600)
+
+
 def is_roman_number(astring):
     return REGEXP_ROMAN_NUMBER.match(astring) is not None
 
@@ -196,7 +203,9 @@ def get_str_from_call_stack(separator='; '):
     import traceback
     import re
     tb = traceback.extract_stack()
-    #ret = '; '.join(['%s (%s:%s)' % (call[2], re.sub(ur'^.*[\\/]([^/\\]+)\.py$', ur'\1', call[0]), call[1]) for call in tb])
+    # ret = '; '.join(['%s (%s:%s)' % (call[2],
+    # re.sub(ur'^.*[\\/]([^/\\]+)\.py$', ur'\1', call[0]), call[1]) for call
+    # in tb])
     ret = separator.join(['%s (%s:%s)' % (call[2], call[0], call[1])
                           for call in tb])
     return ret
@@ -348,7 +357,8 @@ def get_int_from_roman_number(input):
     places = []
     for c in input:
         if not c in nums:
-            #raise ValueError, "input is not a valid roman numeral: %s" % input
+            # raise ValueError, "input is not a valid roman numeral: %s" %
+            # input
             return None
     for i in range(len(input)):
         c = input[i]
@@ -700,7 +710,7 @@ def get_range_from_date_simple(str):
     str = re.sub(ur'\bs\.\s', u'Saec. ', str)
 
     # early 12th => Saec. viii ex.
-    #str = re.sub(ur'\bs\.\s', u'Saec. ', str)
+    # str = re.sub(ur'\bs\.\s', u'Saec. ', str)
 
     # convert circa => ca
     str = re.sub(ur'\bcirca\b', u'Ca', str)
@@ -1683,7 +1693,8 @@ def read_all_lines_from_csv(
     '''
     ret = []
 
-    import csv, chardet
+    import csv
+    import chardet
     csv_path = file_path
     line_index = 0
     with open(csv_path, 'rb') as csvfile:
@@ -1762,7 +1773,7 @@ def get_short_uid(adatetime=None):
     ret = '%s%s%s%s%s%s' % (b64[ret.month], b64[ret.day], b64[ret.hour], b64[ret.minute],
                             b64[ret.second], num_encode(long('%s%s' % (ret.year - 2000, ret.microsecond))))
     #ret = ret.isoformat()
-    #ret = long(re.sub(ur'\D', '', ret))
+    # ret = long(re.sub(ur'\D', '', ret))
     #ret = str(ret)
     #ret = base64.b64encode(str(ret), 'ascii')
     # return parseInt((new Date()).toISOString().replace(/\D/g,

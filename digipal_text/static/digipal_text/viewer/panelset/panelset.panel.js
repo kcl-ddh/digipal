@@ -29,9 +29,9 @@
         this.contentType = contentType;
 
         this.panelSet = null;
-        
+
         this.attributionShort = '';
-        
+
         //  undefined: no edit mode at all
         //  true: editing
         //  false: not editing
@@ -86,9 +86,9 @@
                 }
             };
             var onSuccessWrapper = function(data, textStatus, jqXHR) {
-                var status_message = ''; 
+                var status_message = '';
                 me.attributionShort = data.attribution_short;
-                
+
                 data.status = data.status || 'success';
                 status_message = data.message || 'done ('+title+').';;
                 if (data.locations) {
@@ -299,7 +299,7 @@
             this.itemPartid = itemPartid;
         };
 
-        // Returns a web path from (locationType, location)  
+        // Returns a web path from (locationType, location)
         // If no argument, from locationType and location drop downs
         // Note that this can be /sync/...
         // This is different from the loaded address
@@ -372,7 +372,7 @@
             }, 2500);
         }
     };
-    
+
     Panel.prototype.onSelectDownloadFormat = function(format) {
         var me = this;
         //me.onLocationChanged();
@@ -382,7 +382,7 @@
         url += '?ds=' + (me.getListFromPresentationOptions()).join(',')+'&format='+format;
         window.open(url, '_blank');
     };
-    		
+
     Panel.prototype.createUserInterface = function() {
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
@@ -415,7 +415,7 @@
             onSelect: function($el, key) { me.onSelectDownloadFormat(key); },
             selectIfSame: true,
         });
-        
+
         this.$root.find('[data-toggle=tooltip]').tooltip();
     };
 
@@ -517,6 +517,8 @@
     };
 
     Panel.create = function(contentType, selector, write, options) {
+        // TODO: REMOVE!
+        // write = true;
         var constructor = Panel.getPanelClassFromContentType(contentType, write);
         var error = !constructor;
         if (error) {
@@ -655,7 +657,7 @@
     Panel.prototype.onLocationChanged = function() {
         this.loadContent();
     };
-    
+
     // EDITING MODE
 
     Panel.prototype.getEditingMode = function() {
@@ -684,17 +686,17 @@
     Panel.prototype.updateEditingModeIcon = function() {
         if (this.$toggleEdit) {
             var mode = this.getEditingMode();
-            
+
             TextViewer.unhide(this.$toggleEdit, ((mode === true) || (mode === false)));
-    
+
             this.$toggleEdit.toggleClass('active', (mode === true));
-    
+
             this.$toggleEdit.attr('data-original-title', (mode === true) ? 'Stop editing' : 'Start editing');
         }
     }
 
     Panel.prototype.onChangedEditingMode = function(mode) {
-        // By default we replace this panel with another of the same type 
+        // By default we replace this panel with another of the same type
         // but for the specific Editing Mode. E.g. PanelText -> PanelTextWrite
         // the new panel is loaded with the same addres.
         var options = {

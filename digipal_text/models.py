@@ -383,7 +383,7 @@ class TextContentXML(models.Model):
         verbose_name_plural = 'Texts (XML)'
 
     def __unicode__(self):
-        return '%s (#%s)' % (self.text_content, self.id)
+        return u'%s (#%s)' % (self.text_content, self.id)
 
     @classmethod
     def get_public_only(cls, ignore=False):
@@ -450,7 +450,7 @@ class TextAnnotation(models.Model):
         unique_together = ['annotation', 'elementid']
 
     def __unicode__(self):
-        return 'Annotation of "%s" in image "%s"' % (
+        return u'Annotation of "%s" in image "%s"' % (
             self.get_friendly_name(), self.annotation.image)
 
     def get_friendly_name(self):

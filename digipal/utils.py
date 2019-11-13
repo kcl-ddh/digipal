@@ -499,16 +499,19 @@ def get_unicode_from_xml(xmltree, encoding='utf-8',
     if text_only:
         return get_xml_element_text(xmltree)
     else:
+        import regex as re
+
         if hasattr(xmltree, 'getroot'):
             xmltree = xmltree.getroot()
         ret = ET.tostring(xmltree, encoding=encoding).decode('utf-8')
         if xmltree.tail is not None and ret[0] == '<':
             # remove the tail
-            import regex as re
             ret = re.sub(ur'[^>]+$', '', ret)
 
         if remove_root:
-            ret = ret.replace('<root>', '').replace('</root>', '')
+            ret = re.sub('(?musi).*<root>', '', ret)
+            ret = re.sub('(?musi)</root>.*', '', ret)
+            # ret.replace('<root>', '').replace('</root>', '')
 
         return ret
 
@@ -560,7 +563,7 @@ def get_xslt_transform(source, template, error=None, remove_empty_xmlns=False):
         transform = ET.XSLT(xslt)
     except Exception as e:
         for entry in e.error_log:
-            print '%s: %s (line %s, %s)' % (entry.type_name, entry.message, entry.line, entry.column)
+            print('%s: %s (line %s, %s)' % (entry.type_name, entry.message, entry.line, entry.column))
         raise e
     newdom = transform(dom)
     #print(ET.tostring(newdom, pretty_print=True))
@@ -973,7 +976,7 @@ def add_keywords(obj, keywords='', remove=False):
         # create missing keywords
         for kw in keywords:
             if kw.lower() not in existing_keywords:
-                print 'create %s' % kw
+                print('create %s' % kw)
                 existing_keywords[kw.lower()] = Keyword(title=kw)
                 existing_keywords[kw.lower()].save()
 
@@ -1721,7 +1724,7 @@ def read_all_lines_from_csv(
                 continue
 
             # -> unicode
-            line = [v.decode(encoding) for v in line]
+            line = [v.decode(encoding).strip() for v in line]
 
             # heading line
             if not columns:

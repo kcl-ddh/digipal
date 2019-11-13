@@ -19,7 +19,7 @@
         var me = this;
 
         this.editingMode = false;
-        
+
         this.loadContentCustom = function(loadLocations, address, subLocation) {
             // load the content with the API
             var me = this;
@@ -132,7 +132,7 @@
             var divid = 'text-area-' + TextViewer.textAreaNumber;
             this.$content.append('<div id="'+ divid + '"></div>');
             var me = this;
-            
+
             var text_editor_options = window.text_editor_options;
 
             var v = Math.floor(Date.now() / 1000);
@@ -158,8 +158,8 @@
                 statusbar: false,
                 height: '15em',
                 content_css : static_path + 'tinymce.css?v='+v+
-                    ','+static_path+'tinymce_custom.css?v='+v+
-                    ',/digipal/manuscripts/1/texts/view/tinymce_generated.css?v='+v
+                    ',/digipal/manuscripts/1/texts/view/tinymce_generated.css?v='+v+
+                    ','+static_path+'tinymce_custom.css?v='+v
             };
 
             if (this.contentType == 'codicology') {
@@ -197,7 +197,7 @@
 
     PanelTextWrite.prototype._ready = function() {
         var ret = PanelText.prototype._ready.call(this);
-        
+
         var me = this;
 
         $(this.tinymce.editorContainer).on('psconvert', function() {

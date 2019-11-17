@@ -111,7 +111,7 @@ def update_query_params_internal(content, updates, url_wins=False):
     for m in matches[::-1]:
         url = max(m.groups())
         new_url = update_query_string(url, updates, url_wins)
-        content = content[0:m.start()] + (template % 
+        content = content[0:m.start()] + (template %
                                           new_url) + content[m.end():]
 
     return mark_safe(content)
@@ -132,6 +132,15 @@ def dictget(content, key=''):
         else:
             if hasattr(content, key):
                 ret = getattr(content, key, None)
+    return ret
+
+
+@register.filter
+def listget(content, index=0):
+    ret = None
+    if content and index < len(content):
+        ret = content[index]
+
     return ret
 
 
@@ -174,7 +183,8 @@ def tag_terms(value, terms=None):
         # TODO: other issue is highlight of non field values, e.g. (G.) added at the end each description
         #         or headings.
         for re_term in get_regexp_from_terms(terms, True):
-            # value = re.sub(ur'(?iu)(>[^<]*)('+re_term+ur')', ur'\1<span class="found-term">\2</span>', u'>'+value)[1:]
+            # value = re.sub(ur'(?iu)(>[^<]*)('+re_term+ur')', ur'\1<span
+            # class="found-term">\2</span>', u'>'+value)[1:]
             pos = 1
             pattern = re.compile(ur'(?iu)(>[^<]*?)(' + re_term + ur')')
             # print re_term

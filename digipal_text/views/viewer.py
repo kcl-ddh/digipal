@@ -1060,22 +1060,22 @@ def get_label_from_elementid(elementid, full=False):
         elementid = [["", "person"], ["type", "name"], ["@text", "willelmus-cumin"], ["@o", "2"]]
         => return 'willelmus-cumin (name) [2]'
     '''
-    order = '1'
+    order = u'1'
 
     elementid = elementid[:]
     pair = elementid.pop()
 
-    if pair[0] == '@o':
+    if pair[0] == u'@o':
         order = pair[1]
         pair = elementid.pop()
 
     ret = pair[1]
 
     pair = elementid.pop()
-    ret = '%s (%s)' % (ret, pair[1])
+    ret = u'%s (%s)' % (ret, pair[1])
 
     if order != '1':
-        ret += ' [%s]' % order
+        ret += u' [%s]' % order
 
     return ret
 

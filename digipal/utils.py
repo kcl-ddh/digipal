@@ -563,7 +563,8 @@ def get_xslt_transform(source, template, error=None, remove_empty_xmlns=False):
         transform = ET.XSLT(xslt)
     except Exception as e:
         for entry in e.error_log:
-            print('%s: %s (line %s, %s)' % (entry.type_name, entry.message, entry.line, entry.column))
+            print('%s: %s (line %s, %s)' %
+                  (entry.type_name, entry.message, entry.line, entry.column))
         raise e
     newdom = transform(dom)
     #print(ET.tostring(newdom, pretty_print=True))

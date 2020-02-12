@@ -7,7 +7,7 @@
 
 beautifulsoup4==4.6.0
 git+https://github.com/geoffroy-noel-ddh/Digital-Lightbox
-Django==1.8.18
+Django==1.11.28
 Mezzanine==4.2.3
 regex
 # if it fails, try 'sudo apt-get install python-dev', then run again

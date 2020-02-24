@@ -33,7 +33,7 @@ psycopg2-binary
 # We force this version. To replace buggy template in the one installed
 # with Mezzanine 3.1.5
 grappelli-safe==0.4.6
-bleach==2.0.0
+bleach==3.1.1
 filebrowser_safe==0.4.6
 oauthlib==0.7.1
 pytz==2015.7

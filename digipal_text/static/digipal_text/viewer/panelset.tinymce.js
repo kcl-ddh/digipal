@@ -4,18 +4,19 @@ var dpTextEditorUtils = function (editor) {
     "use strict";
 
     var $ = window.jQuery;
+    var self = this;
 
     function beforeChange() {
         //editor.undoManager.add();
     }
-    
+
     function afterChange(cancel) {
         if (!cancel) {
             editor.undoManager.add();
             //editor.undoManager.redo();
         }
     }
-    
+
     function setContent(content) {
         beforeChange();
         //editor.undoManager.transact(function () { editor.selection.setContent(content); });
@@ -23,7 +24,7 @@ var dpTextEditorUtils = function (editor) {
         editor.selection.setContent(content);
         afterChange();
     }
-    
+
     function getSelectionParents() {
         return [0, 1].map(function(i) {
             var bm = editor.selection.getBookmark();
@@ -34,7 +35,7 @@ var dpTextEditorUtils = function (editor) {
             return ret;
         });
     }
-    
+
     function addSpan(options, isDiv) {
         // options
         //  tag: element name
@@ -46,7 +47,7 @@ var dpTextEditorUtils = function (editor) {
         for (var k in options.attributes) {
             attrStr += ' data-dpt-'+k+'="'+options.attributes[k]+'"';
         }
-        
+
         var tag = isDiv ? 'div' : 'span';
         options.xml = '<'+tag+' data-dpt="' + options.tag + '" ' + attrStr + '>{}</'+tag+'>';
         addXML(options);
@@ -66,9 +67,9 @@ var dpTextEditorUtils = function (editor) {
         var sel_cont = editor.selection.getContent();
         if ((conds.blank !== null) && (conds.blank !== (sel_cont.match(/^\s*$/g) !== null))) return;
         if ((conds.isparent !== null) && (conds.isparent !== (sel_cont.match(/</g) !== null))) return;
-        
+
         var parts = sel_cont.match(/^(\s*)(.*?)(\s*)$/);
-        
+
         var newContent = parts[1] + options.xml.replace('{}', parts[2]) + parts[3];
 
         setContent(newContent);
@@ -89,12 +90,12 @@ var dpTextEditorUtils = function (editor) {
     function addDropDown(buttonid, items, label, tooltip, onSelectFunction) {
         editor.addButton(buttonid, function() {
             tooltip = tooltip || label;
-            
+
             // 'a,b,c' => 'a', 'b', 'c'
             if (items.split) {
                 items = items.split(',');
             }
-    
+
             // ['',] => [{},]
             if (items.map) {
                 items = items.map(function(obj) {
@@ -106,7 +107,7 @@ var dpTextEditorUtils = function (editor) {
             for (var i in items) {
                 items[i].value = items[i].value || items[i].text.toLowerCase();
             }
-            
+
             return {
                 type: 'listbox',
                 text: label,
@@ -138,16 +139,26 @@ var dpTextEditorUtils = function (editor) {
                         xml = xml.replace(/<\/(\w+)/g, '</'+tag);
                         xml = xml.replace(/<(\w+)/g, '<'+tag+' data-dpt="$1"');
                         definition.xml = xml;
-                    } 
-                
+                    }
+
+                    var onClickButton = null;
+
+                    if (definition.triggerName) {
+                        onClickButton = function() {
+                            $(window).trigger(definition.triggerName, [editor, definition, get_public_functions()]);
+                        };
+                    } else {
+                        onClickButton = function() {
+                            addXML({'xml': definition.xml, 'conditions': definition.conditions});
+                        };
+                    }
+
                     // 'scbuilding': {'label': 'Infrastructure Building', 'xml': '<span data-dpt="building" data-dpt-property="name">{}</span>'},
                     editor.addButton(bkey, {
                         text: definition.label,
                         tooltip: definition.tooltip || definition.label,
                         icon: false,
-                        onclick: function() {
-                            addXML({'xml': definition.xml, 'conditions': definition.conditions});
-                        }
+                        onclick: onClickButton,
                     });
                 }
             });
@@ -171,8 +182,9 @@ var dpTextEditorUtils = function (editor) {
             });
         }
     }
-    
-    return({
+
+    function get_public_functions() {
+      return {
         beforeChange: beforeChange,
         afterChange: afterChange,
         setContent: setContent,
@@ -180,21 +192,24 @@ var dpTextEditorUtils = function (editor) {
         addSpan: addSpan,
         addDropDown: addDropDown,
         addButtonsFromSettings: addButtonsFromSettings,
-    });
+      };
+    }
+
+    return get_public_functions();
 };
 
 var PanelSetPlugIn = function(editor, url) {
     "use strict";
 
     var $ = window.jQuery;
-    
+
     var utils = dpTextEditorUtils(editor);
-    
+
     this.dpmup = {
         'psex': {'tooltip': 'Expansion of abbreviation', 'text': '()', 'cat': 'chars'},
     };
-    
-    
+
+
     // Add a button that opens a window
     editor.addButton('pslinebreak', {
         text: 'Line Break',
@@ -225,8 +240,8 @@ var PanelSetPlugIn = function(editor, url) {
             $(editor.editorContainer).trigger('pssave');
         }
     });
-    
-    
+
+
     // Expansion
     // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-expan.html
     editor.addButton('psex', {
@@ -269,9 +284,9 @@ var PanelSetPlugIn = function(editor, url) {
             // remove parent tags
             // TODO: don't remove non data-dpt?
             var parents = utils.getSelectionParents();
-            
+
             var changed = false;
-            
+
             utils.beforeChange();
 
             $(parents).each(function (index, parent) {
@@ -285,7 +300,7 @@ var PanelSetPlugIn = function(editor, url) {
                     utils.afterChange(!changed);
                 }
             });
-            
+
             if (!editor.selection.isCollapsed()) {
                 // TODO: remove all the data-dpt elements inside the selection
 //                var sel_cont = editor.selection.getContent();
@@ -295,13 +310,13 @@ var PanelSetPlugIn = function(editor, url) {
                 $selection.find('[data-dpt]').each(function (i, el) {
                     $(el).replaceWith($(el).html());
                 });
-                
+
                 utils.setContent($selection.html());
                 changed = true;
             }
         }
     });
-    
+
     function insertClauseOnSelectedDropdownOption(selectedValue) {
         return insertSpanOnSelectedDropdownOption(selectedValue, 'clause', 'words');
     }
@@ -322,11 +337,11 @@ var PanelSetPlugIn = function(editor, url) {
         utils.addSpan({'tag': tag, 'attributes': {'cat': cat, 'type': selectedValue}, 'conditions': {'isparent': null}});
     }
 
-    
+
     // Locations
     editor.addButton('pslocation', function() {
         var items = [{text: 'Locus', value: 'locus'}, {text: 'Entry', value: 'entry'}];
-    
+
         return {
             type: 'listbox',
             text: 'Location',
@@ -340,7 +355,7 @@ var PanelSetPlugIn = function(editor, url) {
             }
         };
     });
-    
+
     if (window.text_editor_options && window.text_editor_options.buttons) {
         // Clauses
         if (window.text_editor_options.buttons.psclause) {
@@ -361,7 +376,7 @@ var PanelSetPlugIn = function(editor, url) {
 
     // Date Time
     utils.addDropDown('psdatetime', 'Date', 'Temporal', null, insertDateTimeOnSelectedDropdownOption);
-    
+
     // H1
     editor.addButton('psh1', {
         text: 'H1',
@@ -387,7 +402,7 @@ var PanelSetPlugIn = function(editor, url) {
             utils.addSpan({'tag': 'heading', 'attributes': {'cat': 'words', 'level': '2'}});
         }
     });
-    
+
     // Hand
     // http://www.tei-c.org/release/doc/tei-p5-doc/en/html/ref-del.html
     editor.addButton('pshand', {
@@ -397,10 +412,10 @@ var PanelSetPlugIn = function(editor, url) {
             utils.addSpan({'tag': 'record', 'attributes': {'model': 'hand'}});
         }
     });
-    
+
     // -------------------------------------------------------------------
     // CODICOLOGY
-    
+
     editor.addButton('pspgside', {
         text: 'Side',
         tooltip: 'Page side (Hair, Flesh)',
@@ -408,7 +423,7 @@ var PanelSetPlugIn = function(editor, url) {
             utils.addSpan({'tag': 'page_side', 'attributes': {'cat': 'chars'}});
         }
     });
-    
+
     editor.addButton('pspgdimensions', {
         text: 'Dims',
         tooltip: 'The dimensions of the page (e.g. 25.1 cm x 15.6 cm)',
@@ -438,10 +453,10 @@ var PanelSetPlugIn = function(editor, url) {
             object="ruling" property="distance"
             object="ruling" property="method"
             object="page" property="color"
-            
+
             object="quire|folio|line|page-area|side" property="location"
     */
-    
+
 
     var cods = [
         {text: 'Perforations count', value: '1', attrs: {'object':'perforation', 'property':'count'}, },
@@ -465,16 +480,16 @@ var PanelSetPlugIn = function(editor, url) {
         {text: 'Quire number', value: '5', attrs: {'object':'quire', 'property':'number'}, },
         {text: 'Column count', value: '6', attrs: {'object':'column', 'property':'count'}, },
         {text: 'Column size', value: '6', attrs: {'object':'column', 'property':'size'}, },
-        
+
         {text: 'Parchment color', value: '10', attrs: {'object':'parchment', 'property':'color'}, },
         {text: 'Parchment side', value: '11', attrs: {'object':'parchment', 'property':'side'}, },
         {text: 'Parchment size', value: '12', attrs: {'object':'parchment', 'property':'size'}, }
     ];
-    
+
     function addButton(aitems, button_key, button_label, filters) {
-    
+
         editor.addButton(button_key, function() {
-        
+
             var items = [];
             for (var i in aitems) {
                 var aitem = aitems[i];
@@ -482,7 +497,7 @@ var PanelSetPlugIn = function(editor, url) {
                     items.push(aitem);
                 }
             }
-        
+
             return {
                 type: 'listbox',
                 text: button_label,
@@ -497,9 +512,9 @@ var PanelSetPlugIn = function(editor, url) {
                 }
             };
         });
-        
+
     }
-    
+
     addButton(cods, 'pscodperf', 'Perforation', ['perforation']);
     addButton(cods, 'pscodruling', 'Ruling', ['ruling']);
     addButton(cods, 'pscodsign', 'Signature', ['signature']);
@@ -535,7 +550,7 @@ var PanelSetPlugIn = function(editor, url) {
             }
         }
     });
-    
+
     editor.addButton('pscharacter', {
         text: 'Character',
         tooltip: 'A character. e.g. b',
@@ -549,7 +564,7 @@ var PanelSetPlugIn = function(editor, url) {
                         sel_cont = sel_cont.replace(/(>[^<]*\s|>)([bcdefghjklmnopqrstuvwxyz]|Gallow'?s mark|et nota|e cauda)\b(?!<\/span)/gi, '$1<span data-dpt="record" data-dpt-model="character">$2</span>');
                         if (l == sel_cont.length) break;
                     }
-                    
+
                     utils.setContent(sel_cont);
                 } else {
                     utils.addSpan({'tag': 'record', 'attributes': {'model': 'character'}});
@@ -557,8 +572,8 @@ var PanelSetPlugIn = function(editor, url) {
             }
         }
     });
-    
-    
+
+
     // Paragraph merger
     editor.addButton('psparagraph', {
         text: 'Merge Paragraphs',
@@ -567,7 +582,7 @@ var PanelSetPlugIn = function(editor, url) {
             if (editor.selection.isCollapsed()) return;
 
             var parents = utils.getSelectionParents();
-            
+
             // get the p above each parent
             // make sure the
 
@@ -577,11 +592,11 @@ var PanelSetPlugIn = function(editor, url) {
             // check that the selection doesn't contain fragmentary elements.
             // e.g. '1</span>2' or '1<span>2'
             var yo = 0;
-            
+
             //editor.insertContent('<br/>');
         }
     });
-    
+
     // -------------------------------------------------------------------
     // Add buttons from settings.py:TEXT_EDITOR_OPTIONS
     // LEAVE this at the end, as the code can refer to previously defined buttons

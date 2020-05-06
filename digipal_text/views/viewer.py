@@ -368,6 +368,13 @@ def get_or_create_text_content_records(item_part, content_type_record):
     from django.db import IntegrityError
     from threading import current_thread
     for i in range(0, attempts):
+        with transaction.atomic():
+            # get or create the TextContent
+            text_content, created = TextContent.objects.get_or_create(
+                item_part=item_part, type=content_type_record)
+            # get or create the TextContentXML
+            ret, created = TextContentXML.objects.get_or_create(
+                text_content=text_content)
         try:
             with transaction.atomic():
                 # get or create the TextContent
@@ -384,6 +391,7 @@ def get_or_create_text_content_records(item_part, content_type_record):
             sleep(random.random())
             continue
         except Exception as e:
+            raise e
             set_message(error, '%s, server error (%s)' %
                         (content_type_record.slug.capitalize(), e))
         break

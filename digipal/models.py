@@ -1256,11 +1256,11 @@ class Repository(models.Model):
     #all_objects = models.Manager()
 
     class Meta:
-        ordering = ['short_name', 'name']
+        ordering = ['place', 'short_name', 'name']
         verbose_name_plural = 'Repositories'
 
     def __unicode__(self):
-        return u'%s' % (self.short_name or self.name)
+        return self.short_name or self.human_readable() or ''
 
     def human_readable(self):
         # return u'%s, %s' % (self.place, self.name)

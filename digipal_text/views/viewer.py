@@ -16,7 +16,8 @@ from digipal.utils import sorted_natural
 from digipal.templatetags.hand_filters import chrono
 dplog = logging.getLogger('digipal_debugger')
 
-MAX_FRAGMENT_SIZE = 60000
+MAX_FRAGMENT_SIZE = getattr(settings, 'MAX_FRAGMENT_SIZE', 60000)
+print(MAX_FRAGMENT_SIZE)
 
 
 def can_user_see_main_text(itempart, request):

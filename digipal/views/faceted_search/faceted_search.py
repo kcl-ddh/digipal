@@ -605,16 +605,22 @@ class FacetedModel(object):
         return ret
 
     def get_summary(self, request, passive=False):
-        ret = u''
+        ret = []
         for facet in self.get_facets(request):
             for option in facet['removable_options']:
                 href = html_escape.update_query_params(
-                    '?' + request.META['QUERY_STRING'], {'page': [1], facet['key']: []})
-                ret += u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip"><span class="label label-default">%s</span></a>' % (
-                    href, facet['label'], option['label'], option['label'])
+                    '?' + request.META['QUERY_STRING'],
+                    {'page': [1], facet['key']: []}
+                )
+                ret.append(u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip" class="label label-default">%s</a>' % (
+                    href, facet['label'], option['label'], option['label']
+                ))
 
         if passive:
+            ret = ' + '.join(ret)
             ret = re.sub(ur'<[^>]*>', ur' ', ret)
+        else:
+            ret = ' '.join(ret)
 
         if not ret.strip():
             ret = 'All'

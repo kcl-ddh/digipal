@@ -1901,7 +1901,10 @@ def get_latest_docker_version(cached_days=1):
     import time
     now = time.time()
 
-    from build import __version__ as ret
+    try:
+        from build import __version__ as ret
+    except ImportError:
+        ret = '0.0.0'
 
     key = 'get_latest_docker_version'
     info = KeyVal.getjs(key, {'last_checked': 0, 'version': ret})

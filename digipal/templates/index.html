@@ -41,7 +41,7 @@
             {% block bottom_left %}
                 <div class="col-md-4 col-sm-12 recentPosts">
         
-                    <h2 class='header1'><a href="/blog/category/blog">Blog</a></h2>
+                    <h1 class='header1'><a href="/blog/category/blog">Blog</a></h1>
                     {% load blog_tags keyword_tags i18n %}
                     {% blog_recent_posts 4 category="blog" as recent_posts %}
                     {% if recent_posts %}
@@ -60,7 +60,7 @@
                             {% endfor %}
                         </ul>
                         <p>
-                            <a class='btn btn-default' href="/blog/category/blog">More &raquo;</a>
+                            <a class='btn btn-default' href="/blog/category/blog">More blog entries &raquo;</a>
                         </p>
                     {% endif %}
                 </div>
@@ -70,7 +70,7 @@
             
                 <div class="col-md-4 col-sm-12 recentPosts">
         
-                    <h2 class='header1'><a href="/blog/category/news">News</a></h2>
+                    <h1 class='header1'><a href="/blog/category/news">News</a></h1>
                     {% load blog_tags keyword_tags i18n %}
                     {% blog_recent_posts 4 category="news" as recent_posts %}
                     {% if recent_posts %}
@@ -89,7 +89,7 @@
                             {% endfor %}
                         </ul>
                         <p>
-                            <a class='btn btn-default' href="/blog/category/news">More &raquo;</a>
+                            <a class='btn btn-default' href="/blog/category/news">More news &raquo;</a>
                         </p>
                     {% endif %}
                 </div>

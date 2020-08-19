@@ -296,7 +296,7 @@ def iip_img(image, *args, **kwargs):
 @register.simple_tag
 def annotation_img(annotation, *args, **kwargs):
     '''
-        Usage {% annotation_img ANNOTATION [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] %}
+        Usage {% annotation_img ANNOTATION [width=W] [height=H] [cls=HTML_CLASS] [lazy=0|1] [padding=0] [alt=ALT] %}
 
         See iip_img() for more information
 
@@ -306,11 +306,15 @@ def annotation_img(annotation, *args, **kwargs):
     ret = u''
     if annotation:
         info = annotation.get_cutout_url_info(
-            fixlen=kwargs.get('fixlen', None))
+            fixlen=kwargs.get('fixlen', None)
+        )
+        alt = kwargs.get('alt', None)
         # dims = annotation.image.get_region_dimensions(url)
         # kwargs = {'a_data-info': '%s x %s' % (dims[0], dims[1])}
         if info['url']:
-            ret = img(info['url'], alt=annotation.graph, rotation=annotation.rotation, holes=annotation.get_holes(),
+            if alt is None:
+                kwargs['alt'] = annotation.graph
+            ret = img(info['url'], rotation=annotation.rotation, holes=annotation.get_holes(),
                       width=info['dims'][0], height=info['dims'][1], frame_width=info['frame_dims'][0],
                       frame_height=info['frame_dims'][1], *args, **kwargs)
     return ret

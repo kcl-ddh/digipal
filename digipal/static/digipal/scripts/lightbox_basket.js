@@ -327,7 +327,7 @@
             s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_annotations_all" /> <label id="counter-annotations" for="check_annotations_all"></label></th><th>Graph</th><th data-sort="14" data-reverse="' + reverse + '">Manuscript</th><th data-sort="11" data-reverse="' + reverse + '">Allograph</td><th data-sort="3" data-reverse="' + reverse + '">Hand</th><th data-sort="4" data-reverse="' + reverse + '">Scribe</th><th data-sort="5" data-reverse="' + reverse + '">Place</th>';
             for (var i = 0; i < data.annotations.length; i++) {
                 var annotation = data.annotations[i];
-                s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + annotation[1] + "'><a title='View graph in the manuscript viewer' href='/digipal/page/" + annotation[8] + "/?graph=" + annotation[1] + "'>" + annotation[0] + "</a>";
+                s += "<tr class='table-row' data-graph = '" + annotation[1] + "'><td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-graph = '" + annotation[1] + "' type='checkbox' data-type='annotation' class='checkbox_image' aria-label='Graph #"+(i+1)+"' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + annotation[1] + "'><a title='View graph in the manuscript viewer' href='/digipal/page/" + annotation[8] + "/?graph=" + annotation[1] + "'>" + annotation[0] + "</a>";
                 s += "</td>";
 
                 s += "<td data-graph = '" + annotation[1] + "'><a data-toggle='tooltip' title='Go to manuscript page' href='/digipal/page/" + annotation[8] + "'>" + annotation[14] + "</a>";
@@ -376,7 +376,7 @@
             for (i = 0; i < data['textunits'].length; i++) {
                 var image = data['textunits'][i];
                 s += "<tr data- class='table-row' data-graph = '" + image[1] + "'>";
-                s += "<td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-annotation='"+image[4]+"' data-graph = '" + image[1] + "' type='checkbox' data-type='textunit' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span></td>";
+                s += "<td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-annotation='"+image[4]+"' data-graph = '" + image[1] + "' type='checkbox' aria-label='Text annotation #"+(i+1)+"' data-type='textunit' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span></td>";
                 s += "<td data-graph = '" + image[1] + "'>" + image[0] + "</td>";
                 s += "<td>" + image[2] + "</td>";
                 s += "<td>" + image[3] + "</td>";
@@ -394,7 +394,7 @@
             s += '<th><input data-toggle="tooltip" title="Toggle all" type="checkbox" id="check_images_all" /> <label id="counter-images" for="check_images_all"></label></th><th>Page</th><th data-sort="0" data-reverse="' + reverse + '">Label</td><th data-sort="3" data-reverse="' + reverse + '">Hand</th>';
             for (i = 0; i < data['images'].length; i++) {
                 var image = data['images'][i];
-                s += "<tr data- class='table-row' data-graph = '" + image[1] + "'><td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  <td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='View page in the manuscript viewer' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
+                s += "<tr data- class='table-row' data-graph = '" + image[1] + "'><td class='col-md-1'><input aria-label='Manuscript image #"+(i+1)+"' data-toggle='tooltip' title='Toggle item' data-graph = '" + image[1] + "' type='checkbox' data-type='image' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  <td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='View page in the manuscript viewer' href='/digipal/page/" + image[1] + "'>" + image[0] + "</a></td>";
                 s += "<td data-graph = '" + image[1] + "'><a data-toggle='tooltip' title ='View page in the manuscript viewer' href='/digipal/page/" + image[1] + "'>" + image[2] + "</a></td>";
                 s += "<td>" + image[3] + "</td>";
                 s += '</tr>'
@@ -413,7 +413,7 @@
             for (i = 0; i < data['editorial'].length; i++) {
 
                 var editorial_annotation = data['editorial'][i];
-                s += "<tr class='table-row' data-graph = '" + editorial_annotation[2] + "'><td class='col-md-1'><input data-toggle='tooltip' title='Toggle item' data-graph = '" + editorial_annotation[2] + "' type='checkbox' data-type='editorial' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + editorial_annotation[2] + "'><a title='View graph in the manuscript viewer' href='/digipal/page/" + editorial_annotation[1] + "/?vector_id=" + editorial_annotation[2] + "'>" + editorial_annotation[0] + "</a>";
+                s += "<tr class='table-row' data-graph = '" + editorial_annotation[2] + "'><td class='col-md-1'><input aria-label='Editorial annotation #"+(i+1)+"' data-toggle='tooltip' title='Toggle item' data-graph = '" + editorial_annotation[2] + "' type='checkbox' data-type='editorial' class='checkbox_image' /> <span class='num_row'># " + (i + 1) + "</span>  </td><td data-graph = '" + editorial_annotation[2] + "'><a title='View graph in the manuscript viewer' href='/digipal/page/" + editorial_annotation[1] + "/?vector_id=" + editorial_annotation[2] + "'>" + editorial_annotation[0] + "</a>";
                 s += "</td>";
 
                 s += "<td data-graph = '" + editorial_annotation[2] + "'><a data-toggle='tooltip' title='Go to manuscript page' href='/digipal/page/" + editorial_annotation[2] + "'>" + editorial_annotation[3] + "</a>";

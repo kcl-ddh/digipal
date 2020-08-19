@@ -673,7 +673,9 @@ def images_lightbox(request, collection_name):
                 if unit:
                     images.append([
                         html_escape.annotation_img(
-                            unit.get_thumb(), fixlen=400, link=unit),
+                            unit.get_thumb(), fixlen=400, link=unit,
+                            alt='%s in %s' % (unit.get_label(), unit.content_xml.text_content.item_part.display_label)
+                        ),
                         '%s:%s' % (unit.__class__.__name__, unit.id),
                         unit.get_label(),
                         unit.content_xml.text_content.item_part.display_label,

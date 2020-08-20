@@ -50,7 +50,7 @@
 {% endfor %}
     </li></ul>
 -->
-<select onchange="document.location.href=this.options[this.selectedIndex].value;" class="form-control">
+<select onchange="document.location.href=this.options[this.selectedIndex].value;" class="form-control" aria-label="Filter posts by month">
     <option value="">Select month</option>
     {% for month in months %}
        <option value="{% url "blog_post_list_month" year=month.date.year month=month.date.month %}">{{ month.date|date:"F" }} {{month.date.year}} ({{ month.post_count }})</option>

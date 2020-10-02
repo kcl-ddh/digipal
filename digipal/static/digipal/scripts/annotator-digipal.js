@@ -7,6 +7,9 @@
  * TODO: IN DIRE NEED OF CLEAN UP AND REFACTORING!
  * 
  */
+
+var SHOW_NOTE_ON_HOVER = false;
+
 // inherits from Annotator
 DigipalAnnotator.prototype = new Annotator();
 
@@ -227,7 +230,14 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             map.addControl(navigation);
 
             if (!annotator.events) {
-                var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+                // GN: 2020 trying to fix a bug where dbl click event to open
+                // an annotation popup is only declared after moving or zooming
+                // the map! See below. Not sure at all why it was done that way.
+                // It seems wasteful to call that EACH time those operations
+                // happen. I.e. each time the events are destroyed and recreated!
+                registerEvents();
+
+                // var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
                 map.events.register("moveend", map, function() {
                     registerEvents();
                     restoreFullscreenPositions();
@@ -3286,37 +3296,42 @@ function save(url, graphs, data, ann, features) {
 
 }
 
+
 function registerEvents() {
+    var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
+
+    if (paths.length < 1) return;
+
+    annotator.events = true;
+
     if (annotator.isAdmin == 'True') {
-        annotator.events = true;
-        var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
-        /*
-
-            Uncomment to activate mouseover and mouseout events
-            for displaying popups when a graphs has a display note field
-
-
-
-
-        paths.unbind('mouseenter').on('mouseenter', function() {
-            var features = annotator.vectorLayer.features;
-            for (var i = 0; i < features.length; i++) {
-                if ($(this).attr('id') == features[i].geometry.id) {
-                    if (features[i].display_note) {
-                        createPopup(features[i]);
+        if (SHOW_NOTE_ON_HOVER) {
+            // mouseover and mouseout events
+            // for displaying popups when a graphs has a display note field
+            paths.unbind('mouseenter').on('mouseenter', function() {
+                var features = annotator.vectorLayer.features;
+                for (var i = 0; i < features.length; i++) {
+                    if ($(this).attr('id') == features[i].geometry.id) {
+                        if (features[i].display_note) {
+                            createPopup(features[i]);
+                        }
                     }
                 }
-            }
-        }).unbind('mouseleave').on('mouseleave', function() {
-            var features = annotator.vectorLayer.features;
-            for (var i = 0; i < features.length; i++) {
-                if (features[i].popup) {
-                    deletePopup(features[i]);
+            }).unbind('mouseleave').on('mouseleave', function() {
+                var features = annotator.vectorLayer.features;
+                for (var i = 0; i < features.length; i++) {
+                    if (features[i].popup) {
+                        deletePopup(features[i]);
+                    }
                 }
-            }
-        });
+            });
+        }
 
-*/
+    }
+
+    // GN: if not in admin/edit mode then a single click opens the box.
+    // so no need for supporting the double click.
+    if (annotator.isAdmin == 'True') {
         paths.unbind('dblclick').on('dblclick', function(event) {
 
             if (annotator.boxes_on_click) {

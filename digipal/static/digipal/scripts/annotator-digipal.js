@@ -3368,9 +3368,14 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 
         //if (event.shiftKey && annotator.isAdmin == 'True') {
         if (annotator.isAdmin == 'True') {
-            var isFocus = $('input').is(':focus') || $('textarea').is(':focus') || $('div.editor').is(':focus');
+            var activeElement = document.activeElement;
+            var isActiveElementEditable = activeElement && (
+                activeElement.isContentEditable
+                || activeElement.tagName.toLowerCase() == 'input'
+            );
+
             //var focused_tag = $(':focus').first().prop('tagName');
-            if (!isFocus) {
+            if (!isActiveElementEditable) {
                 switch (code) {
                     case 109: // m
                     case 77: // M

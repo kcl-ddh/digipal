@@ -320,17 +320,22 @@ class Allograph(models.Model):
     default = models.BooleanField(default=False)
     aspects = models.ManyToManyField(Aspect, blank=True)
     hidden = models.BooleanField(
-        default=False, help_text=u'''If ticked the public users won't see this allograph on the web site.''')
+        default=False,
+        help_text=u'''If ticked the public users won't see this allograph on the web site.'''
+    )
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True,
                                     editable=False)
+    illustration = models.ImageField(
+        upload_to=settings.UPLOAD_IMAGES_URL,
+        blank=True, null=True
+    )
 
     @staticmethod
     def get_definition():
         return u'''A recognised variant form of the same character (e.g. a and a, or Caroline and Insular)'''
 
     class Meta:
-        #ordering = ['character__name', 'name']
         ordering = ['character__ontograph__sort_order',
                     'character__ontograph__ontograph_type__name', 'name']
         unique_together = ['name', 'character']
@@ -344,7 +349,6 @@ class Allograph(models.Model):
             return get_list_as_string(self.character, ', ', self.name)
         else:
             return u'%s' % (self.name)
-
 
 class AllographComponent(models.Model):
     allograph = models.ForeignKey(

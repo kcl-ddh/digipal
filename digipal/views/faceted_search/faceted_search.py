@@ -467,6 +467,23 @@ class FacetedModel(object):
         if field['type'] == 'url':
             ret = '<a href="%s" class="btn btn-default btn-sm" title="" data-toggle="tooltip">View</a>' % ret
 
+        if field['type'] == 'django_image':
+            if ret is None or ret.name is None:
+                ret = ''
+            else:
+                dims = [ret.width, ret.height]
+                max_size = field.get('max_size', 50)
+                # resize
+                for i in [0, 1]:
+                    if dims[i] > max_size:
+                        dims[1-i] *= int(1.0 * max_size / dims[i])
+                        dims[i] = max_size
+                        break
+                ret = '<img src="%s" width="%s" height="%s">' % (
+                    settings.MEDIA_URL.rstrip('/') + '/' + ret.name,
+                    dims[0], dims[1]
+                )
+
         if field['type'] == 'image':
             if 'Annotation' in str(type(ret)):
                 if 'Graph' in str(type(record)):
@@ -474,7 +491,8 @@ class FacetedModel(object):
                     ), a_data_placement="bottom", a_data_toggle="tooltip", a_data_container="body", wrap=record, link=record)
                 else:
                     ret = html_escape.annotation_img(
-                        ret, lazy=1, fixlen=800, wrap=record, link=record)
+                        ret, lazy=1, fixlen=800, wrap=record, link=record
+                    )
             else:
                 # GN: we used to link to the page for the record shown in the result
                 # now we link to the image web page.

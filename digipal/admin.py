@@ -156,9 +156,16 @@ class RepositoryForm(forms.ModelForm):
 class AllographAdmin(DigiPalModelAdmin):
     model = Allograph
 
+    fieldsets = (
+        (None, {'fields': (
+            'name', 'character', 'illustration', 'aspects',
+            'hidden', 'default'
+        )}),
+    )
+
     search_fields = ['name', 'character__name']
 
-    list_display = ['name', 'character', 'hidden', 'created', 'modified']
+    list_display = ['name', 'character', 'hidden', 'illustration', 'created', 'modified']
     list_display_links = ['name', 'character', 'created', 'modified']
     list_editable = ['hidden']
 

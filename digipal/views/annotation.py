@@ -241,8 +241,11 @@ def image(request, image_id):
 
     # annotations_count = image.annotation_set.all().values('graph').count()
     # annotations = image.annotation_set.all()
-    annotations = Annotation.objects.filter(image_id=image_id, graph__isnull=False).exclude_hidden(
-        is_admin).select_related('graph__hand', 'graph__idiograph__allograph')
+    annotations = Annotation.objects.filter(
+        image_id=image_id, graph__isnull=False
+    ).exclude_hidden(is_admin).select_related(
+        'graph__hand', 'graph__idiograph__allograph'
+    )
     dimensions = {
         'width': image.dimensions()[0],
         'height': image.dimensions()[1]
@@ -390,12 +393,19 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         annotation_list_with_graph = Annotation.objects.filter(
             graph__hand=hand).with_graph()
     annotation_list_with_graph = annotation_list_with_graph.exclude_hidden(
-        can_edit)
-    annotation_list_with_graph = annotation_list_with_graph.select_related('image', 'graph', 'graph__hand', 'graph__idiograph__allograph__character').prefetch_related(
-        'graph__graph_components__features', 'graph__aspects', 'graph__graph_components__component', 'image__hands').distinct()
+        can_edit
+    )
+    annotation_list_with_graph = annotation_list_with_graph.select_related(
+        'image', 'graph', 'graph__hand',
+        'graph__idiograph__allograph__character'
+    ).prefetch_related(
+        'graph__graph_components__features', 'graph__aspects',
+        'graph__graph_components__component', 'image__hands'
+    ).distinct()
 
     editorial_annotations = Annotation.objects.filter(
-        image=image_id).editorial().select_related('image')
+        image=image_id
+    ).editorial().select_related('image')
     if not can_edit:
         editorial_annotations = editorial_annotations.editorial().publicly_visible()
     editorial_annotations = editorial_annotations.exclude_hidden(can_edit)
@@ -475,8 +485,11 @@ def image_annotations(request, image_id, annotations_page=True, hand=False):
         data[an['id']] = an
         an['display_order'] = 0
         if 'geo_json' in an and 'coordinates' in an['geo_json']:
-            an['display_order'] = min(
-                [float(point[0]) for point in an['geo_json']['coordinates'][0]])
+            an['display_order'] = min([
+                float(point[0])
+                for point
+                in an['geo_json']['coordinates'][0]
+            ])
 
     if annotations_page:
         return HttpResponse(json.dumps(data), content_type='application/json')

@@ -468,7 +468,7 @@ class FacetedModel(object):
             ret = '<a href="%s" class="btn btn-default btn-sm" title="" data-toggle="tooltip">View</a>' % ret
 
         if field['type'] == 'django_image':
-            if ret is None or ret.name is None:
+            if ret is None or not ret.name:
                 ret = ''
             else:
                 dims = [ret.width, ret.height]

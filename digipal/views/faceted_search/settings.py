@@ -469,7 +469,7 @@ class FacettedType(object):
 
         Usage:
 
-        ft = FacettedType().fromKey('manuscripts')
+        ft = FacettedType.fromKey('manuscripts')
         print ft.getOption('column_order')
     '''
 

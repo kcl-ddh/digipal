@@ -6,11 +6,9 @@ from digipal import utils as dputils
 import re
 from inspect import getargspec
 from django.template.base import parse_bits
-from django.utils.http import urlencode
+from django.conf import settings
 
 register = template.Library()
-# from mezzanine import template as mezzzanine_template
-# register = mezzzanine_template.Library()
 
 
 @stringfilter
@@ -376,6 +374,33 @@ def wrap_img(html_img, **kwargs):
         ret = ur'''<%s %s>%s</%s>''' % (element, attributes, ret, element)
 
     return ret
+
+
+def get_html_from_django_imagefield(img_val, max_size=50, lazy=0):
+    '''Returns a string with <img> html element to display the image
+    in img. img the value of a models.ImageField of a model object.'''
+    ret = ''
+
+    if not(img_val is None or not img_val.name):
+        dims = [img_val.width, img_val.height]
+        # resize
+        mx = max(dims)
+        if mx > max_size:
+            r = 1.0 * max_size / mx
+            dims = [int(d * r) for d in dims]
+
+        ret = img(
+            settings.MEDIA_URL.rstrip('/') + '/' + img_val.name,
+            width=dims[0], height=dims[1],
+            lazy=lazy
+        )
+
+        # ret = '<img src="%s" width="%s" height="%s">' % (
+        #     settings.MEDIA_URL.rstrip('/') + '/' + img_val.name,
+        #     dims[0], dims[1]
+        # )
+
+    return mark_safe(ret)
 
 
 @register.simple_tag

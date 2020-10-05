@@ -460,6 +460,8 @@ class FacetedModel(object):
                 if field['key'] == field_key:
                     break
 
+        max_size = field.get('max_size', 50)
+
         ret = self.get_record_field(record, field, True)
         if isinstance(ret, list):
             ret = '; '.join(sorted(ret))
@@ -468,21 +470,9 @@ class FacetedModel(object):
             ret = '<a href="%s" class="btn btn-default btn-sm" title="" data-toggle="tooltip">View</a>' % ret
 
         if field['type'] == 'django_image':
-            if ret is None or not ret.name:
-                ret = ''
-            else:
-                dims = [ret.width, ret.height]
-                max_size = field.get('max_size', 50)
-                # resize
-                for i in [0, 1]:
-                    if dims[i] > max_size:
-                        dims[1-i] *= int(1.0 * max_size / dims[i])
-                        dims[i] = max_size
-                        break
-                ret = '<img src="%s" width="%s" height="%s">' % (
-                    settings.MEDIA_URL.rstrip('/') + '/' + ret.name,
-                    dims[0], dims[1]
-                )
+            ret = html_escape.get_html_from_django_imagefield(
+                ret, max_size=max_size, lazy=1
+            )
 
         if field['type'] == 'image':
             if 'Annotation' in str(type(ret)):
@@ -501,8 +491,10 @@ class FacetedModel(object):
                 link = ret
                 if field.get('link_to_record', False):
                     link = record
-                ret = html_escape.iip_img(ret, width=field.get(
-                    'max_size', 50), lazy=1, wrap=link, link=link)
+                ret = html_escape.iip_img(
+                    ret, width=max_size,
+                    lazy=1, wrap=link, link=link
+                )
         if ret is None:
             ret = ''
 

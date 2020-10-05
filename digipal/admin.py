@@ -188,32 +188,63 @@ class AnnotationAdmin(DigiPalModelAdmin):
     model = Annotation
 
     fieldsets = (
-                (None, {'fields': ('graph', 'image')}),
-        #('Preview', {'fields': ('thumbnail', )}),
-                ('Metadata', {'fields': ('before',
-                                         'after', 'rotation', 'status')}),
-                ('Notes', {'fields': ('internal_note', 'display_note')}),
-                ('Internal data', {
-                 'fields': ('geo_json', 'holes', 'vector_id', 'cutout')}),
+        (None, {'fields': ('graph', 'image')}),
+        ('Pictures', {'fields': ('get_thumb_form',
+                ('get_illustration_ductus_thumb_form', 'illustration_ductus'))}),
+        ('Notes', {'fields': ('internal_note', 'display_note')}),
+        ('Internal data', {
+         'fields': ('geo_json', 'holes', 'vector_id', 'cutout')}),
+        ('Metadata', {'fields': ('before',
+                                 'after', 'rotation', 'status')}),
     )
 
     list_display = ['id', 'get_graph_desc', 'thumbnail_with_link',
-                    'image', 'author', 'created', 'modified', 'status', 'clientid']
+                    'get_illustration_ductus_thumb_listing',
+                    'image', 'author', 'created', 'modified', 'status']
     list_display_links = ['id', 'get_graph_desc',
                           'image', 'author', 'created', 'modified', 'status']
     search_fields = ['id', 'graph__id', 'vector_id', 'image__display_label',
                      'graph__idiograph__allograph__character__name']
-    list_filter = ['author__username', 'graph__idiograph__allograph__character__name', 'status', 'type',
-                   admin_filters.AnnotationFilterDuplicateClientid, admin_filters.AnnotationFilterLinkedToText]
+    list_filter = ['author__username',
+                   'graph__idiograph__allograph__character__name',
+                   'status', 'type',
+                   admin_filters.AnnotationFilterDuplicateClientid,
+                   admin_filters.AnnotationFilterLinkedToText
+    ]
+
+    CHANGE_FORM_THUMB_MAX_SIZE = 100
 
     def get_graph_desc(self, obj):
         ret = u''
         if obj and obj.graph:
-            ret = u'%s (#%s)' % (obj.graph, obj.graph.id)
+            ret = u'%s (#%s)' % (obj.graph.idiograph.allograph, obj.graph.id)
         return ret
     get_graph_desc.short_description = 'Graph'
 
-    readonly_fields = ('graph',)
+    def get_thumb_form(self, obj):
+        ''' returns HTML of an image inside a span'''
+        from templatetags.html_escape import annotation_img
+        return annotation_img(
+            obj, lazy=0, fixlen=self.CHANGE_FORM_THUMB_MAX_SIZE
+        )
+    get_thumb_form.short_description = 'Annotation'
+
+    def get_illustration_ductus_thumb_form(self, obj):
+        from digipal.templatetags import html_escape
+        return html_escape.get_html_from_django_imagefield(
+            obj.illustration_ductus, max_size=self.CHANGE_FORM_THUMB_MAX_SIZE
+        )
+    get_illustration_ductus_thumb_form.short_description = 'Ductus'
+
+    def get_illustration_ductus_thumb_listing(self, obj):
+        from digipal.templatetags import html_escape
+        return html_escape.get_html_from_django_imagefield(
+            obj.illustration_ductus, max_size=settings.ADMIN_THUMB_SIZE_MAX,
+            lazy=1
+        )
+    get_illustration_ductus_thumb_listing.short_description = 'Ductus'
+
+    readonly_fields = ('graph', 'get_thumb_form', 'get_illustration_ductus_thumb_form')
 
 
 class AppearanceAdmin(DigiPalModelAdmin):

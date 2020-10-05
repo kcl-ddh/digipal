@@ -736,6 +736,9 @@ CHARACTER_ABBREV_STROKE = 'abbrev.stroke'
 
 ITEM_PART_DEFAULT_LOCUS = 'face'
 
+# for annotation size in the backend
+ADMIN_THUMB_SIZE_MAX = 100
+
 # ##
 
 # set this to True in your local_settings if the site is maintained

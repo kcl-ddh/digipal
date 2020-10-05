@@ -2750,8 +2750,7 @@ class DateEvidence(models.Model):
         max_length=255, blank=True, null=True, default='')
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True,
-                                    editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         ordering = ['date']
@@ -2768,8 +2767,7 @@ class Graph(models.Model):
     aspects = models.ManyToManyField(Aspect, blank=True)
     display_label = models.CharField(max_length=256, editable=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True,
-                                    editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
     group = models.ForeignKey('Graph', related_name='parts', blank=True,
                               null=True, help_text=u'Select a graph that contains this one')
 
@@ -2982,6 +2980,11 @@ class Annotation(models.Model):
     # 'text' for text annotation; ('editorial' for editorial annotation, not used yet)
     type = models.CharField(max_length=15, blank=True,
                             null=True, db_index=True, default=None)
+
+    illustration_ductus = models.ImageField(
+        upload_to=settings.UPLOAD_IMAGES_URL,
+        blank=True, null=True
+    )
 
     objects = AnnotationManager()
 
@@ -3305,8 +3308,11 @@ class Annotation(models.Model):
     thumbnail.allow_tags = True
 
     def thumbnail_with_link(self):
-        return mark_safe(u'<a href="%s">%s</a>' %
-                         (self.get_absolute_url(), self.thumbnail()))
+        return mark_safe(
+            u'<a href="%s">%s</a>' % (
+                self.get_absolute_url(), self.thumbnail()
+            )
+        )
 
     thumbnail_with_link.short_description = 'Thumbnail'
     thumbnail_with_link.allow_tags = True

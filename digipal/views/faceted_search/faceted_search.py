@@ -226,7 +226,7 @@ class FacetedModel(object):
                 # print utils.get_mem()
             i += 1
             value = ''
-            value = self.get_record_path(record, path)
+            value = self.get_record_path(record, path, field)
             value = self.get_sortable_hash_value(value, field)
 
             v = value
@@ -540,7 +540,7 @@ class FacetedModel(object):
 
         return ret
 
-    def get_record_path(self, record, path, afield=None):
+    def get_record_path(self, record, path, afield):
         '''
             Return one or more values related to a record
             by following the given path through the data model.
@@ -548,7 +548,7 @@ class FacetedModel(object):
             e.g. get_record_path(ItemPart.objects.get(id=598), 'images.all.id')
             => [3200, 3201]
 
-            afield is an optional field defition (see settings.py)
+            afield is a field definition (see settings.py)
         '''
         from django.db.models.manager import BaseManager
 
@@ -599,7 +599,7 @@ class FacetedModel(object):
                     rec = v
                     v = []
                     for item in rec:
-                        subitems = self.get_record_path(item, '.'.join(parts))
+                        subitems = self.get_record_path(item, '.'.join(parts), afield)
                         # flatten the lists
                         if isinstance(subitems, list):
                             v += subitems
@@ -611,6 +611,10 @@ class FacetedModel(object):
                 path_done.append(part)
 
         ret = v
+
+        transform = afield.get('transform', None)
+        if transform:
+            ret = transform(ret)
 
         return ret
 

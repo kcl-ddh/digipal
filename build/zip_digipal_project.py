@@ -23,11 +23,22 @@ def run_cmd(command):
 class ProjectZipper(object):
 
     def import_settings(self):
-        manage_path = run_cmd('find .. -name manage.py | tail -n 1')
-        manage_path = manage_path.strip('\n')
+        manage_path = 'manage.py'
+        found = 0
+        for i in range(0, 5):
+            found = os.path.exists(manage_path)
+            if found:
+                break
+            manage_path = os.path.join('..', manage_path)
+
+        if not found:
+            print('WARNING: could not find manage.py in this folder or parents')
+            return
 
         print 'manage.py: ' + manage_path
-        os.chdir(os.path.dirname(manage_path))
+        dirname = os.path.dirname(manage_path)
+        if dirname:
+            os.chdir(dirname)
 
         settings_module = run_cmd(
             'grep "DJANGO_SETTINGS_MODULE" ' + manage_path)
@@ -70,8 +81,7 @@ class ProjectZipper(object):
         # without --if-exists the restoration will show harmless warnings
         command = 'pg_dump -c -U %s %s --exclude-table-data=digipal_text_textcontentxmlcopy %s %s > "%s"' % (
             username, dbname, host, port, sql_path)
-        print command
-        os.system(command)
+        res = run_cmd(command)
 
         self.add_path_to_tar(sql_path)
 
@@ -94,12 +104,14 @@ class ProjectZipper(object):
                 run_cmd('cp -rfL %s %s' % (path, new_path))
                 path = new_path
 
-            # Note: -h wil make tar crash in some containers
+            # Note: -h will make tar crash in some containers
             run_cmd('tar --append -f %s -C %s %s' %
                     (self.get_tar_path(), os.path.dirname(path), os.path.basename(path)))
 
             if new_path:
                 run_cmd('rm -rf %s' % new_path)
+        else:
+            print('WARNING: path "%s" not found' % (path))
 
     def create_tar(self):
         run_cmd('tar -cf %s --files-from /dev/null' % self.get_tar_path())
@@ -124,7 +136,7 @@ class ProjectZipper(object):
         # images
         self.add_path_to_tar(self.settings.IMAGE_SERVER_ROOT, 'images')
 
-        # TODO: local_settings.py, settings.py and urls.py
+        # config files
         if not self.is_digipal_app_the_project:
             self.add_path_to_tar(os.path.join(
                 self.settings.PROJECT_ROOT, 'settings.py'), 'settings.py.bk')

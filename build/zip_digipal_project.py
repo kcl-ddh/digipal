@@ -12,6 +12,7 @@
 import os
 import re
 import sys
+import glob
 from subprocess import check_output
 
 
@@ -52,7 +53,8 @@ class ProjectZipper(object):
 
         # old style: digipal app is also the django project
         self.is_digipal_app_the_project = os.path.exists(
-            os.path.join(self.settings.PROJECT_ROOT, 'repo.py'))
+            os.path.join(self.settings.PROJECT_ROOT, 'repo.py')
+        )
 
     def get_dst_path(self, part=None):
         ret = os.path.join(self.settings.STATIC_ROOT)
@@ -94,24 +96,45 @@ class ProjectZipper(object):
     def get_tar_path(self):
         return os.path.join(self.get_dst_path(), 'archetype.tar')
 
-    def add_path_to_tar(self, path, new_name=None):
-        path = path.rstrip('/')
+    def add_path_to_tar(self, paths, transforms=None):
+        '''<paths>: a list of file apths to be added to the tar file.
+        <paths> can contain wildcards.
+        If <transform> is specified, it is a list of pairs of
+        filename replacement expressions.
+        E.g. [['myfile', 'yourfile']]
+        Note that replacement applies to any part of the filenames.
+        '''
 
-        if os.path.exists(path):
-            new_path = None
-            if new_name and os.path.basename(path) != new_name:
-                new_path = os.path.join('/tmp', new_name)
-                run_cmd('cp -rfL %s %s' % (path, new_path))
-                path = new_path
+        if hasattr(paths, 'replace'):
+            # convert string input to list
+            paths = [paths]
 
+        paths_to_tar = []
+        for path in paths:
+            apaths = glob.glob(path.rstrip('/'))
+            for apath in apaths:
+                if not os.path.exists(apath):
+                    print('WARNING: path "%s" not found' % (apath))
+                    continue
+
+                paths_to_tar.append(apath)
+
+        if paths_to_tar:
+            if hasattr(transforms, 'replace'):
+                # convert string input to list
+                transforms = [[os.path.basename(paths_to_tar[0]), transforms]]
+
+            transforms_option = ' '.join([
+                "--transform='flags=r;s|%s|%s|'" % (t[0], t[1])
+                for t in (transforms or [])
+            ])
             # Note: -h will make tar crash in some containers
-            run_cmd('tar --append -f %s -C %s %s' %
-                    (self.get_tar_path(), os.path.dirname(path), os.path.basename(path)))
-
-            if new_path:
-                run_cmd('rm -rf %s' % new_path)
-        else:
-            print('WARNING: path "%s" not found' % (path))
+            run_cmd('tar %s --append -f %s -C %s %s' % (
+                transforms_option,
+                self.get_tar_path(),
+                os.path.dirname(paths_to_tar[0]),
+                ' '.join([os.path.basename(p) for p in paths_to_tar])
+            ))
 
     def create_tar(self):
         run_cmd('tar -cf %s --files-from /dev/null' % self.get_tar_path())
@@ -125,25 +148,34 @@ class ProjectZipper(object):
         self.dump_database()
 
         # customisations
-        self.add_path_to_tar(os.path.join(
-            self.settings.PROJECT_ROOT, 'customisations'))
+        self.add_path_to_tar(
+            os.path.join(self.settings.PROJECT_ROOT, 'customisations')
+        )
         # templates
         if not self.is_digipal_app_the_project:
             self.add_path_to_tar(os.path.join(
-                self.settings.PROJECT_ROOT, 'templates'))
+                self.settings.PROJECT_ROOT, 'templates')
+            )
         # media
         self.add_path_to_tar(self.settings.MEDIA_ROOT, 'media')
         # images
         self.add_path_to_tar(self.settings.IMAGE_SERVER_ROOT, 'images')
 
         # config files
-        if not self.is_digipal_app_the_project:
-            self.add_path_to_tar(os.path.join(
-                self.settings.PROJECT_ROOT, 'settings.py'), 'settings.py.bk')
-        self.add_path_to_tar(os.path.join(
-            self.settings.PROJECT_ROOT, 'local_settings.py'), 'local_settings.py')
-        self.add_path_to_tar(os.path.join(
-            self.settings.PROJECT_ROOT, 'urls.py'), 'urls.py')
+        files_to_tar = ['*.py']
+        tar_transforms = [['^settings.py$', 'settings.py.bk']]
+        if self.is_digipal_app_the_project:
+            files_to_tar = ['urls.py', 'local_settings.py']
+            tar_transforms = None
+
+        self.add_path_to_tar(
+            [
+                os.path.join(self.settings.PROJECT_ROOT, p)
+                for p
+                in files_to_tar
+            ],
+            tar_transforms
+        )
 
         # Now zip it all
         run_cmd('gzip -f1 %s' % self.get_tar_path())

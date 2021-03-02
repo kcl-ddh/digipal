@@ -144,6 +144,9 @@ def get_obj_info(obj, exclude_list=None):
 
     info = ''
 
+    if obj._meta.model_name == 'textcontentxml':
+        info = 'length: %s Bytes' % obj.get_length()
+
     if obj._meta.model_name == 'historicalitem':
         info_parts = []
         info = '%s, %s' % (obj.historical_item_format,
@@ -184,6 +187,13 @@ def get_obj_children(obj):
         ret.extend((obj.current_item,))
         ret.extend(list(obj.historical_items.all().order_by('id')))
         ret.extend(list(obj.images.all().order_by('id')))
+        ret.extend(list(obj.text_contents.all().order_by('id')))
+
+    if obj._meta.model_name == 'textcontent':
+        ret.extend(obj.text_content_xmls.all().order_by('id'))
+
+    if obj._meta.model_name == 'repository':
+        ret.extend(obj.currentitem_set.all().order_by('id'))
 
     if obj._meta.model_name == 'currentitem':
         ret.extend(list(obj.itempart_set.all().order_by('id')))

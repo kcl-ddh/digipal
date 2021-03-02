@@ -9,7 +9,7 @@
                     {% if page.is_primary and forloop.first %}
                         <li class="{% if on_home %} active{% endif %}" id="dropdown-menu-{{ page.html_id }}">
                             {# <a class='' href="{% url "home" %}">{% trans "Home" %}</a> #}
-                            <a class='' href="{% url "home" %}"><i class="glyphicon glyphicon-home"></i></a>
+                            <a title="Home page" class='' href="{% url "home" %}"><span class="glyphicon glyphicon-home"></span></a>
                         </li>
                     {% endif %}
     

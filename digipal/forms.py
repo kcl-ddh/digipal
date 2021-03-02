@@ -180,15 +180,17 @@ class SearchPageForm(forms.Form):
         label='',
         required=False,
         error_messages={
-        'required': 'Please enter at least one search term',
-        'invalid': 'Enter a valid value'},
+            'required': 'Please enter at least one search term',
+            'invalid': 'Enter a valid value'
+        },
         widget=TextInput(attrs={
             'id': 'search-terms',
-            #'class':'textEntry form-control',
-            'class':'form-control ' + get_search_terms_classes(),
+            'class': 'form-control ' + get_search_terms_classes(),
             'placeholder': 'Enter search terms',
-            #'required': 'required',
-            "autocomplete":"off"})
+            "autocomplete": "off",
+            "aria-label": "Search the site",
+            "type": "search",
+        })
     )
     basic_search_type = forms.CharField(
         label='',

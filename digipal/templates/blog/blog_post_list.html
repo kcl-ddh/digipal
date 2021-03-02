@@ -117,21 +117,24 @@
 
         {% if settings.COMMENTS_DISQUS_SHORTNAME %}
         <li>
-            <i class='glyphicon glyphicon-comment'></i>
+            <span class='glyphicon glyphicon-comment'></span>
             <a href="{{ blog_post.get_absolute_url }}#disqus_thread"
-                data-disqus-identifier="{% disqus_id_for blog_post %}">
+                data-disqus-identifier="{% disqus_id_for blog_post %}"
+                aria-label="Read comments on: '{{ blog_post.title }}'">
                 {% trans "Comments" %}
             </a>
         </li>
-            {% else %}
+        {% else %}
         <li>
             <i class='glyphicon glyphicon-comment'></i>
             <a href="{{ blog_post.get_absolute_url }}#comments">
                 {% blocktrans count blog_post.comments_count as comments_count %}1 comment{% plural %}{{ comments_count }} comments{% endblocktrans %}
             </a>
         </li>
-            {% endif %}
+        {% endif %}
+
         {% keywords_for blog_post as tags %}
+
         {% if tags %}
             <li>
                <i class='glyphicon glyphicon-tag'></i>
@@ -156,12 +159,12 @@
     {% endif %}
     <div class='textArticle'>
 
-    {% block blog_post_list_post_content %}
-    {% editable blog_post.content %}
-        {{  blog_post.content|safe|truncatewords:50 }}
-        <p style='margin-top:1.5%;'><a href="{{ blog_post.get_absolute_url }}" class='btn btn-default btn-sm'>{% trans "Read more" %}</a></p>
-    {% endeditable %}
-    {% endblock %}
+      {% block blog_post_list_post_content %}
+        {% editable blog_post.content %}
+          {{  blog_post.content|safe|truncatewords:50 }}
+          <p style='margin-top:1.5%;'><a href="{{ blog_post.get_absolute_url }}" aria-label="Read complete post: {{ blog_post.title }}" class='btn btn-default btn-sm'>{% trans "Read more" %}</a></p>
+       {% endeditable %}
+      {% endblock %}
     </div>
     </article>
 

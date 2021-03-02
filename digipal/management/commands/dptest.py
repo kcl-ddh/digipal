@@ -53,7 +53,7 @@ Commands:
 
     download_images URL
         URL: e.g. "http://domain/path/to/image_{001_r,003_v}.jpg"
-        
+
     unstatic
         Opposite of collectstatics
         It removes the copies of the assets
@@ -422,7 +422,7 @@ Commands:
                     try:
                         os.unlink(path)
                         counts['deleted'] += 1
-                    except Exception, e:
+                    except Exception as e:
                         print 'WARNING: %s not deleted (%s)' % (path, e)
 
         print '%s deleted' % counts['deleted']
@@ -510,7 +510,8 @@ Commands:
         def get_version(fileindex, pkgname):
             return fpkgs[fileindex].get(pkgname, '')
 
-        for pkg in sorted(list(set(fpkgs[0].keys() + fpkgs[1].keys())), key=lambda l: l.lower()):
+        for pkg in sorted(
+                list(set(fpkgs[0].keys() + fpkgs[1].keys())), key=lambda l: l.lower()):
             vers = (get_version(0, pkg), get_version(1, pkg))
             status = '='
             if vers[0] != vers[1]:
@@ -726,7 +727,8 @@ Commands:
 
     def test_sources(self, *args):
         ret = []
-        for keyword in ['ker', 'pelteret', 'gneuss', 'digipal', 'english manuscripts 1060', settings.SOURCE_SAWYER_KW, 'scragg', 'cla', 'davis']:
+        for keyword in ['ker', 'pelteret', 'gneuss', 'digipal',
+                        'english manuscripts 1060', settings.SOURCE_SAWYER_KW, 'scragg', 'cla', 'davis']:
             print keyword, ' => ', repr(Source.get_source_from_keyword(keyword))
 
         return ret
@@ -923,25 +925,29 @@ Commands:
 
         # run queries
         print 'find all annotations'
-        if Annotation.objects.all().filter(id__in=[a.id for a in ans]).count() == 3:
+        if Annotation.objects.all().filter(
+                id__in=[a.id for a in ans]).count() == 3:
             print '\tok'
         else:
             print '\terror'
 
         print 'find editorial annotations'
-        if Annotation.objects.all().editorial().filter(id__in=[ans[0].id, ans[1].id]).count() == 2:
+        if Annotation.objects.all().editorial().filter(
+                id__in=[ans[0].id, ans[1].id]).count() == 2:
             print '\tok'
         else:
             print '\terror'
 
         print 'find publicly visible annotations'
-        if Annotation.objects.all().publicly_visible().filter(id__in=[ans[1].id, ans[2].id]).count() == 2:
+        if Annotation.objects.all().publicly_visible().filter(
+                id__in=[ans[1].id, ans[2].id]).count() == 2:
             print '\tok'
         else:
             print '\terror'
 
         print 'find graph annotation'
-        if Annotation.objects.all().with_graph().filter(id=ans[2].id).count() == 1:
+        if Annotation.objects.all().with_graph().filter(
+                id=ans[2].id).count() == 1:
             print '\tok'
         else:
             print '\terror'
@@ -1233,7 +1239,8 @@ Commands:
         for col in soup.find_all('div'):
             cl = ' '.join(col.get('class', []))
             if re.search(ur'\bcol-\w\w-\d\b', cl):
-                if col.parent.name != 'div' or ('row' not in col.parent.get('class', [])):
+                if col.parent.name != 'div' or (
+                        'row' not in col.parent.get('class', [])):
                     print ('    ? : Bootstrap ERROR: Content should be placed within columns, and only columns may be immediate children of rows\n\t\t[ %s ] under [ %s ]' % (
                         self.get_opening_tag(col), self.get_opening_tag(col.parent))).encode('ascii', 'ignore')
 
@@ -1652,7 +1659,8 @@ Commands:
 
         return ret
 
-    def are_corner_identical(self, cropped_img, uncropped_img, fromx=0, fromy=0):
+    def are_corner_identical(
+            self, cropped_img, uncropped_img, fromx=0, fromy=0):
         #ret = True
         ret = 0
 
@@ -1733,7 +1741,7 @@ Commands:
                         im = Image.open(file)
                         ret[key]['x'] = im.size[0]
                         ret[key]['y'] = im.size[1]
-                    except:
+                    except Exception:
                         ret[key]['x'] = 0
                         ret[key]['y'] = 0
 
@@ -1842,16 +1850,33 @@ Commands:
             ('10r', ('10', 'r')),
             ('10v', ('10', 'v')),
             ('11', ('11', None)),
-            ('', (None, None)),
-            (None, (None, None)),
-            ('1 10 r', ('10', 'r')),
-            ('1 10 r 9 v8', ('9', 'v'))
+            ('', ('y', None)),
+            (None, ('y', None)),
+            ('10 r', ('10', 'r')),
+            ('10 v 9 r', ('10', 'v')),
+            ('fragment recto', (None, 'r')),
+            ('fragment verso', (None, 'v')),
+            ('seal', ('x', None)),
+            (u'327(2)', ('327', None)),
+            (u'327*(2)', ('327', None)),
+            (u'46v–47r', ('46', 'v')),
+            (u'D.xxvii, 25v', ('25', 'v')),
+            (u'D.xxvii, 25r', ('25', 'r')),
         ]:
             i.locus = l[0]
             i.update_number_and_side_from_locus()
             print '%s => %s, %s' % (i.locus, i.folio_number, i.folio_side)
             if i.folio_number != l[1][0] or i.folio_side != l[1][1]:
                 print '\tERROR, expected %s, %s.' % (l[1][0], l[1][1])
+
+        if 1:
+            print '\nDetect changes:'
+            for im in Image.objects.filter(item_part__isnull=False):
+                old_val = '(%s, %s)' % (im.folio_number, im.folio_side)
+                n, s = im.update_number_and_side_from_locus()
+                new_val = '(%s, %s)' % (n, s)
+                if new_val != old_val:
+                    print '#%s locus: %s, %s -> %s' % (im.id, im.locus, old_val, new_val)
 
     def test_mem(self):
         import gc
@@ -1867,7 +1892,7 @@ Commands:
         def ostr(o):
             try:
                 return '%s' % str(o)[:l]
-            except Exception, e:
+            except Exception as e:
                 return '??? %s' % type(e)
 
         def list_objs(objs):

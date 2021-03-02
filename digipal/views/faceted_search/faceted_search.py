@@ -226,7 +226,7 @@ class FacetedModel(object):
                 # print utils.get_mem()
             i += 1
             value = ''
-            value = self.get_record_path(record, path)
+            value = self.get_record_path(record, path, field)
             value = self.get_sortable_hash_value(value, field)
 
             v = value
@@ -460,12 +460,19 @@ class FacetedModel(object):
                 if field['key'] == field_key:
                     break
 
+        max_size = field.get('max_size', 50)
+
         ret = self.get_record_field(record, field, True)
         if isinstance(ret, list):
             ret = '; '.join(sorted(ret))
 
         if field['type'] == 'url':
             ret = '<a href="%s" class="btn btn-default btn-sm" title="" data-toggle="tooltip">View</a>' % ret
+
+        if field['type'] == 'django_image':
+            ret = html_escape.get_html_from_django_imagefield(
+                ret, max_size=max_size, lazy=1
+            )
 
         if field['type'] == 'image':
             if 'Annotation' in str(type(ret)):
@@ -474,7 +481,8 @@ class FacetedModel(object):
                     ), a_data_placement="bottom", a_data_toggle="tooltip", a_data_container="body", wrap=record, link=record)
                 else:
                     ret = html_escape.annotation_img(
-                        ret, lazy=1, fixlen=800, wrap=record, link=record)
+                        ret, lazy=1, fixlen=800, wrap=record, link=record
+                    )
             else:
                 # GN: we used to link to the page for the record shown in the result
                 # now we link to the image web page.
@@ -483,8 +491,10 @@ class FacetedModel(object):
                 link = ret
                 if field.get('link_to_record', False):
                     link = record
-                ret = html_escape.iip_img(ret, width=field.get(
-                    'max_size', 50), lazy=1, wrap=link, link=link)
+                ret = html_escape.iip_img(
+                    ret, width=max_size,
+                    lazy=1, wrap=link, link=link
+                )
         if ret is None:
             ret = ''
 
@@ -530,7 +540,7 @@ class FacetedModel(object):
 
         return ret
 
-    def get_record_path(self, record, path, afield=None):
+    def get_record_path(self, record, path, afield):
         '''
             Return one or more values related to a record
             by following the given path through the data model.
@@ -538,7 +548,7 @@ class FacetedModel(object):
             e.g. get_record_path(ItemPart.objects.get(id=598), 'images.all.id')
             => [3200, 3201]
 
-            afield is an optional field defition (see settings.py)
+            afield is a field definition (see settings.py)
         '''
         from django.db.models.manager import BaseManager
 
@@ -589,7 +599,7 @@ class FacetedModel(object):
                     rec = v
                     v = []
                     for item in rec:
-                        subitems = self.get_record_path(item, '.'.join(parts))
+                        subitems = self.get_record_path(item, '.'.join(parts), afield)
                         # flatten the lists
                         if isinstance(subitems, list):
                             v += subitems
@@ -602,19 +612,29 @@ class FacetedModel(object):
 
         ret = v
 
+        transform = afield.get('transform', None)
+        if transform:
+            ret = transform(ret)
+
         return ret
 
     def get_summary(self, request, passive=False):
-        ret = u''
+        ret = []
         for facet in self.get_facets(request):
             for option in facet['removable_options']:
                 href = html_escape.update_query_params(
-                    '?' + request.META['QUERY_STRING'], {'page': [1], facet['key']: []})
-                ret += u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip"><span class="label label-default">%s</span></a>' % (
-                    href, facet['label'], option['label'], option['label'])
+                    '?' + request.META['QUERY_STRING'],
+                    {'page': [1], facet['key']: []}
+                )
+                ret.append(u'<a href="%s" title="%s = \'%s\'" data-toggle="tooltip" class="label label-default">%s</a>' % (
+                    href, facet['label'], option['label'], option['label']
+                ))
 
         if passive:
+            ret = ' + '.join(ret)
             ret = re.sub(ur'<[^>]*>', ur' ', ret)
+        else:
+            ret = ' '.join(ret)
 
         if not ret.strip():
             ret = 'All'
@@ -1102,8 +1122,12 @@ def get_types(request):
         ret = faceted_settings.FACETED_SEARCH
 
     from digipal.utils import is_model_visible
-    ret = [FacetedModel(ct) for ct in ret['types'] if not ct.get(
-        'disabled', False) and is_model_visible(ct['model'], request)]
+    ret = [
+        FacetedModel(ct)
+        for ct in ret['types']
+        if not ct.get('disabled', False)
+        and is_model_visible(ct['model'], request)
+    ]
 
     return ret
 

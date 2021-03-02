@@ -16,7 +16,7 @@ from digipal.utils import sorted_natural
 from digipal.templatetags.hand_filters import chrono
 dplog = logging.getLogger('digipal_debugger')
 
-MAX_FRAGMENT_SIZE = 60000
+MAX_FRAGMENT_SIZE = getattr(settings, 'MAX_FRAGMENT_SIZE', 60000)
 
 
 def can_user_see_main_text(itempart, request):
@@ -36,7 +36,8 @@ def can_user_see_main_text(itempart, request):
     return ret
 
 
-def text_viewer_view(request, item_partid=0, master_location_type='', master_location=''):
+def text_viewer_view(request, item_partid=0,
+                     master_location_type='', master_location=''):
 
     from digipal.utils import is_model_visible
     if not is_model_visible('textcontentxml', request):
@@ -85,6 +86,89 @@ def text_viewer_view(request, item_partid=0, master_location_type='', master_loc
     return render(request, 'digipal_text/text_viewer.html', context)
 
 
+def tinymce_generated_css_view(request, item_partid=0):
+    '''This view generate a css file based on
+        settings.py:TEXT_EDITOR_OPTIONS_CUSTOM['buttons']
+
+        'btnPersonName': {'label': 'Person Name', 'tei': '<rs type="person" subtype="name">{}</rs>'},
+
+        =>
+
+        span[data-tei='rs'][data-tei-type='person'][data-tei-subtype='name'] {
+
+        }
+    '''
+
+    rules = '''
+    span[data-dpt='rs'][data-dpt-type='person'][data-dpt-subtype='name'] {
+        background-color: lightgreen;
+    }
+    span[data-dpt='rs'][data-dpt-type='person'][data-dpt-subtype='name']:before {
+        content: "Person Name";
+    }
+    .preview.mce-content-body span[data-dpt]:before {
+        display: inline-block;
+    }
+    '''
+    options = settings.TEXT_EDITOR_OPTIONS
+
+    buttons = []
+    for button in options.get('buttons', {}).values():
+        # see panelset.tinymce.js addButtonsFromSettings()
+        if not isinstance(button, dict):
+            continue
+        xml = button.get('xml', None)
+        tei = button.get('tei', None)
+        tag = button.get('tag', 'span')
+        color = button.get('color', '#b0ffb0')
+        label = button.get('label', '???')
+        is_plain = button.get('plain', 0)
+
+        if tei:
+            xml = tei
+            xml = re.sub(ur'(\w+)\s*=', ur'data-dpt-\1=', xml)
+            xml = re.sub(ur'<\/(\w+)', ur'</' + tag, xml)
+            xml = re.sub(ur'<(\w+)', ur'<' + tag + ur' data-dpt="\1"', xml)
+        if not xml:
+            continue
+
+        # print(xml)
+        selector = re.sub(
+            ur'''([\w-]+)\s*=\s*(["'][^"']+["'])''', ur'[\1=\2]', xml)
+        selector = re.sub(ur'[\s<]', ur'', selector)
+        selector = re.sub(ur'>.*', ur'', selector)
+
+        color_int = 0
+        color_darker = color
+        try:
+            color_int = int(color.replace('#', ''), 16)
+        except ValueError, e:
+            pass
+        if color_int:
+            color_darker = max(0, color_int - 0x808080)
+            color_darker = "#%0.6X" % color_darker
+
+        if is_plain:
+            color = 'transparent'
+            color_darker = 'transparent'
+            label = ''
+
+        # selector = '''[data-dpt='rs'][data-dpt-type='person'][data-dpt-subtype='name']'''
+        abutton = {
+            'selector': selector,
+            'label': label,
+            'background_color': color,
+            'color': color_darker,
+        }
+        buttons.append(abutton)
+
+    context = {
+        'buttons': buttons,
+        'show_highlights_in_preview': options.get('show_highlights_in_preview', 0),
+    }
+    return render(request, 'digipal_text/tinymce_generated_css.html', context, content_type='text/css')
+
+
 def update_viewer_context(context, request):
     ''' To be overridden '''
     # TODO: design a better overriding model
@@ -96,7 +180,7 @@ def get_sub_location_from_request(request):
         #subl = request.REQUEST.get('sub_location', '[]')
         subl = dputils.get_request_var(request, 'sub_location', '[]')
         ret = json.loads(subl)
-    except:
+    except Exception:
         ret = []
     return ret
 
@@ -108,13 +192,15 @@ def get_sub_location_from_request(request):
 def get_address_from_sub_location(sub_location):
     ret = None
 
-    if sub_location and len(sub_location) == 3 and sub_location[0][1] == 'location' and sub_location[1][1] in ['locus', 'entry']:
+    if sub_location and len(
+            sub_location) == 3 and sub_location[0][1] == 'location' and sub_location[1][1] in ['locus', 'entry']:
         ret = [sub_location[1][1], sub_location[2][1]]
 
     return ret
 
 
-def text_api_view(request, item_partid, content_type, location_type=u'default', location=''):
+def text_api_view(request, item_partid, content_type,
+                  location_type=u'default', location=''):
 
     format = dputils.get_request_var(request, 'format', 'html').strip().lower()
     if request.is_ajax():
@@ -180,7 +266,6 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
     ret = None
 
     # RESPONSE FORMATTING
-
     if format == 'json':
         ret = HttpResponse(json.dumps(response),
                            content_type='application/json')
@@ -198,9 +283,15 @@ def text_api_view(request, item_partid, content_type, location_type=u'default', 
 
     if format == 'plain':
         plain_text = dputils.get_plain_text_from_xmltext(
-            response.get('content', ''))
+            response.get('attribution', ''), keep_links=True
+        ) + '\n\n'
+        plain_text += dputils.get_plain_text_from_xmltext(
+            response.get('content', '')
+        )
         ret = HttpResponse(
-            plain_text, content_type='text/plain; charset=utf-8')
+            plain_text,
+            content_type='text/plain; charset=utf-8'
+        )
 
     if not ret:
         raise Exception('Unknown output format: "%s"' % format)
@@ -277,6 +368,13 @@ def get_or_create_text_content_records(item_part, content_type_record):
     from django.db import IntegrityError
     from threading import current_thread
     for i in range(0, attempts):
+        with transaction.atomic():
+            # get or create the TextContent
+            text_content, created = TextContent.objects.get_or_create(
+                item_part=item_part, type=content_type_record)
+            # get or create the TextContentXML
+            ret, created = TextContentXML.objects.get_or_create(
+                text_content=text_content)
         try:
             with transaction.atomic():
                 # get or create the TextContent
@@ -285,14 +383,15 @@ def get_or_create_text_content_records(item_part, content_type_record):
                 # get or create the TextContentXML
                 ret, created = TextContentXML.objects.get_or_create(
                     text_content=text_content)
-        except IntegrityError, e:
+        except IntegrityError as e:
             # race condition
             from time import sleep, time
             import random
             # print time(), current_thread().getName(), i, '%s' % e
             sleep(random.random())
             continue
-        except Exception, e:
+        except Exception as e:
+            raise e
             set_message(error, '%s, server error (%s)' %
                         (content_type_record.slug.capitalize(), e))
         break
@@ -304,7 +403,8 @@ def get_or_create_text_content_records(item_part, content_type_record):
     return ret, created, error
 
 
-def text_api_view_location(request, item_partid, content_type, location_type, location, user=None, max_size=MAX_FRAGMENT_SIZE):
+def text_api_view_location(request, item_partid, content_type,
+                           location_type, location, user=None, max_size=MAX_FRAGMENT_SIZE):
     '''This content type is for the list of all available locations (text, images)
         Used by the master location widget on top of the Text Viewer web page
     '''
@@ -362,8 +462,10 @@ def get_all_master_locations(context):
     ret['entry'] = set()
 
     # Get entry numbers from texts
-    for tcx in TextContentXML.objects.filter(text_content__item_part=context['item_part']).iterator():
-        for m in re.findall(ur'<span data-dpt="location" data-dpt-loctype="(.*?)">(.*?)</span>', tcx.content or ''):
+    for tcx in TextContentXML.objects.filter(
+            text_content__item_part=context['item_part']).iterator():
+        for m in re.findall(
+                ur'<span data-dpt="location" data-dpt-loctype="(.*?)">(.*?)</span>', tcx.content or ''):
             if m[0] in ret:
                 ret[m[0]].add(m[1])
 
@@ -380,7 +482,8 @@ def get_all_master_locations(context):
 
 # TODO: content_type_record makes this signature non-polymorphic and even incompatible with image
 # need to use optional parameter for it
-def text_api_view_text(request, item_partid, content_type, location_type, location, content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE):
+def text_api_view_text(request, item_partid, content_type, location_type,
+                       location, content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE):
     ret = {}
 
     text_content_xml = None
@@ -406,27 +509,32 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     if not is_user_staff(user):
         if text_content_xml.is_private():
             if text_content_xml.content and len(text_content_xml.content) > 10:
-                return set_message(ret, 'The %s will be made available at a later stage of the project' % content_type)
+                return set_message(
+                    ret, 'The %s will be made available at a later stage of the project' % content_type)
             else:
-                return set_message(ret, '%s not found' % content_type.capitalize())
+                return set_message(ret, '%s not found' %
+                                   content_type.capitalize())
 
     record_content = text_content_xml.content or ''
 
     # 2. Load the list of possible location types and locations
     # return the locus of the entries
-    if location_type == 'default' or utils.get_int_from_request_var(request, 'load_locations'):
+    if location_type == 'default' or utils.get_int_from_request_var(
+            request, 'load_locations'):
         # whole
         ret['locations'] = OrderedDict()
 
         # whole
-        if max_size is not None and len(record_content) <= max_size and (content_type != 'codicology'):
+        if max_size is not None and len(record_content) <= max_size and (
+                content_type != 'codicology'):
             ret['locations']['whole'] = []
 
         # entry
         for ltype in ['entry', 'locus']:
             ret['locations'][ltype] = []
             if text_content_xml.content:
-                for entry in re.findall(ur'(?:<span data-dpt="location" data-dpt-loctype="' + ltype + '">)([^<]+)', text_content_xml.content):
+                for entry in re.findall(
+                        ur'(?:<span data-dpt="location" data-dpt-loctype="' + ltype + '">)([^<]+)', text_content_xml.content):
                     ret['locations'][ltype].append(entry)
             if not ret['locations'][ltype]:
                 del ret['locations'][ltype]
@@ -530,7 +638,16 @@ def text_api_view_text(request, item_partid, content_type, location_type, locati
     ret['location_type'] = location_type
     ret['location'] = location
 
-    # print ret['message']
+    if text_content_xml:
+        attribution = text_content_xml.text_content.attribution
+        if attribution and attribution.message:
+            message = attribution.message
+            message = re.sub('<p>&nbsp;</p>', '', message)
+            ret['attribution'] = message
+        if attribution:
+            message = attribution.get_short_message()
+            if message:
+                ret['attribution_short'] = message
 
     return ret
 
@@ -579,10 +696,12 @@ def get_units(content, location_type, locations, content_xmlid=None):
     if locations is None:
         return get_all_units(content, location_type)
     else:
-        return get_units_from_locations(content, location_type, locations=locations, content_xmlid=content_xmlid)
+        return get_units_from_locations(
+            content, location_type, locations=locations, content_xmlid=content_xmlid)
 
 
-def get_units_from_locations(content, location_type, locations, content_xmlid=None):
+def get_units_from_locations(
+        content, location_type, locations, content_xmlid=None):
     extent = [0, 0]
 
     for location in sorted_natural(locations):
@@ -667,7 +786,8 @@ def get_fragment_extent(content, location_type, location=None, from_pos=0):
     return ret
 
 
-def text_api_view_image(request, item_partid, content_type, location_type, location, content_type_record, max_size=None, ignore_sublocation=False):
+def text_api_view_image(request, item_partid, content_type, location_type,
+                        location, content_type_record, max_size=None, ignore_sublocation=False):
     '''
         location = an identifier for the image. Relative to the item part
                     '#1000' => image with id = 1000
@@ -702,7 +822,8 @@ def text_api_view_image(request, item_partid, content_type, location_type, locat
 
     # return the locus of the images under this item part
     # return #ID for images which have no locus
-    if location_type == 'default' or utils.get_int_from_request_var(request, 'load_locations'):
+    if location_type == 'default' or utils.get_int_from_request_var(
+            request, 'load_locations'):
         recs = Image.sort_query_set_by_locus(get_visible_images(
             item_partid, request, visible_images)).values_list('locus', 'id')
         ret['locations'] = OrderedDict()
@@ -779,7 +900,8 @@ def get_annotations_from_image(image):
     # Note that textual annotation may not yet be linked to a Text Unit.
 
     from digipal.models import Annotation
-    for annotation in Annotation.objects.filter(image=image, type='text').prefetch_related('textannotations'):
+    for annotation in Annotation.objects.filter(
+            image=image, type='text').prefetch_related('textannotations'):
         info = {'geojson': annotation.get_geo_json_as_dict()}
         geojson = info['geojson']
         geojson['id'] = annotation.id
@@ -879,7 +1001,8 @@ def update_text_image_link(request, image, ret):
     return ret
 
 
-def get_text_elements_from_image(request, item_partid, content_type, location_type, location):
+def get_text_elements_from_image(
+        request, item_partid, content_type, location_type, location):
     # returns the TRANSCRIPTION text for the requested location
     # if not found, returns the whole text
     # eg.:  "text_elements": [[["", "clause"], ["type", "address"]], [["",
@@ -895,7 +1018,8 @@ def get_text_elements_from_image(request, item_partid, content_type, location_ty
     # find the transcription for that image
     text_info = text_api_view_text(request, item_partid, content_type, location_type,
                                    location, content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE)
-    if text_info.get('status', None) == 'error' and 'location not found' in text_info['message'].lower():
+    if text_info.get(
+            'status', None) == 'error' and 'location not found' in text_info['message'].lower():
         # location not found, try the whole text
         text_info = text_api_view_text(request, item_partid, content_type, 'whole',
                                        '', content_type_record, user=None, max_size=MAX_FRAGMENT_SIZE)
@@ -944,22 +1068,22 @@ def get_label_from_elementid(elementid, full=False):
         elementid = [["", "person"], ["type", "name"], ["@text", "willelmus-cumin"], ["@o", "2"]]
         => return 'willelmus-cumin (name) [2]'
     '''
-    order = '1'
+    order = u'1'
 
     elementid = elementid[:]
     pair = elementid.pop()
 
-    if pair[0] == '@o':
+    if pair[0] == u'@o':
         order = pair[1]
         pair = elementid.pop()
 
     ret = pair[1]
 
     pair = elementid.pop()
-    ret = '%s (%s)' % (ret, pair[1])
+    ret = u'%s (%s)' % (ret, pair[1])
 
     if order != '1':
-        ret += ' [%s]' % order
+        ret += u' [%s]' % order
 
     return ret
 
@@ -1008,7 +1132,8 @@ def get_elementid_from_xml_element(element, idcount, as_string=False):
     return parts
 
 
-def find_image(request, item_partid, location_type, location, get_visible_images, visible_images, first_if_no_found=False):
+def find_image(request, item_partid, location_type, location,
+               get_visible_images, visible_images, first_if_no_found=False):
     # return a Image object that matches the requested manuscript and location
     from digipal.models import Image
 
@@ -1032,7 +1157,8 @@ def find_image(request, item_partid, location_type, location, get_visible_images
                         item_part_id=item_partid, locus=locus).first()
 
     # Image not found, display the first one
-    if first_if_no_found and (not image or not image.is_full_res_for_user(request)):
+    if first_if_no_found and (
+            not image or not image.is_full_res_for_user(request)):
         image = get_visible_images(
             item_partid, request, visible_images).first()
 
@@ -1059,7 +1185,8 @@ def get_locus_from_location(location_type, location):
     return ret
 
 
-def text_api_view_search(request, item_partid, content_type, location_type, location, max_size=None):
+def text_api_view_search(request, item_partid, content_type,
+                         location_type, location, max_size=None):
     '''
         location = an identifier for the image. Relative to the item part
                     '#1000' => image with id = 1000
@@ -1072,7 +1199,8 @@ def text_api_view_search(request, item_partid, content_type, location_type, loca
 
     # return the locus of the images under this item part
     # return #ID for images which have no locus
-    if location_type == 'default' or utils.get_int_from_request_var(request, 'load_locations'):
+    if location_type == 'default' or utils.get_int_from_request_var(
+            request, 'load_locations'):
         ret['locations'] = OrderedDict()
         ret['locations']['locus'] = ['%s' % (rec[0] or '#%s' % rec[1]) for rec in Image.sort_query_set_by_locus(
             Image.objects.filter(item_part_id=item_partid)).values_list('locus', 'id')]

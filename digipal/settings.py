@@ -592,32 +592,35 @@ make_path(DJANGO_CACHE_PATH)
 
 # CACHING (make sure it is persistent otherwise files are recompiled each time
 # the app restarts)
+# FILE_BASED_CACHE_BACKEND = 'django.core.cache.backends.filebased.FileBasedCache'
+FILE_BASED_CACHE_BACKEND = 'digipal.middleware.FileBasedCacheArchetype'
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     },
     'django-compressor': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'BACKEND': FILE_BASED_CACHE_BACKEND,
         'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'django_compressor'),
         'TIMEOUT': 60 * 60 * 24,
         'MAX_ENTRIES': 300,
     },
     'digipal_faceted_search': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'BACKEND': FILE_BASED_CACHE_BACKEND,
         'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'faceted_search'),
         'TIMEOUT': 60 * 60 * 24,
         # 'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     },
     'digipal_compute': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'BACKEND': FILE_BASED_CACHE_BACKEND,
         'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'compute'),
         'TIMEOUT': 60 * 60 * 24,
         # 'TIMEOUT': 1,
         'MAX_ENTRIES': 300,
     },
     'digipal_text_patterns': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'BACKEND': FILE_BASED_CACHE_BACKEND,
         'LOCATION': os.path.join(DJANGO_CACHE_PATH, 'text_patterns'),
         'TIMEOUT': 60 * 60 * 24,
         # 'TIMEOUT': 1,
@@ -733,6 +736,17 @@ CHARACTER_ABBREV_STROKE = 'abbrev.stroke'
 
 ITEM_PART_DEFAULT_LOCUS = 'face'
 
+# for annotation size in the backend
+ADMIN_THUMB_SIZE_MAX = 100
+
+# ##
+
+# set this to True in your local_settings if the site is maintained
+# by King's Digital Lab. LEAVE IT False here.
+# This will show the KDL cookie/privacy policy at the bottom of the page
+# ONLY is this is True AND DEBUG = False
+KDL_MAINTAINED = False
+
 ####
 
 TEXT_EDITOR_OPTIONS = {
@@ -742,6 +756,14 @@ TEXT_EDITOR_OPTIONS = {
     },
     'toolbars': {
         'default': 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | psperson | pslocation | psex pssupplied psdel | code ',
+    },
+    'panels': {
+        'north': {
+            'ratio': 0.6
+        },
+        'east': {
+            'ratio': 0.5
+        },
     }
 }
 
@@ -787,8 +809,25 @@ RUNNING_DEVSERVER = (len(sys.argv) > 1 and sys.argv[1] == 'runserver')
 if RUNNING_DEVSERVER and DEBUG and os.environ.get('RUN_MAIN', None) != 'true':
     LOGGING = {}
 
+
+import collections
+
+
+def merge_dic(d, u):
+    # like d.update(u) but it will only enrich d rather than remove missing
+    # entries
+    # see https://stackoverflow.com/a/3233356/3748764
+    for k, v in u.iteritems():
+        if isinstance(v, collections.Mapping):
+            d[k] = merge_dic(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+
 if 'TEXT_EDITOR_OPTIONS_CUSTOM' in locals():
-    TEXT_EDITOR_OPTIONS.update(locals()['TEXT_EDITOR_OPTIONS_CUSTOM'])
+    # TEXT_EDITOR_OPTIONS.update(locals()['TEXT_EDITOR_OPTIONS_CUSTOM'])
+    merge_dic(TEXT_EDITOR_OPTIONS, locals()['TEXT_EDITOR_OPTIONS_CUSTOM'])
 
 #
 if not COMPRESS_ENABLED:

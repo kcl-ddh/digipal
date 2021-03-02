@@ -16,7 +16,7 @@ if [ ! -e "digipal_project/__init__.py" ]; then
                 cp build/archetype.tar.gz digipal_project/.
             fi
         fi
-    
+
         if [ -e "digipal_project/archetype.tar.gz" ]; then
             pushd digipal_project
             gunzip -f archetype.tar.gz
@@ -61,12 +61,12 @@ if [ ! -e "digipal_project/database/PG_VERSION" ]; then
     # Fixes issue with Django accessing the DB
     # Adjust PostgreSQL configuration so that remote connections to the database are possible.
     # RUN /etc/init.d/postgresql start &&\
-    
+
     source build/fix_permissions.sh
-    
+
     service postgresql start
     echo "RECREATE DATABASE"
-    su postgres -c /bin/bash <<"EOF" 
+    su postgres -c /bin/bash <<"EOF"
         psql -c "CREATE USER app_digipal WITH PASSWORD 'dppsqlpass';" &&\
         createdb -E 'utf-8' -T template0 -O app_digipal digipal &&\
         sed -i 's/local\s*all\s*all\s*peer/local    all    all    md5/' $(psql -c "SHOW hba_file;" | grep conf | xargs) &&\

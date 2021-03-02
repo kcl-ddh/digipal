@@ -4,7 +4,7 @@
     {% load pages_tags mezzanine_tags i18n %}
     {% load mezzanine_tags pagination_tags html_escape hand_filters %}
 
-    <h1 class='header1' id="search-top">
+    <h1 class="header1" id="search-top">
         {% if result_type.get_result_heading %}
             {{ result_type.get_result_heading }}
         {% else %}
@@ -21,7 +21,7 @@
     {% if not result_type.is_full_search %}
         <div class="panel faceted-summary">
             You are searching for: {{ summary }}
-            <a class="{% if not wide_result %}hidden-md hidden-lg{% endif %}" data-target="managed" href="#facets"> (Change)</a>
+            <a class="{% if not wide_result %}hidden-md hidden-lg{% endif %}" data-target="managed" href="#facets">(Change)</a>
         </div>
     {% endif %}
 
@@ -131,11 +131,13 @@
                                     {# in a span otherwise BS doesn't show it as a link #}
                                     <span class="facet-xp-icon">
                                         {% if facet.expanded == 1 %}
-                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=0{% endfilter %}" title="Show less">
+                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=0{% endfilter %}" title="Show less"
+                                              aria-label="Show less {{ facet.label }}">
                                                 <span class="fa fa-chevron-down"></span>
                                             </a>
                                         {% else %}
-                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=1{% endfilter %}" title="Show more">
+                                            <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=1{% endfilter %}" title="Show more"
+                                              aria-label="Show more {{ facet.label }}">
                                                 <span class="fa fa-chevron-left"></span>
                                             </a>
                                         {% endif %}
@@ -154,6 +156,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control {{ facet.classes }}" value="{{ facet.value }}" name="{{facet.key}}" autocomplete="off"
                                             {% if facet.id %}id="{{ facet.id }}"{% endif %}
+                                            aria-label="{{ facet.label }}"
                                         >
                                         <span class="input-group-btn">
                                             <button class="btn btn-default" type="submit" {% if facet.id %}data-focus="#{{ facet.id }}"{% endif %}>
@@ -174,15 +177,16 @@
 
                                         <div>Precision (in years)</div>
                                         <div class="input-group">
-                                            <select name="{{ facet.key }}_diff_op" class="form-control">
+                                            <select name="{{ facet.key }}_diff_op" class="form-control" aria-label="precision of text date (condition)">
                                                 {% for op in facet.ops %}
                                                     <option value="{{ op.key }}" {% if op.key == facet.value_diff_op %}selected{% endif %}>{{ op.label }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
                                         <div class="input-group">
-                                            <input type="text" class="form-control {{ facet.classes }}" value="{{ facet.value_diff }}" name="{{facet.key}}_diff" autocomplete="off"
+                                            <input type="number" class="form-control {{ facet.classes }}" value="{{ facet.value_diff }}" name="{{facet.key}}_diff" autocomplete="off"
                                                 {% if facet.id %}id="{{ facet.id }}_diff"{% endif %}
+                                                aria-label="precision of text date (in years)"
                                             >
                                             <span class="input-group-btn">
                                                 <button class="btn btn-default" type="submit" {% if facet.id %}data-focus="#{{ facet.id }}_diff"{% endif %}>
@@ -190,10 +194,47 @@
                                                 </button>
                                             </span>
                                         </div>
-
                                     {% endif %}
                                 {% endif %}
                                 {% if facet.options %}
+                                    <ul class="list-unstyled">
+                                        {% if facet.options.5 and facet.options.0.count %}
+                                            <li class="facet-sort-row">
+                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_st_{{facet.key}}=o{% endfilter %}" title="Sort {{ facet.label }} alphabetically">
+                                                    {% if facet.sorted_by == 'o' %}<span class="glyphicon glyphicon-arrow-down"></span>{% endif %}
+                                                    A-Z</a>
+                                                <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_st_{{facet.key}}=c{% endfilter %}" title="Sort {{ facet.label }} by count" class="pull-right">
+                                                    {% if facet.sorted_by == 'c' %}<span class="glyphicon glyphicon-arrow-up"></span>{% endif %}
+                                                    Count</a>
+                                            </li>
+                                        {% endif %}
+                                        {% for option in facet.options %}
+                                            {% if forloop.counter0 < 5 or facet.expanded == 1 or option.selected or facet.expanded == 2 %}
+                                                <li {% if option.selected %}class="active {% if facet.key != "result_type" %}removable{% endif %}"{% endif %}>
+                                                    <a href="{{ option.href }}" aria-label="{{ option.label }}, {{ option.count }} ({{ facet.label }})">
+                                                        {% if facet.options.0.count != '' %}
+                                                          <span class="pull-right">{{ option.count }}</span>
+                                                        {% endif %}
+                                                        {{ option.label }}
+                                                    </a>
+                                                    {% if option.selected %}<input type="hidden" name="{{ facet.key }}" value="{{ option.key }}"/>{% endif %}
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if facet.options.5 and not facet.expanded == 2 %}
+                                            <li>
+                                                {% if facet.expanded == 1 %}
+                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=0{% endfilter %}" class="btn btn-default small btn-expand-facet"
+                                                    aria-label="Show less {{ facet.label }}">Show less</a>
+                                                {% else %}
+                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=1{% endfilter %}" class="btn btn-default small btn-expand-facet"
+                                                    aria-label="Show more {{ facet.label }}">Show more...</a>
+                                                {% endif %}
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                {% endif %}
+                                {% if 0 and facet.options %}
                                     <table class="table">
                                         {% if facet.options.5 and facet.options.0.count %}
                                             <tr>
@@ -229,9 +270,11 @@
                                         {% if facet.options.5 and not facet.expanded == 2 %}
                                             <tr><td colspan="2">
                                                 {% if facet.expanded == 1 %}
-                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=0{% endfilter %}" class="btn btn-default small btn-expand-facet">Show less</a>
+                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=0{% endfilter %}" class="btn btn-default small btn-expand-facet"
+                                                    aria-label="Show less {{ facet.label }}">Show less</a>
                                                 {% else %}
-                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=1{% endfilter %}" class="btn btn-default small btn-expand-facet">Show more...</a>
+                                                    <a href="{% filter add_query_params:request.META.QUERY_STRING %}?_xp_{{facet.key}}=1{% endfilter %}" class="btn btn-default small btn-expand-facet"
+                                                    aria-label="Show more {{ facet.label }}">Show more...</a>
                                                 {% endif %}
                                             </td></tr>
                                         {% endif %}

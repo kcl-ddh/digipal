@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% load html_escape mezzanine_tags  %}
+
+{% block meta_title %}{{ item_part.display_label }}: Texts{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    {% comment %}
+        Trick: TinyMCE will load this later dynamically
+        but that happens AFTER our resize calculate the height of the button bar
+        which is unstyled yet and therefore too tall and shrinks the iframe.
+        The solution is to force a load of the stylesheet here so the computation
+        is accurate.
+    {% endcomment %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/tinymce/skins/digipal/skin.min.css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/viewer.css"/>
+    {# We need this for the readonly version although tinymce may also load it a second time for its iframe #}
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/tinymce.css?v={% now "U:u" %}"/>
+    <link rel="stylesheet" href="tinymce_generated.css?v={% now "U:u" %}"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal_text/viewer/tinymce_custom.css?v={% now "U:u" %}"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}digipal/openlayers3/ol.css"/>
+{% endblock %}
+
+{% block main %}
+
+{% block viewer_top %}
+    <div class="tv-main-toolbar">
+        {% block viewer_title %}
+            <span class="tvmt-heading">Text Viewer</span>
+            -
+            <span class="tvmt-itempart">
+                <a href="{{ item_part.get_absolute_url }}">
+                    {{ item_part.display_label }}
+                    {% if item_part.is_suspect %}(Suspect){% endif %}
+                </a>
+            </span>
+        {% endblock %}
+
+        {% block viewer-title-extra %}
+
+        {% endblock %}
+
+        <div class="ui-layout-above ui-layout-pane-above">
+            <div class="btn-toolbar">
+                <div class="location-buttons btn-group"></div>
+                <span class="location-description">&nbsp</span>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{# Template for the frame #}
+<div id="text-viewer">
+    <div class="panels">
+        <div class="ui-layout-north">Loading Text Viewer...</div>
+        {# <div class="ui-layout-west">&nbps;</div> #}
+        <div class="ui-layout-center">&nbps;</div>
+        <div class="ui-layout-east">&nbps;</div>
+        {# <div class="ui-layout-south">&nbps;</div> #}
+    </div>
+</div>
+
+{# Template for a panel within the frame #}
+<div id="text-viewer-panel" class="text-viewer-panel">
+    <div class="btn-toolbar">
+        <div class="btn-group dropdown-content-type">
+            {% include "bootstrap/dropdown.html" with options=dd_content_types classes="auto-open" %}
+        </div>
+
+        <div class="location-buttons btn-group dpauto-hide">
+            {% include "bootstrap/dropdown.html" with options=dd_location_types classes="dropdown-location-type dphidden auto-open" %}
+            <select name="location" class="dphidden">
+                <option value="1r">1r</option>
+                <option value="1v">1v</option>
+            </select>
+            <button class="btn btn-default btn-sm btn-page-nav btn-page-previous dphidden">
+                <i class="fa fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <button class="btn btn-default btn-sm btn-page-nav btn-page-next dphidden">
+                <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="dphidden dpauto-hide btn-group presentation-options"></div>
+
+        {% if request.user.is_authenticated %}
+            <div class="btn-group dpauto-hide">
+                <button class="btn btn-default btn-sm toggle-edit dphidden" title="Edit the text" data-toggle="tooltip" data-placement="bottom">
+                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                </button>
+                {% if statuses.count > 1 %}
+                    <select name="status" class="no-search dphidden">
+                        {% for status in statuses %}
+                            <option value="{{ status.id }}">{{ status.name }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+            </div>
+            <div class="btn-group dpauto-hide">
+                {% include "bootstrap/dropdown.html" with options=dd_download_formats classes="auto-open dphidden dropdown-download-formats" %}
+                {% comment %}
+                <button class="btn btn-default btn-sm action-download dphidden" title="Download" data-toggle="tooltip" data-placement="right">
+                    <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                </button>
+                {% endcomment %}
+            </div>
+        {% endif %}
+
+        <div class="linker btn-group pull-right dphidden">
+            <span class="linker-image btn btn-default btn-sm">
+                status
+            </span>
+            <select name="linker-text">
+                <option value="markup-clause-address">markup > clause > address</option>
+            </select>
+        </div>
+
+    </div>
+
+    <div class="panel-content" tabindex="0">
+    </div>
+
+    <div class="status-bar">
+        <span class="status"></span>
+        <span class="message"></span>
+        <span class="time pull-right"></span>
+    </div>
+
+</div>
+
+{% if DEBUG %}
+    <footer class="footer mini-footer">
+       {% if request.user.is_staff %}
+           You are logged in as {{ request.user }}
+           |
+           <a href="/admin/">Database</a>
+           |
+           <a href="/logout/?next={{request.path}}">Log out</a>
+       {% else %}
+           <a href="/login/?next={{request.path}}%3F{{request.META.QUERY_STRING|urlencode}}">Log in to see all the content</a>.
+       {% endif %}
+    </footer>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+
+    <script>
+        window.text_editor_options = {{ text_editor_options|safe }};
+    </script>
+
+    <script src="{{ STATIC_URL }}digipal_text/jqlayout/jquery.layout.min.js"></script>
+    {# TODO: include min on production #}
+    <script src="{{ STATIC_URL }}digipal_text/tinymce/tinymce.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}digipal/scripts/dpbootstrap.js"></script>
+    <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.tinymce.js"></script>
+    {# TODO: remove now qs #}
+    {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js?v={% now "U:u" %}"></script> #}
+    {# <script src="{{ STATIC_URL }}digipal_text/viewer/panelset.js"></script> #}
+    {% compress js %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/chosen.jquery.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}digipal/openlayers3/ol-debug.js"></script>
+        <script src="{{ STATIC_URL }}digipal/bs-dd-cb/bootstrap-dropdown-checkbox.min.js"></script>
+
+        <script src="{{ STATIC_URL }}digipal_text/viewer/annotation.ts" type="text/typescript"></script>
+
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panelset.utils.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panelset.panelset.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panelset.located.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panelset.panel.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panel.location.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panel.text.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panel.image.js"></script>
+        <script src="{{ STATIC_URL }}digipal_text/viewer/panelset/panel.search.js"></script>
+    {% endcompress %}
+
+    <script>
+        jQuery(document).ready(function($) {
+            var panelset = new TextViewer.PanelSet($('#text-viewer'));
+            {% if request.user.is_staff %}
+                panelset.setUserIsStaff(true);
+            {% endif %}
+            window.ps = panelset;
+            panelset.setItemPartid('{{ item_partid }}');
+            panelset.setLayout($('#text-viewer .panels'));
+            panelset.setMessageBox($('#text-viewer .message-box'));
+            panelset.setExpandButton($('#text-viewer .message-box a'));
+
+            ////panelset.setStateFromUrl('?above=location/&center=transcription/sync/location/&east=translation/sync/location/&north=image/sync/location/');
+
+            panelset.setStateFromUrl('?above=location/&center=transcription/sync/location/&east=translation/sync/location/&north=image/sync/location/');
+
+
+            //panelset.setPanelSize('west', 0.5);
+            panelset.ready();
+            //panelset.setPanelSize('south', 0);
+
+            panelset.setPanelSize('north', window.text_editor_options.panels.north.ratio);
+            panelset.setPanelSize('east', window.text_editor_options.panels.east.ratio);
+
+            // if narrow (992 is bootstrap threshold for medium display)
+            if ($(window).width() <= 800) {
+                $.each(panelset.layout.panes, function(pane) {
+                    if (pane !== false) {
+                      panelset.layout[pane == 'center' ? 'open' : 'close'](pane);
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}
+
+{% block kdl_maintained %}
+{% endblock %}

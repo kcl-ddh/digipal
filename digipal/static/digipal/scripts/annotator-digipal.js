@@ -7,6 +7,9 @@
  * TODO: IN DIRE NEED OF CLEAN UP AND REFACTORING!
  * 
  */
+
+var SHOW_NOTE_ON_HOVER = false;
+
 // inherits from Annotator
 DigipalAnnotator.prototype = new Annotator();
 
@@ -227,7 +230,14 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             map.addControl(navigation);
 
             if (!annotator.events) {
-                var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
+                // GN: 2020 trying to fix a bug where dbl click event to open
+                // an annotation popup is only declared after moving or zooming
+                // the map! See below. Not sure at all why it was done that way.
+                // It seems wasteful to call that EACH time those operations
+                // happen. I.e. each time the events are destroyed and recreated!
+                registerEvents();
+
+                // var annotations_layer = $('#OpenLayers_Layer_Vector_27_svgRoot');
                 map.events.register("moveend", map, function() {
                     registerEvents();
                     restoreFullscreenPositions();
@@ -327,19 +337,17 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
                 boxes.remove();
             }
         }
+        let style_name = 'undescribed';
         if (feature.described) {
-            stylize(feature, 'green', 'green', 0.4);
+            style_name = 'described';
         } else if (feature.is_editorial && $('#show_editorial_annotations').is(':checked')) {
-            stylize(feature, '#222', '#222', 0.4);
+            style_name = 'editorial';
         } else {
-            var color;
             if (feature.state == 'Insert' && $('.number_unsaved_allographs').hasClass('active') && !feature.stored) {
-                color = "#fe2deb";
-            } else {
-                color = '#ee9900';
+                style_name = 'unsaved';
             }
-            stylize(feature, color, color, 0.4);
         }
+        stylize_predefined(feature, style_name);
         this.vectorLayer.redraw();
         if (this.selectedAnnotations.length) {
             this.selectedFeature = this.selectedAnnotations[0];
@@ -1945,6 +1953,51 @@ function select_feature(feature) {
     annotator.annotationsGroup.toggleGroupButton();
 }
 
+// TODO: simplify by havinh a pale fill color, same color bu darker for stroke
+// Same opacity for all styles. 
+var FEATURE_STYLES = {
+    'selected': {
+        'fill': 'blue',
+        'stroke': 'blue',
+        'opacity': 0.4,
+    },
+    'described': {
+        'fill': '#90ff90',
+        'stroke': 'green',
+        'opacity': 0.4,
+    },
+    'undescribed': {
+        // yellow
+        'fill': '#ee9900',
+        'stroke': '#994400',
+        'opacity': 0.4,
+    },
+    'unsaved': {
+        // red/pink
+        'fill': '#fe2deb',
+        'stroke': '#fe2deb',
+        'opacity': 0.4,
+    },
+    'editorial': {
+        'fill': '#222',
+        'stroke': '#222',
+        'opacity': 0.4,
+    },
+    'wrong_name': {
+        'fill': '#202020',
+        'stroke': '#B00000',
+        'opacity': 0.4,
+    },
+}
+
+function stylize_predefined(feature, style_name) {
+    let style = FEATURE_STYLES[style_name];
+    if (!style) {
+        console.log('Style name not found: "'+style_name+'"');
+        style = FEATURE_STYLES.wrong_name;
+    }
+    stylize(feature, style.fill, style.stroke, style.opacity);
+}
 
 /* Applies style to a vector */
 var stylize = function(feature, fill, stroke, opacity) {
@@ -1953,7 +2006,7 @@ var stylize = function(feature, fill, stroke, opacity) {
     }
     feature.style = {
         'strokeColor': stroke,
-        'strokeOpacity': opacity,
+        'strokeOpacity': Math.max(opacity + 0.3, 1.0),
         'fillColor': fill,
         "fillOpacity": opacity
     };
@@ -2017,7 +2070,7 @@ function reload_described_annotations(div) {
             stylize(feature[h], '#222', '#222', 0.4);
         } else {
             if (num_features) {
-                stylize(feature[h], 'green', 'green', 0.4);
+                stylize_predefined(feature[h], 'described')
                 feature[h].described = true;
 
                 if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature && feature[h].graph == selectedFeature.graph) {
@@ -2027,7 +2080,7 @@ function reload_described_annotations(div) {
                 }
 
             } else {
-                stylize(feature[h], '#ee9900', '#ee9900', 0.4);
+                stylize_predefined(feature[h], 'undescribed');
                 feature[h].described = false;
 
                 if (typeof selectedFeature != "undefined" && typeof selectedFeature != "null" && selectedFeature) {
@@ -3222,22 +3275,21 @@ function save(url, graphs, data, ann, features) {
                                 //annotator.annotations[ann].vector_id = feature.vector_id;
                             }
 
-
+                            let style_name = 'described';
                             if (new_graphs[i].hasOwnProperty('features') && new_graphs[i].features.length && !feature.is_editorial) {
-                                color = 'green';
                                 feature.described = true;
                                 feature.num_features = feature.features.length + 1;
                             } else if (new_graphs[i].hasOwnProperty('features') && !new_graphs[i].features.length && !feature.is_editorial) {
-                                color = '#ee9900';
+                                let style_name = 'undescribed';
                                 feature.described = false;
                                 feature.num_features = 0;
                             } else {
-                                color = '#222';
+                                let style_name = 'editorial';
                                 feature.described = false;
                                 feature.num_features = 0;
                             }
 
-                            stylize(feature, color, color, 0.4);
+                            stylize_predefined(feature, style_name);
                             feature.style.originalColor = color;
                             feature.style.strokeWidth = 2;
                             feature.stored = true;
@@ -3286,37 +3338,42 @@ function save(url, graphs, data, ann, features) {
 
 }
 
+
 function registerEvents() {
+    var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
+
+    if (paths.length < 1) return;
+
+    annotator.events = true;
+
     if (annotator.isAdmin == 'True') {
-        annotator.events = true;
-        var paths = $('#OpenLayers_Layer_Vector_27_vroot').find("path");
-        /*
-
-            Uncomment to activate mouseover and mouseout events
-            for displaying popups when a graphs has a display note field
-
-
-
-
-        paths.unbind('mouseenter').on('mouseenter', function() {
-            var features = annotator.vectorLayer.features;
-            for (var i = 0; i < features.length; i++) {
-                if ($(this).attr('id') == features[i].geometry.id) {
-                    if (features[i].display_note) {
-                        createPopup(features[i]);
+        if (SHOW_NOTE_ON_HOVER) {
+            // mouseover and mouseout events
+            // for displaying popups when a graphs has a display note field
+            paths.unbind('mouseenter').on('mouseenter', function() {
+                var features = annotator.vectorLayer.features;
+                for (var i = 0; i < features.length; i++) {
+                    if ($(this).attr('id') == features[i].geometry.id) {
+                        if (features[i].display_note) {
+                            createPopup(features[i]);
+                        }
                     }
                 }
-            }
-        }).unbind('mouseleave').on('mouseleave', function() {
-            var features = annotator.vectorLayer.features;
-            for (var i = 0; i < features.length; i++) {
-                if (features[i].popup) {
-                    deletePopup(features[i]);
+            }).unbind('mouseleave').on('mouseleave', function() {
+                var features = annotator.vectorLayer.features;
+                for (var i = 0; i < features.length; i++) {
+                    if (features[i].popup) {
+                        deletePopup(features[i]);
+                    }
                 }
-            }
-        });
+            });
+        }
 
-*/
+    }
+
+    // GN: if not in admin/edit mode then a single click opens the box.
+    // so no need for supporting the double click.
+    if (annotator.isAdmin == 'True') {
         paths.unbind('dblclick').on('dblclick', function(event) {
 
             if (annotator.boxes_on_click) {
@@ -3368,9 +3425,14 @@ DigipalAnnotator.prototype.activateKeyboardShortcuts = function() {
 
         //if (event.shiftKey && annotator.isAdmin == 'True') {
         if (annotator.isAdmin == 'True') {
-            var isFocus = $('input').is(':focus') || $('textarea').is(':focus') || $('div.editor').is(':focus');
+            var activeElement = document.activeElement;
+            var isActiveElementEditable = activeElement && (
+                activeElement.isContentEditable
+                || activeElement.tagName.toLowerCase() == 'input'
+            );
+
             //var focused_tag = $(':focus').first().prop('tagName');
-            if (!isFocus) {
+            if (!isActiveElementEditable) {
                 switch (code) {
                     case 109: // m
                     case 77: // M

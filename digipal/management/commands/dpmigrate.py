@@ -2094,7 +2094,7 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         # find the type of each column
         schema = []
         types = {}
-        max_len = 0
+        max_len = 1  # varchar must be at least 1
         for col in lines[0].keys():
             for val in [line[col] for line in lines]:
                 val = unicode(val)
@@ -2125,7 +2125,9 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         # entries_hands is DEPRECATED, replaced by digipal_text_hand
         create_table_index_data = {
             'entries_hands': ['hands', 'entry'],
-            'exon_master': ['revisedellisnos', 'hundred', 'shire', 'fief'],
+            # 'exon_master': ['revisedellisnos', 'hundred', 'shire', 'fief'],
+            'exon_master': ['exonellisref', 'hundred', 'shire', 'lat', 'lng', 'vill'],
+            'exon_reference_system': ['revisedellisnos'],
             'exon_mapping': ['lng', 'vill', 'exonellisref'],
         }
 
@@ -2135,9 +2137,12 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
             from django.db import connections
             con_dst = connections[options.get('db', 'default')]
             for field in fields:
+                print '\tCreate index on field %s' % field
+                drop = 'DROP INDEX IF EXISTS %s_%s' % (table_name, field)
+                utils.sqlWrite(con_dst, drop)
+
                 create = 'CREATE INDEX %s_%s ON %s (%s)' % (
                     table_name, field, table_name, field)
-                print '\tCreate index on field %s' % field
                 utils.sqlWrite(con_dst, create)
 
     def insertTableFromCSV(self):

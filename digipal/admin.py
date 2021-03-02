@@ -21,7 +21,7 @@ from digipal.models import Allograph, AllographComponent, Alphabet, Annotation, 
     Reference, Region, Repository, \
     Scribe, Script, ScriptComponent, Source, Status, MediaPermission, \
     StewartRecord, HandDescription, RequestLog, Text, TextItemPart, \
-    CarouselItem, ApiTransform, AuthenticityCategory, KeyVal
+    CarouselItem, ApiTransform, AuthenticityCategory, KeyVal, ContentAttribution
 from mezzanine.conf import settings
 import reversion
 import django_admin_customisations
@@ -58,7 +58,8 @@ class DigiPalModelAdmin(reversion.VersionAdmin):
 
             field = getattr(record, field_name, None)
 
-            if field and related_model in [getattr(field, 'through', ''), getattr(field, 'model', '')]:
+            if field and related_model in [
+                    getattr(field, 'through', ''), getattr(field, 'model', '')]:
                 ret = field.count()
                 break
 
@@ -155,9 +156,16 @@ class RepositoryForm(forms.ModelForm):
 class AllographAdmin(DigiPalModelAdmin):
     model = Allograph
 
+    fieldsets = (
+        (None, {'fields': (
+            'name', 'character', 'illustration', 'aspects',
+            'hidden', 'default'
+        )}),
+    )
+
     search_fields = ['name', 'character__name']
 
-    list_display = ['name', 'character', 'hidden', 'created', 'modified']
+    list_display = ['name', 'character', 'hidden', 'illustration', 'created', 'modified']
     list_display_links = ['name', 'character', 'created', 'modified']
     list_editable = ['hidden']
 
@@ -180,32 +188,63 @@ class AnnotationAdmin(DigiPalModelAdmin):
     model = Annotation
 
     fieldsets = (
-                (None, {'fields': ('graph', 'image')}),
-        #('Preview', {'fields': ('thumbnail', )}),
-                ('Metadata', {'fields': ('before',
-                                         'after', 'rotation', 'status')}),
-                ('Notes', {'fields': ('internal_note', 'display_note')}),
-                ('Internal data', {
-                 'fields': ('geo_json', 'holes', 'vector_id', 'cutout')}),
+        (None, {'fields': ('graph', 'image')}),
+        ('Pictures', {'fields': ('get_thumb_form',
+                ('get_illustration_ductus_thumb_form', 'illustration_ductus'))}),
+        ('Notes', {'fields': ('internal_note', 'display_note')}),
+        ('Internal data', {
+         'fields': ('geo_json', 'holes', 'vector_id', 'cutout')}),
+        ('Metadata', {'fields': ('before',
+                                 'after', 'rotation', 'status')}),
     )
 
     list_display = ['id', 'get_graph_desc', 'thumbnail_with_link',
-                    'image', 'author', 'created', 'modified', 'status', 'clientid']
+                    'get_illustration_ductus_thumb_listing',
+                    'image', 'author', 'created', 'modified', 'status']
     list_display_links = ['id', 'get_graph_desc',
                           'image', 'author', 'created', 'modified', 'status']
     search_fields = ['id', 'graph__id', 'vector_id', 'image__display_label',
                      'graph__idiograph__allograph__character__name']
-    list_filter = ['author__username', 'graph__idiograph__allograph__character__name', 'status', 'type',
-                   admin_filters.AnnotationFilterDuplicateClientid, admin_filters.AnnotationFilterLinkedToText]
+    list_filter = ['author__username',
+                   'graph__idiograph__allograph__character__name',
+                   'status', 'type',
+                   admin_filters.AnnotationFilterDuplicateClientid,
+                   admin_filters.AnnotationFilterLinkedToText
+    ]
+
+    CHANGE_FORM_THUMB_MAX_SIZE = 100
 
     def get_graph_desc(self, obj):
         ret = u''
         if obj and obj.graph:
-            ret = u'%s (#%s)' % (obj.graph, obj.graph.id)
+            ret = u'%s (#%s)' % (obj.graph.idiograph.allograph, obj.graph.id)
         return ret
     get_graph_desc.short_description = 'Graph'
 
-    readonly_fields = ('graph',)
+    def get_thumb_form(self, obj):
+        ''' returns HTML of an image inside a span'''
+        from templatetags.html_escape import annotation_img
+        return annotation_img(
+            obj, lazy=0, fixlen=self.CHANGE_FORM_THUMB_MAX_SIZE
+        )
+    get_thumb_form.short_description = 'Annotation'
+
+    def get_illustration_ductus_thumb_form(self, obj):
+        from digipal.templatetags import html_escape
+        return html_escape.get_html_from_django_imagefield(
+            obj.illustration_ductus, max_size=self.CHANGE_FORM_THUMB_MAX_SIZE
+        )
+    get_illustration_ductus_thumb_form.short_description = 'Ductus'
+
+    def get_illustration_ductus_thumb_listing(self, obj):
+        from digipal.templatetags import html_escape
+        return html_escape.get_html_from_django_imagefield(
+            obj.illustration_ductus, max_size=settings.ADMIN_THUMB_SIZE_MAX,
+            lazy=1
+        )
+    get_illustration_ductus_thumb_listing.short_description = 'Ductus'
+
+    readonly_fields = ('graph', 'get_thumb_form', 'get_illustration_ductus_thumb_form')
 
 
 class AppearanceAdmin(DigiPalModelAdmin):
@@ -449,7 +488,8 @@ class HandAdmin(DigiPalModelAdmin):
             for error in errors:
                 messages.warning(request, error)
 #         obj._update_display_label_and_save()
-        return super(HandAdmin, self).response_change(request, obj, *args, **kwargs)
+        return super(HandAdmin, self).response_change(
+            request, obj, *args, **kwargs)
 
 
 class HistoricalItemAdmin(DigiPalModelAdmin):
@@ -574,7 +614,8 @@ class ItemPartAdmin(DigiPalModelAdmin):
 
     readonly_fields = ('display_label', 'historical_label')
     fieldsets = (
-                (None, {'fields': ('display_label', 'historical_label', 'type',)}),
+                (None, {'fields': ('display_label',
+                                   'historical_label', 'custom_label', 'type',)}),
                 ('This part is currently found in ...', {
                  'fields': ('current_item', 'locus', 'pagination')}),
                 ('It belongs (or belonged) to another part...',
@@ -605,11 +646,13 @@ class ItemPartAdmin(DigiPalModelAdmin):
     # See https://code.djangoproject.com/ticket/13950
     def response_add(self, request, obj, *args, **kwargs):
         obj._update_display_label_and_save()
-        return super(ItemPartAdmin, self).response_add(request, obj, *args, **kwargs)
+        return super(ItemPartAdmin, self).response_add(
+            request, obj, *args, **kwargs)
 
     def response_change(self, request, obj, *args, **kwargs):
         obj._update_display_label_and_save()
-        return super(ItemPartAdmin, self).response_change(request, obj, *args, **kwargs)
+        return super(ItemPartAdmin, self).response_change(
+            request, obj, *args, **kwargs)
 
 
 class ItemPartTypeAdmin(DigiPalModelAdmin):
@@ -779,7 +822,8 @@ class ImageAdmin(DigiPalModelAdmin):
 
     def get_iipimage_field(self, obj):
         from django.template.defaultfilters import truncatechars
-        return u'<span title="%s">%s</span>' % (obj.iipimage, truncatechars(obj.iipimage, 15))
+        return u'<span title="%s">%s</span>' % (
+            obj.iipimage, truncatechars(obj.iipimage, 15))
     get_iipimage_field.short_description = 'file'
     get_iipimage_field.allow_tags = True
 
@@ -792,7 +836,8 @@ class ImageAdmin(DigiPalModelAdmin):
             def get_queryset(self, *args, **kwargs):
                 qs = super(SortedChangeList, self).get_queryset(
                     *args, **kwargs)
-                return Image.sort_query_set_by_locus(qs).prefetch_related('annotation_set', 'hands').select_related('item_part')
+                return Image.sort_query_set_by_locus(qs).prefetch_related(
+                    'annotation_set', 'hands').select_related('item_part')
 
         if request.GET.get('o'):
             return ChangeList
@@ -821,14 +866,16 @@ class ImageAdmin(DigiPalModelAdmin):
     action_regen_display_label.short_description = 'Regenerate display labels'
 
     def action_find_nested_annotations(self, request, queryset):
-        for annotation in Annotation.objects.filter(image__in=queryset).order_by('image__id'):
+        for annotation in Annotation.objects.filter(
+                image__in=queryset).order_by('image__id'):
             annotation.set_graph_group()
     action_find_nested_annotations.short_description = 'Find nested annotations'
 
     def bulk_editing(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        return HttpResponseRedirect(reverse('digipal.views.admin.image.image_bulk_edit') + '?ids=' + ','.join(selected))
+        return HttpResponseRedirect(reverse(
+            'digipal.views.admin.image.image_bulk_edit') + '?ids=' + ','.join(selected))
     bulk_editing.short_description = 'Bulk edit'
 
     def get_status_label(self, obj):
@@ -1033,10 +1080,12 @@ class StewartRecordFilterMatched(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == '1':
-            return queryset.exclude(matched_hands__isnull=True).exclude(matched_hands__exact='').distinct()
+            return queryset.exclude(matched_hands__isnull=True).exclude(
+                matched_hands__exact='').distinct()
         if self.value() == '0':
             from django.db.models import Q
-            return queryset.filter(Q(matched_hands__isnull=True) | Q(matched_hands__exact='')).distinct()
+            return queryset.filter(Q(matched_hands__isnull=True) | Q(
+                matched_hands__exact='')).distinct()
 
 
 class StewartRecordAdmin(DigiPalModelAdmin):
@@ -1076,19 +1125,22 @@ class StewartRecordAdmin(DigiPalModelAdmin):
     def match_hands(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        return HttpResponseRedirect(reverse('stewart_match') + '?ids=' + ','.join(selected))
+        return HttpResponseRedirect(
+            reverse('stewart_match') + '?ids=' + ','.join(selected))
     match_hands.short_description = 'Match with DigiPal hand records'
 
     def merge_matched(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        return HttpResponseRedirect(reverse('stewart_import') + '?ids=' + ','.join(selected))
+        return HttpResponseRedirect(
+            reverse('stewart_import') + '?ids=' + ','.join(selected))
     merge_matched.short_description = 'Merge records into their matched hand records'
 
     def merge_matched_simulation(self, request, queryset):
         from django.http import HttpResponseRedirect
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        return HttpResponseRedirect(reverse('stewart_import') + '?dry_run=1&ids=' + ','.join(selected))
+        return HttpResponseRedirect(
+            reverse('stewart_import') + '?dry_run=1&ids=' + ','.join(selected))
     merge_matched_simulation.short_description = 'Simulate merge records into their matched hand records'
 
 
@@ -1134,6 +1186,15 @@ class AuthenticityCategoryAdmin(DigiPalModelAdmin):
     list_display_links = list_display
     search_fields = ['id', 'name', 'slug']
     ordering = ['name']
+
+
+class ContentAttributionAdmin(DigiPalModelAdmin):
+    model = ContentAttribution
+
+    list_display = ['id', 'title', 'modified', 'created']
+    list_display_links = list_display
+    search_fields = ['id', 'title', 'message']
+    ordering = ['title']
 
 
 class KeyValAdmin(DigiPalModelAdmin):
@@ -1211,11 +1272,12 @@ admin.site.register(RequestLog, RequestLogAdmin)
 admin.site.register(ApiTransform, ApiTransformAdmin)
 admin.site.register(Text, TextAdmin)
 admin.site.register(AuthenticityCategory, AuthenticityCategoryAdmin)
+admin.site.register(ContentAttribution, ContentAttributionAdmin)
 admin.site.register(KeyVal, KeyValAdmin)
 
 # Let's add the Keywords to the admin interface
 try:
     from mezzanine.generic.models import Keyword
     admin.site.register(Keyword)
-except ImportError, e:
+except ImportError as e:
     pass

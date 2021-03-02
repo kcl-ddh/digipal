@@ -8,9 +8,9 @@
 // The content can be anything and specifics are dealt with subclasses.
 //
 /////////////////////////////////////////////////////////////////////////
-(function(TextViewer, $, undefined) {
+(function (TextViewer, $, undefined) {
 
-    var Panel = TextViewer.Panel = function($root, contentType, panelType, options) {
+    var Panel = TextViewer.Panel = function ($root, contentType, panelType, options) {
         this.uuid = window.dputils.get_uuid();
 
         this.$root = $root;
@@ -29,7 +29,9 @@
         this.contentType = contentType;
 
         this.panelSet = null;
-        
+
+        this.attributionShort = '';
+
         //  undefined: no edit mode at all
         //  true: editing
         //  false: not editing
@@ -58,8 +60,10 @@
 
         // METHODS
 
-        this.callApi = function(title, url, onSuccess, requestData, synced) {
+        this.callApi = function (title, url, onSuccess, requestData, synced) {
             var me = this;
+
+            this.setMessage(title + '...', 'info');
 
             // pre-process requestData
             if (requestData) {
@@ -76,23 +80,28 @@
             }
 
             // request event handlers
-            var onComplete = function(jqXHR, textStatus) {
+            var onComplete = function (jqXHR, textStatus) {
                 if (textStatus !== 'success') {
-                    me.setMessage('Error while '+title+' (status: '+textStatus+')', 'error');
+                    me.setMessage('Error while ' + title + ' (status: ' + textStatus + ')', 'error');
                 }
             };
-            var onSuccessWrapper = function(data, textStatus, jqXHR) {
+            var onSuccessWrapper = function (data, textStatus, jqXHR) {
+                var status_message = '';
+                me.attributionShort = data.attribution_short;
+
                 data.status = data.status || 'success';
-                data.message = data.message || 'done ('+title+').';
+                status_message = data.message || 'done (' + title + ').';;
                 if (data.locations) {
                     me.updateLocations(data.locations, data.is_fake);
                 }
                 if (data.status === 'success') {
                     onSuccess(data, textStatus, jqXHR);
+                    if (data.attribution_short) {
+                        status_message = data.attribution_short;
+                    }
                 }
-                me.setMessage(data.message, data.status);
+                me.setMessage(status_message, data.status);
             };
-            this.setMessage(title+'...', 'info');
 
             var ret = null;
             if (!this.callApiFake(url, onSuccessWrapper)) {
@@ -102,7 +111,7 @@
             return ret;
         };
 
-        this.callApiFake = function(url, onSuccessWrapper) {
+        this.callApiFake = function (url, onSuccessWrapper) {
             return false;
             // prevents unnecessary server request for 'sync' location
             // Disabled as it causes issues with display settings from URL
@@ -132,7 +141,7 @@
             return ret;
         };
 
-        this.onDestroy = function() {
+        this.onDestroy = function () {
             // destructor, the place to remove any resource and detach event handlers
             this.panelSet.unRegisterPanel(this);
             // prevent ghost saves (e.g. detached panel still listens to unload events)
@@ -140,17 +149,21 @@
             this.loadedAddress = null;
         };
 
-        this.setMessage = function(message, status) {
+        this.setMessage = function (message, status) {
             // status = success|info|warning|error
             if (this.$statusBar) {
-                this.$statusBar.find('.message').html(message).removeClass('message-success message-info message-warning message-error').addClass('message-'+status);
-                this.$statusBar.find('.time').html(TextViewer.getStrFromTime(new Date()));
+                this.$statusBar.find('.message').html(message).removeClass('message-success message-info message-warning message-error').addClass('message-' + status);
+                var timestamp = '';
+                if (me.editingMode == true) {
+                    timestamp = TextViewer.getStrFromTime(new Date());
+                }
+                this.$statusBar.find('.time').html(timestamp);
             }
         };
 
         this.unreadyComponents = ['panelset'];
 
-        this.componentIsReady = function(component) {
+        this.componentIsReady = function (component) {
             // we remove the component from the waiting list
             var index = $.inArray(component, this.unreadyComponents);
             if (index > -1) {
@@ -176,7 +189,7 @@
 
         /* LOADING CONTENT */
 
-        this.loadContent = function(loadLocations, address, subLocation) {
+        this.loadContent = function (loadLocations, address, subLocation) {
             // Important, the argument is ignored, we load if we don't have locations
             loadLocations = this.locationsAreUnloaded;
 
@@ -208,7 +221,7 @@
 
         /* SAVING CONTENT */
 
-        this.saveContent = function(options) {
+        this.saveContent = function (options) {
             options = options || {};
             if (this.loadedAddress && (this.isDirty() || options.forceSave)) {
                 //console.log('SAVE '+this.loadedAddress);
@@ -217,17 +230,17 @@
             }
         };
 
-        this.saveContentCustom = function(options) {
+        this.saveContentCustom = function (options) {
             // NEVER CALL THIS FUNCTION DIRECTLY
             // ONLY saveContent() can call it
         };
 
-        this.onContentSaved = function(data) {
+        this.onContentSaved = function (data) {
         };
 
         /* -------------- */
 
-        this.setValid = function(isValid) {
+        this.setValid = function (isValid) {
             // tells us if the content is invalid
             // if it is invalid we have to block editing
             // visually inform the user the content is not valid.
@@ -242,28 +255,28 @@
             $mask.css('height', isValid ? '0' : '100%');
         };
 
-        this.isDirty = function() {
+        this.isDirty = function () {
             var ret = (this.getContentHash() !== this.lastSavedHash);
             return ret;
         };
 
-        this.setNotDirty = function() {
+        this.setNotDirty = function () {
             this.lastSavedHash = this.getContentHash();
         };
 
-        this.setDirty = function() {
+        this.setDirty = function () {
             var d = new Date();
             this.lastSavedHash = (d.toLocaleTimeString() + d.getMilliseconds());
         };
 
-        this.getContentHash = function() {
+        this.getContentHash = function () {
             var ret = null;
             return ret;
             //return ret.length + ret;
         };
 
         // Content Status
-        this.setStatusSelect = function(contentStatus) {
+        this.setStatusSelect = function (contentStatus) {
             if (contentStatus) {
                 // select the given status in the drop down
                 this.$statusSelect.val(contentStatus);
@@ -274,32 +287,32 @@
             TextViewer.unhide(this.$statusSelect, !!contentStatus);
         };
 
-        this.arePresentationOptionsDefined = function() {
+        this.arePresentationOptionsDefined = function () {
             var $pres = this.$presentationOptions;
             return ($pres && $pres.length && $pres.data().hasOwnProperty('dropdownCheckbox'));
         };
 
         // Address / Locations
 
-        this.setItemPartid = function(itemPartid) {
+        this.setItemPartid = function (itemPartid) {
             // e.g. '/itemparts/1/'
             this.itemPartid = itemPartid;
         };
 
-        // Returns a web path from (locationType, location)  
+        // Returns a web path from (locationType, location)
         // If no argument, from locationType and location drop downs
         // Note that this can be /sync/...
         // This is different from the loaded address
         // see getLoadedAddress()
-        this.getContentAddress = function(locationType, location) {
+        this.getContentAddress = function (locationType, location) {
             return this.panelSet.getBaseAddress() + this.getContentAddressRelative(locationType, location);
         };
 
-        this.getContentAddressRelative = function(locationType, location) {
+        this.getContentAddressRelative = function (locationType, location) {
             return this.getContentType() + '/' + (locationType || this.getLocationType()) + '/' + encodeURIComponent((location === undefined) ? this.getLocation() : location) + '/';
         };
 
-        this.getContentType = function() {
+        this.getContentType = function () {
             return this.contentType;
         };
 
@@ -307,7 +320,7 @@
 
     Panel.prototype = Object.create(TextViewer.Located.prototype);
 
-    Panel.prototype._ready = function() {
+    Panel.prototype._ready = function () {
         var me = this;
 
         // Remove editing rights is user not logged in
@@ -316,22 +329,22 @@
 
         if (this.$contentTypes) {
             this.$contentTypes.dpbsdropdown({
-                onSelect: function($el, key, $a) {
+                onSelect: function ($el, key, $a) {
                     // the user has selected another view/content type -> we replace this panel
                     //var options = {contentAddress: key+'/sync/location/'};
-                    var options = {contentAddress: key+'/'+me.getLocationType()+'/'+me.getLocation()+'/'};
-                    me.panelSet.registerPanel(new TextViewer['Panel'+$a.data('class')](me.$root, key, options));
+                    var options = { contentAddress: key + '/' + me.getLocationType() + '/' + me.getLocation() + '/' };
+                    me.panelSet.registerPanel(new TextViewer['Panel' + $a.data('class')](me.$root, key, options));
                 },
             });
             this.$contentTypes.dpbsdropdown('setOption', this.contentType, true);
         }
 
-        this.loadContent(true, this.loadOptions.contentAddress ?  this.panelSet.getBaseAddress() + this.loadOptions.contentAddress : undefined);
+        this.loadContent(true, this.loadOptions.contentAddress ? this.panelSet.getBaseAddress() + this.loadOptions.contentAddress : undefined);
 
         this.onResize();
 
         if (this.$statusSelect) {
-            this.$statusSelect.on('change', function() {
+            this.$statusSelect.on('change', function () {
                 // digipal/api/textcontentxml/?_text_content__item_part__id=1628&_text_content__type__slug=translation&status__id=7
                 var ret = TextViewer.callApi('/digipal/api/textcontentxml/', null, null, {
                     'method': 'PUT',
@@ -348,34 +361,34 @@
         }
 
         if (this.$linkerText) {
-            this.$linkerText.on('change', function() {
+            this.$linkerText.on('change', function () {
                 me.onLinkerTextChanged();
             });
         }
 
         if (this.$content) {
-            setInterval(function() {
+            setInterval(function () {
                 me.saveContent();
             }, 2500);
         }
     };
-    
-    Panel.prototype.onSelectDownloadFormat = function(format) {
+
+    Panel.prototype.onSelectDownloadFormat = function (format) {
         var me = this;
         //me.onLocationChanged();
         // http://localhost/digipal/manuscripts/1/texts/codicology/whole/?jx=1&load_locations=0&ds=&format=html&ds=locus
         //var url = me.getContentAddress('whole', '');
         var url = me.getLoadedAddress();
-        url += '?ds=' + (me.getListFromPresentationOptions()).join(',')+'&format='+format;
+        url += '?ds=' + (me.getListFromPresentationOptions()).join(',') + '&format=' + format;
         window.open(url, '_blank');
     };
-    		
-    Panel.prototype.createUserInterface = function() {
+
+    Panel.prototype.createUserInterface = function () {
         // clone the panel template
         var $panelHtml = $('#text-viewer-panel').clone();
         $panelHtml.removeAttr('id');
-        $panelHtml.addClass('ct-'+this.contentType);
-        $panelHtml.addClass('pt-'+this.panelType.toLowerCase());
+        $panelHtml.addClass('ct-' + this.contentType);
+        $panelHtml.addClass('pt-' + this.panelType.toLowerCase());
         this.$root.html($panelHtml);
 
         // We create bindings for all the html controls on the panel
@@ -399,18 +412,18 @@
         this.$downloadFormats = this.$root.find('.dropdown-download-formats');
         var me = this;
         this.$downloadFormats.dpbsdropdown({
-            onSelect: function($el, key) { me.onSelectDownloadFormat(key); },
+            onSelect: function ($el, key) { me.onSelectDownloadFormat(key); },
             selectIfSame: true,
         });
-        
+
         this.$root.find('[data-toggle=tooltip]').tooltip();
     };
 
-    Panel.prototype.setPresentationOptions = function(presentationOptions) {
+    Panel.prototype.setPresentationOptions = function (presentationOptions) {
         var $pres = this.$presentationOptions;
         if (presentationOptions) {
             //var myData = [{id: 1, label: "Test" }];
-            var options = presentationOptions.map(function(v, i) {return {id: v[0], label: v[1]};});
+            var options = presentationOptions.map(function (v, i) { return { id: v[0], label: v[1] }; });
             if (!this.arePresentationOptionsDefined()) {
                 var me = this;
                 $pres.dropdownCheckbox({
@@ -419,11 +432,11 @@
                     btnClass: 'btn btn-default btn-sm'
                 });
                 $pres.find('button').html('<span class="glyphicon glyphicon-eye-open"></span>&nbsp;<span class="caret"></span>');
-                $pres.on('mouseenter mouseleave', function($event) {
+                $pres.on('mouseenter mouseleave', function ($event) {
                     $pres.find('.dropdown-checkbox-content').toggle($event.type === 'mouseenter');
                 });
 
-                $pres.on('change', 'input[type=checkbox]', function() {
+                $pres.on('change', 'input[type=checkbox]', function () {
                     me.applyPresentationOptions();
                     me.panelSet.onPanelStateChanged(me);
                 });
@@ -433,7 +446,7 @@
         TextViewer.unhide($pres, !!presentationOptions && (presentationOptions.length > 0));
     };
 
-    Panel.prototype.loadContentCustom = function(loadLocations, address, subLocation) {
+    Panel.prototype.loadContentCustom = function (loadLocations, address, subLocation) {
         // NEVER CALL THIS FUNCTION DIRECTLY
         // ONLY loadContent() can call it
         throw "loadContentCustom() must be overridden in the concrete class";
@@ -441,14 +454,14 @@
         this.onContentLoaded();
     };
 
-    Panel.prototype.onLinkerTextChanged = function() {
+    Panel.prototype.onLinkerTextChanged = function () {
     };
 
-    Panel.prototype.scrollToTopOfContent = function(data) {
+    Panel.prototype.scrollToTopOfContent = function (data) {
         if (this.$content) this.$content.scrollTop(0);
     };
 
-    Panel.prototype.onContentLoaded = function(data) {
+    Panel.prototype.onContentLoaded = function (data) {
         //console.log(''+this.contentType+': onContentLoaded - BEGIN');
 
         this.scrollToTopOfContent();
@@ -492,18 +505,29 @@
 
         // allows other addresses to be loaded
         this.loadingAddress = null;
+
+        // Dispatch the event globally
+        var e = new CustomEvent(
+            'onContentLoadedInViewer',
+            {
+                'detail': this,
+            },
+        );
+        document.dispatchEvent(e);
     };
 
     Panel.prototype.onResize = function () {
         if (this.$statusBar) {
             // resize content to take the remaining height in the panel
             var height = Math.floor(this.$root.innerHeight() - (this.$content.offset().top - this.$root.offset().top) - this.$statusBar.outerHeight(true));
-            this.$content.css('max-height', height+'px');
-            this.$content.height(height+'px');
+            this.$content.css('max-height', height + 'px');
+            this.$content.height(height + 'px');
         }
     };
 
-    Panel.create = function(contentType, selector, write, options) {
+    Panel.create = function (contentType, selector, write, options) {
+        // TODO: REMOVE!
+        // write = true;
         var constructor = Panel.getPanelClassFromContentType(contentType, write);
         var error = !constructor;
         if (error) {
@@ -516,15 +540,15 @@
         if ($root.size() > 0) {
             ret = new constructor($root, contentType, options);
         }
-        if (error && ret) ret.setMessage('Invalid content type ('+contentType+')', 'error');
+        if (error && ret) ret.setMessage('Invalid content type (' + contentType + ')', 'error');
         return ret;
     };
 
-    Panel.prototype.isDownloadable = function() {
+    Panel.prototype.isDownloadable = function () {
         return false;
     };
 
-    Panel.createFromState = function(panelState, key, options) {
+    Panel.createFromState = function (panelState, key, options) {
         // panelState =
         // transcription/locus/1r/;ds=abbrv
         // transcription/default/
@@ -535,7 +559,7 @@
         var stateDict = metaparts.join(';');
 
         //Panel.create(Panel.getPanelClassFromContentType(contentType), '.ui-layout-'+key);
-        return Panel.create(contentType, '.ui-layout-'+key, false, {contentAddress: address, stateDict: stateDict});
+        return Panel.create(contentType, '.ui-layout-' + key, false, { contentAddress: address, stateDict: stateDict });
     };
 
     // Returns the Panel class that manages contentType
@@ -543,13 +567,13 @@
     // contentType can also be panel type
     // e.g. text => <PanelText>
     // Returns null if not found
-    Panel.getPanelClassFromContentType = function(contentType, write) {
+    Panel.getPanelClassFromContentType = function (contentType, write) {
         // Get panel type from content type
         // lookup in the dropdown of the panel template
         // E.g. Translation => text
         var contentTypeKey = contentType.toLowerCase();
         if (contentTypeKey.match(/[^-0-9a-z_]/gi)) return null;
-        var panelType = $('#text-viewer-panel .dropdown-content-type a[href=#'+contentTypeKey+']:first').data('class') || contentType;
+        var panelType = $('#text-viewer-panel .dropdown-content-type a[href=#' + contentTypeKey + ']:first').data('class') || contentType;
 
         // Force first letter to uppercase. e.g Text
         panelType = panelType.toUpperCase().substr(0, 1) + panelType.substr(1, contentType.length - 1);
@@ -558,11 +582,11 @@
         return TextViewer[ret] || null;
     };
 
-    Panel.prototype.enablePresentationOptions = function(options) {
+    Panel.prototype.enablePresentationOptions = function (options) {
         if (options) {
             var $pres = this.$presentationOptions;
             if (this.arePresentationOptionsDefined()) {
-                $pres.find('li').each(function() {
+                $pres.find('li').each(function () {
                     var $li = $(this);
                     if (options.indexOf($li.data('id')) > -1) {
                         $li.find('input:not(:checked)').trigger('click');
@@ -572,19 +596,19 @@
         }
     };
 
-    Panel.prototype.applyPresentationOptions = function() {
+    Panel.prototype.applyPresentationOptions = function () {
         if (this.arePresentationOptionsDefined()) {
-            var classes = this.$presentationOptions.dropdownCheckbox("unchecked").map(function(v) { return v.id; }).join(' ');
+            var classes = this.$presentationOptions.dropdownCheckbox("unchecked").map(function (v) { return v.id; }).join(' ');
             this.$content.removeClass(classes);
-            classes = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
+            classes = this.$presentationOptions.dropdownCheckbox("checked").map(function (v) { return v.id; }).join(' ');
             this.$content.addClass(classes);
         }
     };
 
-    Panel.prototype.getState = function() {
+    Panel.prototype.getState = function () {
         var ret = this.getContentAddressRelative();
         var dict = this.getStateDict();
-        ret += Object.keys(dict).reduce(function(pv,cv) {
+        ret += Object.keys(dict).reduce(function (pv, cv) {
             if (dict[cv]) {
                 return pv + cv + ':' + dict[cv] + ';';
             }
@@ -593,15 +617,15 @@
         return ret;
     };
 
-    Panel.prototype.getListFromPresentationOptions = function() {
+    Panel.prototype.getListFromPresentationOptions = function () {
         ret = [];
         if (this.arePresentationOptionsDefined()) {
-            ret = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; });
+            ret = this.$presentationOptions.dropdownCheckbox("checked").map(function (v) { return v.id; });
         }
         return ret;
     };
 
-    Panel.prototype.getStateDict = function() {
+    Panel.prototype.getStateDict = function () {
         var ret = {};
         //ret.dis = this.$presentationOptions.dropdownCheckbox("checked").map(function(v) { return v.id; }).join(' ');
         ret.dis = (this.getListFromPresentationOptions()).join(' ');
@@ -610,11 +634,11 @@
         return ret;
     };
 
-    Panel.prototype.setStateDict = function(stateDict) {
+    Panel.prototype.setStateDict = function (stateDict) {
         // dis:abbreviated entry;x:y;a:b c;
         var me = this;
         var args = stateDict.split(';');
-        args.map(function(arg) {
+        args.map(function (arg) {
             var pair = arg.split(':');
             if (pair.length == 2) {
                 me.setStateDictArg(pair[0], pair[1]);
@@ -622,7 +646,7 @@
         });
     };
 
-    Panel.prototype.setStateDictArg = function(name, value) {
+    Panel.prototype.setStateDictArg = function (name, value) {
         if (name == 'dis') {
             this.enablePresentationOptions(value.split(' '));
         }
@@ -632,24 +656,24 @@
         }
     };
 
-    Panel.prototype.getPanelKey = function() {
+    Panel.prototype.getPanelKey = function () {
         var ret = this.$root.attr('class');
         // ' .ui-layout-pane-north ' -> north
         ret = ret.replace(/.*.ui-layout-pane-(\w+)\b.*/, '$1');
         return ret;
     };
 
-    Panel.prototype.onLocationChanged = function() {
+    Panel.prototype.onLocationChanged = function () {
         this.loadContent();
     };
-    
+
     // EDITING MODE
 
-    Panel.prototype.getEditingMode = function() {
+    Panel.prototype.getEditingMode = function () {
         return this.editingMode;
     };
 
-    Panel.prototype.setEditingMode = function(mode) {
+    Panel.prototype.setEditingMode = function (mode) {
         if (this.editingMode !== mode) {
             this.editingMode = mode;
             this.updateEditingModeIcon();
@@ -657,31 +681,31 @@
         }
     }
 
-    Panel.prototype.initEditingModeIcon = function() {
+    Panel.prototype.initEditingModeIcon = function () {
         if (this.$toggleEdit) {
             this.updateEditingModeIcon();
 
             var me = this;
-            this.$toggleEdit.on('click', function() {
+            this.$toggleEdit.on('click', function () {
                 me.setEditingMode(!me.getEditingMode());
             });
         }
     };
 
-    Panel.prototype.updateEditingModeIcon = function() {
+    Panel.prototype.updateEditingModeIcon = function () {
         if (this.$toggleEdit) {
             var mode = this.getEditingMode();
-            
+
             TextViewer.unhide(this.$toggleEdit, ((mode === true) || (mode === false)));
-    
+
             this.$toggleEdit.toggleClass('active', (mode === true));
-    
+
             this.$toggleEdit.attr('data-original-title', (mode === true) ? 'Stop editing' : 'Start editing');
         }
     }
 
-    Panel.prototype.onChangedEditingMode = function(mode) {
-        // By default we replace this panel with another of the same type 
+    Panel.prototype.onChangedEditingMode = function (mode) {
+        // By default we replace this panel with another of the same type
         // but for the specific Editing Mode. E.g. PanelText -> PanelTextWrite
         // the new panel is loaded with the same addres.
         var options = {
@@ -692,5 +716,5 @@
         return false;
     };
 
-}( window.TextViewer = window.TextViewer || {}, jQuery ));
+}(window.TextViewer = window.TextViewer || {}, jQuery));
 

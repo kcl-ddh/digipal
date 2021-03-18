@@ -11,7 +11,7 @@ Django==1.8.18
 Mezzanine==4.2.3
 regex
 # if it fails, try 'sudo apt-get install python-dev', then run again
-Pillow==2.6.2
+Pillow==8.1.1
 Whoosh==2.7.3
 disqus-python==0.4.2
 django-appconf==1.0.2

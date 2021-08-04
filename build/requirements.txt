@@ -5,6 +5,8 @@
 # pip install -r requirements
 #
 
+# required by disqus-python
+nose
 beautifulsoup4==4.6.0
 git+https://github.com/geoffroy-noel-ddh/Digital-Lightbox
 Django==1.8.18

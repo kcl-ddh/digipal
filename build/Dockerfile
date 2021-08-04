@@ -30,7 +30,7 @@
 # docker tag kingsdigitallab/archetype:2.2.1 kingsdigitallab/archetype:latest
 # docker push kingsdigitallab/archetype:latest
 
-FROM ubuntu:latest
+FROM ubuntu:16.04
 
 ENV DP_WS_PORT 80
 
@@ -44,7 +44,7 @@ RUN apt-get update -y && apt-get install -y \
     postgresql \
     python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev \
     nginx uwsgi-plugin-python \
-    supervisor wget vim \
+    supervisor wget vim curl \
 && apt remove -y python3.5 \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
@@ -90,11 +90,13 @@ RUN bash build/repair_digipal_project.sh
 
 ########################
 # PYTHON + PIP
-RUN pip install --upgrade pip
+# RUN pip install --upgrade pip
+RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py && python2 get-pip.py && pip2 install -U pip
 
 ########################
 # DIGIPAL FRAMEWORK
 
+RUN echo "1" && pip install -r build/prerequirements.txt
 RUN echo "1" && pip install -r build/requirements.txt
 
 # Create tables, admin and site records, indexes

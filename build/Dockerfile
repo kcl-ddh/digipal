@@ -30,9 +30,12 @@
 # docker tag kingsdigitallab/archetype:2.2.1 kingsdigitallab/archetype:latest
 # docker push kingsdigitallab/archetype:latest
 
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 ENV DP_WS_PORT 80
+
+# https://askubuntu.com/a/1013396
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Linux Packages in one go (best practice)
 # Convention: one line per category (e.g. lessc, image server, database, ...)
@@ -55,7 +58,7 @@ RUN apt-get update -y && apt-get install -y \
 # LESSC & TYPESCRIPT
 
 # 2.1.5 b/c 2.4.2 displays compilation errors on Text Viewer 
-RUN npm install -g less typescript@2.1.5; ln -s /usr/bin/nodejs /usr/bin/node
+RUN npm install -g less typescript@2.1.5
 
 ########################
 # IMAGE PROCESSING

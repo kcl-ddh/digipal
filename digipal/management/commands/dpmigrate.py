@@ -2040,24 +2040,33 @@ helper_keywordsearch = Clunie PER (Perthshire) 1276
         return ret
 
     def createCSVFromTable(self):
+        '''Export a table to a CSV file.
+        All columns starting with _ are not exported.
+        Order rows by _line_index if the column exists.'''
         options = self.options
 
         table_name = self._args[1]
         file_path = table_name + '.csv'
 
         import csv
+        from django.db import connection
         with open(file_path, 'wb') as csvfile:
             csvwriter = csv.writer(csvfile)
 
             query = 'SELECT * from %s' % table_name
+            with connection.cursor() as cursor:
+                index_field_name = '_line_index'
+                if index_field_name in [col.name for col in connection.introspection.get_table_description(cursor, table_name)]:
+                    query += ' order by("%s")::int' % index_field_name
+
             rows = dputils.sql_select_dict(query)
 
             if rows:
-                cols = rows[0].keys()
+                cols = sorted([r for r in rows[0].keys() if not r.startswith('_')])
                 csvwriter.writerow(cols)
 
                 for row in rows:
-                    values = [row[col] for col in cols]
+                    values = [(row[col] or '').encode('utf-8') for col in cols]
                     csvwriter.writerow(values)
 
         print 'Written %s (%s rows)' % (file_path, len(rows))

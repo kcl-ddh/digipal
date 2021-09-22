@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # from digipal_text.models import *
+from django.utils.html import strip_tags
+
 from digipal_text.models import TextContentXMLStatus, TextContent, TextContentXML
 import re
 from django.shortcuts import render
@@ -415,7 +417,7 @@ def text_api_view_location(request, item_partid, content_type,
     if load_locations:
         context = {'item_part': ItemPart.objects.filter(
             id=item_partid).first()}
-        resolve_master_location(context, location_type, location)
+        resolve_master_location(context, location_type, location, request)
 
         ret = {
             'location_type': context['master_location_type'],
@@ -432,7 +434,7 @@ def text_api_view_location(request, item_partid, content_type,
     return ret
 
 
-def resolve_master_location(context, master_location_type, master_location):
+def resolve_master_location(context, master_location_type, master_location, request):
     '''Populate the context with the list of all the locations and location types
        Resolve the passed location type and location if not found in the lists.
        Set everything in the context:
@@ -442,7 +444,7 @@ def resolve_master_location(context, master_location_type, master_location):
     context['master_location'] = master_location
 
     # now merge all LT and L from all images and Texts associated to this IP
-    context['master_locations'] = get_all_master_locations(context)
+    context['master_locations'] = get_all_master_locations(context, request)
 
     # TODO: possible code similarity with the location request for individual content type
     # fall back to first (LT, L) if desired location not available
@@ -453,28 +455,38 @@ def resolve_master_location(context, master_location_type, master_location):
         context['master_location'] = available_locations[0]
 
 
-def get_all_master_locations(context):
+def get_all_master_locations(context, request):
     # Get locus from images
     # TODO: filter only available images
     ret = OrderedDict()
-    ret['locus'] = set(context['item_part'].images.all(
-    ).values_list('locus', flat=True).order_by('id'))
+    ret['locus'] = set(
+        context['item_part'].images.all().values_list(
+            'locus', flat=True
+        ).order_by('id')
+    )
     ret['entry'] = set()
 
-    # Get entry numbers from texts
+    # Get locus & entry numbers from texts
     for tcx in TextContentXML.objects.filter(
             text_content__item_part=context['item_part']).iterator():
         for m in re.findall(
                 ur'<span data-dpt="location" data-dpt-loctype="(.*?)">(.*?)</span>', tcx.content or ''):
             if m[0] in ret:
-                ret[m[0]].add(m[1])
+                label = strip_tags(m[1]).strip()
+                ret[m[0]].add(label)
 
     # sort locations
     for k, v in ret.iteritems():
         if not v:
             del ret[k]
             continue
+        # remove 'template' if we are not logged-in
+        if not(request.user and request.user.is_staff):
+            for private_label in ['template']:
+                if private_label in v:
+                    v.discard(private_label)
         locations = sorted_natural(v, roman_numbers=True, is_locus=True)
+        # print(k, locations)
         ret[k] = locations
 
     return ret

@@ -9,7 +9,7 @@
 # docker run -ti -p 8080:80 gnoelddh/archetype
 #
 
-FROM gnoelddh/digipal:latest
+FROM kingsdigitallab/archetype:latest
 
 ENV SHELL /bin/bash
 ENV DP_WS_PORT 80

@@ -1,0 +1,12 @@
+# WIP! Docker version of Archetype, using composition.
+# Requirements: git, docker.
+# To start Archetype from the command line:
+#   git clone https://github.com/kcl-ddh/digipal.git
+#   cd digipal
+#   docker-compose -f build/archetype/compose.yaml up
+services:
+  django:
+    build: ..
+    image: kingsdigitallab/archetype:latest
+    command: /bin/bash /home/digipal/build/archetype/startup.sh
+    # container_name: archetype-django

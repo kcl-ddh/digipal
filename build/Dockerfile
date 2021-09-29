@@ -84,6 +84,7 @@ WORKDIR /home/digipal
 RUN echo "15" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
 
 COPY * build/
+COPY archetype/* build/archetype/
 
 ########################
 # DATABASE

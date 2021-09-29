@@ -59,10 +59,14 @@ def natural_sort_key(s, roman_numbers=False, is_locus=False):
         s = ''
 
     if is_locus:
-        s = re.sub(ur'(?i)\b(cover)\b', '50', s)
-        s = re.sub(ur'(?i)\b(face|recto)\b', '100', s)
-        s = re.sub(ur'(?i)\b(dorse|verso)\b', '200', s)
+        s = re.sub(ur'(?i)\b(cover)\b', '0', s)
+        s = re.sub(ur'(?i)\b(face|recto|front)\b', '100', s)
+        s = re.sub(ur'(?i)\b(dorse|verso|back)\b', '200', s)
         s = re.sub(ur'(?i)\bseal\b', '300', s)
+        # For Exon
+        # e.g. 64r < 64br < 64bv (b = bis)
+        # =>     v < w (w because it comes after r & v)
+        s = re.sub(ur'(?i)(\d)\s*(b|bis)\s*(r|v)\b', ur'\1w\3', s)
 
     if roman_numbers:
         while True:

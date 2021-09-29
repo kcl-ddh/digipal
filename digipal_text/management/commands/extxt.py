@@ -556,10 +556,11 @@ Commands:
 
         for image in Image.objects.filter(item_part_id=1):
             quire = pages_quire.get(image.locus, '')
-            if quire:
+            if quire and quire != image.quire:
+                print '%s, %s -> %s' % (image.locus, image.quire, quire)
                 image.quire = quire
-                image.save()
-                print '%s, %s' % (quire, image.locus)
+                if not self.is_dry_run():
+                    image.save()
 
     def marginal_entries(self):
         from digipal_text.models import TextContentXML

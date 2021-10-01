@@ -99,3 +99,10 @@ Dockerhub:
     versioning? upgrade new image as v 2.0 but old one remains accessible?
 
 docker run -d --name archetype2 -v ~/archetype2:/home/digipal/digipal_project:cached -p 9081:80 kingsdigitallab/archetype:latest
+
+2.5
+. docker logs uwsgi in /tmp/uwsgi.log
+. docker will run digipal_project/local_settings.py after digipal/settings_docker.py
+. docker psql upgraded to version 10
+. illustration for the ductus
+.

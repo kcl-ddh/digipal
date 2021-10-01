@@ -1954,7 +1954,7 @@ function select_feature(feature) {
 }
 
 // TODO: simplify by havinh a pale fill color, same color bu darker for stroke
-// Same opacity for all styles. 
+// Same opacity for all styles.
 var FEATURE_STYLES = {
     'selected': {
         'fill': 'blue',

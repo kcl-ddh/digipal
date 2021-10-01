@@ -30,9 +30,12 @@
 # docker tag kingsdigitallab/archetype:2.2.1 kingsdigitallab/archetype:latest
 # docker push kingsdigitallab/archetype:latest
 
-FROM ubuntu:latest
+FROM ubuntu:18.04
 
 ENV DP_WS_PORT 80
+
+# https://askubuntu.com/a/1013396
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Linux Packages in one go (best practice)
 # Convention: one line per category (e.g. lessc, image server, database, ...)
@@ -44,7 +47,7 @@ RUN apt-get update -y && apt-get install -y \
     postgresql \
     python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev \
     nginx uwsgi-plugin-python \
-    supervisor wget vim \
+    supervisor wget vim curl \
 && apt remove -y python3.5 \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
@@ -55,7 +58,7 @@ RUN apt-get update -y && apt-get install -y \
 # LESSC & TYPESCRIPT
 
 # 2.1.5 b/c 2.4.2 displays compilation errors on Text Viewer 
-RUN npm install -g less typescript@2.1.5; ln -s /usr/bin/nodejs /usr/bin/node
+RUN npm install -g less typescript@2.1.5
 
 ########################
 # IMAGE PROCESSING
@@ -78,9 +81,10 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "15" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
+RUN echo "16" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
 
 COPY * build/
+COPY archetype/* build/archetype/
 
 ########################
 # DATABASE
@@ -90,11 +94,13 @@ RUN bash build/repair_digipal_project.sh
 
 ########################
 # PYTHON + PIP
-RUN pip install --upgrade pip
+# RUN pip install --upgrade pip
+RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py && python2 get-pip.py && pip2 install -U pip
 
 ########################
 # DIGIPAL FRAMEWORK
 
+RUN echo "1" && pip install -r build/prerequirements.txt
 RUN echo "1" && pip install -r build/requirements.txt
 
 # Create tables, admin and site records, indexes

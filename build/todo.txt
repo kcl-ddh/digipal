@@ -97,3 +97,5 @@ C
 
 Dockerhub:
     versioning? upgrade new image as v 2.0 but old one remains accessible?
+
+docker run -d --name archetype2 -v ~/archetype2:/home/digipal/digipal_project:cached -p 9081:80 kingsdigitallab/archetype:latest

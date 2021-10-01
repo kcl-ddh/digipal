@@ -775,20 +775,23 @@ CUSTOM_APPS = []
 
 # from PROJECT_PACKAGE.local_settings import *'
 # Where PROJECT_PACKAGE is the Django package for your project
-try:
-    local_settings = importlib.import_module(
-        '..local_settings', os.environ['DJANGO_SETTINGS_MODULE'])
-    module_dict = local_settings.__dict__
+def import_local_settings():
     try:
-        to_import = local_settings.__all__
-    except AttributeError:
-        to_import = [name for name in module_dict if not name.startswith('_')]
-    for name in to_import:
-        globals().update({name: module_dict[name]})
-except ImportError:
-    # no local_settings.py
-    print 'WARNING: local_settings.py not found'
-    pass
+        local_settings = importlib.import_module(
+            '..local_settings', os.environ['DJANGO_SETTINGS_MODULE'])
+        module_dict = local_settings.__dict__
+        try:
+            to_import = local_settings.__all__
+        except AttributeError:
+            to_import = [name for name in module_dict if not name.startswith('_')]
+        for name in to_import:
+            globals().update({name: module_dict[name]})
+    except ImportError:
+        # no local_settings.py
+        print 'WARNING: local_settings.py not found'
+        pass
+
+import_local_settings()
 
 # DJANGO DEBUG INFO get logged into our debug log file
 # This includes the SQL statements

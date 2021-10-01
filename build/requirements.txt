@@ -9,7 +9,7 @@
 nose
 beautifulsoup4==4.6.0
 git+https://github.com/geoffroy-noel-ddh/Digital-Lightbox
-Django==1.8.18
+Django==2.2.24
 Mezzanine==4.2.3
 regex==2018.02.21
 # if it fails, try 'sudo apt-get install python-dev', then run again

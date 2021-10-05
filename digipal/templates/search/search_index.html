@@ -42,6 +42,28 @@
 
 {% include "search/search_index_fragment.html" %}
 
+<hr>
+
+<h1>Content Package</h1>
+<form action="" method="POST">
+    <button type="submit" class="btn btn-primary action-cancel" name="action" value="package.create">
+        Package your content
+    </button>
+    &nbsp;
+    {% if package_url %}
+        <a href="{{ package_url }}" target="_blank" class="btn btn-primary action-reindex">
+            Download the package
+        </a>
+        &nbsp;
+        <button type="submit" class="btn btn-primary action-reindex" name="action" value="package.remove">
+            Remove the package file
+        </button>
+        <p>
+            Size: {{ package_stat.st_size|filesizeformat }} | Created: {{ package_created }}
+        </p>
+    {% endif %}
+</form>
+
 {% endblock main %}
 {% block extra_js %}
     {{ block.super }}

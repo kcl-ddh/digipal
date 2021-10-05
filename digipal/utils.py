@@ -1533,35 +1533,30 @@ def call_management_command(command, *args, **kwargs):
     command_shell = '%s %s %s' % (python_path, os.path.join(
         settings.PROJECT_ROOT, '..', 'manage.py'), command_django)
 
-    if 1:
-        # run the command in a child process, calling python
-        from subprocess import Popen
-        dplog('call command : %s' % command_shell)
-        child_id = Popen(command_shell.split()).pid
-        dplog('called command : %s | %s' % (child_id, command_shell))
-    else:
-        # fork doesn't work on WIndows
-        # run the command in a child process, calling command directly from
-        # this context
-        from django.core.management import call_command
-        from digipal.models import KeyVal
-        from multiprocessing import Process
-        from datetime import datetime
+    # run the command in a child process, calling python
+    from subprocess import Popen
+    dplog('call command : %s' % command_shell)
+    child_id = Popen(command_shell.split()).pid
+    dplog('called command : %s | %s' % (child_id, command_shell))
 
-        def f(reindexes_str):
-            KeyVal.set('k2.a', repr(datetime.now()))
-            KeyVal.set('k2.b', reindexes_str)
-            try:
-                call_command('dpsearch', 'index_facets',
-                             index_filter=reindexes_str)
-            except Exception as e:
-                KeyVal.set('k2.c', 'ERROR: %s' % repr(e))
-            else:
-                KeyVal.set('k2.c', repr(datetime.now()))
-            exit()
-        ##p = Process(target=f, args=(','.join(reindexes),))
-        # p.start()
-        # print p
+
+def package_create():
+    from mezzanine.conf import settings
+
+    python_path = get_python_path()
+
+    command_shell = '%s %s' % (
+        python_path,
+        os.path.join(settings.PROJECT_ROOT, '..', 'build', 'zip_digipal_project.py'),
+    )
+
+    print(command_shell)
+
+    # run the command in a child process, calling python
+    from subprocess import Popen
+    dplog('call command : %s' % command_shell)
+    child_id = Popen(command_shell.split()).pid
+    dplog('called command : %s | %s' % (child_id, command_shell))
 
 
 def json_dumps(data):

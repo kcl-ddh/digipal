@@ -97,6 +97,28 @@ def search_index_view(request):
                 'dpsearch', 'index_facets', **{'if': ','.join(reindexes)})
             context['indexing'] = indexer.get_state_initial(reindexes)
 
+    # --- packaging
+
+    if action == 'package.create':
+        package_pid = dputils.package_create()
+
+    from django.contrib.staticfiles.storage import staticfiles_storage
+    package_file_name = 'archetype.tar.gz'
+    package_path = staticfiles_storage.path(package_file_name)
+
+    if os.path.exists(package_path):
+        if action == 'package.remove':
+            os.remove(package_path)
+
+    if os.path.exists(package_path):
+        context['package_url'] = staticfiles_storage.url(package_file_name)
+        context['package_stat'] = os.stat(package_path)
+        context['package_created'] = datetime.utcfromtimestamp(
+            context['package_stat'].st_ctime
+        )
+
+    # ---
+
     if not 'indexing' in context:
         context['indexing'] = indexer.read_state()
 

@@ -1636,9 +1636,16 @@ class ItemPart(models.Model):
                 iphis[0].historical_item, ', ', iphis[0].locus)
         else:
             # label is 'group.historical_label, group_locus'
-            if self.group:
-                ret = get_list_as_string(
-                    self.group.historical_label, ', ', self.group_locus)
+            try:
+                if self.group:
+                    ret = get_list_as_string(
+                        self.group.historical_label, ', ', self.group_locus
+                    )
+            except Exception, e:
+                if not 'maximum recursion' in e.message:
+                    raise e
+                ret = '[ERROR: circular reference among item groups]'
+
         return ret
 
     @property

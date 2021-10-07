@@ -24,5 +24,12 @@ if ! grep 'django_migrations' digipal_project/archetype.sql; then
         echo "!! ERROR: DATABASE CANNOT BE UPGRADED YET  !!"
         echo "!! DigiPal Docker v1.0                     !!"
         echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        # just run:
+        # migrate --fake-initial
+        # migrate --fake digipal 0002
+        # migrate --fake-initial digipal
+        # migrate --fake-initial digipal_text
+        # migrate
+        # run 1.2.1.sql (keyval table only)
     fi
 fi

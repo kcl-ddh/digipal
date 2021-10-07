@@ -98,7 +98,7 @@ C
 Dockerhub:
     versioning? upgrade new image as v 2.0 but old one remains accessible?
 
-docker run -d --name archetype2 -v ~/archetype2:/home/digipal/digipal_project:cached -p 9081:80 kingsdigitallab/archetype:latest
+docker run -d --name archetype3 -v ~/archetype3:/home/digipal/digipal_project:cached -p 9081:80 kingsdigitallab/archetype:2.5.1
 
 2.5
 . docker logs uwsgi in /tmp/uwsgi.log

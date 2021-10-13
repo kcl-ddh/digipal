@@ -256,6 +256,10 @@ class Command(BaseCommand):
             known_command = True
             self.move_annotations()
 
+        if command == 'totif':
+            known_command = True
+            self.convert_to_tif()
+
         if command in ('list', 'upload', 'unstage', 'update', 'remove', 'crop'):
             known_command = True
 
@@ -939,4 +943,10 @@ class Command(BaseCommand):
             #os.remove(input_path)
             pass
         return ret
+
+    def convert_to_tif(self):
+        root = get_image_path()
+        print(root)
+        files = self.get_all_files(root)
+        # print(files)
 

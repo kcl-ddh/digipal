@@ -256,9 +256,9 @@ class Command(BaseCommand):
             known_command = True
             self.move_annotations()
 
-        if command == 'totif':
+        if command == 'jp2tif':
             known_command = True
-            self.convert_to_tif()
+            self.jp2tif()
 
         if command in ('list', 'upload', 'unstage', 'update', 'remove', 'crop'):
             known_command = True
@@ -944,9 +944,66 @@ class Command(BaseCommand):
             pass
         return ret
 
-    def convert_to_tif(self):
+    def jp2tif(self):
         root = get_image_path()
-        print(root)
         files = self.get_all_files(root)
-        # print(files)
+        i = 0
+
+        stats = {
+            'total': 0,
+            'converted': 0,
+            'errors': 0,
+        }
+
+        for info in files:
+            if self.is_filtered_in(info) and info.get('disk', False) and info['image']:
+                if info['path'].endswith('.jp2'):
+                    stats['total'] += 1
+                    converted = False
+                    i += 1
+                    print(i, info['image'].pk, info['path'])
+
+                    paths = [
+                        info['path'],
+                        info['path'].replace('.jp2', '.bmp'),
+                        info['path'].replace('.jp2', '.tif')
+                    ]
+                    paths = [os.path.join(settings.IMAGE_SERVER_ROOT, p) for p in paths]
+                    # convert to bmp
+                    command = 'opj_decompress -quiet -i %s -OutFor TIF -o %s' % (
+                        paths[0],
+                        paths[1]
+                    )
+                    ret_shell = self.run_shell_command(command)
+
+                    if ret_shell or not os.path.exists(paths[1]):
+                        print('WARNING: Error during conversion (%s)' % command)
+                    else:
+                        # convert to tif
+                        from iipimage.storage import CONVERT_TO_JP2
+                        CONVERT_TO_JP2 = CONVERT_TO_JP2.replace('kdu_compress',
+                                                                'kdu_compress -quiet')
+                        command = CONVERT_TO_JP2 % (paths[1], paths[2])
+                        ret_shell = self.run_shell_command(command)
+                        if ret_shell or not os.path.exists(paths[2]):
+                            print('WARNING: Error during conversion (%s)' % command)
+                        else:
+                            # change extension in the image record
+                            info['image'].iipimage.name = info['image'].iipimage.name.replace('.jp2', '.tif')
+                            info['image'].save()
+                            converted = True
+
+                    if converted:
+                        stats['converted'] += 1
+                        os.remove(paths[0])
+                        os.remove(paths[1])
+                    else:
+                        stats['errors'] += 1
+
+        print('SUMMARY: %s jp2, %s converted to tif, %s errors.' % (
+            stats['total'],
+            stats['converted'],
+            stats['errors'],
+        ))
+
 

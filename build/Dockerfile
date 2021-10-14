@@ -43,7 +43,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && apt-get install -y \
     autoconf pkg-config libtool git \
     nodejs npm \
-    libjpeg-dev libtiff-dev imagemagick \
+    libjpeg-dev libtiff-dev libopenjp2-tools imagemagick \
     postgresql \
     python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev \
     nginx uwsgi-plugin-python \

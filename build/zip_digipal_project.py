@@ -170,9 +170,10 @@ class ProjectZipper(object):
 
         # config files
         files_to_tar = ['*.py']
+        # We make space for a special settings.py that enables dockers config
         tar_transforms = [['^settings.py$', 'settings.py.bk']]
         if self.is_digipal_app_the_project:
-            files_to_tar = ['urls.py', 'local_settings.py']
+            # files_to_tar = ['urls.py', 'local_settings.py']
             tar_transforms = None
 
         self.add_path_to_tar(

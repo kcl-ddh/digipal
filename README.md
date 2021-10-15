@@ -1,4 +1,6 @@
-Latest version: **2.5.1**, Oct 2021. See the [Change Log](https://github.com/kcl-ddh/digipal/wiki/Change-log) for more details.
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5572558.svg)](https://doi.org/10.5281/zenodo.5572558)
+
+Latest version: **2.6**, Oct 2021. See the [Change Log](https://github.com/kcl-ddh/digipal/wiki/Change-log) for more details.
 
 # Archetype
 

@@ -15,7 +15,7 @@ from iipimage.storage import *
 # CONVERT_TO_JP2 = 'kdu_compress -i %s -o %s -rate -,4,2.34,1.36,0.797,0.466,0.272,0.159,0.0929,0.0543,0.0317,0.0185 Stiles="{1024,1024}" Cblk="{64,64}" Creversible=no Clevels=5 Corder=RPCL Cmodes=BYPASS'
 if settings.IMAGE_SERVER_EXT == 'tif':
     from iipimage import storage
-    storage.CONVERT_TO_JP2 = 'convert %s -define tiff:tile-geometry=256x256 -compress jpeg ptif:%s'
+    storage.CONVERT_TO_JP2 = 'convert %s -define tiff:tile-geometry=256x256 -compress jpeg -quality 90 ptif:%s'
 
 # PATCH 1:
 

@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5572558.svg)](https://doi.org/10.5281/zenodo.5572558)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5586696.svg)](https://doi.org/10.5281/zenodo.5586696)
 
 Latest version: **2.7**, Oct 2021. See the [Change Log](https://github.com/kcl-ddh/digipal/wiki/Change-log) for more details.
 

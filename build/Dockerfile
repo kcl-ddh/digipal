@@ -43,7 +43,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && apt-get install -y \
     autoconf pkg-config libtool git \
     nodejs npm \
-    libjpeg-dev libtiff-dev imagemagick \
+    libjpeg-dev libtiff-dev libopenjp2-tools imagemagick \
     postgresql \
     python python-pip python-dev libxml2-dev libxslt1-dev libpq-dev \
     nginx uwsgi-plugin-python \
@@ -81,7 +81,7 @@ RUN mkdir /home/digipal
 WORKDIR /home/digipal
 
 # (inc. the number in echo to force docker build to fetch new version of the code)
-RUN echo "18" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
+RUN echo "19" && git clone -b develop https://github.com/kcl-ddh/digipal.git /home/digipal
 
 COPY * build/
 COPY archetype/* build/archetype/

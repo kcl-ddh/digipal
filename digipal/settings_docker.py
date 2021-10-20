@@ -35,4 +35,4 @@ IMAGE_SERVER_ZOOMIFY = 'http://%s%s?zoomify=%s/'
 IMAGE_SERVER_PATH = '/iip/iipsrv.fcgi'
 IMAGE_SERVER_URL = 'http://%s%s' % (IMAGE_SERVER_HOST, IMAGE_SERVER_PATH)
 
-import_local_settings()
+import_local_settings(globals())

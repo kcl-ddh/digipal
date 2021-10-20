@@ -44,25 +44,39 @@
 
 <hr>
 
-<h1>Content Package</h1>
-<form action="" method="POST">
-    <button type="submit" class="btn btn-primary action-cancel" name="action" value="package.create">
-        Package your content
-    </button>
-    &nbsp;
-    {% if package_url %}
-        <a href="{{ package_url }}" target="_blank" class="btn btn-primary action-reindex">
-            Download the package
-        </a>
-        &nbsp;
-        <button type="submit" class="btn btn-primary action-reindex" name="action" value="package.remove">
-            Remove the package file
-        </button>
-        <p>
-            Size: {{ package_stat.st_size|filesizeformat }} | Created: {{ package_created }}
-        </p>
-    {% endif %}
-</form>
+<h1>Data Package</h1>
+<div id="package-section" class="collapse-not">
+    <form action="" method="POST">
+        {% if packager_pid %}
+            <p>Packaging in progress...</p>
+            <button type="submit" class="btn btn-danger action-cancel" name="action" value="package.cancel">
+                Cancel packaging
+            </button>
+        {% else %}
+            <button type="submit" class="btn btn-primary action-create" name="action" value="package.create">
+                Package your content
+            </button>
+            &nbsp;
+            {% if package_url %}
+                <a href="{{ package_url }}" target="_blank" class="btn btn-primary action-reindex">
+                    Download the package
+                </a>
+                &nbsp;
+                <button type="submit" class="btn btn-primary action-reindex" name="action" value="package.remove">
+                    Remove the package
+                </button>
+            {% endif %}
+        {% endif %}
+        {% if package_url %}
+            <p>Size: {{ package_stat.st_size|filesizeformat }} | Created: {{ package_created }}</p>
+        {% endif %}
+        <p><em>
+            A package is a compressed file that contains a copy of all the content of your Archetype instance.
+            It can be used as a backup or to migrate your content to another instance.
+            A package can be very large and may consume significant amount of your hosting or internet allowance.
+        </em></p>
+    </form>
+</div>
 
 {% endblock main %}
 {% block extra_js %}

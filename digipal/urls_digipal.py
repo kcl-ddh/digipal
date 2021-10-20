@@ -51,7 +51,7 @@ urlpatterns += patterns('digipal.views.search',
     (r'^page/$', 'search_ms_image_view'),
     (r'^search/$', 'search_record_view'),
     (r'^quicksearch/$', 'search_record_view'),
-    (r'^search/index/?$', 'search_index_view'),
+    url(r'^search/index/?$', 'search_index_view', name='search_index'),
     (r'^search/graph/$', 'search_graph_view'),
     (r'^search/suggestions.json/?$', 'search_suggestions'),
     # Record views

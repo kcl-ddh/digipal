@@ -10,10 +10,12 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from mezzanine.conf import settings
 from digipal.templatetags import hand_filters
 from digipal.models import *
-
+from django.shortcuts import redirect
 from subprocess import Popen
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
+
+from digipal.utils import packager_cancel, get_packager_pid
 
 
 def get_search_types(request=None):
@@ -97,10 +99,15 @@ def search_index_view(request):
                 'dpsearch', 'index_facets', **{'if': ','.join(reindexes)})
             context['indexing'] = indexer.get_state_initial(reindexes)
 
-    # --- packaging
+    # --- PACKAGING
 
-    if action == 'package.create':
-        package_pid = dputils.package_create()
+    if action == 'package.cancel':
+        packager_cancel()
+
+    context['packager_pid'] = get_packager_pid()
+
+    if action == 'package.create' and not context['packager_pid']:
+        context['packager_pid'] = dputils.package_create()
 
     from django.contrib.staticfiles.storage import staticfiles_storage
     package_file_name = 'archetype.tar.gz'
@@ -147,11 +154,17 @@ def search_index_view(request):
     context['title'] = 'Search Indexer'
 
     template = 'search/search_index.html'
+    ret = None
     if request.is_ajax():
         template = 'search/search_index_fragment.html'
+    elif action:
+        from django.core.urlresolvers import reverse
+        ret = redirect(reverse('search_index'))
 
-    ret = render_to_response(
-        template, context, context_instance=RequestContext(request))
+    if ret is None:
+        ret = render_to_response(
+            template, context, context_instance=RequestContext(request)
+        )
     return ret
 
 
@@ -164,7 +177,6 @@ def catalogue_number_view(request, source='', number=''):
         ipi = ItemPartItem.objects.filter(
             historical_item=cns[0].historical_item).first()
         ip = ipi.item_part
-        from django.shortcuts import redirect
         redirect_url = ip.get_absolute_url()
         return redirect(redirect_url)
     else:
@@ -197,7 +209,6 @@ def record_view(request, content_type='', objectid='', tabid=''):
                 template = type.process_record_view_request(context, request)
                 if not template.endswith('.html'):
                     # redirect
-                    from django.shortcuts import redirect
                     return redirect(template)
             except ObjectDoesNotExist:
                 context['title'] = 'This %s record does not exist' % type.label_singular
@@ -329,7 +340,6 @@ def reroute_to_static_search(request):
     # Rerouting to the blog/news search result page
     scope = request.GET.get('scp', '')
     if scope == 'st':
-        from django.shortcuts import redirect
         redirect_url = '/blog/search/?q=%s' % request.GET.get('terms')
         ret = redirect(redirect_url)
     return ret
@@ -352,7 +362,6 @@ def search_record_view(request):
     qs_id = request.GET.get('id', '')
     qs_result_type = request.GET.get('result_type', '')
     if qs_id and qs_result_type:
-        from django.shortcuts import redirect
         # TODO: get digipal from current project name or current URL
         redirect_url = '/%s/%s/%s/?%s' % ('digipal',
                                           qs_result_type, qs_id, request.META['QUERY_STRING'])
@@ -649,7 +658,6 @@ def search_graph_view(request):
     # see search_record_view()
 
     # we redirect old addresses to the new main search
-    from django.shortcuts import redirect
     # TODO: get digipal from current project name or current URL
     redirect_url = '/digipal/search/?basic_search_type=graphs&from_link=1&result_type=graphs&%s' % (
         request.META['QUERY_STRING'].replace('_select=', '='),)

@@ -747,6 +747,8 @@ ADMIN_THUMB_SIZE_MAX = 100
 # ONLY is this is True AND DEBUG = False
 KDL_MAINTAINED = False
 
+ARCHETYPE_CITE = 'https://zenodo.org/record/5572558'
+
 ####
 
 TEXT_EDITOR_OPTIONS = {
@@ -773,23 +775,29 @@ TEXT_EDITOR_OPTIONS = {
 
 CUSTOM_APPS = []
 
-# from PROJECT_PACKAGE.local_settings import *'
-# Where PROJECT_PACKAGE is the Django package for your project
-def import_local_settings():
+
+def import_local_settings(globs=None):
+    '''
+    Equivalent of: from PROJECT_PACKAGE.local_settings import *
+    Other modules should call import_local_settings(globals()).
+    '''
+    if globs is None:
+        globs = globals()
     try:
         local_settings = importlib.import_module(
-            '..local_settings', os.environ['DJANGO_SETTINGS_MODULE'])
+            '..local_settings', os.environ['DJANGO_SETTINGS_MODULE']
+        )
         module_dict = local_settings.__dict__
         try:
             to_import = local_settings.__all__
         except AttributeError:
             to_import = [name for name in module_dict if not name.startswith('_')]
         for name in to_import:
-            globals().update({name: module_dict[name]})
+            globs.update({name: module_dict[name]})
     except ImportError:
         # no local_settings.py
         print 'WARNING: local_settings.py not found'
-        pass
+
 
 import_local_settings()
 

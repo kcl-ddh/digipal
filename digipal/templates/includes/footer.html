@@ -14,41 +14,45 @@
                 {% render_mezzanine_page 'footer.logos' %}
             </div>
 
-            <div class="{% if settings.FOOTER_LOGO_LINE %}col-md-11 col-xs-12{% else %}col-md-8 col-xs-12{% endif %}">
+            <div class="{% if settings.FOOTER_LOGO_LINE %}col-md-10 col-xs-12{% else %}col-md-7 col-xs-12{% endif %}">
                 {% render_mezzanine_page 'footer' %}
             </div>
 
-            <div class="col-md-1 col-xs-12">
+            <div class="col-md-2 col-xs-12">
+                {% if ARCHETYPE_CITE %}
+                    <a data-container='body' data-placement='top' data-toggle='tooltip' class='link-icon' title="Citing Archetype" href='{{ ARCHETYPE_CITE }}'>
+                        <span class='fa fa-quote-left'></span>
+                    </a>
+                {% endif %}
+
                 {% if settings.ARCHETYPE_TWITTER %}
-                    <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title='Follow {{ settings.SITE_TITLE }}' href='https://twitter.com/{{ settings.ARCHETYPE_TWITTER }}'>
+                    <a data-container='body' data-placement='top' data-toggle='tooltip' class='link-icon' title='Follow {{ settings.SITE_TITLE }}' href='https://twitter.com/{{ settings.ARCHETYPE_TWITTER }}'>
                         <span class='fa fa-twitter'></span>
                     </a>
                 {% endif %}
 
                 {% if settings.ARCHETYPE_GITHUB %}
-                    <a data-container='body' data-placement='bottom' data-toggle='tooltip' class='link-icon' title="Explore Archetype's source code on GitHub" href= 'https://github.com/{{ settings.ARCHETYPE_GITHUB }}'>
+                    <a data-container='body' data-placement='top' data-toggle='tooltip' class='link-icon' title="Explore Archetype's source code on GitHub" href= 'https://github.com/{{ settings.ARCHETYPE_GITHUB }}'>
                         <span class='fa fa-github'></span>
                     </a>
                 {% endif %}
             </div>
 
         </div>
-        {% if DEBUG %}
-            <div class="row" style="font-size: 18px;">
-                <div class="col-md-12">
-                   {% if request.user.is_staff %}
-                       You are logged in as {{ request.user }}
-                       |
-                       <a href="/admin/">Database</a>
-                       |
-                       <a href="/digipal/search/index/">Indexing</a>
-                       |
-                       <a href="/logout/?next={{request.path}}">Log out</a>
-                   {% else %}
-                       <a href="/login/?next={{request.path}}%3F{{request.META.QUERY_STRING|urlencode}}">Log in to see all the content</a>.
-                   {% endif %}
-                </div>
+        <div class="row" style="font-size: 18px;">
+            <div class="col-md-12">
+               {% if request.user.is_staff %}
+                   You are logged in as {{ request.user }}
+                   |
+                   <a href="/admin/">Database</a>
+                   |
+                   <a href="/digipal/search/index/">Indexing</a>
+                   |
+                   <a href="/logout/?next={{request.path}}">Log out</a>
+               {% else %}
+                   <a href="/login/?next={{request.path}}%3F{{request.META.QUERY_STRING|urlencode}}">Log in{% if DEBUG %} to see all the content{% endif %}</a>.
+               {% endif %}
             </div>
-        {% endif %}
+        </div>
     </div>
 </footer>

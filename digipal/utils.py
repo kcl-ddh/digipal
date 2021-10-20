@@ -5,7 +5,6 @@ import os
 import lxml.etree as ET
 from lxml.etree import XMLSyntaxError
 from django.shortcuts import render, render_to_response
-import base64
 from django.db.models.query import EmptyResultSet
 psutil = None
 try:
@@ -1526,7 +1525,6 @@ def call_management_command(command, *args, **kwargs):
 
     # shell command line
     from mezzanine.conf import settings
-    import sys
 
     python_path = get_python_path()
 
@@ -1550,13 +1548,53 @@ def package_create():
         os.path.join(settings.PROJECT_ROOT, '..', 'build', 'zip_digipal_project.py'),
     )
 
-    print(command_shell)
-
     # run the command in a child process, calling python
+
     from subprocess import Popen
     dplog('call command : %s' % command_shell)
-    child_id = Popen(command_shell.split()).pid
-    dplog('called command : %s | %s' % (child_id, command_shell))
+    ret = Popen(command_shell.split()).pid
+    dplog('called command : %s | %s' % (ret, command_shell))
+
+    # write it here even if zip_digipal_project does it,
+    # for concurrency control when page is reloaded
+    with open(get_packager_pid_path(), 'wt') as fh:
+        fh.write(str(ret))
+
+    return ret
+
+
+def get_packager_pid_path():
+    from mezzanine.conf import settings
+    return os.path.join(
+        settings.STATIC_ROOT,
+        '.packager.pid'
+    )
+
+
+def get_packager_pid():
+    ret = 0
+    path = get_packager_pid_path()
+    if os.path.exists(path):
+        with open(path, 'rt') as fh:
+            ret = int(fh.read())
+
+    return ret
+
+
+def packager_cancel():
+    pid = get_packager_pid()
+    if pid:
+        import signal
+        try:
+            res = os.kill(pid, signal.SIGKILL)
+        except OSError, e:
+            # Process doesn't exist
+            if e.errno == 3:
+                pass
+
+    path = get_packager_pid_path()
+    if os.path.exists(path):
+        os.remove(path)
 
 
 def json_dumps(data):
@@ -1895,9 +1933,9 @@ def get_latest_docker_version(cached_days=1):
     Return build.__version__ from github master version.
     The value is cached for a day in the KeyVal table.
     '''
-    from digipal.models import KeyVal
     import math
     import time
+    from digipal.models import KeyVal
     now = time.time()
 
     try:

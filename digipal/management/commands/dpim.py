@@ -105,12 +105,16 @@ class Command(BaseCommand):
         --filter="a b, cd e,#195"
         Select images with (a AND b in the name) OR (cd and e in the name)
         OR image.id = 195
+        
+    --cdt X
+        The action will apply only to images which meet the condition X
+        X is a Django Queryset filter, e.g. --cdt 'id=6040'
 
     --offline
         Select only the images which are on disk an not in the DB
 
     --missing
-        Select only the images which are on the DB and not on disk
+        Select only the images which are in the DB and not on disk
 
  Examples:
 
@@ -163,7 +167,12 @@ class Command(BaseCommand):
             dest='missing',
             default='',
             help='Only list images which are missing from disk'),
-        )
+        make_option('--cdt',
+            action='store',
+            dest='cdt',
+            default='',
+            help=''),
+    )
 
     def get_all_files(self, root):
         # Scan all the image files on disk (under root) and in the database.
@@ -172,6 +181,11 @@ class Command(BaseCommand):
         ret = []
 
         all_images = Image.objects.all()
+
+        cdt = self.options.get('cdt', None)
+        if cdt:
+            all_images = eval('all_images.filter({})'.format(cdt))
+
         image_paths = {}
         images = {}
         for image in all_images:
@@ -251,10 +265,29 @@ class Command(BaseCommand):
         if command == 'update_dimensions':
             known_command = True
             self.update_dimensions(*args)
-            
+
+        if command == '_2jp2':
+            known_command = 1
+            for im in Image.objects.all():
+                if im.iipimage.name.endswith('tif'):
+                    im.iipimage.name = im.iipimage.name[:-3] + 'jp2'
+                    im.save()
+
         if command == 'move_annotations':
             known_command = True
             self.move_annotations()
+
+        if command == 'jp2tif':
+            known_command = True
+            self.jp2tif()
+
+        if command == 'setdims':
+            known_command = True
+            self.setdims()
+
+        if command == 'enlarge':
+            known_command = True
+            self.enlarge()
 
         if command in ('list', 'upload', 'unstage', 'update', 'remove', 'crop'):
             known_command = True
@@ -355,7 +388,7 @@ class Command(BaseCommand):
                         extra = file_info['image'].image.name
                     print '#%s\t%-20s\t%s\t%s' % (imageid, found_message, file_relative, extra)
 
-            print '%s images in DB. %s image on disk. %s on disk only. %s missing from DB.' % (counts['online'], counts['disk'], counts['disk_only'], counts['missing'])
+            print '%s images in DB. %s image on disk. %s on disk only. %s not on disk.' % (counts['online'], counts['disk'], counts['disk_only'], counts['missing'])
 
         if command in ['copy', 'originals', 'copy_convert', 'pocket']:
             known_command = True
@@ -928,7 +961,9 @@ class Command(BaseCommand):
         if self.get_verbosity() >= 2:
             print '\t' + command
         try:
-            os.system(command)
+            status = os.system(command)
+            if status > 0:
+                ret = [status, command]
         except Exception, e:
             #os.remove(input_path)
             #raise CommandError('Error executing command: %s (%s)' % (e, command))
@@ -939,4 +974,196 @@ class Command(BaseCommand):
             #os.remove(input_path)
             pass
         return ret
+
+    def transform_image(self, image_info, operations):
+        '''
+        Runs a series of operations (image transform shell commands)
+            on the jp2/tif image file pointed by image_info
+            each intermediate output is saved into /tmp/dpim-X.EXT
+            final output replaces the original file.
+        image_info: an info structure like the ones returned by get_all_files()
+        operations: a list of operations and their target filenames
+            [['command {0} {1}', 'extension'], ...]
+        '''
+        ret = None
+
+        path_src = os.path.join(settings.IMAGE_SERVER_ROOT, image_info['path'])
+        path_original = path_src
+        for i, op in enumerate(operations):
+            op[0] = op[0].replace('%s', '{}')
+            ret = '/tmp/dpim-{}.{}'.format(i, op[1])
+            if os.path.exists(ret): os.remove(ret)
+            command = op[0].format(path_src, ret)
+            ret_shell = self.run_shell_command(command)
+            if ret_shell or not os.path.exists(ret):
+                print('WARNING: Error during conversion %s' % ret_shell)
+                ret = None
+                break
+            path_src = ret
+
+        if ret:
+            ret_ext = re.sub(r'^.*\.', r'.', ret)
+            ret = re.sub(r'\.[^.]+$', ret_ext, path_original)
+            image_info['path'] = ret
+            image_info['image'].iipimage.name = re.sub(r'\.[^.]+$', ret_ext, image_info['image'].iipimage.name)
+
+            # move the image
+            import shutil
+            shutil.move(path_src, ret)
+
+            # update the image record (width & height) and save it
+            dims = self.reset_image_dimensions(image_info)
+
+            # remove original image
+            if dims[0]*dims[1]:
+                if path_original != ret:
+                    os.remove(path_original)
+            else:
+                ret = None
+
+        return ret
+
+    def setdims(self):
+        root = get_image_path()
+        files = self.get_all_files(root)
+
+        for info in files:
+            if self.is_filtered_in(info) and info.get('disk', False) and info['image']:
+                self.reset_image_dimensions(info)
+
+    def reset_image_dimensions(self, image_info):
+        '''reset .width & .height from the dimensions read from the file.
+        Save updated Image record in the database.
+        Returns new dimensions (width, height).
+        On error: returns (0, 0) and don't save anything.
+        '''
+        dims = self.get_image_dimensions(image_info)
+        if dims[0]:
+            image_info['image'].width = dims[0]
+            image_info['image'].height = dims[1]
+            image_info['image'].save()
+
+        return dims
+
+    def get_image_dimensions(self, image_info):
+        '''Returns (width, height)
+        Method: imagemagick identify
+        Why: because iipsrv caches the results and we need fresh values
+        '''
+        ret = (0, 0)
+
+        out_file = '/tmp/dpim_identify.log'
+        path = os.path.join(settings.IMAGE_SERVER_ROOT, image_info['path'])
+        command = 'identify -quiet {}[0] > {}'.format(path, out_file)
+        # images/pim/jp2/1.bmp[0]=>images/pim/jp2/1.bmp BMP 1100x1134 1100x1134+0+0 8-bit sRGB 3.742MB 0.000u 0:00.000
+        ret_shell = self.run_shell_command(command)
+        if ret_shell is None:
+            content = utils.readFile(out_file)
+            dimss = re.findall(r' (\d+)x(\d+)\b', content)
+            if dimss:
+                ret = [int(d) for d in dimss[0]]
+        else:
+            print('WARNING: can\'t read dimensions of {}'.format(path))
+
+        return ret
+
+    def enlarge(self):
+        '''enlarge image width by 50px, and height to preserve aspect ratio.
+        Transform the annotations accordingly.
+        '''
+        root = get_image_path()
+        files = self.get_all_files(root)
+        extra_size = 50
+
+        for info in files:
+            if self.is_filtered_in(info) and info.get('disk', False) and info['image']:
+                operations = []
+                print(info['image'].pk, info['path'])
+                # jp2 -> tif
+                if info['path'].endswith('.jp2'):
+                    operations.append([
+                        'opj_decompress -quiet -i {0} -OutFor TIF -o {1}',
+                        'tif'
+                    ])
+
+                # tif -> png (resized)
+                factor = 1 + (float(extra_size) / info['image'].width)
+                dims = [
+                    int(info['image'].width * factor),
+                    int(info['image'].height * factor)
+                ]
+                operations.append([
+                    'convert {0}[0] -resize %sx%s {1}' % (dims[0], dims[1]),
+                    'png'
+                ])
+
+                # png -> tif/jp2
+                operations.append([
+                    self.get_convert_command(),
+                    settings.IMAGE_SERVER_EXT
+                ])
+
+                res = self.transform_image(info, operations)
+
+                if res:
+                    # now transform the annotations
+                    for a in info['image'].annotation_set.all():
+                        path = a.get_shape_path()
+                        for pair in path:
+                            pair[0] = int(pair[0] * factor)
+                            pair[1] = int(pair[1] * factor)
+                        a.set_shape_path(path)
+                        a.save()
+
+    def get_convert_command(self):
+        from iipimage.storage import CONVERT_TO_JP2
+        ret = CONVERT_TO_JP2.replace(
+            'kdu_compress', 'kdu_compress -quiet'
+        )
+        return ret
+
+    def jp2tif(self):
+        '''Converts jp2 images to tif.
+        Useful when moving the a native/legacy archetype instance to
+        a more modern/dockerise version.
+        The tif files are compressed at 90 quality.
+        They are layered and tiled.
+
+        Method: opj_decompress for jp2 -> png
+            then 'convert' for png to tif.
+        We use png as an intermediate format because it works better than any
+        other, including BMP (convert complains about bmp done by opj_compress).
+        '''
+        root = get_image_path()
+        files = self.get_all_files(root)
+        i = 0
+
+        stats = {
+            'total': 0,
+            'converted': 0,
+            'errors': 0,
+        }
+
+        for info in files:
+            if self.is_filtered_in(info) and info.get('disk', False) and info['image']:
+                if not info['path'].endswith(settings.IMAGE_SERVER_EXT):
+                    stats['total'] += 1
+                    print(stats['total'], info['image'].pk, info['path'])
+
+                    operations = [
+                        ['opj_decompress -quiet -i {} -OutFor TIF -o {}', 'png'],
+                        [self.get_convert_command(), settings.IMAGE_SERVER_EXT],
+                    ]
+                    res = self.transform_image(info, operations)
+
+                    if res:
+                        stats['converted'] += 1
+                    else:
+                        stats['errors'] += 1
+
+        print('SUMMARY: %s jp2, %s converted to tif, %s errors.' % (
+            stats['total'],
+            stats['converted'],
+            stats['errors'],
+        ))
 

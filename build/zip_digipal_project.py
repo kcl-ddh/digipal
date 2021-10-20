@@ -139,8 +139,15 @@ class ProjectZipper(object):
     def create_tar(self):
         run_cmd('tar -cf %s --files-from /dev/null' % self.get_tar_path())
 
+    def save_pid(self, clear=False):
+        pid = 0 if clear else os.getpid()
+        with open(os.path.join(self.get_dst_path(), '.packager.pid'), 'wt') as fh:
+            fh.write(str(pid))
+
     def zip_project(self):
         self.import_settings()
+
+        self.save_pid()
 
         self.create_tar()
 
@@ -163,9 +170,10 @@ class ProjectZipper(object):
 
         # config files
         files_to_tar = ['*.py']
+        # We make space for a special settings.py that enables dockers config
         tar_transforms = [['^settings.py$', 'settings.py.bk']]
         if self.is_digipal_app_the_project:
-            files_to_tar = ['urls.py', 'local_settings.py']
+            # files_to_tar = ['urls.py', 'local_settings.py']
             tar_transforms = None
 
         self.add_path_to_tar(
@@ -178,11 +186,12 @@ class ProjectZipper(object):
         )
 
         # Now zip it all
-        run_cmd('gzip -f1 %s' % self.get_tar_path())
+        run_cmd('gzip -f3 %s' % self.get_tar_path())
 
         print 'Download your backup at: %s' % (os.path.join(self.settings.STATIC_URL, 'archetype.tar.gz'), )
-#                                                         ))
         # os.system('chmod ugo+rw %s.tar' % self.get_dst_path())
+
+        self.save_pid(True)
 
 
 zipper = ProjectZipper()

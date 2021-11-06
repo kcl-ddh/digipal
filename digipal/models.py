@@ -1565,7 +1565,11 @@ class ItemPart(models.Model):
         ), [MediaPermission.PERM_PUBLIC, MediaPermission.PERM_THUMB_ONLY]).count()
 
     def get_shelfmark_with_auth(self):
-        ret = self.current_item.shelfmark
+        ret = u'%s' % self
+
+        if self.current_item and self.current_item.shelfmark:
+            ret = self.current_item.shelfmark
+
         if self.is_suspect():
             ret += ' <b>(anachronistic)</b>'
         return ret

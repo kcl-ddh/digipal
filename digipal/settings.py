@@ -696,6 +696,8 @@ ANNOTATOR_ZOOM_LEVELS = 7
 # Lower value for smaller increments (OL default = 2)
 ANNOTATOR_ZOOM_FACTOR = 1.4
 
+ANNOTATOR_UNDESCRIBED_GRAPH_HTML = '<li class="component">This graph has no description.</li>'
+
 # Show ms date on annotator?
 PAGE_IMAGE_SHOW_MSDATE = False
 # Show MS summary on annotator?

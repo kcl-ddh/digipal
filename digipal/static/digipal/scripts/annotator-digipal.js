@@ -2518,7 +2518,7 @@ function refresh_features_dialog(data, dialog) {
             components.push(component);
         }
     } else if (data.hasOwnProperty('features') && $.isEmptyObject(features)) {
-        s += "<li class='component'>This graph has not yet been described.</li>";
+        s += window.ANNOTATOR_UNDESCRIBED_GRAPH_HTML;
         //dialog.css('height', '100px');
     }
 

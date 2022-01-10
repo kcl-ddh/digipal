@@ -1124,11 +1124,14 @@ def get_elementid_from_xml_element(element, idcount, as_string=False):
     element_text = utils.get_xml_element_text(element)
 
     # eg. parts: [(u'', u'clause'), (u'type', u'disposition')]
-    parts = [(unicode(re.sub('data-dpt-?', '', k)), unicode(v))
-             for k, v in element.attrib.iteritems() if k.startswith('data-dpt') and k not in ['data-dpt-cat']]
+    parts = [
+        (unicode(re.sub('data-dpt-?', '', k)), unicode(v))
+        for k, v in element.attrib.iteritems()
+        if k.startswith('data-dpt') and k not in ['data-dpt-cat']
+    ]
 
     # white list to filter the elements
-    if parts[0][1] in ('clause', 'location', 'person'):
+    if parts[0][1] in (settings.TEXT_ELEMENTS_WITH_IDS):
         element_text = slugify(u'%s' % element_text.lower())
         if len(element_text) > 0 and len(element_text) < 20:
             parts.append(['@text', element_text])

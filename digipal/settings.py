@@ -753,11 +753,11 @@ ARCHETYPE_CITE = 'https://zenodo.org/record/5572558'
 
 TEXT_EDITOR_OPTIONS = {
     'buttons': {
-        'psclause': 'Address,Disposition,Witnesses',
+        'psclause': 'Address,Disposition,Witnesses,Dating',
         'psClauseSecondary': 'Arenga,Boundaries,Holding,Injunction,Malediction,Narration,Notification,Prohibition,Salutation,Sealing,Subscription,Intitulatio,Warrandice'
     },
     'toolbars': {
-        'default': 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | psperson | pslocation | psex pssupplied psdel | code ',
+        'default': 'psclear undo redo pssave | psconvert | psclause | psClauseSecondary | psperson | psplace | pslocation | psex pssupplied psdel | code ',
     },
     'panels': {
         'north': {
@@ -768,6 +768,12 @@ TEXT_EDITOR_OPTIONS = {
         },
     }
 }
+
+'''Which type of XML elements in the texts will receive an id.
+The id is needed to allow search indexing and image-text annotations.
+e.g. <span data-dpt='clause' data-dpt-type='disposition'>my clause here</span>
+'''
+TEXT_ELEMENTS_WITH_IDS = ['clause', 'location', 'person', 'place']
 
 ##################
 # LOCAL SETTINGS #

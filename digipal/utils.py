@@ -907,15 +907,20 @@ def get_cms_url_from_slug(title):
     return u'/%s' % slugify(unicode(title))
 
 
-def remove_param_from_request(request, key):
+def remove_param_from_request(request, key='jx'):
     ret = request
-    # print dir(ret.GET)
-    ret.GET = ret.GET.copy()
-    if 'jx' in ret.GET:
-        del ret.GET['jx']
-    ret.META = ret.META.copy()
-    ret.META['QUERY_STRING'] = re.sub(
-        ur'\Wjx=1($|&|#)', ur'', ret.META.get('QUERY_STRING', ''))
+    if key in ret.GET:
+        ret.GET = ret.GET.copy()
+        ret.GET.pop(key)
+
+    # ?hi_type=Charter&terms=london&locus=face&jx=1&result_type=images
+    # ?jx=1&hi_type=Charter&terms=london&jjx=1&locus=face&jx=1&result_type=images&jx=1#hash
+    # &hi_type=Charter&terms=london&jjx=1&locus=face&result_type=images#hash
+    qs = ret.META.get('QUERY_STRING', '')
+    if qs:
+        ret.META = ret.META.copy()
+        ret.META['QUERY_STRING'] = re.sub(r'(^|&)'+re.escape(key)+'=.*?(&|$)', r'\1', qs)
+
     return ret
 
 

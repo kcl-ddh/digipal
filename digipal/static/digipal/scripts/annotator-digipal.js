@@ -690,7 +690,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
         events: function(dialog_instance, selectedFeature) {
             var url_allograph_button = dialog_instance.parent().find('.url_allograph');
 
-            url_allograph_button.on('click', function() {
+            url_allograph_button.off('click').on('click', function() {
                 show_url_allograph(dialog_instance, selectedFeature, $(this));
             });
             if (!window.digipal_settings.ARCHETYPE_GOOGLE_SHORTENER_CLIENTID) {

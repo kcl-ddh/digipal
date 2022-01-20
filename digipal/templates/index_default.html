@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load blog_tags keyword_tags i18n html_escape %}
+
+{% block meta_title_site %}{{ settings.SITE_TITLE }}{% endblock %}
+
+{% block meta_title %}{% endblock %}
+
+{% block title %}
+    {% trans "Home" %}
+{% endblock %}
+
+{% block breadcrumb_menu %}
+    <li class="active">{% trans "Home" %}</li>
+{% endblock %}
+
+{% block main %}
+    {% block top %}
+        <div class='row'>
+        
+            {% block top_left %}
+                {% include "digipal/home_carousel.html" %}
+            {% endblock %}
+            
+            {% block top_middle %}
+            {% endblock %}
+            
+            {% block top_right %}
+                <div class="col-md-4 smaller justified">
+                    {% include "digipal/home_intro.html" %}
+                </div>
+            {% endblock %}
+            
+        </div>
+    {% endblock %}
+
+    {% block bottom %}
+        
+        <div id="homeSection" class="row home-page-listings">
+        
+            {% block bottom_left %}
+                {% include 'digipal/recent_posts.html' with posts_title='Blog' posts_category='blog' posts_more='More entries' %}
+            {% endblock %}
+    
+            {% block bottom_middle %}
+                {% include 'digipal/recent_posts.html' with posts_title='News' posts_category='news' posts_more='More news' %}
+            {% endblock %}
+            
+            {% block bottom-right %}
+                <div class="col-md-4 col-sm-12">
+                    {% render_mezzanine_page 'home.glossary' %}
+                </div>
+            {% endblock %}
+            
+        </div>
+        
+    {% endblock %}
+    
+{% endblock %}

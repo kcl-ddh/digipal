@@ -324,6 +324,7 @@ def image(request, image_id):
         'hide_annotations': int(not is_model_visible('graph', request)),
         'PAGE_IMAGE_SHOW_MSDATE': settings.PAGE_IMAGE_SHOW_MSDATE,
         'text_content_xmls': TextContentXML.objects.filter(text_content__item_part=image.item_part),
+        'ANNOTATOR_UNDESCRIBED_GRAPH_HTML': settings.ANNOTATOR_UNDESCRIBED_GRAPH_HTML,
     }
 
     if settings.PAGE_IMAGE_SHOW_MSSUMMARY:

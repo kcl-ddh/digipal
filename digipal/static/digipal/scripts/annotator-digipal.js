@@ -690,7 +690,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
         events: function(dialog_instance, selectedFeature) {
             var url_allograph_button = dialog_instance.parent().find('.url_allograph');
 
-            url_allograph_button.on('click', function() {
+            url_allograph_button.off('click').on('click', function() {
                 show_url_allograph(dialog_instance, selectedFeature, $(this));
             });
             if (!window.digipal_settings.ARCHETYPE_GOOGLE_SHORTENER_CLIENTID) {
@@ -1883,6 +1883,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
         var map_size;
         var input_toolbar_position = $("input[name='toolbar_position']:checked");
         if (!(this.fullScreen.active)) {
+            $('body').addClass('annotator-fullscreen')
             $('html, body').animate({
                 scrollTop: map.position().top
             }, 0);
@@ -1892,6 +1893,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
 
             $(document).keyup(function(e) {
                 if (e.keyCode == 27) {
+                    $('body').removeClass('annotator-fullscreen')
                     map.removeClass('fullScreenMap');
                     panel.removeClass('fullScreenPanel');
                     toolbar.removeClass('mapHorizontalFullscreen');
@@ -1912,6 +1914,7 @@ function DigipalAnnotator(mediaUrl, imageUrl, imageWidth, imageHeight, imageServ
             }
         } else {
             this.fullScreen.deactivate();
+            $('body').removeClass('annotator-fullscreen')
             map.removeClass('fullScreenMap');
 
             $('.olControlFullScreenFeatureItemInactive').attr('title', 'Activate Full Screen');
@@ -2518,7 +2521,7 @@ function refresh_features_dialog(data, dialog) {
             components.push(component);
         }
     } else if (data.hasOwnProperty('features') && $.isEmptyObject(features)) {
-        s += "<li class='component'>This graph has not yet been described.</li>";
+        s += window.ANNOTATOR_UNDESCRIBED_GRAPH_HTML;
         //dialog.css('height', '100px');
     }
 

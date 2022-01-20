@@ -989,9 +989,10 @@ class Command(BaseCommand):
 
         path_src = os.path.join(settings.IMAGE_SERVER_ROOT, image_info['path'])
         path_original = path_src
+        pid = os.getpid()
         for i, op in enumerate(operations):
             op[0] = op[0].replace('%s', '{}')
-            ret = '/tmp/dpim-{}.{}'.format(i, op[1])
+            ret = '/tmp/dpim-{}-{}.{}'.format(pid, i, op[1])
             if os.path.exists(ret): os.remove(ret)
             command = op[0].format(path_src, ret)
             ret_shell = self.run_shell_command(command)
@@ -1144,11 +1145,13 @@ class Command(BaseCommand):
             'errors': 0,
         }
 
+        from time import time
+
         for info in files:
-            if self.is_filtered_in(info) and info.get('disk', False) and info['image']:
+            if self.is_filtered_in(info) and info.get('disk', False) and info['image'] and getattr(info['image'], 'pk') > 0:
                 if not info['path'].endswith(settings.IMAGE_SERVER_EXT):
                     stats['total'] += 1
-                    print(stats['total'], info['image'].pk, info['path'])
+                    print(int(time()), stats['total'], info['image'].pk, info['path'])
 
                     operations = [
                         ['opj_decompress -quiet -i {} -OutFor TIF -o {}', 'png'],
@@ -1166,4 +1169,3 @@ class Command(BaseCommand):
             stats['converted'],
             stats['errors'],
         ))
-

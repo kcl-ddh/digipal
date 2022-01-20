@@ -211,6 +211,10 @@
              *  callback(short_url)
             */
             gapi_shorten_url: function(long_url, callback) {
+                // this Google service is no longer available, return long_url
+                callback(long_url);
+                return;
+
                 window.dputils.gapi_call(function(google_api_client) {
 
                     google_api_client.load('urlshortener', 'v1', function() {

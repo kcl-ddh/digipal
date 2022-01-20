@@ -281,17 +281,19 @@ function init_search_page(options) {
 
             var page_url = dputils.get_page_url($(location).attr('href'));
             // ! we use this.href instead of $element.attr('href') as the first one returns the absolute URL
-            $form = $element.parents('form');
+            var $form = $element.parents('form');
             //var url = this.hasAttribute('href') ? this.href : page_url + '?' + $form.serialize();
             var url = this.hasAttribute('href') ? this.href : page_url;
             var $focus_selector = $element.data('focus');
 
-            // check if the href is for this page
+            // leave if the href points to another page
             if (page_url !== dputils.get_page_url(url)) return true;
-            // check if control-click
+            // leave if control-click (reload in new tab)
             if (ev.ctrlKey) return true;
 
             window.dputils.fragment_refreshing("#search-ajax-fragment");
+
+            var url_on_success = this.href ? url : page_url + '?' + $form.serialize().replace(/[^?&]+=(&|$)/g, '');
 
             // See http://stackoverflow.com/questions/9956255.
             // This tricks prevents caching of the fragment by the browser.
@@ -317,7 +319,8 @@ function init_search_page(options) {
                 // insert the new HTML content
                 $fragment.html($data.html());
 
-                if (!is_post) dputils.update_address_bar(url, false, true);
+                if (!is_post) dputils.update_address_bar(url_on_success, false, true);
+                // if (!is_post) dputils.update_address_bar(url, false, true);
 
                 $fragment.stop().animate({
                     'background-color': 'white',

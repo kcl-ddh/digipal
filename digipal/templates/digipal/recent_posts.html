@@ -1,0 +1,24 @@
+<div class="col-md-4 col-sm-12 recentPosts">
+    <h1 class='header1'><a href="/blog/category/{{ posts_category }}/">{{ posts_title }}</a></h1>
+    {% load blog_tags keyword_tags i18n %}
+    {% blog_recent_posts 4 category=posts_category as recent_posts %}
+    {% if recent_posts %}
+        <ul>
+            {% for recent_post in recent_posts %}
+                <li>
+                    <a href="{{ recent_post.get_absolute_url }}">
+                        {{ recent_post.title }}
+                    </a>
+                    <br/>
+                    <span class="legend">
+                        {{ recent_post.publish_date|timesince }}
+                        ago, by {{ recent_post.user.first_name }} {{ recent_post.user.last_name }}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+        <p>
+            <a class='btn btn-default' href="/blog/category/news">{{ posts_more }} &raquo;</a>
+        </p>
+    {% endif %}
+</div>
